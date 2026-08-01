@@ -891,7 +891,7 @@ const RECOVERY_CSS = `
   .auth-rec-panel h2.auth-rec-title {
     margin: 0 0 18px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 29px !important;
+    font-size: 26px !important;
     font-weight: 400 !important;
     line-height: 1.08 !important;
     letter-spacing: var(--auth-tracking-display, 0.006em);
@@ -1163,7 +1163,7 @@ const RECOVERY_CSS = `
     #auth-recovery-title,
     .auth-rec-panel h2.auth-rec-title {
       margin: 4px 0 18px;
-      font-size: 29px !important;
+      font-size: 26px !important;
       line-height: 1.08 !important;
     }
     .auth-rec-body p {

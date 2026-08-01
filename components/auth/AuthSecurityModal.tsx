@@ -171,7 +171,7 @@ const SECURITY_CSS = `
   #auth-security-title {
     margin: 0 0 18px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 29px;
+    font-size: 26px;
     font-weight: 400;
     line-height: 1.08;
     letter-spacing: var(--auth-tracking-display, 0.006em);
@@ -283,7 +283,7 @@ const SECURITY_CSS = `
     .auth-sec-title,
     #auth-security-title {
       margin: 4px 0 18px;
-      font-size: 29px;
+      font-size: 26px;
       line-height: 1.08;
     }
     .auth-sec-body {

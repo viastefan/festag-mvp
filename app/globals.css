@@ -1272,7 +1272,7 @@ input[type="checkbox"], input[type="radio"] {
 
 /* All buttons & links: minimum 44x44 hit area on mobile */
 @media(max-width:768px) {
-  button:not(.no-min-tap):not(.set-toggle):not(.ds-mobile-menu):not(.ds-group-toggle):not(.ds-back),
+  button:not(.no-min-tap):not(.mob-dot):not(.set-toggle):not(.ds-mobile-menu):not(.ds-group-toggle):not(.ds-back),
   a.btn-link:not(.no-min-tap),
   [role="button"]:not(.no-min-tap):not(.set-toggle) {
     min-height: 44px;
@@ -2102,8 +2102,8 @@ textarea,
   #auth-panel-switch-title,
   h2.auth-rec-title,
   #auth-recovery-title {
-    font-size: 23px !important;
-    line-height: 1.22 !important;
+    font-size: 26px !important;
+    line-height: 1.08 !important;
     font-weight: 400 !important;
   }
   /* Dark auth popup titles — only when the popup backdrop itself is dark.

@@ -77,6 +77,11 @@ type Props = {
   trigger?: 'focus' | 'chip'
   /** Pencil only — no white pill / border behind the idle chip. */
   bareChip?: boolean
+  /**
+   * inside — bottom-right inside the field (default).
+   * beside — to the right of the anchor (onboarding Ziel).
+   */
+  chipAlign?: 'inside' | 'beside'
 }
 
 type Pos = { top: number; left: number; width: number }
@@ -155,6 +160,7 @@ export default function TagroFieldAssist({
   autoFormulate = true,
   trigger = 'focus',
   bareChip = false,
+  chipAlign = 'inside',
 }: Props) {
   const chipMode = trigger === 'chip'
   const [busy, setBusy] = useState(false)
@@ -207,6 +213,15 @@ export default function TagroFieldAssist({
     if (!el) return
     const r = el.getBoundingClientRect()
     if (compact) {
+      if (chipAlign === 'beside') {
+        const top = Math.max(EDGE, r.top + Math.max(0, Math.min(8, (r.height - CHIP_SIZE) / 2)))
+        const left = Math.min(
+          window.innerWidth - CHIP_SIZE - EDGE,
+          Math.max(EDGE, r.right + 6),
+        )
+        setPos({ top, left, width: CHIP_SIZE })
+        return
+      }
       setPos({
         top: Math.max(EDGE, r.bottom - CHIP_SIZE - CHIP_INSET),
         left: Math.max(EDGE, r.right - CHIP_SIZE - CHIP_INSET),
@@ -226,7 +241,7 @@ export default function TagroFieldAssist({
       next.width = width
     }
     setPos(next)
-  }, [anchorRef, userMoved, compact, preferBelow])
+  }, [anchorRef, userMoved, compact, preferBelow, chipAlign])
 
   useEffect(() => {
     busyRef.current = busy
@@ -412,14 +427,15 @@ export default function TagroFieldAssist({
     }
   }, [anchorRef, listening, model, onFieldChange, stop, surface, tone])
 
-  /* Auto-formulate after typing settles — spinner shows while waiting + during API. */
+  /* Auto-formulate after typing settles — chip mode runs closed (field rewrite + orb spin). */
   useEffect(() => {
-    if (!autoFormulate || !open || !expanded || !hasText || busy) {
+    const panelReady = chipMode || (open && expanded)
+    if (!autoFormulate || !panelReady || !hasText || busy) {
       setAwaiting(false)
       return
     }
     const text = fieldValue.trim()
-    if (!text || text === formulatedForRef.current) {
+    if (!text || text.length < 8 || text === formulatedForRef.current) {
       setAwaiting(false)
       return
     }
@@ -432,7 +448,7 @@ export default function TagroFieldAssist({
       window.clearTimeout(t)
       setAwaiting(false)
     }
-  }, [autoFormulate, open, expanded, hasText, fieldValue, busy, runFormulate])
+  }, [autoFormulate, chipMode, open, expanded, hasText, fieldValue, busy, runFormulate])
 
   function pickModel(next: TagroAssistModel) {
     setModel(next)
@@ -526,13 +542,18 @@ export default function TagroFieldAssist({
       {compact ? (
         <button
           type="button"
-          className="tfa-chip-orb"
+          className={`tfa-chip-orb${formulating ? ' is-busy' : ''}`}
           onMouseDown={(e) => e.preventDefault()}
           onClick={reopenFromChip}
-          aria-label="Tagro Assist öffnen"
+          aria-label={formulating ? 'Tagro formuliert' : 'Tagro Assist öffnen'}
           title="Tagro"
+          aria-busy={formulating}
         >
-          <PencilSimple size={14} weight="regular" aria-hidden />
+          {formulating ? (
+            <span className="tfa-chip-spin" aria-hidden />
+          ) : (
+            <PencilSimple size={14} weight="regular" aria-hidden />
+          )}
         </button>
       ) : formulating ? (
         <div className="tfa-formulate">
@@ -743,8 +764,18 @@ const TFA_CSS = `
   }
   .tfa-chip-orb:hover { opacity: 0.9; }
   .tfa-chip-orb:active { transform: scale(0.94); }
+  .tfa-chip-orb.is-busy { cursor: default; opacity: 0.9; }
   .tfa-bubble--dark .tfa-chip-orb { color: rgba(230, 230, 234, 0.78); }
   .tfa-bubble--light .tfa-chip-orb { color: #5B647D; }
+  .tfa-chip-spin {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(91, 100, 125, 0.22);
+    border-top-color: #5B647D;
+    animation: tfaSpin .7s linear infinite;
+  }
+  @keyframes tfaSpin { to { transform: rotate(360deg); } }
 
   .tfa-formulate {
     display: flex;

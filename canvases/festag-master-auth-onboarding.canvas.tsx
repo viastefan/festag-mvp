@@ -4,7 +4,7 @@ import { Button, Row, Stack, Text, useCanvasState, useHostTheme } from 'cursor/c
 /**
  * FESTAG MASTER — Auth + Tagro Intelligence Layer
  * Register = identity only. Then: describe your goal → Tagro builds a Workspace Blueprint.
- * Clarify only when confidence is low. Appearance follows OS / host (prefer Read/light).
+ * After Ziel always confirm type (Passt das?). Appearance follows OS / host (prefer Read/light).
  */
 
 type Appearance = 'dark' | 'light'
@@ -386,7 +386,8 @@ function analyzeIntent(raw: string, clarifyPick = ''): TagroBlueprint {
 	else if (/organisieren|projektmanagement/.test(s)) primaryGoal = 'Arbeit organisieren'
 	else if (/kunde/.test(s)) primaryGoal = 'Kundenarbeit liefern'
 
-	const needsClarify = s.length >= 6 && confidence > 0 && confidence < 72 && !clarifyPick
+	/* Always confirm type after a real intent — Tagro guesses, user picks. */
+	const needsClarify = s.length >= 6 && !clarifyPick
 
 	return {
 		workspaceType: topScore > 8 ? topType : '—',
@@ -503,9 +504,8 @@ export default function FestagMasterAuthOnboarding() {
 	}
 
 	function goAfterIntent() {
-		const bp = analyzeIntent(intentText, clarifyPick)
-		if (bp.needsClarify) go(stepIndex('clarify'))
-		else go(stepIndex('connect'))
+		/* Always land on Developer / Agentur / … — never skip to Quellen. */
+		go(stepIndex('clarify'))
 	}
 
 	function toggleSource(src: string) {
@@ -1630,6 +1630,22 @@ function IntentCanvasStage({
 		}
 	}, [])
 
+	/* Focus on mount — type without a first tap */
+	useEffect(() => {
+		const el = areaRef.current
+		if (!el) return
+		const focus = () => {
+			try {
+				el.focus({ preventScroll: true })
+			} catch {
+				el.focus()
+			}
+		}
+		focus()
+		const timers = [40, 120, 280].map((ms) => window.setTimeout(focus, ms))
+		return () => timers.forEach((id) => window.clearTimeout(id))
+	}, [])
+
 	/* Weiter only after 1.5s idle with enough text */
 	useEffect(() => {
 		if (settleTimer.current) clearTimeout(settleTimer.current)
@@ -1637,7 +1653,7 @@ function IntentCanvasStage({
 		if (!enough) return
 		settleTimer.current = setTimeout(() => {
 			onReadyChange(true)
-		}, 1500)
+		}, 3000)
 		return () => {
 			if (settleTimer.current) clearTimeout(settleTimer.current)
 		}
@@ -2400,7 +2416,11 @@ function AuthStage({
 						color: t.ink,
 					}}
 				>
-					{isLogin ? 'Willkommen zurück.' : 'Erstelle dein Konto.'}
+					{isLogin
+						? handle
+							? 'Willkommen zurück.'
+							: 'Willkommen zurück'
+						: 'Erstelle dein Konto.'}
 				</h1>
 
 				{isLogin ? (

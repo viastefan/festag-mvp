@@ -258,33 +258,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob .al-glassy-hero--stacked .al-glassy-hero-line {
     display: block;
     line-height: 1.22;
+    /* Stable line box so settle (clip padding off) doesn’t snap layout. */
+    min-height: 1.22em;
   }
-  /*
-   * No clip-mask rise on onboarding cards — that padding collapses on settle
-   * and makes the H1 “wobble” / line-height snap after the animation.
-   * Soft opacity fade only; metrics stay identical before/after.
-   */
-  .mob .al-glassy-hero.mob-glassy-h1 .al-gword,
-  .mob .al-glassy-hero.mob-glassy-h1 .al-gword.al-gword--settled {
-    overflow: visible !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    vertical-align: baseline;
-  }
+  /* Full glassy word rise + blur — same language as login AuthGlassyHero. */
   .mob .al-glassy-hero.mob-glassy-h1 .al-gword-inner {
-    animation: mobGwordSoft 0.42s cubic-bezier(0.16, 1, 0.3, 1) both !important;
-    animation-delay: calc(var(--i, 0) * 28ms) !important;
-    will-change: opacity;
-    filter: none !important;
-    transform: none !important;
+    animation: alGwordIn 0.58s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    animation-delay: calc(var(--i, 0) * 32ms) !important;
+    will-change: transform, filter, opacity;
   }
   .mob .al-glassy-hero.mob-glassy-h1.al-glassy-hero--instant .al-gword-inner {
     animation: none !important;
     opacity: 1 !important;
-  }
-  @keyframes mobGwordSoft {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    transform: none !important;
+    filter: none !important;
   }
 
   .mob-error {
@@ -299,6 +286,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     min-height: 46px;
     margin-top: 16px;
     width: 100%;
+  }
+  /* Intent: Weiter sits further below Tagro / field. */
+  .mob-ready-hint-slot--intent {
+    margin-top: 48px;
+    min-height: 46px;
   }
   .mob-continue-btn {
     width: 100%;
@@ -346,15 +338,35 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     opacity: 0.72;
   }
   @keyframes mobShellIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+      filter: blur(12px);
+      transform: translate3d(0, 8px, 0);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: translate3d(0, 0, 0);
+    }
   }
   @keyframes mobFadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
   }
+  @keyframes mobCardIn {
+    from {
+      opacity: 0;
+      filter: blur(8px);
+      transform: translate3d(0, 10px, 0) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
 
-  /* Intent field — notebook: no stroke; examples + caret; Weiter after settle */
+  /* Intent field — stroked input (login geometry), taller for multi-line Ziel */
   .mob-intent-wrap {
     position: relative;
     width: 100%;
@@ -362,38 +374,46 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     z-index: 2;
     box-sizing: border-box;
   }
+  /* Room for Tagro orb to the right of the field. */
+  .mob-intent-wrap.has-tagro-chip {
+    padding-right: 36px;
+  }
   .mob-intent-wrap.has-tagro-panel {
     z-index: 20;
     padding-bottom: 8px;
   }
   .mob-intent-shell {
     position: relative;
-    border-radius: 0;
-    border: none !important;
+    border-radius: var(--mob-field-radius, 8px);
+    /* Same idle/focus strokes as Login email field. */
+    border: 2px solid rgba(30, 30, 32, 0.15) !important;
     box-shadow: none !important;
     background: transparent;
-    padding: 6px 4px;
-    min-height: 56px;
+    padding: 14px 16px;
+    min-height: 96px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     animation: mobShellIn .34s cubic-bezier(.22,1,.36,1) both;
+    transition: border-color .18s ease;
+  }
+  .mob-intent-shell:hover {
+    border-color: rgba(30, 30, 32, 0.20) !important;
   }
   .mob-intent-shell.has-value,
-  .mob-intent-shell.is-focused,
-  .mob-intent-shell--notebook {
-    border: none !important;
+  .mob-intent-shell.is-focused {
+    border-color: var(--mob-primary, #7E889F) !important;
     box-shadow: none !important;
   }
   /* Non-bare Tagro orb reserves BR room; bareChip is portaled and needs none. */
-  .mob-intent-shell.is-tagro-chip:not(.mob-intent-shell--notebook),
-  .mob-intent-shell.is-tagro-chip-idle:not(.mob-intent-shell--notebook) {
+  .mob-intent-shell.is-tagro-chip:not(.mob-intent-shell--field),
+  .mob-intent-shell.is-tagro-chip-idle:not(.mob-intent-shell--field) {
     padding-bottom: 44px;
   }
   .mob-intent-area {
     width: 100%;
-    min-height: 50px;
+    min-height: 64px;
     padding: 0;
     border: none;
     background: transparent;
@@ -416,9 +436,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
 
   .mob-intent-example {
     position: absolute;
-    left: 4px;
-    top: 6px;
-    right: 4px;
+    left: 16px;
+    top: 14px;
+    right: 16px;
     font-size: 17px;
     line-height: 25px;
     letter-spacing: var(--auth-tracking);
@@ -428,7 +448,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
@@ -445,8 +465,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-intent-caret {
     position: absolute;
-    left: 4px;
-    top: 8px;
+    left: 16px;
+    top: 16px;
     width: 2px;
     height: 20px;
     border-radius: 1px;
@@ -491,6 +511,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     cursor: pointer;
     box-sizing: border-box;
     transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, opacity .18s ease;
+    animation: mobCardIn 0.48s cubic-bezier(.22, 1, .36, 1) both;
+    animation-delay: calc(0.12s + var(--i, 0) * 42ms);
   }
   .mob-chip:hover:not(.is-on) {
     border-color: var(--mob-card-border-hover) !important;
@@ -599,6 +621,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     text-align: left;
     margin: 0;
     transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    animation: mobCardIn 0.48s cubic-bezier(.22, 1, .36, 1) both;
+    animation-delay: calc(0.12s + var(--i, 0) * 42ms);
   }
   .mob-connect-row:hover:not(.is-on) {
     border-color: var(--mob-card-border-hover) !important;
@@ -743,10 +767,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     -webkit-backdrop-filter: none !important;
     pointer-events: auto;
   }
+  /* Beads stay 8px — override global mobile `button { min-height:44px }`. */
   .mob-dot {
     display: block;
     width: 8px;
     height: 8px;
+    min-width: 8px;
+    min-height: 8px !important;
+    max-height: 8px;
     border-radius: 999px;
     border: none !important;
     padding: 0;
@@ -754,6 +782,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     background: var(--mob-dot-idle);
     cursor: pointer;
     flex-shrink: 0;
+    align-self: center;
     box-shadow: none !important;
     outline: none;
     transition: width .38s cubic-bezier(.22,1,.36,1), background .28s ease;
@@ -761,6 +790,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-dot.is-done { background: var(--mob-dot-done); }
   .mob-dot.is-active {
     width: 26px;
+    min-width: 26px;
+    height: 8px;
+    min-height: 8px !important;
+    max-height: 8px;
     background: var(--mob-dot-active);
   }
   .mob-dot:disabled { cursor: default; }
@@ -819,8 +852,16 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-dot {
       width: 9px;
       height: 9px;
+      min-height: 9px !important;
+      max-height: 9px;
     }
-    .mob-dot.is-active { width: 28px; }
+    .mob-dot.is-active {
+      width: 28px;
+      min-width: 28px;
+      height: 9px;
+      min-height: 9px !important;
+      max-height: 9px;
+    }
     .mob-body {
       max-width: none;
       width: 100%;
@@ -855,6 +896,23 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       letter-spacing: var(--auth-tracking-display);
       text-align: left;
     }
+    .mob-intent-shell {
+      padding: 16px 18px;
+      min-height: 112px;
+    }
+    .mob-intent-area {
+      min-height: 72px;
+    }
+    .mob-intent-example {
+      left: 18px;
+      top: 16px;
+      right: 18px;
+    }
+    .mob-intent-caret {
+      left: 18px;
+      top: 18px;
+    }
+
     .mob .al-glassy-hero.mob-glassy-h1 {
       font-size: 31px !important;
       line-height: 1.22 !important;
@@ -865,7 +923,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-intent-caret { animation: none !important; opacity: 0.7; }
     .mob-intent-example { transition: none !important; filter: none !important; }
     .mob-continue-btn { animation: none !important; }
-    .mob .al-glassy-hero.mob-glassy-h1 .al-gword-inner { animation: none !important; opacity: 1 !important; }
+    .mob-intent-shell,
+    .mob-chip,
+    .mob-connect-row { animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important; }
+    .mob .al-glassy-hero.mob-glassy-h1 .al-gword-inner { animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important; }
     .mob.is-exiting { transition: none !important; }
     .mob.is-panel-enter { animation: none !important; }
     .mob-dot { transition: none !important; }

@@ -213,3 +213,22 @@ export function getLastFestagMethod(): FestagLoginMethod | null {
 export function hasFestagDeviceAccount(): boolean {
   return getLastFestagAccount() != null
 }
+
+/** Wipe remembered accounts / emails / autofill on this device. */
+export function clearFestagDeviceMemory() {
+  if (typeof window === 'undefined') return
+  try {
+    writeMemory(emptyMemory())
+    window.localStorage.removeItem(MEMORY_KEY)
+    window.localStorage.removeItem(LAST_EMAIL_KEY)
+    window.localStorage.removeItem(LAST_METHOD_KEY)
+    window.localStorage.removeItem(LAST_WS_KEY)
+    window.localStorage.removeItem(LAST_NAME_KEY)
+    window.localStorage.removeItem(LAST_POSITION_KEY)
+    window.localStorage.removeItem(LAST_PHONE_KEY)
+    window.localStorage.removeItem('festag_pending_workspace_name')
+    window.localStorage.removeItem('festag_dev_session')
+  } catch {
+    /* noop */
+  }
+}

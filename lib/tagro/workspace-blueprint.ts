@@ -159,7 +159,8 @@ export function analyzeIntent(raw: string, clarifyPick = ''): TagroBlueprint {
   else if (/organisieren|projektmanagement/.test(s)) primaryGoal = 'Arbeit organisieren'
   else if (/kunde/.test(s)) primaryGoal = 'Kundenarbeit liefern'
 
-  const needsClarify = s.length >= 6 && confidence > 0 && confidence < 72 && !clarifyPick
+  /* Always confirm type after a real intent — Tagro guesses, user picks. */
+  const needsClarify = s.length >= 6 && !clarifyPick
 
   return {
     workspaceType: topScore > 8 ? topType : '—',

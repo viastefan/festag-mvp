@@ -34,16 +34,17 @@ export default function ClarifyStage({ value, onPick, onContinue, blueprint }: P
         animKey="clarify"
         lead={header.lead}
         rest={header.muted}
-        /* Chip pick only swaps copy — no second rise / line-height snap. */
+        /* Chip pick: soft swap (no second rise). First landing: full glassy. */
         instant={Boolean(picked)}
         className="mob-glassy-h1 mob-glassy-h1--inline"
       />
       <div className="mob-chip-list">
-        {CLARIFY_OPTIONS.map((opt) => (
+        {CLARIFY_OPTIONS.map((opt, i) => (
           <button
             key={opt}
             type="button"
             className={`mob-chip${value === opt ? ' is-on' : ''}`}
+            style={{ ['--i' as string]: i }}
             onClick={() => onPick(opt)}
           >
             {opt}

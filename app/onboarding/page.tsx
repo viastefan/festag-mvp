@@ -539,13 +539,9 @@ function MasterBuildInner() {
     setError('')
     const bp = await persistIntent(intentText, clarifyPick)
     if (!bp && !isPreview) return
-    const needs = (bp ?? analyzeIntent(intentText, clarifyPick)).needsClarify
-    if (needs) {
-      setVisitedClarify(true)
-      setCurrent('clarify')
-    } else {
-      setCurrent('connect')
-    }
+    /* Always land on Developer / Agentur / … — never skip to Quellen. */
+    setVisitedClarify(true)
+    setCurrent('clarify')
   }, [clarifyPick, intentReady, intentText, isPreview, persistIntent])
 
   const onClarifyPick = useCallback((opt: ClarifyOption) => {
@@ -608,7 +604,7 @@ function MasterBuildInner() {
 
   function retreat() {
     if (current === 'connect') {
-      setCurrent(visitedClarify || clarifyPick ? 'clarify' : 'intent')
+      setCurrent('clarify')
       return
     }
     if (current === 'clarify') setCurrent('intent')
@@ -629,14 +625,12 @@ function MasterBuildInner() {
     }
     if (id === 'clarify') {
       if (!intentReady) return
-      if (!blueprint.needsClarify && !visitedClarify && !clarifyPick) return
       setVisitedClarify(true)
       setCurrent('clarify')
       return
     }
     if (id === 'connect') {
-      if (!intentReady) return
-      if (blueprint.needsClarify && !clarifyPick) return
+      if (!intentReady || !clarifyPick) return
       setCurrent('connect')
     }
   }
@@ -782,7 +776,7 @@ function MasterBuildInner() {
                     <button
                       key={dot.id}
                       type="button"
-                      className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
+                      className={`mob-dot no-min-tap${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
                       aria-label={dot.label}
                       aria-current={active ? 'step' : undefined}
                       disabled={submitting && dot.id === 'preparing'}

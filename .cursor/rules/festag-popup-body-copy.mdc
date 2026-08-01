@@ -23,7 +23,7 @@ Reference sizes (AuthSecurityModal / AuthPanelSwitchModal / AuthRecoveryModal):
 
 | Token | Desktop | Mobile (≤768) |
 |---|---|---|
-| **H1** title (sentence) | `26px` / lh `1.28` | `28px` / lh `1.22` |
+| **H1** title (sentence) | `26px` / lh `1.28` | `26px` / lh `1.22` |
 | **T1** body | `15.5px` / lh `1.65` | `16px` / lh `1.62` |
 
 - **Light T1 / title-muted:** `#8891a0` (`--al-text-muted` / auth `/Benutzer eingeben` path) — one gray only

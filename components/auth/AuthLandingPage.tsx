@@ -1860,7 +1860,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <AuthGlassyHero
                               animKey={displayWorkspaceName ? `login-ws-${displayWorkspaceName}` : 'login-cold'}
                               instant={softModeLocked}
-                              lead="Willkommen zurück."
+                              lead={displayWorkspaceName ? 'Willkommen zurück.' : 'Willkommen zurück'}
                             />
                           )}
                           {isSignup && !hasInvite ? (

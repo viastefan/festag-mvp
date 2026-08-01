@@ -536,7 +536,7 @@ const CSS = `
 
   .wt-title {
     margin: 0;
-    font-size: 29px;
+    font-size: 26px;
     line-height: 1.02;
     font-weight: 400;
     letter-spacing: -0.5px;

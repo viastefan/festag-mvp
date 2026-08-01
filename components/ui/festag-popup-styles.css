@@ -466,7 +466,7 @@
 .festag-modal-title {
   margin: 0;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 29px;
+  font-size: 26px;
   font-weight: 400;
   letter-spacing: var(--auth-tracking-display, 0.006em);
   line-height: 1.08;
@@ -474,7 +474,7 @@
 }
 .festag-modal-title--stacked {
   /* Deprecated — use title + festag-modal-lede-t1 */
-  font-size: 29px;
+  font-size: 26px;
   line-height: 1.08;
   letter-spacing: var(--auth-tracking-display, 0.006em);
 }
@@ -500,13 +500,13 @@
 .festag-modal-lead {
   margin: 0;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 29px;
+  font-size: 26px;
   font-weight: 400;
   letter-spacing: var(--auth-tracking-display, 0.006em);
   line-height: 1.08;
 }
 .festag-modal-surface--form .festag-modal-lead {
-  font-size: 29px;
+  font-size: 26px;
   line-height: 1.08;
   letter-spacing: var(--auth-tracking-display, 0.006em);
 }
@@ -678,7 +678,7 @@
   .festag-modal-title--stacked,
   .festag-modal-lead,
   .festag-modal-surface--form .festag-modal-lead {
-    font-size: 29px;
+    font-size: 26px;
     line-height: 1.08;
   }
   .festag-modal-lede-t1 {

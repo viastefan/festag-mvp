@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * Master Intent stage — notebook field (no stroke): rotating examples + caret.
- * Tagro pencil when typing starts (bare icon). Weiter only after 1.5s idle.
+ * Master Intent stage — stroked input field, rotating examples + caret.
+ * Tagro auto-formulates on a sentence (orb to the right). Weiter after 3s, lower.
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -19,13 +19,10 @@ type Props = {
 }
 
 const FIELD_FONT = 17
-const FIELD_PAD_X = 4
 const FIELD_LINE_H = Math.round(FIELD_FONT * 1.45) // 25
-const FIELD_GROW_STEP = FIELD_LINE_H * 2
-const FIELD_PAD_Y = 6
+const FIELD_GROW_STEP = FIELD_LINE_H
+const FIELD_MIN_LINES = 3
 const INTENT_FIELD_STEP_H = FIELD_GROW_STEP
-const CARET_H = 20
-const CARET_TOP = FIELD_PAD_Y + Math.round((FIELD_LINE_H - CARET_H) / 2)
 
 export default function IntentStage({ value, onChange, onReadyChange, onAdvance }: Props) {
   const [focused, setFocused] = useState(false)
@@ -37,8 +34,8 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
   const areaRef = useRef<HTMLTextAreaElement | null>(null)
   const shellRef = useRef<HTMLDivElement | null>(null)
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const fieldHRef = useRef(FIELD_LINE_H * 2)
-  const [fieldH, setFieldH] = useState(FIELD_LINE_H * 2)
+  const fieldHRef = useRef(FIELD_LINE_H * FIELD_MIN_LINES)
+  const [fieldH, setFieldH] = useState(FIELD_LINE_H * FIELD_MIN_LINES)
 
   const hasText = value.trim().length > 0
   const enough = value.trim().length >= INTENT_MIN_CHARS
@@ -52,20 +49,37 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     }
   }, [])
 
+  /* Focus on mount so typing starts without a first tap (iOS needs short retries). */
+  useEffect(() => {
+    const el = areaRef.current
+    if (!el) return
+    const focus = () => {
+      try {
+        el.focus({ preventScroll: true })
+      } catch {
+        el.focus()
+      }
+    }
+    focus()
+    const timers = [40, 120, 280].map((ms) => window.setTimeout(focus, ms))
+    return () => timers.forEach((id) => window.clearTimeout(id))
+  }, [])
+
   useLayoutEffect(() => {
     const el = areaRef.current
     if (!el) return
 
-    const textMin = FIELD_LINE_H * 2
+    const textMin = FIELD_LINE_H * FIELD_MIN_LINES
     if (!value.trim()) {
       fieldHRef.current = textMin
     } else {
-      el.style.height = `${fieldHRef.current}px`
+      el.style.height = `${textMin}px`
+      fieldHRef.current = Math.max(textMin, el.scrollHeight + 2)
       let guard = 0
       while (el.scrollHeight > el.clientHeight + 2 && guard < 8) {
         fieldHRef.current = Math.max(
           fieldHRef.current + INTENT_FIELD_STEP_H,
-          el.scrollHeight + 4,
+          el.scrollHeight + 2,
         )
         el.style.height = `${fieldHRef.current}px`
         guard += 1
@@ -77,7 +91,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     setFieldH((prev) => (prev === fieldHRef.current ? prev : fieldHRef.current))
   }, [value])
 
-  /* Hide Weiter while typing; reveal only after 1.5s idle with enough text. */
+  /* Hide Weiter while typing; reveal only after 3s idle with enough text. */
   useEffect(() => {
     if (settleTimer.current) clearTimeout(settleTimer.current)
     setSettled(false)
@@ -122,12 +136,20 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
         className="mob-glassy-h1"
       />
 
-      <div className={`mob-intent-wrap${assistOpen ? ' has-tagro-panel' : ''}`}>
+      <div
+        className={[
+          'mob-intent-wrap',
+          hasText ? 'has-tagro-chip' : '',
+          assistOpen ? 'has-tagro-panel' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <div
           ref={shellRef}
           className={[
             'mob-intent-shell',
-            'mob-intent-shell--notebook',
+            'mob-intent-shell--field',
             hasText ? 'has-value' : '',
             focused ? 'is-focused' : '',
           ]
@@ -138,8 +160,9 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             ref={areaRef}
             className={`mob-intent-area${hasText ? '' : ' is-empty'}`}
             value={value}
-            rows={2}
+            rows={FIELD_MIN_LINES}
             placeholder=""
+            autoFocus
             aria-label={`Ziel, z. B. ${example}`}
             onChange={(e) => onChange(e.target.value.replace(/\r?\n/g, ' '))}
             onFocus={() => setFocused(true)}
@@ -150,7 +173,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
               if (showContinue) onAdvance()
             }}
             style={{
-              minHeight: FIELD_LINE_H * 2,
+              minHeight: FIELD_LINE_H * FIELD_MIN_LINES,
               height: fieldH,
               lineHeight: `${FIELD_LINE_H}px`,
             }}
@@ -166,22 +189,11 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
               ]
                 .filter(Boolean)
                 .join(' ')}
-              style={{ top: FIELD_PAD_Y, left: FIELD_PAD_X, right: FIELD_PAD_X }}
             >
               {example}
             </span>
           ) : null}
-          {!hasText ? (
-            <span
-              aria-hidden
-              className="mob-intent-caret"
-              style={{ top: CARET_TOP, left: FIELD_PAD_X }}
-            />
-          ) : null}
-        </div>
-
-        <div className="mob-ready-hint-slot" aria-live="polite">
-          <ContinueHint show={showContinue} onContinue={onAdvance} />
+          {!hasText ? <span aria-hidden className="mob-intent-caret" /> : null}
         </div>
 
         {hasText ? (
@@ -199,8 +211,13 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             autoFormulate
             trigger="chip"
             bareChip
+            chipAlign="beside"
           />
         ) : null}
+
+        <div className="mob-ready-hint-slot mob-ready-hint-slot--intent" aria-live="polite">
+          <ContinueHint show={showContinue} onContinue={onAdvance} />
+        </div>
       </div>
     </>
   )

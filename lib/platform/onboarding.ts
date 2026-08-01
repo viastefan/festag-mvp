@@ -43,7 +43,7 @@ export type AuthOnboardingFlowStep = (typeof AUTH_ONBOARDING_FLOW)[number]
  */
 export const BUILD_PROJECTS_STEPS = [
   'intent',
-  'clarify', // skipped when blueprint.needsClarify is false
+  'clarify',
   'connect',
 ] as const
 

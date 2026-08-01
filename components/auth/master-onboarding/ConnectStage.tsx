@@ -105,7 +105,7 @@ export default function ConnectStage({
           className="mob-connect-list"
           onScroll={syncFades}
         >
-          {sources.map((src) => {
+          {sources.map((src, i) => {
             const on = connected.has(src.id)
             const Logo = LOGOS[src.id]
             const stateLabel = on ? 'Verbunden' : 'Bald'
@@ -114,6 +114,7 @@ export default function ConnectStage({
                 key={src.id}
                 type="button"
                 className={`mob-connect-row${on ? ' is-on' : ''}`}
+                style={{ ['--i' as string]: i }}
                 onClick={() => {
                   onToggle(src.id)
                 }}
