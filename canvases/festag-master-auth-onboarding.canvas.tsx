@@ -2797,7 +2797,7 @@ function PreparingStage({
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
-				alignItems: 'center',
+				alignItems: 'stretch',
 				justifyContent: 'center',
 				flex: 1,
 				width: '100%',
@@ -2850,7 +2850,7 @@ function PreparingStage({
 								whiteSpace: 'nowrap',
 								overflow: 'hidden',
 								textOverflow: 'ellipsis',
-								textAlign: 'center',
+								textAlign: 'left',
 								transform: `translate3d(0, ${offset * LINE_SLOT}px, 0)`,
 								opacity,
 								transition:
@@ -2884,10 +2884,11 @@ function PreparingStage({
 				style={{
 					display: 'flex',
 					alignItems: 'center',
-					justifyContent: 'center',
+					justifyContent: 'flex-start',
+					alignSelf: 'flex-start',
 					gap: 7,
 					height: 28,
-					padding: '0 10px',
+					padding: '0 2px',
 					border: 'none',
 					background: 'transparent',
 					cursor: ready ? 'pointer' : 'default',
