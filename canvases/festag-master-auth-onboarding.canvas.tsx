@@ -78,7 +78,26 @@ const GOAL_EXAMPLES = [
 
 const CLARIFY_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 
-/** Apple system blue — caret blink on auth fields */
+/** Header copy per clarify choice — readable before the second tap advances */
+const CLARIFY_HEADER: Record<(typeof CLARIFY_OPTIONS)[number], { lead: string; muted: string }> = {
+	Developer: {
+		lead: 'Du baust selbst — Execution-first.',
+		muted: 'Tasks, GitHub und Status bleiben nah an deinem Code.',
+	},
+	Agentur: {
+		lead: 'Du lieferst für Kunden — Delivery-first.',
+		muted: 'Projekte, Freigaben und ruhige Statusberichte für Auftraggeber.',
+	},
+	Startup: {
+		lead: 'Du bewegst ein Produkt-Team — Tempo mit Klarheit.',
+		muted: 'Roadmap, Risiken und nächste Schritte ohne PM-Overhead.',
+	},
+	Unternehmen: {
+		lead: 'Du steuerst mehrere Streams — Überblick zuerst.',
+		muted: 'Rollen, Governance und ein gemeinsamer Workspace-Graph.',
+	},
+}
+
 /** Primary caret / blink / quiet focus */
 const CARET_PRIMARY = '#66708D'
 
@@ -425,8 +444,12 @@ export default function FestagMasterAuthOnboarding() {
 	}
 
 	function onClarifyPick(v: string) {
+		/* First tap selects + updates header; same option again → continue */
+		if (clarifyPick === v) {
+			go(stepIndex('connect'))
+			return
+		}
 		setClarifyPick(v)
-		window.setTimeout(() => go(stepIndex('connect')), 220)
 	}
 
 	function onFlowDotClick(dotId: (typeof FLOW_DOTS)[number]['id']) {
@@ -1987,6 +2010,16 @@ function ClarifyStage({
 	blueprint: TagroBlueprint
 }) {
 	const guess = blueprint.workspaceType !== '—' ? blueprint.workspaceType : 'deinem Workspace'
+	const picked = CLARIFY_OPTIONS.includes(value as (typeof CLARIFY_OPTIONS)[number])
+		? (value as (typeof CLARIFY_OPTIONS)[number])
+		: null
+	const header = picked
+		? CLARIFY_HEADER[picked]
+		: {
+				lead: `Tagro liest eher „${guess}“, ist aber noch unsicher.`,
+				muted: 'Wähle kurz, was am besten passt — dann noch einmal tippen zum Weiter.',
+			}
+
 	return (
 		<>
 			<h1
@@ -1999,12 +2032,8 @@ function ClarifyStage({
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
 			>
-				<span style={{ color: t.ink }}>
-					Tagro liest eher „{guess}“, ist aber noch unsicher.
-				</span>{' '}
-				<span style={{ color: t.muted }}>
-					Wähle kurz, was am besten passt — eine Bestätigung reicht.
-				</span>
+				<span style={{ color: t.ink }}>{header.lead}</span>{' '}
+				<span style={{ color: t.muted }}>{header.muted}</span>
 			</h1>
 			<div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
 				{CLARIFY_OPTIONS.map((opt) => {
@@ -2017,7 +2046,7 @@ function ClarifyStage({
 							style={{
 								textAlign: 'left',
 								padding: '11px 14px',
-								borderRadius: 8,
+								borderRadius: 6,
 								border: `2px solid ${on ? t.primary : t.cardBorder}`,
 								background: on ? t.cardBgOn : t.cardBg,
 								boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
@@ -2034,6 +2063,21 @@ function ClarifyStage({
 					)
 				})}
 			</div>
+			{picked ? (
+				<p
+					style={{
+						margin: '14px 0 0',
+						fontSize: 13,
+						lineHeight: 1.45,
+						letterSpacing: '0.01em',
+						color: t.muted,
+						fontFamily: 'Aeonik, system-ui, sans-serif',
+						fontWeight: 400,
+					}}
+				>
+					Nochmal klicken für weiter
+				</p>
+			) : null}
 		</>
 	)
 }
