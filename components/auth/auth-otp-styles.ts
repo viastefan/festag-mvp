@@ -42,7 +42,7 @@ export const AUTH_OTP_STYLES = `
           letter-spacing:0;
           text-align:center;
           outline:none;
-          caret-color:var(--al-accent, #5B647D);
+          caret-color:var(--festag-input-caret, #66708D);
           box-shadow:none;
           box-sizing:border-box;
           transition:border-color .2s ease, border-width .2s ease, background .15s;

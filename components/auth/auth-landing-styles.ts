@@ -669,7 +669,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
           color:#1e1e20;
           padding:0;
-          caret-color:#5B647D;
+          caret-color:var(--festag-input-caret, #66708D);
           font-family:inherit;
           font-size:var(--al-hero-display-size) !important;
           line-height:var(--al-hero-display-lh) !important;
@@ -691,7 +691,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:1px;
           height:var(--al-hero-caret-h);
           border-radius:0;
-          background:#5B647D;
+          background:var(--festag-caret, #66708D);
           animation: alCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
         }
@@ -1305,7 +1305,7 @@ const AUTH_LANDING_STYLES_BASE = `
           text-indent:0;
           outline:none !important;
           outline-offset:0 !important;
-          caret-color:#1e1e20;
+          caret-color:var(--festag-input-caret, #66708D);
           box-shadow:none;
           -webkit-appearance:none;
           appearance:none;
@@ -1375,7 +1375,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:not(:placeholder-shown) {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-filled, var(--festag-input-border-width, 1px)) solid var(--festag-input-border-filled, var(--festag-input-border-focus, #5B647D)) !important;
+          border:var(--festag-input-border-width-filled, var(--festag-input-border-width, 1px)) solid var(--festag-input-border-filled, var(--festag-input-border-focus, #66708D)) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1384,7 +1384,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1396,7 +1396,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background-image:none !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
-          caret-color:#1e1e20;
+          caret-color:var(--festag-input-caret, #66708D);
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
         }
         /* Placeholder must beat -webkit-text-fill-color on the input (else it looks black). */
@@ -1416,14 +1416,14 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           border-width:var(--festag-input-border-width-filled, var(--festag-input-border-width, 1px)) !important;
-          border-color:var(--festag-input-border-filled, var(--festag-input-border-focus, #5B647D)) !important;
+          border-color:var(--festag-input-border-filled, var(--festag-input-border-focus, #66708D)) !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:focus,
         .al-root:not([data-theme="dark"]) .al-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
           border-width:var(--festag-input-border-width-focus, 1.5px) !important;
-          border-color:var(--festag-input-border-focus, #5B647D) !important;
+          border-color:var(--festag-input-border-focus, #66708D) !important;
         }
         /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
         .al-input:-webkit-autofill,
@@ -1431,31 +1431,31 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:-webkit-autofill:focus,
         .al-input:-webkit-autofill:active {
           -webkit-text-fill-color:#1e1e20 !important;
-          caret-color:#1e1e20;
+          caret-color:var(--festag-input-caret, #66708D);
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #5B647D) !important;
+          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #66708D) !important;
           outline:none !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
           background-color:transparent !important;
-          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #5B647D) !important;
+          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #66708D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
         }
         .al-code-input {
           text-align:center;
@@ -1489,12 +1489,22 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-flow-info strong { color:#1e1e20; font-weight:400; }
 
+        /* Caret / selection — primary cursor #66708D */
+        .al-root ::selection {
+          background: var(--festag-caret-selection, rgba(102, 112, 141, 0.28));
+          color: inherit;
+        }
+        .al-root input,
+        .al-root textarea {
+          caret-color: var(--festag-input-caret, #66708D);
+        }
+
         .al-link,
         .al-back {
           font-family:inherit;
           font-size:14px;
           font-weight:400;
-          color:var(--al-text-muted);
+          color:var(--festag-caret, #66708D);
           background:none;
           border:none;
           cursor:pointer;
@@ -1504,7 +1514,7 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:color .15s;
         }
         .al-link:hover,
-        .al-back:hover { color:#1e1e20; }
+        .al-back:hover { color:#515970; }
         .al-link:disabled { opacity:.5; cursor:not-allowed; }
 
         /* Login: stacked calm help — sentence + recovery (not stretched space-between). */
@@ -2345,7 +2355,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
           box-shadow:none !important;
           outline:none;
         }
@@ -2373,7 +2383,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
         }
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
@@ -2385,7 +2395,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
           border-width:var(--festag-input-border-width-focus, 1.5px) !important;
-          border-color:var(--festag-input-border-focus, #5B647D) !important;
+          border-color:var(--festag-input-border-focus, #66708D) !important;
         }
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
@@ -2408,7 +2418,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
             box-shadow:none;
           }
         }
@@ -4042,7 +4052,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
@@ -4076,7 +4086,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
             box-shadow:none !important;
           }
           .al-input:-webkit-autofill,
@@ -4111,7 +4121,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
           html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
           html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
           }
           .al-code-input { font-size:16px; }
           .al-divider {

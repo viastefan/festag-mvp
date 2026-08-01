@@ -203,7 +203,7 @@ export const AUTH_OS_STYLES = `
     color: #E6E8EE !important;
     border-width: 2px !important;
     border-color: rgba(232, 230, 225, 0.12) !important;
-    caret-color: #5B647D;
+    caret-color: var(--festag-input-caret, #66708D);
     background: transparent !important;
     transition: border-color .22s ease !important;
     box-shadow: none !important;
@@ -219,7 +219,7 @@ export const AUTH_OS_STYLES = `
   .al-root.onb-sand-dark textarea.al-input:focus,
   .al-root.onb-sand-dark textarea.al-input:focus-visible {
     border-width: 2px !important;
-    border-color: #5B647D !important;
+    border-color: var(--festag-input-border-focus, #66708D) !important;
     background: transparent !important;
     box-shadow: none !important;
     outline: none !important;
@@ -1669,7 +1669,7 @@ export const AUTH_OS_STYLES = `
   .al-root.al-root--gate[data-theme="light"] .al-input:focus,
   .al-root.al-root--gate[data-theme="light"] .al-input:focus-visible {
     border-width: var(--festag-input-border-width-focus, 1.5px) !important;
-    border-color: #5B647D !important;
+    border-color: var(--festag-input-border-focus, #66708D) !important;
     background: transparent !important;
     box-shadow: none !important;
   }

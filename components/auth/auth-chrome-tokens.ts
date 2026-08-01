@@ -18,6 +18,12 @@ import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
  */
 export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
 /**
+ * Primary caret / blink / selection / quiet input focus — slightly softer than
+ * Festag fill primary `#5B647D` (Google CTA stays on Night primary).
+ */
+export const AUTH_CARET = '#66708D'
+export const AUTH_CARET_SELECTION = 'rgba(102, 112, 141, 0.28)'
+/**
  * Auth dark canvas — Primary Dusk (same OS foundation as mobile onboarding).
  * Deeper than flat Night OLED so auth feels cinematic, not like a login card.
  */
@@ -136,6 +142,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-google-fg:#F5F6F8;
   --festag-primary:${FESTAG_NIGHT.primary};
   --al-accent:${FESTAG_NIGHT.primary};
+  --festag-caret:${AUTH_CARET};
+  --festag-input-caret:${AUTH_CARET};
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
@@ -143,10 +151,11 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-border:rgba(91,100,125,0.34);
   --festag-input-border-hover:rgba(91,100,125,0.48);
   --festag-input-border-width:1px;
-  --festag-input-border-filled:${FESTAG_NIGHT.primary};
+  --festag-input-border-filled:${AUTH_CARET};
   --festag-input-border-width-filled:1px;
-  --festag-input-border-focus:${FESTAG_NIGHT.primary};
+  --festag-input-border-focus:${AUTH_CARET};
   --festag-input-border-width-focus:1.5px;
+  --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
   --festag-oauth-icon-opacity-hover:1;
   --al-text-muted:${AUTH_MUTED_LIGHT};
@@ -195,16 +204,19 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-btn-google-fg:#F5F6F8;
   --festag-primary:#5C554C;
   --al-accent:#5C554C;
+  --festag-caret:${AUTH_CARET};
+  --festag-input-caret:${AUTH_CARET};
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_READ};
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-width:1px;
-  --festag-input-border-filled:#5C554C;
+  --festag-input-border-filled:${AUTH_CARET};
   --festag-input-border-width-filled:1px;
-  --festag-input-border-focus:#5C554C;
+  --festag-input-border-focus:${AUTH_CARET};
   --festag-input-border-width-focus:1.5px;
+  --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
   --festag-oauth-icon-opacity-hover:1;
   --al-text-muted:${AUTH_MUTED_READ};
@@ -267,7 +279,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-fg:${FESTAG_NIGHT.ink};
-  --festag-input-caret:${FESTAG_NIGHT.inkSecondary};
+  --festag-caret:${AUTH_CARET};
+  --festag-input-caret:${AUTH_CARET};
+  --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
   --festag-input-border:rgba(255,255,255,0.08);
   --festag-input-border-hover:rgba(255,255,255,0.14);

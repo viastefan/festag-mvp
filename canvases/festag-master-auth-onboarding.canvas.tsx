@@ -79,7 +79,8 @@ const GOAL_EXAMPLES = [
 const CLARIFY_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 
 /** Apple system blue — caret blink on auth fields */
-const APPLE_CARET = '#007AFF'
+/** Primary caret / blink / quiet focus */
+const CARET_PRIMARY = '#66708D'
 
 /** Intent field — same chrome as login email (46px / 15px / 14px pad), grows by lines */
 const INTENT_LOGIN_H = 46
@@ -95,10 +96,10 @@ function inputStroke(
 	opts: { focused?: boolean; filled?: boolean } = {},
 ): Pick<CSSProperties, 'border' | 'boxShadow' | 'transition'> {
 	const { focused = false, filled = false } = opts
-	const stroke = focused ? t.primary : filled ? t.fieldBorderFilled : t.hairline
+	const stroke = focused ? CARET_PRIMARY : filled ? t.fieldBorderFilled : t.hairline
 	return {
 		border: `1px solid ${stroke}`,
-		boxShadow: focused ? `0 0 0 1px ${t.primary}` : 'none',
+		boxShadow: focused ? `0 0 0 1px ${CARET_PRIMARY}` : 'none',
 		transition: 'border-color .18s ease, box-shadow .18s ease',
 	}
 }
@@ -1595,7 +1596,7 @@ function IntentCanvasStage({
 							outline: 'none',
 							boxSizing: 'border-box',
 							overflow: 'hidden',
-							caretColor: hasText ? t.primary : 'transparent',
+							caretColor: hasText ? CARET_PRIMARY : 'transparent',
 						}}
 					/>
 					{showExample ? (
@@ -1638,7 +1639,7 @@ function IntentCanvasStage({
 								width: 2,
 								height: 18,
 								borderRadius: 1,
-								background: t.primary,
+								background: CARET_PRIMARY,
 								pointerEvents: 'none',
 							}}
 						/>
@@ -2138,7 +2139,7 @@ function AuthStage({
 								margin: 0,
 								minWidth: 120,
 								width: '100%',
-								caretColor: APPLE_CARET,
+								caretColor: CARET_PRIMARY,
 								transition: 'color .18s ease',
 							}}
 						/>
@@ -2282,7 +2283,7 @@ function AuthStage({
 									padding: 0,
 									margin: 0,
 									boxSizing: 'border-box',
-									caretColor: APPLE_CARET,
+									caretColor: CARET_PRIMARY,
 								}}
 							/>
 						</span>
@@ -2298,7 +2299,7 @@ function AuthStage({
 									width: 2,
 									height: 22,
 									borderRadius: 1,
-									background: APPLE_CARET,
+									background: CARET_PRIMARY,
 									pointerEvents: 'none',
 								}}
 							/>
@@ -3318,7 +3319,7 @@ function field(
 		fontFamily: 'inherit',
 		boxSizing: 'border-box',
 		outline: 'none',
-		caretColor: APPLE_CARET,
+		caretColor: CARET_PRIMARY,
 	}
 }
 
