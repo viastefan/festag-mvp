@@ -54,17 +54,26 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-sizing: border-box;
   }
   .mob-mark {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     display: block;
-    opacity: 1;
-    filter: none;
+    /* Light/read ivory: fluid mark is light art — ink like Login. */
+    filter: brightness(0) saturate(100%);
+    opacity: 0.9;
   }
   .mob-header-actions {
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+  .mob-header-actions .auth-docs-trigger {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
   }
 
   .mob-body {
@@ -138,15 +147,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Intent field */
+  /* Intent field — taller idle shell so grow + Tagro feel calm */
   .mob-intent-wrap { position: relative; width: 100%; margin-top: 18px; }
   .mob-intent-shell {
     position: relative;
     border-radius: 8px;
     border: 1px solid var(--mob-hairline);
     background: transparent;
-    padding: 11px 14px;
-    min-height: 46px;
+    padding: 14px 14px;
+    min-height: 96px;
     box-sizing: border-box;
     transition: border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1);
   }
@@ -155,10 +164,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border-color: var(--mob-caret);
     box-shadow: 0 0 0 1px var(--mob-caret);
   }
-  .mob-intent-shell.has-chip { padding-bottom: 44px; }
+  .mob-intent-shell.has-chip { padding-bottom: 52px; }
   .mob-intent-area {
     width: 100%;
-    min-height: 22px;
+    min-height: 66px;
     padding: 0;
     border: none;
     background: transparent;
@@ -179,15 +188,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-tagro-chip {
     position: absolute;
     right: 8px;
-    bottom: 8px;
+    bottom: 10px;
     z-index: 12;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 32px;
-    min-width: 90px;
-    padding: 0 12px 0 10px;
+    height: 36px;
+    min-width: 96px;
+    padding: 0 14px 0 12px;
     border-radius: 999px;
     border: 1px solid rgba(30, 30, 32, 0.08);
     background: rgba(91, 100, 125, 0.10);
@@ -388,20 +397,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     50%, 100% { opacity: 0; }
   }
 
-  /* Clarify chips */
+  /* Clarify chips — taller than login field (52) for calm tap targets */
   .mob-chip-list {
     margin-top: 22px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
   .mob-chip {
     text-align: left;
     width: 100%;
-    height: 46px;
-    min-height: 46px;
-    max-height: 46px;
-    padding: 0 14px;
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+    padding: 0 16px;
     border-radius: 8px;
     border: 2px solid var(--mob-card-border);
     background: var(--mob-card-bg);
@@ -476,10 +485,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 46px;
-    min-height: 46px;
-    max-height: 46px;
-    padding: 0 14px;
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+    padding: 0 16px;
     border-radius: 8px;
     border: 2px solid var(--mob-card-border);
     background: var(--mob-card-bg);
@@ -531,20 +540,39 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: var(--mob-muted);
   }
 
-  /* Apple-style flow beads — canvas 1:1 */
-  .mob-dots {
+  /* Bottom navi — fade + glass capsule (mobile 1:1, desktop same) */
+  .mob-nav {
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: max(28px, env(safe-area-inset-bottom, 0px));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 20px max(22px, env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to top, var(--mob-canvas) 42%, rgba(250, 249, 245, 0));
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  .mob-dots {
+    position: relative;
+    left: auto;
+    transform: none;
+    bottom: auto;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 9px;
-    padding: 0;
-    background: transparent;
+    min-height: 40px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(26, 25, 23, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     pointer-events: auto;
-    z-index: 5;
   }
   .mob-dot {
     display: block;
@@ -578,9 +606,17 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       padding: 18px 36px 8px;
     }
     .mob-mark {
-      width: 28px;
-      height: 28px;
-      opacity: 1;
+      width: 36px;
+      height: 36px;
+      filter: brightness(0) saturate(100%);
+      opacity: 0.9;
+    }
+    .mob-nav {
+      padding: 20px 24px 28px;
+    }
+    .mob-dots {
+      min-height: 44px;
+      padding: 12px 22px;
     }
     .mob-body {
       max-width: none;
@@ -595,7 +631,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       flex: 1 1 auto;
       min-height: 0;
       max-height: none;
-      padding-bottom: 100px;
+      padding-bottom: 160px;
       margin: 0;
       justify-content: flex-start;
     }
@@ -604,11 +640,6 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       line-height: 1.15;
       letter-spacing: -0.01em;
     }
-    .mob-dots {
-      bottom: max(32px, env(safe-area-inset-bottom, 0px));
-    }
-    /* Extra room under field for Tagro panel on desktop */
-    .mob-stage { padding-bottom: 140px; }
   }
 
   @media (prefers-reduced-motion: reduce) {

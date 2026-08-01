@@ -673,8 +673,9 @@ export default function FestagMasterAuthOnboarding() {
 									width: 28,
 									height: 28,
 									objectFit: 'contain',
-									/* New 3D mark — no invert/ink filter */
-									opacity: 0.95,
+									/* Light/read ivory — ink fluid/3D mark like Login */
+									filter: t.mode === 'light' ? 'brightness(0) saturate(100%)' : 'none',
+									opacity: 0.9,
 								}}
 							/>
 							<div style={{ flex: 1 }} />

@@ -126,9 +126,9 @@ function MasterBuildInner() {
       try {
         if (isPreview) {
           setIntentText('Ich entwickle Webseiten für Kunden.')
-          setBooting(false)
-          return
-        }
+        setBooting(false)
+        return
+      }
 
         const {
           data: { user },
@@ -137,7 +137,7 @@ function MasterBuildInner() {
           router.replace('/login')
           return
         }
-        if (cancelled) return
+      if (cancelled) return
         setUserId(user.id)
 
         const fromProvider = providerProfileFields(user)
@@ -200,9 +200,9 @@ function MasterBuildInner() {
         }
 
         if (!ownedWs?.id && !memberWs?.workspace_id && !projectMember?.project_id) {
-          router.replace('/create-workspace')
-          return
-        }
+        router.replace('/create-workspace')
+        return
+      }
 
         const providers = (user.app_metadata?.providers as string[] | undefined) ?? []
         const identityLinked = (user.identities ?? []).some((i) => i.provider === 'github')
@@ -248,7 +248,7 @@ function MasterBuildInner() {
         }
 
         if (cancelled) return
-        setBooting(false)
+      setBooting(false)
       } catch {
         if (!cancelled) setBooting(false)
       }
@@ -379,11 +379,11 @@ function MasterBuildInner() {
       if (!isPreview && userId) {
         await supabase.from('onboarding_state').upsert(
           {
-            user_id: userId,
+          user_id: userId,
             current_step: 'connect',
-            workspace_done: true,
+          workspace_done: true,
             completed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           },
           { onConflict: 'user_id' },
         )
@@ -477,8 +477,8 @@ function MasterBuildInner() {
           })
           if (linkError) {
             console.warn('[onboarding] github link', linkError.message)
-          }
-        } catch {
+            }
+          } catch {
           /* noop */
         }
       }
@@ -587,13 +587,14 @@ function MasterBuildInner() {
         onTouchEnd={onTouchEnd}
       >
         <header className="mob-header">
+          {/* Fluid mark — inked for ivory/read like Login light (brightness 0). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="mob-mark"
-            src="/brand/festag-mark.png?v=20260801"
+            src="/brand/festag-mark-fluid.png?v=20260731"
             alt="festag"
-            width={28}
-            height={28}
+            width={36}
+            height={36}
           />
           <div className="mob-header-actions">
             <AuthDocsPopover />
@@ -630,28 +631,30 @@ function MasterBuildInner() {
                 connected={connected}
                 onToggle={(id) => void toggleSource(id)}
               />
-            ) : null}
-          </div>
-        </div>
+                                ) : null}
+                              </div>
+                      </div>
 
-        <nav className="mob-dots" aria-label="Onboarding Fortschritt">
-          {flowSteps.map((dot, idx) => {
-            const active = idx === flowActive
-            const done = idx < flowActive
-            return (
-              <button
-                key={dot.id}
-                type="button"
-                className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
-                aria-label={dot.label}
-                aria-current={active ? 'step' : undefined}
-                disabled={submitting && dot.id === 'preparing'}
-                onClick={() => onFlowDotClick(dot.id)}
-              />
-            )
-          })}
-        </nav>
-      </div>
+        <footer className="mob-nav" aria-label="Onboarding Navigation">
+          <nav className="mob-dots" aria-label="Onboarding Fortschritt">
+            {flowSteps.map((dot, idx) => {
+              const active = idx === flowActive
+              const done = idx < flowActive
+              return (
+                <button
+                  key={dot.id}
+                  type="button"
+                  className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
+                  aria-label={dot.label}
+                  aria-current={active ? 'step' : undefined}
+                  disabled={submitting && dot.id === 'preparing'}
+                  onClick={() => onFlowDotClick(dot.id)}
+                />
+              )
+            })}
+          </nav>
+        </footer>
+          </div>
     </>
   )
 }

@@ -15,13 +15,14 @@ type Props = {
   onAdvance: () => void
 }
 
-const FIELD_H = 46
+const FIELD_H = 96
 const FIELD_FONT = 15
 const FIELD_PAD_X = 14
 const FIELD_LINE_H = Math.round(FIELD_FONT * 1.45) // 22
 const FIELD_GROW_STEP = FIELD_LINE_H * 2
-const FIELD_PAD_Y = Math.max(0, Math.round((FIELD_H - 2 - FIELD_LINE_H) / 2))
-const INTENT_FIELD_MIN_H = FIELD_LINE_H
+const FIELD_PAD_Y = 14
+/* Idle textarea shows ~3 lines of room; stepped grow adds +2 lines. */
+const INTENT_FIELD_MIN_H = FIELD_LINE_H * 3
 const INTENT_FIELD_STEP_H = FIELD_GROW_STEP
 
 type TagroMode = 'polish' | 'summary' | 'detail'
@@ -236,8 +237,8 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
               }
             }}
             style={{
-              minHeight: FIELD_LINE_H,
-              height: FIELD_LINE_H,
+              minHeight: INTENT_FIELD_MIN_H,
+              height: INTENT_FIELD_MIN_H,
               lineHeight: `${FIELD_LINE_H}px`,
             }}
           />
