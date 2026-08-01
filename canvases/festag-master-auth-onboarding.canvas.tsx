@@ -826,35 +826,64 @@ export default function FestagMasterAuthOnboarding() {
 
 						{flowActive >= 0 ? (
 							<div
-								style={appleDotsTrack(t)}
-								role="tablist"
-								aria-label="Onboarding-Fortschritt"
+								style={{
+									position: 'absolute',
+									left: '50%',
+									transform: 'translateX(-50%)',
+									bottom: 18,
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									gap: 10,
+									zIndex: 6,
+								}}
 							>
-								{flowDots.map((s, di) => {
-									const active = di === flowActive
-									const done = di < flowActive
-									return (
-										<button
-											key={s.id}
-											type="button"
-											aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
-											aria-current={active ? 'step' : undefined}
-											onClick={() => onFlowDotClick(s.id)}
-											style={{
-												...appleDotBead(t, active ? 'active' : done ? 'done' : 'idle'),
-												border: 'none',
-												padding: 0,
-												margin: 0,
-												cursor: 'pointer',
-												position: 'relative',
-												transition:
-													'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
-											}}
-										>
-											<span aria-hidden style={{ position: 'absolute', inset: '-12px -8px' }} />
-										</button>
-									)
-								})}
+								<div
+									style={appleDotsTrack(t)}
+									role="tablist"
+									aria-label="Onboarding-Fortschritt"
+								>
+									{flowDots.map((s, di) => {
+										const active = di === flowActive
+										const done = di < flowActive
+										return (
+											<button
+												key={s.id}
+												type="button"
+												aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
+												aria-current={active ? 'step' : undefined}
+												onClick={() => onFlowDotClick(s.id)}
+												style={{
+													...appleDotBead(t, active ? 'active' : done ? 'done' : 'idle'),
+													border: 'none',
+													padding: 0,
+													margin: 0,
+													cursor: 'pointer',
+													position: 'relative',
+													transition:
+														'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
+												}}
+											>
+												<span aria-hidden style={{ position: 'absolute', inset: '-12px -8px' }} />
+											</button>
+										)
+									})}
+								</div>
+								<span
+									title="TagroSuperIntelligence"
+									style={{
+										fontFamily: "'Aeonik', system-ui, sans-serif",
+										fontWeight: 500,
+										fontSize: 10.5,
+										letterSpacing: '0.02em',
+										lineHeight: 1.2,
+										color: t.muted,
+										opacity: 0.85,
+										userSelect: 'none',
+									}}
+								>
+									TagroSI
+								</span>
 							</div>
 						) : null}
 
@@ -3072,10 +3101,7 @@ const contentCard: CSSProperties = {
 
 function appleDotsTrack(t: Theme): CSSProperties {
 	return {
-		position: 'absolute',
-		left: '50%',
-		transform: 'translateX(-50%)',
-		bottom: 28,
+		position: 'relative',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -3085,7 +3111,6 @@ function appleDotsTrack(t: Theme): CSSProperties {
 		border: 'none',
 		minHeight: 7,
 		boxSizing: 'border-box',
-		zIndex: 6,
 	}
 }
 

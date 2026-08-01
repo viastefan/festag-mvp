@@ -636,23 +636,31 @@ function MasterBuildInner() {
                       </div>
 
         <footer className="mob-nav" aria-label="Onboarding Navigation">
-          <nav className="mob-dots" aria-label="Onboarding Fortschritt">
-            {flowSteps.map((dot, idx) => {
-              const active = idx === flowActive
-              const done = idx < flowActive
-              return (
-                <button
-                  key={dot.id}
-                  type="button"
-                  className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
-                  aria-label={dot.label}
-                  aria-current={active ? 'step' : undefined}
-                  disabled={submitting && dot.id === 'preparing'}
-                  onClick={() => onFlowDotClick(dot.id)}
-                />
-              )
-            })}
-          </nav>
+          <div className="mob-nav-inner">
+            <nav className="mob-dots" aria-label="Onboarding Fortschritt">
+              {flowSteps.map((dot, idx) => {
+                const active = idx === flowActive
+                const done = idx < flowActive
+                return (
+                  <button
+                    key={dot.id}
+                    type="button"
+                    className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
+                    aria-label={dot.label}
+                    aria-current={active ? 'step' : undefined}
+                    disabled={submitting && dot.id === 'preparing'}
+                    onClick={() => onFlowDotClick(dot.id)}
+                  />
+                )
+              })}
+            </nav>
+            <span className="mob-tagrosi" title="TagroSuperIntelligence">
+              <span className="mob-tagrosi-short">TagroSI</span>
+              <span className="mob-tagrosi-full" aria-hidden>
+                TagroSuperIntelligence
+              </span>
+            </span>
+          </div>
         </footer>
           </div>
     </>

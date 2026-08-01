@@ -540,7 +540,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: var(--mob-muted);
   }
 
-  /* Bottom navi — fade + glass capsule (mobile 1:1, desktop same) */
+  /* Bottom navi — fade + glass capsule + TagroSI (all steps) */
   .mob-nav {
     position: absolute;
     left: 0;
@@ -550,9 +550,16 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 20px max(22px, env(safe-area-inset-bottom, 0px));
+    padding: 12px 20px max(18px, env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, var(--mob-canvas) 42%, rgba(250, 249, 245, 0));
     box-sizing: border-box;
+    pointer-events: none;
+  }
+  .mob-nav-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
     pointer-events: none;
   }
   .mob-dots {
@@ -594,6 +601,44 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
+  /* Quiet mark under navi — Aeonik Medium, hover → full name */
+  .mob-tagrosi {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    pointer-events: auto;
+    font-family: 'Aeonik', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: rgba(136, 145, 160, 0.85);
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mob-tagrosi-short,
+  .mob-tagrosi-full {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+    transition: opacity .18s ease, color .18s ease, visibility .18s ease;
+  }
+  .mob-tagrosi-full {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .mob-tagrosi:hover {
+    color: var(--mob-muted);
+  }
+  .mob-tagrosi:hover .mob-tagrosi-short {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .mob-tagrosi:hover .mob-tagrosi-full {
+    opacity: 1;
+    visibility: visible;
+  }
+
   /* Desktop (≥769): same composition as mobile — top-aligned, not vertically centered */
   @media (min-width: 769px) {
     .mob {
@@ -612,8 +657,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       opacity: 0.9;
     }
     .mob-nav {
-      padding: 20px 24px 28px;
+      padding: 16px 24px 24px;
     }
+    .mob-nav-inner { gap: 12px; }
     .mob-dots {
       min-height: 44px;
       padding: 12px 22px;
@@ -631,7 +677,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       flex: 1 1 auto;
       min-height: 0;
       max-height: none;
-      padding-bottom: 160px;
+      padding-bottom: 180px;
       margin: 0;
       justify-content: flex-start;
     }
