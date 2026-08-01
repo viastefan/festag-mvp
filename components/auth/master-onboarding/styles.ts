@@ -767,7 +767,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     -webkit-backdrop-filter: none !important;
     pointer-events: auto;
   }
-  /* Beads stay 8px — override global mobile `button { min-height:44px }`. */
+  /* Beads stay 8px — override global mobile button min-height 44px. */
   .mob-dot {
     display: block;
     width: 8px;
