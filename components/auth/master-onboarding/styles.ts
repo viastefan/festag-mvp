@@ -652,7 +652,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     visibility: visible;
   }
 
-  /* Desktop (≥769): same composition as mobile — top-aligned, not vertically centered */
+  /* Desktop (≥769): same 300px column, horizontally + vertically centered */
   @media (min-width: 769px) {
     .mob {
       --mob-gutter: 48px;
@@ -682,20 +682,29 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-body {
       max-width: none;
       width: 100%;
-      padding: 28px var(--mob-gutter) 0;
-      justify-content: flex-start;
+      /* Bottom pad clears absolute nav so center sits in the visible band */
+      padding: 28px var(--mob-gutter) 120px;
+      justify-content: center;
       align-items: center;
+    }
+    .mob-body--preparing {
+      padding-bottom: 28px;
     }
     .mob-stage {
       width: 100%;
       max-width: var(--mob-content-max);
-      flex: 1 1 auto;
+      flex: 0 1 auto;
       min-height: 0;
-      max-height: none;
-      padding-bottom: 180px;
+      max-height: 100%;
+      padding-bottom: 0;
       margin: 0 auto;
       justify-content: flex-start;
       align-items: stretch;
+    }
+    .mob-stage--preparing {
+      flex: 1 1 auto;
+      max-height: none;
+      justify-content: center;
     }
     .mob-h1 {
       font-size: 26px;
