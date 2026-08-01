@@ -412,15 +412,16 @@ const AUTH_DOCS_CSS = `
     justify-content: center;
     box-sizing: border-box;
     width: 100%;
-    height: 40px;
-    min-height: 40px;
+    height: var(--festag-btn-height, 40px);
+    min-height: var(--festag-btn-height, 40px);
+    max-height: var(--festag-btn-height, 40px);
     margin: 0;
     padding: 0 16px;
     border-radius: var(--festag-auth-radius, 6px) !important;
     font-family: inherit;
     font-size: 14px;
     font-weight: 400;
-    letter-spacing: -0.015em;
+    letter-spacing: var(--auth-tracking, 0.01em);
     white-space: nowrap;
     text-decoration: none !important;
     cursor: pointer;
@@ -560,11 +561,12 @@ const AUTH_DOCS_CSS = `
       line-height: 1.4;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all.al-btn {
-      height: 42px;
-      min-height: 42px;
-      padding: 0 16px;
+      height: var(--festag-btn-height, 44px);
+      min-height: var(--festag-btn-height, 44px);
+      max-height: var(--festag-btn-height, 44px);
+      padding: 0 14px;
       font-size: 14px;
-      letter-spacing: -0.015em;
+      letter-spacing: var(--auth-tracking, 0.01em);
       border-radius: var(--festag-auth-radius, 6px) !important;
     }
   }

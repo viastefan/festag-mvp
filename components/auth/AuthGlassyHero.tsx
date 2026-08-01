@@ -101,8 +101,8 @@ export const AUTH_GLASSY_HERO_CSS = `
     display: inline-block;
     overflow: hidden;
     vertical-align: baseline;
-    padding-bottom: 0.04em;
-    margin-bottom: -0.04em;
+    padding-bottom: 0;
+    margin-bottom: 0;
   }
   .al-gword-inner {
     display: inline-block;
@@ -166,11 +166,11 @@ export const AUTH_GLASSY_HERO_CSS = `
     }
   }
 
-  /* Username / workspace path — assembles after the title */
+  /* Username / workspace path — tight under H1 */
   .al-hero-secondary {
     display: block;
     width: 100%;
-    margin-top: 2px;
+    margin-top: 0;
     animation: alHeroSecondaryIn .52s cubic-bezier(.22, 1, .36, 1) both;
     animation-delay: .14s;
   }

@@ -242,7 +242,7 @@ const ATM_PORTAL_CSS = `
     font: inherit;
     font-size: 13.5px;
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--auth-tracking, 0.01em);
     line-height: 1.25;
     text-align: left;
     cursor: pointer;
@@ -301,7 +301,7 @@ const ATM_PORTAL_CSS = `
     flex-shrink: 0;
     border: 1px solid rgba(15, 23, 42, 0.10);
   }
-  .atm-item-swatch[data-mode="read"] { background: #FAF9F5; }
+  .atm-item-swatch[data-mode="read"] { background: #FBF7EE; }
   .atm-item-swatch[data-mode="light"] { background: #FFFFFF; border-color: rgba(15,23,42,0.12); }
   .atm-item-swatch[data-mode="dark"] { background: #070708; border-color: rgba(255,255,255,0.14); }
   @keyframes atmIn {

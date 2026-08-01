@@ -1334,6 +1334,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   const resendDisabled = resending || resendCooldown > 0
 
+  const emailHasInput = email.trim().length > 0
   const emailCtaReady = emailReady && (!isSignup || hasInvite || wsReadyForSignup)
   const emailCtaEnabled = emailCtaReady && !loading
   const codeCtaEnabled = !loading
@@ -1473,14 +1474,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         ) : null}
         <button
-          className={`al-btn al-btn-primary al-btn--enter-glyph${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
+          className={`al-btn al-btn-primary${emailHasInput ? ' al-btn--enter-glyph' : ''}${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleEmailSubmit}
           disabled={!emailCtaEnabled}
           aria-disabled={!emailCtaEnabled}
         >
           <span className="al-btn-label">{loading ? 'Wird gesendet…' : 'Weiter'}</span>
-          <AuthEnterGlyph ready={emailCtaReady && !loading} />
+          {emailHasInput ? <AuthEnterGlyph ready={emailCtaReady && !loading} /> : null}
         </button>
       </div>
 
@@ -1549,13 +1550,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           />
         </div>
         <button
-          className={`al-btn al-btn-primary al-btn--enter-glyph${ssoReady ? ' al-btn-primary--ready' : ''}`}
+          className={`al-btn al-btn-primary${ssoInput.trim() ? ' al-btn--enter-glyph' : ''}${ssoReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleSsoSubmit}
           disabled={oauthLoading || !ssoDomainPreview}
         >
           <span className="al-btn-label">{oauthLoading ? 'Weiterleitung…' : 'Weiter'}</span>
-          <AuthEnterGlyph ready={ssoReady && !oauthLoading} />
+          {ssoInput.trim() ? <AuthEnterGlyph ready={ssoReady && !oauthLoading} /> : null}
         </button>
         <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
       </div>
@@ -1637,11 +1638,21 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   const accountHint = !subFlow ? (
     isSignup ? (
-      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
+      <button
+        type="button"
+        key="auth-switch-to-login"
+        className="al-account-hint-link"
+        onClick={() => switchAuthMode('/login')}
+      >
         Anmelden
       </button>
     ) : (
-      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
+      <button
+        type="button"
+        key="auth-switch-to-register"
+        className="al-account-hint-link"
+        onClick={() => switchAuthMode('/register')}
+      >
         Konto erstellen
       </button>
     )

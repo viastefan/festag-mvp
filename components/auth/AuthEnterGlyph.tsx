@@ -62,7 +62,7 @@ export const AUTH_ENTER_GLYPH_CSS = `
     width: 15px;
     height: 15px;
     /* Primary cursor slate — always visible on white / bone CTAs */
-    color: var(--festag-caret, #66708D) !important;
+    color: var(--festag-caret, #7E889F) !important;
     opacity: 0.62;
     transform: none;
     transition: opacity 0.22s cubic-bezier(.22,1,.36,1);

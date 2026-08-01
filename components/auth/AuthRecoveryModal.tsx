@@ -858,7 +858,7 @@ const RECOVERY_CSS = `
     max-height: min(92dvh, 720px);
     border-radius: 12px;
     border: 1px solid rgba(30, 30, 32, 0.10);
-    background: #FAF9F5;
+    background: #FBF7EE;
     box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
     padding: 30px 28px 24px;
     display: flex;
@@ -1027,8 +1027,9 @@ const RECOVERY_CSS = `
   }
   .auth-rec-cta {
     width: 100%;
-    height: 40px;
-    min-height: 40px;
+    height: var(--festag-btn-height, 40px);
+    min-height: var(--festag-btn-height, 40px);
+    max-height: var(--festag-btn-height, 40px);
     border-radius: var(--festag-auth-radius, 6px);
     border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
@@ -1040,7 +1041,7 @@ const RECOVERY_CSS = `
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 14px;
     font-weight:400;
-    letter-spacing: -0.015em;
+    letter-spacing: var(--auth-tracking, 0.01em);
     cursor: pointer;
     padding: 0 16px;
     white-space: nowrap;
@@ -1072,21 +1073,21 @@ const RECOVERY_CSS = `
     box-shadow: none;
     pointer-events: none;
   }
-  /* Ghost = cream sand fill in light. */
+  /* Ghost = same soft white CTA as Login SSO / Weiter idle. */
   .auth-rec-cta--ghost {
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    border-color: var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10));
+    border-color: var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     box-shadow: var(--festag-btn-dark-shadow, none);
   }
   .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #F3EEE4);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.14));
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.10));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
   }
   .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, #EBE4D8);
-    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.14));
+    background: var(--festag-btn-dark-bg-active, #f5f5f6);
+    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
   }
   .auth-rec-cta--ghost.auth-rec-cta--disabled,
@@ -1171,11 +1172,12 @@ const RECOVERY_CSS = `
       font-size: 14px;
     }
     .auth-rec-cta {
-      height: var(--festag-mobile-control-height, 42px);
-      min-height: var(--festag-mobile-control-height, 42px);
-      border-radius: var(--festag-mobile-control-radius, 8px);
+      height: var(--festag-btn-height, 44px);
+      min-height: var(--festag-btn-height, 44px);
+      max-height: var(--festag-btn-height, 44px);
+      border-radius: var(--festag-auth-radius, 6px);
       font-size: 14px;
-      letter-spacing: -0.015em;
+      letter-spacing: var(--auth-tracking, 0.01em);
     }
     .auth-rec-outside-hint {
       top: max(20px, env(safe-area-inset-top));
@@ -1362,7 +1364,7 @@ const RECOVERY_CSS = `
   html[data-theme="dark"] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel,
   .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
   .auth-rec-backdrop[data-theme="light"] .auth-rec-panel {
-    background: #FAF9F5 !important;
+    background: #FBF7EE !important;
     border: 1px solid rgba(30, 30, 32, 0.10) !important;
     box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
     color-scheme: light;

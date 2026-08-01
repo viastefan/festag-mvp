@@ -4,7 +4,7 @@
  * Geometry: serious soft rects (`8px`), not pills — same in Light / Read / Dark.
  * Dark: flat Festag Night OLED + quiet ghost CTAs; ready = warm bone.
  * Accent: Festag primary blue `#5B647D` (Light). Read Google = warm charcoal.
- * Light: Anthropic / Claude ivory (`#FAF9F5`, same as Lesen) + white Linear CTAs.
+ * Light: warm read ivory (`#FBF7EE`, same as Lesen) + white Linear CTAs.
  * Read: same ivory canvas — layout/spacing identical to Light.
  */
 
@@ -12,23 +12,23 @@ import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
 /**
- * Login/Register light canvas — Anthropic paper ivory (anthropic.com body),
+ * Login/Register light canvas — warm read paper ivory,
  * shared with Lesen so auth never reads as sterile white.
  * Primary blue accents stay Festag.
  */
 export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
 /**
- * Primary caret / blink / selection / quiet input focus — slightly softer than
- * Festag fill primary `#5B647D` (Google CTA stays on Night primary).
+ * Primary caret / blink / selection / input focus stroke — lighter than fill
+ * primary `#5B647D` so 2px hairlines stay readable (Google CTA stays Night primary).
  */
-export const AUTH_CARET = '#66708D'
-export const AUTH_CARET_SELECTION = 'rgba(102, 112, 141, 0.28)'
+export const AUTH_CARET = '#7E889F'
+export const AUTH_CARET_SELECTION = 'rgba(126, 136, 159, 0.28)'
 /**
  * Auth dark canvas — Primary Dusk (same OS foundation as mobile onboarding).
  * Deeper than flat Night OLED so auth feels cinematic, not like a login card.
  */
 export const AUTH_DARK_CANVAS = '#0C0D12'
-/** Auth read canvas — same Anthropic / Claude ivory as light. */
+/** Auth read canvas — same warm read ivory as light. */
 export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
 
 /**
@@ -53,9 +53,9 @@ export const AUTH_DESKTOP_CHROME_VARS = `
   --al-os-content-max:300px;
   ${AUTH_TRACKING_VARS.trim()}
   --al-hero-display-size:28px;
-  --al-hero-display-lh:30px;
+  --al-hero-display-lh:28px;
   --al-hero-name-size:28px;
-  --al-hero-name-lh:30px;
+  --al-hero-name-lh:28px;
   --al-hero-caret-h:22px;
   --festag-btn-height:42px;
   --festag-input-height:46px;
@@ -94,16 +94,16 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-mobile-gutter:28px;
   --dl-col-pad:28px;
   ${AUTH_TRACKING_VARS.trim()}
-  /* Match master canvas AuthStage / onboarding H1 (26) — not oversized 34 */
+  /* Match master canvas AuthStage — H1 + username sit tight */
   --al-hero-display-size:22px;
-  --al-hero-display-lh:26px;
+  --al-hero-display-lh:24px;
   --al-hero-name-size:22px;
-  --al-hero-name-lh:26px;
+  --al-hero-name-lh:24px;
   --al-hero-caret-h:18px;
   --dl-hero-display-size:22px;
-  --dl-hero-display-lh:26px;
+  --dl-hero-display-lh:24px;
   --dl-hero-name-size:22px;
-  --dl-hero-name-lh:26px;
+  --dl-hero-name-lh:24px;
   --dl-hero-caret-h:18px;
   --festag-btn-height:44px;
   --festag-input-height:46px;
@@ -169,7 +169,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-border-filled:rgba(30,30,32,0.16);
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:1px;
+  --festag-input-border-width-focus:2px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -232,7 +232,7 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-border-filled:rgba(30,30,32,0.16);
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:1px;
+  --festag-input-border-width-focus:2px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -305,13 +305,13 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border:rgba(255,255,255,0.08);
   --festag-input-border-hover:rgba(255,255,255,0.14);
   --festag-input-border-width:1px;
-  /* Focus = Festag primary blue (same as light) — minimally thicker than idle. */
+  /* Focus = lighter primary stroke (readable on thin lines) — same as light/onboarding. */
   --festag-input-border-filled:rgba(255,255,255,0.22);
   --festag-input-border-width-filled:1px;
-  --festag-input-border-focus:${FESTAG_NIGHT.primary};
-  --festag-input-border-width-focus:1px;
+  --festag-input-border-focus:${AUTH_CARET};
+  --festag-input-border-width-focus:2px;
   --festag-btn-border-width-focus:2px;
-  --festag-btn-border-focus:${FESTAG_NIGHT.primary};
+  --festag-btn-border-focus:${AUTH_CARET};
   --festag-input-focus-glow:none;
   /* OAuth icons/labels must read as active — not disabled ghosts. */
   --festag-oauth-icon-opacity:0.95;

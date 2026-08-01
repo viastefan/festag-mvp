@@ -144,8 +144,8 @@ const CLARIFY_HEADER: Record<(typeof CLARIFY_OPTIONS)[number], { lead: string; m
 	},
 }
 
-/** Primary caret / blink / quiet focus */
-const CARET_PRIMARY = '#66708D'
+/** Primary caret / blink / focus stroke — lighter than fill `#5B647D` for thin lines */
+const CARET_PRIMARY = '#7E889F'
 
 /**
  * Canonical form field — Arbeits-E-Mail SSOT.
@@ -637,7 +637,7 @@ export default function FestagMasterAuthOnboarding() {
 					Identity → Goal → Tagro Blueprint → Sources → Prepare
 				</Text>
 				<div style={{ flex: 1, minWidth: 8 }} />
-				{/* Theme — follows OS by default; Read = ivory #FAF9F5 */}
+				{/* Theme — follows OS by default; Read = warm ivory #FBF7EE */}
 				<Row gap={6} align="center">
 					<Text
 						tone="tertiary"
@@ -2262,14 +2262,14 @@ function AuthStage({
 
 	return (
 		<>
-			{/* One text block: title + name — no Hero word-clip gap */}
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+			{/* One text block: title + name — tight line stack */}
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 				<h1
 					style={{
 						margin: 0,
 						padding: 0,
 						fontSize: 26,
-						lineHeight: 1.15,
+						lineHeight: 1.08,
 						letterSpacing: '0.01em',
 						fontWeight: 400,
 						fontFamily: 'Aeonik, system-ui, sans-serif',
@@ -2288,7 +2288,7 @@ function AuthStage({
 								alignItems: 'baseline',
 								gap: 2,
 								fontSize: 26,
-								lineHeight: 1.15,
+								lineHeight: 1.08,
 								letterSpacing: '0.01em',
 								fontWeight: 400,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
@@ -2328,7 +2328,7 @@ function AuthStage({
 								cursor: 'pointer',
 								fontFamily: 'Aeonik, system-ui, sans-serif',
 								fontSize: 26,
-								lineHeight: 1.15,
+								lineHeight: 1.08,
 								letterSpacing: '0.01em',
 								fontWeight: 400,
 								color: t.muted,
@@ -2388,7 +2388,7 @@ function AuthStage({
 								alignItems: 'center',
 								maxWidth: '100%',
 								fontSize: 26,
-								lineHeight: 1.15,
+								lineHeight: 1.08,
 								letterSpacing: '0.01em',
 								fontWeight: 400,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
@@ -2505,8 +2505,8 @@ function AuthStage({
 					onClick={() => onProvider('google')}
 					style={{
 						...oauth(t),
-						/* Light: Festag primary blue (matches live .al-btn-google) */
-						background: t.mode === 'light' ? t.primary : 'transparent',
+						/* Light: Festag fill primary (strokes use lighter CARET_PRIMARY) */
+						background: t.mode === 'light' ? '#5B647D' : 'transparent',
 						border:
 							t.mode === 'light'
 								? '1px solid transparent'
@@ -2575,7 +2575,7 @@ function AuthStage({
 						borderRadius: 6,
 						display: 'flex',
 						alignItems: 'center',
-						justifyContent: 'space-between',
+						justifyContent: email.trim() ? 'space-between' : 'center',
 						gap: 10,
 						/* Idle = quiet clarify hairline (not white plate); ready = white CTA */
 						border: canGo
@@ -2594,9 +2594,11 @@ function AuthStage({
 					}}
 				>
 					<span>Weiter</span>
-					<span aria-hidden style={{ display: 'inline-flex', opacity: canGo ? 0.88 : 0.72 }}>
-						<EnterReturnIcon />
-					</span>
+					{email.trim() ? (
+						<span aria-hidden style={{ display: 'inline-flex', opacity: canGo ? 0.88 : 0.72 }}>
+							<EnterReturnIcon />
+						</span>
+					) : null}
 				</button>
 				<div style={oauthGhost(t)}>Single Sign-On (SSO)</div>
 			</div>
@@ -2888,6 +2890,8 @@ function AuthDocsSheet({
 							color: light ? '#1e1e20' : t.ink,
 							boxShadow: light ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
 							fontSize: 14,
+							fontWeight: 400,
+							letterSpacing: '0.01em',
 							fontFamily: 'inherit',
 							cursor: 'pointer',
 						}}
@@ -3067,7 +3071,7 @@ function AuthDocsSheet({
 							marginTop: 16,
 							width: '100%',
 							height: 44,
-							borderRadius: 8,
+							borderRadius: 6,
 							border: light
 								? `1px solid ${t.ctaReadyBorder}`
 								: `1px solid ${t.hairline}`,
@@ -3075,6 +3079,8 @@ function AuthDocsSheet({
 							color: light ? '#1e1e20' : t.ink,
 							boxShadow: light ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
 							fontSize: 14,
+							fontWeight: 400,
+							letterSpacing: '0.01em',
 							fontFamily: 'inherit',
 							cursor: 'pointer',
 						}}
@@ -3384,16 +3390,16 @@ function dusk(): Theme {
 	}
 }
 
-/** Anthropic ivory + soft read paper — same family as auth Lesen / #FAF9F5 */
+/** Anthropic ivory + soft read paper — warm yellow-ivory `#FBF7EE` */
 function ivory(): Theme {
 	return {
 		mode: 'light',
-		canvas: '#FAF9F5',
+		canvas: '#FBF7EE',
 		frame: '#E8E6DF',
 		ink: '#1A1917',
 		muted: '#8891a0',
 		mutedSoft: '#9A9388',
-		primary: '#5B647D',
+		primary: '#7E889F',
 		/* Soft input stroke — buttons use even quieter btn hairline via oauth/cta */
 		hairline: 'rgba(30, 30, 32, 0.10)',
 		markFilter: 'brightness(0)',
@@ -3419,10 +3425,10 @@ function ivory(): Theme {
 		dotDone: 'rgba(26, 25, 23, 0.35)',
 		dotIdle: 'rgba(26, 25, 23, 0.15)',
 		screenWashTop: 'rgba(91, 100, 125, 0.06)',
-		screenWashBottom: 'rgba(180, 160, 130, 0.07)',
-		screenSolidTop: '#FBFAF6',
-		screenSolidBottom: '#F3F0E8',
-		commandFade: 'linear-gradient(to top, #FAF9F5 55%, rgba(250,249,245,0))',
+		screenWashBottom: 'rgba(180, 160, 130, 0.08)',
+		screenSolidTop: '#FCFAF3',
+		screenSolidBottom: '#F3EFE4',
+		commandFade: 'linear-gradient(to top, #FBF7EE 55%, rgba(251,247,238,0))',
 	}
 }
 
@@ -3856,9 +3862,9 @@ const CSS = `
     border-width: 1px !important;
   }
   .master-phone button.master-choice.is-on {
-    border: 2px solid #5B647D !important;
+    border: 2px solid #7E889F !important;
   }
-  /* Canonical form fields — match AuthStage email (46 / 15 / focus ring) */
+  /* Canonical form fields — match AuthStage email (46 / 15 / focus stroke) */
   .master-phone input.master-field {
     height: 46px !important;
     min-height: 46px !important;
@@ -3870,7 +3876,7 @@ const CSS = `
     padding: 0 14px !important;
     box-sizing: border-box !important;
     outline: none !important;
-    caret-color: #66708D !important;
+    caret-color: #7E889F !important;
   }
   /* Kill Chrome autofill blue — canvas-matched inset (reads as transparent) */
   .master-phone input.master-field:-webkit-autofill,
@@ -3878,25 +3884,22 @@ const CSS = `
   .master-phone input.master-field:-webkit-autofill:focus,
   .master-phone input.master-field:-webkit-autofill:active {
     -webkit-text-fill-color: #1A1917 !important;
-    caret-color: #66708D !important;
+    caret-color: #7E889F !important;
     transition: background-color 9999s ease-out 0s;
-    -webkit-box-shadow: 0 0 0 1000px #FAF9F5 inset !important;
-    box-shadow: 0 0 0 1000px #FAF9F5 inset !important;
+    -webkit-box-shadow: 0 0 0 1000px #FBF7EE inset !important;
+    box-shadow: 0 0 0 1000px #FBF7EE inset !important;
   }
   .master-phone input.master-field:-webkit-autofill:focus {
-    -webkit-box-shadow:
-      0 0 0 1px #66708D,
-      0 0 0 1000px #FAF9F5 inset !important;
-    box-shadow:
-      0 0 0 1px #66708D,
-      0 0 0 1000px #FAF9F5 inset !important;
+    -webkit-box-shadow: 0 0 0 1000px #FBF7EE inset !important;
+    box-shadow: 0 0 0 1000px #FBF7EE inset !important;
+    border: 2px solid #7E889F !important;
   }
   .master-phone textarea.master-field {
     font-size: 15px !important;
     font-weight: 400 !important;
     line-height: 22px !important;
     outline: none !important;
-    caret-color: #66708D !important;
+    caret-color: #7E889F !important;
   }
   /* Headers + UI: Aeonik Regular; headers open a touch; buttons/meta open more */
   .master-phone h1,

@@ -139,7 +139,7 @@ const SECURITY_CSS = `
     width: min(100%, 520px);
     border-radius: 12px;
     border: 1px solid rgba(30, 30, 32, 0.10);
-    background: #FAF9F5;
+    background: #FBF7EE;
     box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
     padding: 30px 28px 24px;
     display: flex;
@@ -203,8 +203,9 @@ const SECURITY_CSS = `
   .auth-sec-cta {
     margin-top: 24px;
     width: 100%;
-    height: 40px;
-    min-height: 40px;
+    height: var(--festag-btn-height, 40px);
+    min-height: var(--festag-btn-height, 40px);
+    max-height: var(--festag-btn-height, 40px);
     border-radius: var(--festag-auth-radius, 6px);
     border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
@@ -216,7 +217,7 @@ const SECURITY_CSS = `
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 14px;
     font-weight: 400;
-    letter-spacing: -0.015em;
+    letter-spacing: var(--auth-tracking, 0.01em);
     cursor: pointer;
     padding: 0 16px;
     white-space: nowrap;
@@ -294,11 +295,12 @@ const SECURITY_CSS = `
     }
     .auth-sec-cta {
       margin-top: 28px;
-      height: var(--festag-mobile-control-height, 42px);
-      min-height: var(--festag-mobile-control-height, 42px);
-      border-radius: var(--festag-mobile-control-radius, 8px);
+      height: var(--festag-btn-height, 44px);
+      min-height: var(--festag-btn-height, 44px);
+      max-height: var(--festag-btn-height, 44px);
+      border-radius: var(--festag-auth-radius, 6px);
       font-size: 14px;
-      letter-spacing: -0.015em;
+      letter-spacing: var(--auth-tracking, 0.01em);
       flex-shrink: 0;
     }
   }
@@ -405,7 +407,7 @@ const SECURITY_CSS = `
   .auth-sec-backdrop[data-theme="light"] .auth-sec-panel,
   html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
   html[data-theme="dark"] .auth-sec-backdrop[data-theme="light"] .auth-sec-panel {
-    background: #FAF9F5 !important;
+    background: #FBF7EE !important;
     border: 1px solid rgba(30, 30, 32, 0.10) !important;
     box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
     color-scheme: light;

@@ -390,8 +390,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="read"] {
-  /* README / Lesen — Anthropic / Claude ivory (anthropic.com body). */
-  --bg:#FAF9F5; --surface:#FFFFFF; --card:#FFFFFF;
+  /* README / Lesen — warm read paper ivory. */
+  --bg:#FBF7EE; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
   --border:rgba(40,34,28,0.10); --border-strong:rgba(40,34,28,0.16);
   --text:#1E1E20; --text-secondary:#6E6A62; --text-muted:#8a8378;
@@ -422,7 +422,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   /* Warm sand accent + charcoal Google (not primary blue). */
-  --accent:#5C554C; --accent-text:#FAF9F5;
+  --accent:#5C554C; --accent-text:#FBF7EE;
   --festag-primary:#5C554C;
   --festag-primary-hover:#6B6359;
   --festag-primary-active:#4A453E;
@@ -450,9 +450,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-icon-muted:#6E6A62;
   --festag-elev-shadow:0 1px 2px rgba(40,34,28,0.04);
   --festag-elev-shadow-hover:0 2px 3px rgba(40,34,28,0.06);
-  --festag-elev-active-bg:#FAF9F5;
+  --festag-elev-active-bg:#FBF7EE;
   --festag-elev-on-bg:#F0EEE6;
-  --festag-portal-canvas:#FAF9F5;
+  --festag-portal-canvas:#FBF7EE;
   --festag-portal-canvas-desktop:#F0EEE6;
   --festag-portal-sheet:#FFFFFF;
   --festag-portal-panel:#FFFFFF;
@@ -674,7 +674,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
   [data-theme="read"] body {
     /* Warm sandy cream — screenshot / Claude family. */
-    background: #FAF9F5;
+    background: #FBF7EE;
   }
   body.festag-portal-shell {
     background: var(--bg) !important;
@@ -2213,13 +2213,13 @@ html[data-theme-surface="client"][data-theme="pure-light"] {
 }
 
 /*
- * Panel Lesen / README — Claude sandy white ivory (#FAF9F5).
+ * Panel Lesen / README — warm read paper ivory (#FBF7EE).
  * Matches the previous warm light look (screenshot), not cool elevated gray.
  * Light mode stays cool elevated; auth landings keep their own chrome.
  */
 html[data-theme-surface="client"][data-theme="read"],
 html[data-theme-surface="dev"][data-theme="read"] {
-  --bg: #FAF9F5;
+  --bg: #FBF7EE;
   --surface: #FFFFFF;
   --card: #FFFFFF;
   --raised: #FFFFFF;
@@ -2244,7 +2244,7 @@ html[data-theme-surface="dev"][data-theme="read"] {
   --btn-prim-hover: #F7F6F2;
   --btn-prim-text: #1e1e20;
   --accent: #5C554C;
-  --accent-text: #FAF9F5;
+  --accent-text: #FBF7EE;
   --festag-primary: #5C554C;
   --festag-primary-hover: #6B6359;
   --festag-primary-active: #4A453E;
@@ -2266,9 +2266,9 @@ html[data-theme-surface="dev"][data-theme="read"] {
   --surface-2: #F0EEE6;
   --festag-elev-bg: #FFFFFF;
   --festag-elev-border: rgba(40, 34, 28, 0.08);
-  --festag-elev-active-bg: #FAF9F5;
+  --festag-elev-active-bg: #FBF7EE;
   --festag-elev-on-bg: #F0EEE6;
-  --festag-portal-canvas: #FAF9F5;
+  --festag-portal-canvas: #FBF7EE;
   --festag-portal-canvas-desktop: #F0EEE6;
   --festag-portal-sheet: #FFFFFF;
   --festag-portal-panel: #FFFFFF;

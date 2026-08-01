@@ -1,17 +1,18 @@
 /**
- * Festag sand / README (Lesen) canvas — Anthropic / Claude paper ivory.
- * Sampled from anthropic.com body (`#FAF9F5`), not cool gray / orange wash.
+ * Festag sand / README (Lesen) canvas — warm paper ivory.
+ * Slightly more yellow than Anthropic `#FAF9F5` so white CTAs lift calmly
+ * without going orange or cream-heavy.
  */
 
 export const FESTAG_SAND = {
-  /** Main canvas — Anthropic body / Claude ivory (login, register, Lesen). */
-  canvas: '#FAF9F5',
+  /** Main canvas — warm read paper (login, register, Lesen). */
+  canvas: '#FBF7EE',
   /** Soft ivory lift (slightly brighter than body). */
-  canvasSoft: '#FCFBF8',
-  /** Deeper parchment — Anthropic section wash. */
-  canvasDeep: '#F0EEE6',
-  /** Warm mid cream (previous Festag sand). */
-  canvasWarm: '#F5F2ED',
+  canvasSoft: '#FCFAF3',
+  /** Deeper parchment wash. */
+  canvasDeep: '#F1EBE0',
+  /** Warm mid cream. */
+  canvasWarm: '#F6F1E6',
   /** Idle CTA fill — soft white on sand. */
   cta: '#FFFFFF',
   ctaHover: '#F7F6F2',
@@ -25,7 +26,7 @@ export const FESTAG_SAND = {
   primary: '#5C554C',
   primaryHover: '#6B6359',
   primaryActive: '#4A453E',
-  primaryFg: '#FAF9F5',
+  primaryFg: '#FBF7EE',
   primarySoft: 'rgba(92, 85, 76, 0.08)',
   primarySoftHover: 'rgba(92, 85, 76, 0.12)',
   primaryBorder: 'rgba(92, 85, 76, 0.22)',

@@ -207,7 +207,7 @@ const INIT_CSS = /* css */ `
     padding: 0;
     background:
       radial-gradient(ellipse 90% 48% at 40% -8%, rgba(91, 100, 125, 0.04), transparent 55%),
-      linear-gradient(180deg, #FBFAF6 0%, #FAF9F5 48%, #F3F0E8 100%);
+      linear-gradient(180deg, #FCFAF3 0%, #FBF7EE 48%, #F3EFE4 100%);
     opacity: 0;
     transition: opacity .35s ease;
     font-family: 'Aeonik', system-ui, sans-serif !important;
