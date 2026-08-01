@@ -89,7 +89,7 @@ function MasterBuildInner() {
   const [intentText, setIntentText] = useState('')
   const [intentReady, setIntentReady] = useState(false)
   const [clarifyPick, setClarifyPick] = useState('')
-  const [connected, setConnected] = useState<Set<string>>(() => new Set(['github']))
+  const [connected, setConnected] = useState<Set<string>>(() => new Set())
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -98,7 +98,6 @@ function MasterBuildInner() {
 
   const swipeRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
   const mobRootRef = useRef<HTMLDivElement | null>(null)
-  const enterArmRef = useRef(0)
 
   const blueprint: TagroBlueprint = useMemo(
     () => analyzeIntent(intentText, clarifyPick),
@@ -163,6 +162,9 @@ function MasterBuildInner() {
       const shift = Math.max(0, Math.ceil(Math.max(vv.offsetTop, overlap)))
       const keyboardBand = Math.max(0, window.innerHeight - vv.height)
       const capped = Math.min(shift, Math.max(keyboardBand + vv.offsetTop, keyboardBand) + 56)
+
+      /* Ignore 1–2px jitter from visualViewport / layout feedback. */
+      if (Math.abs(capped - current) < 3) return
 
       el.style.setProperty('--mob-kb-shift', `${capped}px`)
       if (capped > 0) el.setAttribute('data-kb-open', '')
@@ -293,22 +295,6 @@ function MasterBuildInner() {
         router.replace('/create-workspace')
         return
       }
-
-        const providers = (user.app_metadata?.providers as string[] | undefined) ?? []
-        const identityLinked = (user.identities ?? []).some((i) => i.provider === 'github')
-        const isGhConnected =
-          providers.includes('github') ||
-          user.app_metadata?.provider === 'github' ||
-          identityLinked ||
-          !!prof?.dev_github_linked ||
-          !!prof?.github_username
-        if (isGhConnected) {
-          setConnected((prev) => {
-            const next = new Set(prev)
-            next.add('github')
-            return next
-          })
-        }
 
         if (onboarding?.completed_at && !isResuming) {
           const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
@@ -512,22 +498,16 @@ function MasterBuildInner() {
       if (!canClarify && !canConnect) return
 
       e.preventDefault()
-      const now = Date.now()
-      if (now - enterArmRef.current < 900) {
-        enterArmRef.current = 0
-        if (canClarify) {
-          void (async () => {
-            setError('')
-            const ok = await persistIntent(intentText, clarifyPick)
-            if (!ok && !isPreview) return
-            setCurrent('connect')
-          })()
-        } else {
-          void finishToPreparing()
-        }
+      if (canClarify) {
+        void (async () => {
+          setError('')
+          const ok = await persistIntent(intentText, clarifyPick)
+          if (!ok && !isPreview) return
+          setCurrent('connect')
+        })()
         return
       }
-      enterArmRef.current = now
+      void finishToPreparing()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -604,7 +584,7 @@ function MasterBuildInner() {
   )
 
   function canSwipeForward() {
-    if (current === 'intent') return intentReady
+    if (current === 'intent') return intentReady || intentText.trim().length >= 8
     if (current === 'clarify') return Boolean(clarifyPick)
     if (current === 'connect') return !submitting && connected.size > 0
     return false
@@ -705,17 +685,20 @@ function MasterBuildInner() {
         onTouchEnd={onTouchEnd}
       >
         <header className="mob-header">
-          {/* Fluid mark — inked for ivory/read like Login light (brightness 0). */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="mob-mark"
-            src="/brand/festag-mark-fluid.png?v=20260731"
-            alt="festag"
-            width={28}
-            height={28}
-          />
+          {/* Same fluid mark + chrome as Login/Register header. */}
+          <span className="al-wordmark mob-wordmark" aria-label="Festag" role="img">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="al-wordmark-img al-wordmark-img--fluid mob-mark"
+              src="/brand/festag-mark-fluid.png?v=20260731"
+              alt=""
+              aria-hidden="true"
+              width={36}
+              height={36}
+            />
+          </span>
           <div className="mob-header-actions">
-            <AuthDocsPopover />
+            <AuthDocsPopover page="/onboarding" />
           </div>
         </header>
 

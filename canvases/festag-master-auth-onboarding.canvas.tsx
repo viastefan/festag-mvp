@@ -30,8 +30,9 @@ function useSystemAppearance(): Appearance {
 	return sys
 }
 
+/** Same fluid mark as live Login/Register header. */
 const MARK =
-	'/Users/stefandirnberger/.cursor/projects/Users-stefandirnberger-Documents-festag-mvp/assets/festag-mark.png'
+	'/Users/stefandirnberger/Documents/festag-mvp/public/brand/festag-mark-fluid.png'
 
 type StepId = 'auth' | 'intent' | 'clarify' | 'connect' | 'preparing'
 
@@ -59,21 +60,21 @@ function flowDotIndex(sid: StepId): number {
 	return -1
 }
 
-/** Thin MacBook-style Return — inherits currentColor */
+/** Mac Return / Enter — same geometry as AuthEnterGlyph (Cursor-style) */
 function EnterReturnIcon({ size = 14 }: { size?: number }) {
 	return (
 		<svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
 			<path
-				d="M3.5 10.5h7.25a2.75 2.75 0 0 0 2.75-2.75V3.5"
+				d="M3.5 9.75h6.25A2.75 2.75 0 0 0 12.5 7V3.5"
 				stroke="currentColor"
-				strokeWidth="1.2"
+				strokeWidth="1.15"
 				strokeLinecap="round"
 				strokeLinejoin="round"
 			/>
 			<path
-				d="M6.25 7.75 3.5 10.5l2.75 2.75"
+				d="M5.75 7.25 3.5 9.75l2.25 2.5"
 				stroke="currentColor"
-				strokeWidth="1.2"
+				strokeWidth="1.15"
 				strokeLinecap="round"
 				strokeLinejoin="round"
 			/>
@@ -97,9 +98,9 @@ function ContinueHint({ color }: { color: string }) {
 				gap: 8,
 			}}
 		>
-			<span>Nochmal klicken für weiter</span>
+			<span>Weiter</span>
 			<span aria-hidden style={{ display: 'inline-flex', color: 'inherit', opacity: 0.92 }}>
-				<EnterReturnIcon />
+				<EnterReturnIcon size={13} />
 			</span>
 		</p>
 	)
@@ -110,38 +111,76 @@ function stepIndex(id: StepId): number {
 }
 
 const GOAL_EXAMPLES = [
-	'Ich entwickle Webseiten für Kunden.',
+	'Ich entwickle Websites für Kunden.',
 	'Ich suche einen Freelancer für mein Startup.',
-	'Ich möchte Kundenprojekte organisieren.',
-	'Ich arbeite alleine an einer SaaS.',
-	'Wir sind eine Agentur mit 8 Mitarbeitern.',
+	'Ich organisiere Kundenprojekte zentral.',
+	'Ich arbeite allein an einer SaaS.',
+	'Wir sind eine Agentur mit acht Mitarbeitern.',
 	'Ich suche einen Entwickler für mein Projekt.',
-	'Ich möchte GitHub und Supabase verbinden.',
+	'Ich möchte GitHub und Supabase anbinden.',
 	'Ich leite ein Produktteam.',
-	'Ich brauche ein Projektmanagement für Kunden.',
-	'Ich baue gerade meine erste App.',
+	'Ich brauche klare Statusberichte für Kunden.',
+	'Ich baue meine erste App.',
 ]
 
 const CLARIFY_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 
-/** Header copy per clarify choice — readable before the second tap advances */
+/** Header copy per clarify choice — short, like onboarding live */
 const CLARIFY_HEADER: Record<(typeof CLARIFY_OPTIONS)[number], { lead: string; muted: string }> = {
 	Developer: {
-		lead: 'Du baust selbst — Execution-first.',
-		muted: 'Tasks, GitHub und Status bleiben nah an deinem Code.',
+		lead: 'Selbst entwickeln.',
+		muted: 'Execution Panel zuerst — nah am Code.',
 	},
 	Agentur: {
-		lead: 'Du lieferst für Kunden — Delivery-first.',
-		muted: 'Projekte, Freigaben und ruhige Statusberichte für Auftraggeber.',
+		lead: 'Für Kunden liefern.',
+		muted: 'Delivery zuerst — ruhige Statusberichte.',
 	},
 	Startup: {
-		lead: 'Du bewegst ein Produkt-Team — Tempo mit Klarheit.',
-		muted: 'Roadmap, Risiken und nächste Schritte ohne PM-Overhead.',
+		lead: 'Produkt-Team führen.',
+		muted: 'Tempo mit Klarheit — ohne PM-Overhead.',
 	},
 	Unternehmen: {
-		lead: 'Du steuerst mehrere Streams — Überblick zuerst.',
-		muted: 'Rollen, Governance und ein gemeinsamer Workspace-Graph.',
+		lead: 'Mehrere Streams steuern.',
+		muted: 'Überblick zuerst — ein Workspace-Graph.',
 	},
+}
+
+const CONNECT_HEADER_IDLE = {
+	lead: 'Quellen verbinden.',
+	muted: 'Was nutzt du schon?',
+}
+
+const CONNECT_HEADERS: Record<string, { lead: string; muted: string }> = {
+	GitHub: { lead: 'GitHub anbinden.', muted: 'Repos und Status nah am Code.' },
+	Figma: { lead: 'Figma anbinden.', muted: 'Designs und Freigaben im Projekt.' },
+	Slack: { lead: 'Slack anbinden.', muted: 'Signale aus dem Team-Chat.' },
+	Linear: { lead: 'Linear anbinden.', muted: 'Issues und Sprints im Graph.' },
+	Notion: { lead: 'Notion anbinden.', muted: 'Docs bleiben im Workspace.' },
+	'Google Calendar': { lead: 'Kalender anbinden.', muted: 'Termine und Deadlines sichtbar.' },
+	Vercel: { lead: 'Vercel anbinden.', muted: 'Deploys und Previews im Blick.' },
+	Supabase: { lead: 'Supabase anbinden.', muted: 'Daten und Auth im Blick.' },
+	Jira: { lead: 'Jira anbinden.', muted: 'Tickets und Boards im Graph.' },
+	Discord: { lead: 'Discord anbinden.', muted: 'Community-Signale im Workspace.' },
+}
+
+function connectHeaderFor(connected: string[]): { lead: string; muted: string } {
+	if (connected.length === 0) return CONNECT_HEADER_IDLE
+	if (connected.length === 1) {
+		return CONNECT_HEADERS[connected[0]] ?? {
+			lead: `${connected[0]} anbinden.`,
+			muted: 'Im Workspace verfügbar.',
+		}
+	}
+	if (connected.length === 2) {
+		return {
+			lead: `${connected[0]} und ${connected[1]}.`,
+			muted: 'Weitere ergänzt du später.',
+		}
+	}
+	return {
+		lead: `${connected.length} Quellen verbunden.`,
+		muted: 'Weitere ergänzt du später.',
+	}
 }
 
 /** Primary caret / blink / focus stroke — lighter than fill `#5B647D` for thin lines */
@@ -374,7 +413,7 @@ export default function FestagMasterAuthOnboarding() {
 	const [email, setEmail] = useCanvasState('email', '')
 	const [intentText, setIntentText] = useCanvasState('intentText', '')
 	const [clarifyPick, setClarifyPick] = useCanvasState('clarifyPick', '')
-	const [connected, setConnected] = useCanvasState<string[]>('connected', ['GitHub'])
+	const [connected, setConnected] = useCanvasState<string[]>('connected', [])
 	const [heroTick, setHeroTick] = useState(0)
 	const [prepProgress, setPrepProgress] = useCanvasState('prepProgress', 0)
 	const [prepReady, setPrepReady] = useCanvasState('prepReady', false)
@@ -396,7 +435,6 @@ export default function FestagMasterAuthOnboarding() {
 	const [intentReady, setIntentReady] = useState(false)
 	const [docsOpen, setDocsOpen] = useState(false)
 	const touchRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
-	const enterArmRef = useRef(0)
 	const t = useMemo(() => themeFor(appearance), [appearance])
 
 	const i = Math.min(Math.max(step, 0), STEPS.length - 1)
@@ -437,14 +475,8 @@ export default function FestagMasterAuthOnboarding() {
 			if (!canClarify && !canConnect) return
 
 			e.preventDefault()
-			const now = Date.now()
-			if (now - enterArmRef.current < 900) {
-				enterArmRef.current = 0
-				if (canClarify) go(stepIndex('connect'))
-				else go(stepIndex('preparing'))
-				return
-			}
-			enterArmRef.current = now
+			if (canClarify) go(stepIndex('connect'))
+			else go(stepIndex('preparing'))
 		}
 		window.addEventListener('keydown', onKey)
 		return () => window.removeEventListener('keydown', onKey)
@@ -799,14 +831,15 @@ export default function FestagMasterAuthOnboarding() {
 							<img
 								src={MARK}
 								alt=""
-								width={28}
-								height={28}
+								width={36}
+								height={36}
 								style={{
-									width: 28,
-									height: 28,
+									width: 36,
+									height: 36,
 									objectFit: 'contain',
-									/* New 3D mark — no invert/ink filter */
-									opacity: 0.95,
+									/* Match Login light — fluid mark inked on ivory */
+									filter: t.mode === 'light' ? 'brightness(0) saturate(100%)' : 'none',
+									opacity: 0.9,
 								}}
 							/>
 							<div style={{ flex: 1 }} />
@@ -1008,24 +1041,6 @@ export default function FestagMasterAuthOnboarding() {
 											fontFamily: 'inherit',
 										}}
 									>
-										<img
-											src={MARK}
-											alt=""
-											width={22}
-											height={22}
-											aria-hidden
-											style={{
-												width: 22,
-												height: 22,
-												objectFit: 'contain',
-												flexShrink: 0,
-												filter:
-													t.mode === 'light'
-														? 'brightness(0) saturate(100%)'
-														: 'none',
-												opacity: prepReady ? 0.95 : 0.88,
-											}}
-										/>
 										<span
 											aria-hidden
 											style={{
@@ -1180,6 +1195,7 @@ function ConnectStage({
 
 	const topColor = t.screenSolidTop
 	const bottomColor = t.screenSolidBottom
+	const header = connectHeaderFor(connected)
 
 	return (
 		<>
@@ -1194,8 +1210,8 @@ function ConnectStage({
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
 			>
-				<span style={{ display: 'block', color: t.ink }}>Verbinde deinen Workspace.</span>
-				<span style={{ display: 'block', color: t.muted }}>Verbinde die Tools, die du schon nutzt.</span>
+				<span style={{ display: 'block', color: t.ink }}>{header.lead}</span>
+				<span style={{ display: 'block', color: t.muted }}>{header.muted}</span>
 			</h1>
 
 			<div style={{ position: 'relative', width: '100%', marginTop: 16, marginBottom: 4 }}>
@@ -1316,7 +1332,7 @@ function ConnectStage({
 					lineHeight: 1.4,
 				}}
 			>
-				Weitere Clients verbindest du später im Execution Panel.
+				Weitere Quellen ergänzt du später im Execution Panel.
 			</p>
 			{connected.length > 0 ? <ContinueHint color={t.muted} /> : null}
 		</>
@@ -1518,8 +1534,9 @@ function IntentCanvasStage({
 	const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const tagroTimers = useRef<ReturnType<typeof setTimeout>[]>([])
-	/** Allocated textarea height — grows by 3 lines when typing hits the bottom */
+	/** Allocated textarea height — grows when content overflows (stable, no height:auto flicker) */
 	const fieldHRef = useRef(INTENT_FIELD_MIN_H)
+	const [fieldH, setFieldH] = useState(INTENT_FIELD_MIN_H)
 	const hasText = value.trim().length > 0
 	const enough = value.trim().length >= 8
 	const showExample = !hasText
@@ -1528,30 +1545,25 @@ function IntentCanvasStage({
 	useEffect(() => {
 		const el = areaRef.current
 		if (!el) return
-		/* Measure natural content height */
-		el.style.height = 'auto'
-		const needed = el.scrollHeight
-		let next = fieldHRef.current
 
-		if (needed > fieldHRef.current - 4) {
-			/* Reached the end — jump +3 lines of headroom */
-			next = Math.max(needed + INTENT_FIELD_STEP_H, fieldHRef.current + INTENT_FIELD_STEP_H)
-		} else if (needed <= INTENT_FIELD_MIN_H) {
-			next = INTENT_FIELD_MIN_H
-		} else if (needed < fieldHRef.current - INTENT_FIELD_STEP_H - 8) {
-			/* Shrunk — step back toward content, never below min */
-			const steps = Math.max(0, Math.ceil((needed - INTENT_FIELD_MIN_H) / INTENT_FIELD_STEP_H))
-			next = INTENT_FIELD_MIN_H + steps * INTENT_FIELD_STEP_H
+		if (!value.trim()) {
+			fieldHRef.current = INTENT_FIELD_MIN_H
+		} else {
+			el.style.height = `${fieldHRef.current}px`
+			let guard = 0
+			while (el.scrollHeight > el.clientHeight + 2 && guard < 8) {
+				fieldHRef.current = Math.max(
+					fieldHRef.current + INTENT_FIELD_STEP_H,
+					el.scrollHeight + 4,
+				)
+				el.style.height = `${fieldHRef.current}px`
+				guard += 1
+			}
 		}
 
-		fieldHRef.current = next
-		el.style.height = `${next}px`
+		el.style.height = `${fieldHRef.current}px`
 		el.style.overflow = 'hidden'
-
-		/* Keep caret in view — whole phone content scrolls, not the field alone */
-		requestAnimationFrame(() => {
-			el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-		})
+		setFieldH((prev: number) => (prev === fieldHRef.current ? prev : fieldHRef.current))
 	}, [value])
 
 	useEffect(() => {
@@ -1679,7 +1691,6 @@ function IntentCanvasStage({
 	/* Chip stays for reopen even after outside-click closes the panel */
 	const showTagroChip = hasText && !assistExpanded
 	const showTagroPanel = assistOpen && assistExpanded
-	const fieldNeedsChipPad = showTagroChip
 
 	const popBg = light
 		? assistMenu !== 'none'
@@ -1711,9 +1722,9 @@ function IntentCanvasStage({
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
 			>
-				<span style={{ display: 'block', color: t.ink, lineHeight: 1.08 }}>Woran arbeitest du gerade?</span>
+				<span style={{ display: 'block', color: t.ink, lineHeight: 1.08 }}>Worum geht es?</span>
 				<span style={{ display: 'block', color: t.muted, lineHeight: 1.08, marginTop: 0 }}>
-					Tagro richtet deinen Workspace danach ein.
+					Tagro richtet Workspace und Struktur danach aus.
 				</span>
 			</h1>
 
@@ -1725,9 +1736,7 @@ function IntentCanvasStage({
 						borderRadius: FIELD_RADIUS,
 						...inputStroke(t, { focused, filled: hasText }),
 						background: 'transparent',
-						padding: fieldNeedsChipPad
-							? `${INTENT_PAD_Y}px ${INTENT_PAD_X}px 44px`
-							: `${INTENT_PAD_Y}px ${INTENT_PAD_X}px`,
+						padding: `${INTENT_PAD_Y}px ${INTENT_PAD_X}px 44px`,
 						minHeight: INTENT_SHELL_H,
 						boxSizing: 'border-box',
 						display: 'flex',
@@ -1758,7 +1767,7 @@ function IntentCanvasStage({
 						style={{
 							width: '100%',
 							minHeight: INTENT_FIELD_MIN_H,
-							height: INTENT_FIELD_MIN_H,
+							height: fieldH,
 							padding: 0,
 							border: 'none',
 							background: 'transparent',
@@ -1872,19 +1881,39 @@ function IntentCanvasStage({
 					) : null}
 				</div>
 
-				{hasText ? (
+				{hasText && enough ? (
 					<p
 						style={{
 							margin: '10px 0 0',
 							fontSize: 13,
 							lineHeight: 1.45,
-							color: enough ? t.ink : t.muted,
-							opacity: enough ? 1 : 0.72,
+							color: t.ink,
+							opacity: 1,
 							letterSpacing: '0.01em',
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: 8,
 							animation: 'masterShellIn .28s ease both',
 						}}
 					>
-						Mit Enter geht es weiter
+						<span>Weiter</span>
+						<span aria-hidden style={{ display: 'inline-flex', color: 'inherit', opacity: 0.92 }}>
+							<EnterReturnIcon size={13} />
+						</span>
+					</p>
+				) : null}
+				{hasText && !enough ? (
+					<p
+						style={{
+							margin: '10px 0 0',
+							fontSize: 13,
+							lineHeight: 1.45,
+							color: t.muted,
+							opacity: 0.72,
+							letterSpacing: '0.01em',
+						}}
+					>
+						Noch ein kurzer Satz genügt.
 					</p>
 				) : null}
 
@@ -2171,8 +2200,8 @@ function ClarifyStage({
 	const header = picked
 		? CLARIFY_HEADER[picked]
 		: {
-				lead: `Tagro liest eher „${guess}“, ist aber noch unsicher.`,
-				muted: 'Wähle kurz, was am besten passt — dann noch einmal tippen zum Weiter.',
+				lead: `Tagro erkennt eher „${guess}“.`,
+				muted: 'Bitte bestätige die Einordnung.',
 			}
 
 	return (
@@ -2818,6 +2847,45 @@ function AuthDocsSheet({
 							}}
 						/>
 					</div>
+					<button
+						type="button"
+						onClick={onClose}
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'flex-start',
+							gap: 2,
+							width: '100%',
+							margin: 0,
+							padding: '10px 10px',
+							borderRadius: 6,
+							border: `1px solid ${light ? 'rgba(30, 30, 32, 0.08)' : 'rgba(255,255,255,0.08)'}`,
+							background: light ? 'rgba(91, 100, 125, 0.05)' : 'rgba(186, 194, 210, 0.06)',
+							cursor: 'pointer',
+							fontFamily: 'inherit',
+							textAlign: 'left',
+						}}
+					>
+						<span
+							style={{
+								fontSize: 13.5,
+								letterSpacing: '0.01em',
+								color: t.ink,
+							}}
+						>
+							Support kontaktieren
+						</span>
+						<span
+							style={{
+								fontSize: 12,
+								lineHeight: 1.35,
+								letterSpacing: '0.01em',
+								color: t.muted,
+							}}
+						>
+							Benutzername oder Passwort vergessen — wir helfen dir weiter.
+						</span>
+					</button>
 					<div
 						style={{
 							display: 'flex',
@@ -3022,7 +3090,49 @@ function AuthDocsSheet({
 						Workspace, Tagro und Anbindungen — ohne Umwege.
 					</p>
 
-					<div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
+					<button
+						type="button"
+						onClick={onClose}
+						style={{
+							marginTop: 18,
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'flex-start',
+							gap: 3,
+							width: '100%',
+							padding: '14px 16px',
+							borderRadius: 12,
+							border: `1px solid ${rowBorder}`,
+							background: rowBg,
+							boxShadow: light ? '0 1px 2px rgba(0,0,0,0.03)' : 'none',
+							cursor: 'pointer',
+							fontFamily: 'inherit',
+							textAlign: 'left',
+						}}
+					>
+						<span
+							style={{
+								display: 'block',
+								fontSize: 15,
+								color: t.ink,
+								letterSpacing: '0.01em',
+							}}
+						>
+							Support kontaktieren
+						</span>
+						<span
+							style={{
+								display: 'block',
+								fontSize: 13,
+								color: t.muted,
+								lineHeight: 1.4,
+							}}
+						>
+							Benutzername oder Passwort vergessen — wir helfen dir weiter.
+						</span>
+					</button>
+
+					<div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
 						{DOCS_LINKS.map((item) => (
 							<button
 								key={item.title}
@@ -3183,7 +3293,7 @@ function PreparingStage({
 				style={{
 					position: 'relative',
 					width: '100%',
-					maxWidth: 300,
+					maxWidth: 340,
 					height: LINE_SLOT * 3,
 					overflow: 'hidden',
 					maskImage:
@@ -3522,7 +3632,7 @@ const contentArea: CSSProperties = {
 
 const contentCard: CSSProperties = {
 	width: '100%',
-	maxWidth: 300,
+	maxWidth: 380,
 	margin: '0 auto',
 	alignSelf: 'center',
 	display: 'flex',

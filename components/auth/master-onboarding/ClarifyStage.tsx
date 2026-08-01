@@ -1,6 +1,6 @@
 'use client'
 
-import EnterReturnIcon from '@/components/auth/master-onboarding/EnterReturnIcon'
+import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import {
   CLARIFY_HEADER,
   CLARIFY_OPTIONS,
@@ -22,8 +22,8 @@ export default function ClarifyStage({ value, onPick, blueprint }: Props) {
   const header = picked
     ? CLARIFY_HEADER[picked]
     : {
-        lead: `Tagro liest eher „${guess}“, ist aber noch unsicher.`,
-        muted: 'Wähle kurz, was am besten passt — dann noch einmal tippen zum Weiter.',
+        lead: `Tagro erkennt eher „${guess}“.`,
+        muted: 'Bitte bestätige die Einordnung.',
       }
 
   return (
@@ -44,14 +44,7 @@ export default function ClarifyStage({ value, onPick, blueprint }: Props) {
           </button>
         ))}
       </div>
-      {picked ? (
-        <p className="mob-chip-hint">
-          <span>Nochmal klicken für weiter</span>
-          <span className="mob-enter-ico" aria-hidden>
-            <EnterReturnIcon />
-          </span>
-        </p>
-      ) : null}
+      <ContinueHint show={Boolean(picked)} className="mob-chip-hint" />
     </>
   )
 }

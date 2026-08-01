@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { BookOpenText, MagnifyingGlass } from '@phosphor-icons/react'
+import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
@@ -11,6 +12,12 @@ import { festagDocsArticles } from '@/lib/festag-docs'
 
 type Props = {
   className?: string
+  /** Prefill recovery contact when Support is opened from Docs. */
+  initialEmail?: string
+  /** Prefer parent-owned recovery modal (Login/Register). Falls back to local modal. */
+  onContactSupport?: () => void
+  /** Where recovery was opened from (support routing). */
+  page?: string
 }
 
 /** Auth canvas theme — never inherit portal html[data-theme=dark] on a light login. */
@@ -21,16 +28,31 @@ function readAuthCanvasTheme(): string {
   return theme === 'dark' || theme === 'classic-dark' || theme === 'read' ? theme : 'light'
 }
 
-export default function AuthDocsPopover({ className }: Props) {
+export default function AuthDocsPopover({
+  className,
+  initialEmail = '',
+  onContactSupport,
+  page = '/login',
+}: Props) {
   const [open, setOpen] = useState(false)
   const { mounted, visible } = useFestagPopupPresence(open)
   const [query, setQuery] = useState('')
+  const [supportOpen, setSupportOpen] = useState(false)
   const [canvasTheme, setCanvasTheme] = useState(() => readAuthCanvasTheme())
   const rootRef = useRef<HTMLDivElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isMobile = useFestagMobile()
   const close = () => setOpen(false)
+
+  function openSupport() {
+    setOpen(false)
+    if (onContactSupport) {
+      onContactSupport()
+      return
+    }
+    setSupportOpen(true)
+  }
 
   function goDocs(href: string, e?: ReactMouseEvent<HTMLAnchorElement>) {
     e?.preventDefault()
@@ -123,6 +145,12 @@ export default function AuthDocsPopover({ className }: Props) {
           aria-label="Dokumentation durchsuchen"
         />
       </div>
+      <button type="button" className="auth-docs-support" onClick={openSupport}>
+        <span className="auth-docs-support-title">Support kontaktieren</span>
+        <span className="auth-docs-support-desc">
+          Benutzername oder Passwort vergessen — wir helfen dir weiter.
+        </span>
+      </button>
       <ul className="auth-docs-list">
         {filtered.map(a => (
           <li key={a.slug}>
@@ -182,6 +210,15 @@ export default function AuthDocsPopover({ className }: Props) {
         <BookOpenText size={15} weight="regular" aria-hidden />
       </button>
       {overlay}
+      {!onContactSupport ? (
+        <AuthRecoveryModal
+          open={supportOpen}
+          onClose={() => setSupportOpen(false)}
+          initialEmail={initialEmail}
+          page={page}
+          variant="client"
+        />
+      ) : null}
     </div>
   )
 }
@@ -363,6 +400,60 @@ const AUTH_DOCS_CSS = `
     appearance: none;
     display: none;
   }
+  .auth-docs-support {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    margin: 0;
+    padding: 10px 10px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    border-radius: var(--festag-auth-radius, 6px);
+    background: rgba(91, 100, 125, 0.05);
+    color: inherit;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .auth-docs-support:hover,
+  .auth-docs-support:focus-visible {
+    background: rgba(91, 100, 125, 0.09);
+    border-color: rgba(30, 30, 32, 0.12);
+    outline: none;
+  }
+  .auth-docs-support-title {
+    font-size: 13.5px;
+    font-weight: 400;
+    letter-spacing: var(--auth-tracking, 0.01em);
+    color: #1e1e20;
+  }
+  .auth-docs-support-desc {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: var(--auth-tracking, 0.01em);
+    color: var(--al-text-muted, #8891a0);
+  }
+  .auth-docs-pop--dark .auth-docs-support {
+    background: rgba(186, 194, 210, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .auth-docs-pop--dark .auth-docs-support:hover,
+  .auth-docs-pop--dark .auth-docs-support:focus-visible {
+    background: rgba(186, 194, 210, 0.10);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .auth-docs-pop--dark .auth-docs-support-title {
+    color: #f5f5f7;
+  }
+  .auth-docs-pop--dark .auth-docs-support-desc {
+    color: var(--al-text-muted, #8891a0);
+  }
   .auth-docs-list {
     list-style: none;
     margin: 0;
@@ -386,14 +477,14 @@ const AUTH_DOCS_CSS = `
   .auth-docs-item-title {
     font-size: 13.5px;
     font-weight:400;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--auth-tracking, 0.01em);
     color: #1e1e20;
   }
   .auth-docs-item-desc {
     font-size: 12px;
     font-weight: 400;
     line-height: 1.35;
-    letter-spacing: var(--festag-tracking-small, 0.015em);
+    letter-spacing: var(--auth-tracking, 0.01em);
     color: var(--al-text-muted, #8891a0);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -548,6 +639,17 @@ const AUTH_DOCS_CSS = `
       max-height: min(52dvh, 420px);
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-support {
+      padding: 12px 12px;
+      border-radius: var(--festag-auth-radius, 6px);
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-support-title {
+      font-size: 15px;
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-support-desc {
+      font-size: 13px;
+      line-height: 1.4;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-item {
       padding: 12px 10px;

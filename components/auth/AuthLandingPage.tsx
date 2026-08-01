@@ -25,6 +25,7 @@ import { applyTheme } from '@/lib/theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
 import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
 import {
+  clearRememberedWorkspaceName,
   getPendingWorkspaceName,
   getRememberedWorkspaceName,
   normalizeWorkspaceName,
@@ -362,7 +363,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         // Persist immediately so the header/wordmark and later login greeting stay in sync
         // without requiring Enter or continuing the signup form.
         setPendingWorkspaceName(trimmed)
-        rememberWorkspaceName(trimmed)
         // Persist for later steps — but never swap to `/name` path chip on mobile.
         if (
           document.activeElement !== wsNameRef.current &&
@@ -634,7 +634,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     // Reuse the live debounce result — avoid a second /check-name round-trip on CTA.
     if (wsAvailability === 'available') {
       setPendingWorkspaceName(trimmed)
-      rememberWorkspaceName(trimmed)
       return trimmed
     }
     if (wsAvailability === 'taken' || wsAvailability === 'invalid') {
@@ -649,7 +648,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       return null
     }
     setPendingWorkspaceName(trimmed)
-    rememberWorkspaceName(trimmed)
     return trimmed
   }
 
@@ -662,8 +660,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (inviteToken) url.searchParams.set('invite', inviteToken)
     if (devInviteToken) url.searchParams.set('devInvite', devInviteToken)
     if (email.trim()) url.searchParams.set('email', email.trim())
-    const ws = normalizeWorkspaceName(workspaceName)
-    if (ws) url.searchParams.set('ws', ws)
+    // Register keeps draft username in the URL; login is email-first (no /Benutzer gate).
+    if (nextMode === 'signup') {
+      const ws = normalizeWorkspaceName(workspaceName)
+      if (ws) url.searchParams.set('ws', ws)
+    }
     const href = `${url.pathname}${url.search}`
     // Instant UI flip — no fade, no remount. URL catches up in the background.
     setOptimisticMode(nextMode)
@@ -673,6 +674,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setAccountExistsFor(null)
     setAnimating(false)
     setPageExiting(false)
+    if (nextMode === 'login') {
+      // Drop register draft from the login hero — email + code is enough.
+      setWorkspaceName('')
+      setLoginPathStatus('idle')
+    } else if (nextMode === 'signup') {
+      const draft = normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName() || ''
+      if (draft) setWorkspaceName(draft)
+    }
     try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
     try { router.prefetch(href) } catch { /* noop */ }
     // Soft URL sync — never hard-assign (full reload = stutter).
@@ -771,19 +780,33 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     try {
       const params = new URLSearchParams(window.location.search)
       const wsParam = normalizeWorkspaceName(params.get('ws') || '')
-      const seed =
-        wsParam ||
-        getPendingWorkspaceName() ||
-        getLastWorkspaceName() ||
-        getRememberedWorkspaceName() ||
-        ''
-      if (seed) {
-        setWorkspaceName(seed)
-        rememberWorkspaceName(seed)
+      if (isSignup) {
+        const seed =
+          wsParam ||
+          getPendingWorkspaceName() ||
+          ''
+        if (seed) setWorkspaceName(seed)
+      } else {
+        // Login is email-first (code by mail). Only show `/Benutzer` after a real
+        // signed-in account on this device — never from a register draft.
+        const confirmed =
+          hasFestagDeviceAccount()
+            ? normalizeWorkspaceName(
+                getLastWorkspaceName() ||
+                  getLastFestagAccount()?.workspaceName ||
+                  '',
+              )
+            : ''
+        if (confirmed) setWorkspaceName(confirmed)
+        else {
+          setWorkspaceName('')
+          // Drop legacy pollution: register used to write LAST_WS before auth.
+          clearRememberedWorkspaceName()
+        }
       }
     } catch {}
     setWsHydrated(true)
-  }, [wsHydrated])
+  }, [wsHydrated, isSignup])
 
   /* Auth OS dusk continuity removed — login/register stay light full-page. */
 
@@ -1142,9 +1165,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     window.location.href = result.url
   }
 
-  async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error' | 'already_registered' | 'identity_mismatch'> {
+  async function sendMagicLink(opts?: {
+    resend?: boolean
+  }): Promise<'ok' | 'rate_limited' | 'error' | 'already_registered' | 'identity_mismatch'> {
     const signupWs = isSignup ? (normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()) : null
-    const loginWs = !isSignup ? (normalizeWorkspaceName(workspaceName) || getRememberedWorkspaceName()) : null
     try {
       const res = await fetch('/api/auth/otp/request', {
         method: 'POST',
@@ -1154,7 +1178,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           kind: isSignup ? 'signup' : 'login',
           next: postAuthNext,
           pendingWorkspaceName: signupWs || undefined,
-          loginWorkspaceName: loginWs || undefined,
+          resend: opts?.resend === true,
+          // Login is email-first — never gate OTP on a remembered /Benutzer.
         }),
       })
       if (res.status === 429) return 'rate_limited'
@@ -1173,7 +1198,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           data?.error === 'identity_mismatch' ||
           mapped === IDENTITY_MISMATCH_ERROR
         ) {
-          setError(IDENTITY_MISMATCH_ERROR)
+          // Legacy clients may still hit this — clear path and continue email-first.
+          setWorkspaceName('')
+          clearRememberedWorkspaceName()
+          setLoginPathStatus('idle')
+          setError('')
           return 'identity_mismatch'
         }
         if (mapped) setError(mapped)
@@ -1207,6 +1236,21 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       setAccountExistsFor(email.trim().toLowerCase())
       return
     }
+    if (result === 'identity_mismatch') {
+      // Cleared path above — retry once email-only.
+      setLoading(true)
+      const retry = await sendMagicLink()
+      setLoading(false)
+      if (retry === 'ok' || retry === 'rate_limited') {
+        setAccountExistsFor(null)
+        setError('')
+        setCode('')
+        saveMethod('email')
+        setResendCooldown(retry === 'ok' ? 60 : 30)
+        goTo('codeEntry')
+      }
+      return
+    }
     // Rate-limit = still continue — the earlier code remains valid.
     // Always land on the shared 6-digit code window (login + register).
     if (result === 'ok' || result === 'rate_limited') {
@@ -1223,13 +1267,24 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (resendCooldown > 0 || resending) return
     setError('')
     setResending(true)
-    const result = await sendMagicLink()
+    const result = await sendMagicLink({ resend: true })
     setResending(false)
-    if (result === 'ok') setResendCooldown(60)
-    else if (result === 'rate_limited') {
-      setError('')
-      setResendCooldown(30)
+    if (result === 'ok') {
+      setCode('')
+      setResendCooldown(60)
+      return
     }
+    if (result === 'rate_limited') {
+      setResendCooldown(30)
+      setError('Bitte kurz warten, dann erneut einen Code anfordern.')
+      return
+    }
+    if (result === 'already_registered') {
+      // Should be rare with API resend fallback — keep user on code entry.
+      setError('Code konnte gerade nicht erneut gesendet werden. Bitte gleich nochmal versuchen.')
+      return
+    }
+    setError('Code konnte gerade nicht gesendet werden. Prüfe Spam oder versuche es gleich erneut.')
   }
 
   async function handleVerifyCode(nextCode?: string) {
@@ -1705,7 +1760,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             />
           </span>
           <div className="al-header-actions">
-            <AuthDocsPopover />
+            <AuthDocsPopover
+              initialEmail={email}
+              onContactSupport={openSupportModal}
+              page={isSignup ? '/register' : '/login'}
+            />
           </div>
         </header>
 

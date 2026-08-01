@@ -6,7 +6,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   normalizeWorkspaceName,
-  rememberWorkspaceName,
   setPendingWorkspaceName,
 } from '@/lib/pending-workspace'
 
@@ -65,7 +64,6 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
         setAvailability('available')
         setAvailabilityMsg('')
         setPendingWorkspaceName(trimmed)
-        rememberWorkspaceName(trimmed)
         return { ok: true }
       }
       const reason = 'Bereits vergeben'
@@ -102,7 +100,7 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
     const next = normalizeWorkspaceName(seed)
     if (!next) return
     setWorkspaceNameState(next)
-    rememberWorkspaceName(next)
+    setPendingWorkspaceName(next)
   }
 
   useEffect(() => {

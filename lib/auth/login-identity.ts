@@ -1,6 +1,6 @@
 /**
- * Login identity gate — Benutzer (workspace path) + E-Mail must belong together.
- * Used when a remembered `/name` is shown on login and the user submits an email.
+ * Login identity gate — optional when a client explicitly sends `loginWorkspaceName`.
+ * Email-first login does not send that field; OTP proceeds by E-Mail alone.
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {

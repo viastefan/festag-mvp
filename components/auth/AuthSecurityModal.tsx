@@ -171,10 +171,10 @@ const SECURITY_CSS = `
   #auth-security-title {
     margin: 0 0 18px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 26px;
+    font-size: 29px;
     font-weight: 400;
-    line-height: 1.28;
-    letter-spacing: -0.022em;
+    line-height: 1.08;
+    letter-spacing: var(--auth-tracking-display, 0.006em);
     color: #1e1e20;
   }
   .auth-sec-title-muted {
@@ -201,7 +201,7 @@ const SECURITY_CSS = `
     text-underline-offset: 2px;
   }
   .auth-sec-cta {
-    margin-top: 24px;
+    margin-top: 18px;
     width: 100%;
     height: var(--festag-btn-height, 40px);
     min-height: var(--festag-btn-height, 40px);
@@ -282,9 +282,9 @@ const SECURITY_CSS = `
     }
     .auth-sec-title,
     #auth-security-title {
-      margin: 4px 0 16px;
-      font-size: 23px;
-      line-height: 1.22;
+      margin: 4px 0 18px;
+      font-size: 29px;
+      line-height: 1.08;
     }
     .auth-sec-body {
       gap: 16px;
@@ -294,7 +294,7 @@ const SECURITY_CSS = `
       line-height: 1.62;
     }
     .auth-sec-cta {
-      margin-top: 28px;
+      margin-top: 18px;
       height: var(--festag-btn-height, 44px);
       min-height: var(--festag-btn-height, 44px);
       max-height: var(--festag-btn-height, 44px);

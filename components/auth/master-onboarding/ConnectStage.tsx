@@ -12,9 +12,10 @@ import {
   OnbLogoSlack,
   OnbLogoVercel,
 } from '@/components/auth/OnboardingSourceLogos'
-import EnterReturnIcon from '@/components/auth/master-onboarding/EnterReturnIcon'
+import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import type { IntegrationId } from '@/lib/platform/integrations'
 import { INTEGRATION_CATALOG } from '@/lib/platform/integrations'
+import { connectHeaderFor } from '@/lib/platform/master-onboarding'
 
 type LogoComp = (p: { className?: string }) => ReactElement
 
@@ -76,11 +77,13 @@ export default function ConnectStage({
     return () => ro.disconnect()
   }, [sources.length, connected.size, syncFades])
 
+  const header = connectHeaderFor(connected, sources)
+
   return (
     <>
       <h1 className="mob-h1">
-        <span className="mob-h1-ink">Verbinde deinen Workspace.</span>
-        <span className="mob-h1-muted">Verbinde die Tools, die du schon nutzt.</span>
+        <span className="mob-h1-ink">{header.lead}</span>
+        <span className="mob-h1-muted">{header.muted}</span>
       </h1>
 
       <div className="mob-connect-list-wrap">
@@ -134,16 +137,9 @@ export default function ConnectStage({
       </div>
 
       <p className="mob-connect-foot">
-        Weitere Clients verbindest du später im Execution Panel.
+        Weitere Quellen ergänzt du später im Execution Panel.
       </p>
-      {connected.size > 0 ? (
-        <p className="mob-chip-hint">
-          <span>Nochmal klicken für weiter</span>
-          <span className="mob-enter-ico" aria-hidden>
-            <EnterReturnIcon />
-          </span>
-        </p>
-      ) : null}
+      <ContinueHint show={connected.size > 0} className="mob-chip-hint" />
     </>
   )
 }

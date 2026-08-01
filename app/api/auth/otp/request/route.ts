@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const email = normalizeEmail(body?.email)
   const kind: Kind = body?.kind === 'signup' ? 'signup' : 'login'
+  /** Resend after the first signup OTP — user may already exist; fall back to magiclink. */
+  const isResend = body?.resend === true
   const nextPath = String(body?.next || (kind === 'signup' ? '/onboarding' : '/dashboard')).slice(0, 200)
   const pendingWorkspace =
     typeof body?.pendingWorkspaceName === 'string'
@@ -80,45 +82,60 @@ export async function POST(req: NextRequest) {
   const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(nextPath)}`
 
   try {
+    const meta = pendingWorkspace ? { pending_workspace_name: pendingWorkspace } : undefined
+
     // Supabase's admin.generateLink requires a `password` for type "signup"
     // (the user never sees or uses it — they authenticate via the OTP/magic
     // link only), so we throw away a random one on every new-account request.
-    const { data, error } = kind === 'signup'
-      ? await service.auth.admin.generateLink({
-          type: 'signup',
-          email,
-          password: randomBytes(24).toString('base64url'),
-          options: {
-            redirectTo,
-            data: pendingWorkspace ? { pending_workspace_name: pendingWorkspace } : undefined,
-          },
-        })
-      : await service.auth.admin.generateLink({
+    let linkKind: Kind = kind
+    let data: unknown = null
+    let error: { message?: string } | null = null
+
+    if (kind === 'signup') {
+      const first = await service.auth.admin.generateLink({
+        type: 'signup',
+        email,
+        password: randomBytes(24).toString('base64url'),
+        options: { redirectTo, data: meta },
+      })
+      data = first.data
+      error = first.error
+      const msg = String(error?.message || '').toLowerCase()
+      const alreadyRegistered =
+        msg.includes('already been registered') ||
+        msg.includes('already registered') ||
+        msg.includes('user already exists') ||
+        msg.includes('email address already') ||
+        (msg.includes('already') && msg.includes('registered'))
+      // First signup OTP creates the Auth user. Resend must use magiclink or
+      // generateLink(signup) fails and the UI looks like "Neu anfordern" does nothing.
+      if (alreadyRegistered && isResend) {
+        const retry = await service.auth.admin.generateLink({
           type: 'magiclink',
           email,
-          options: {
-            redirectTo,
-            data: pendingWorkspace ? { pending_workspace_name: pendingWorkspace } : undefined,
-          },
+          options: { redirectTo, data: meta },
         })
+        data = retry.data
+        error = retry.error
+        linkKind = 'login'
+      } else if (alreadyRegistered) {
+        return authErrorJson(409, 'already_registered', 'already_registered')
+      }
+    } else {
+      const login = await service.auth.admin.generateLink({
+        type: 'magiclink',
+        email,
+        options: { redirectTo, data: meta },
+      })
+      data = login.data
+      error = login.error
+    }
 
     if (error || !data) {
       const msg = String(error?.message || 'generate_link_failed')
       const lower = msg.toLowerCase()
       if (lower.includes('rate') || lower.includes('security purposes') || lower.includes('only request')) {
         return rateLimitResponse(30)
-      }
-      // Signup against an existing account — Supabase often says
-      // "A user with this email address has already been registered"
-      // (note: "already been registered", not "already registered").
-      const alreadyRegistered =
-        lower.includes('already been registered') ||
-        lower.includes('already registered') ||
-        lower.includes('user already exists') ||
-        lower.includes('email address already') ||
-        (lower.includes('already') && lower.includes('registered'))
-      if (kind === 'signup' && alreadyRegistered) {
-        return authErrorJson(409, 'already_registered', 'already_registered')
       }
       console.error('[auth-otp] generateLink:', msg)
       return authErrorJson(400, 'otp_failed', msg)
@@ -133,7 +150,7 @@ export async function POST(req: NextRequest) {
       return authErrorJson(502, 'otp_failed', 'Anmeldecode konnte nicht erzeugt werden.')
     }
 
-    const otpType = kind === 'signup' ? 'signup' : 'email'
+    const otpType = linkKind === 'signup' ? 'signup' : 'email'
     let actionUrl: string
     if (hashed) {
       const params = new URLSearchParams({
@@ -150,7 +167,7 @@ export async function POST(req: NextRequest) {
 
     const mail = await sendAuthOtpEmail({
       to: email,
-      kind,
+      kind: linkKind,
       code: emailOtp,
       actionUrl,
     }).catch((e) => ({ ok: false as const, error: String(e?.message || e) }))

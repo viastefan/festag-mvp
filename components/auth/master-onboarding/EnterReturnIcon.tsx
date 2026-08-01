@@ -1,4 +1,4 @@
-/** Thin MacBook-style Return / Enter glyph — inherits `currentColor`. */
+/** Mac Return / Enter — same geometry as AuthEnterGlyph (Cursor-style). */
 export default function EnterReturnIcon({ size = 14 }: { size?: number }) {
   return (
     <svg
@@ -9,16 +9,16 @@ export default function EnterReturnIcon({ size = 14 }: { size?: number }) {
       aria-hidden
     >
       <path
-        d="M3.5 10.5h7.25a2.75 2.75 0 0 0 2.75-2.75V3.5"
+        d="M3.5 9.75h6.25A2.75 2.75 0 0 0 12.5 7V3.5"
         stroke="currentColor"
-        strokeWidth="1.2"
+        strokeWidth="1.15"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M6.25 7.75 3.5 10.5l2.75 2.75"
+        d="M5.75 7.25 3.5 9.75l2.25 2.5"
         stroke="currentColor"
-        strokeWidth="1.2"
+        strokeWidth="1.15"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

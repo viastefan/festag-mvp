@@ -26,8 +26,8 @@ export const AUTH_OS_STYLES = `
     --festag-night-ink: #E6E8EE;
     --onb-sand: #0C0D12;
     --onb-dusk-fade: #0E1018;
-    --al-hero-display-size: 28px;
-    --al-hero-display-lh: 30px;
+    --al-hero-display-size: 29px;
+    --al-hero-display-lh: 31px;
     --al-hero-name-size: 26px;
     --al-hero-name-lh: 32px;
     --al-hero-caret-h: 26px;

@@ -5,7 +5,9 @@
  * Stepped field grow, in-field Tagro chip, anchored assist panel (no portal jitter).
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { GOAL_EXAMPLES, INTENT_MIN_CHARS, INTENT_SETTLE_MS } from '@/lib/platform/master-onboarding'
 
 type Props = {
@@ -53,15 +55,15 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const tagroTimers = useRef<ReturnType<typeof setTimeout>[]>([])
   const fieldHRef = useRef(INTENT_FIELD_MIN_H)
-  const prevHasText = useRef(false)
+  const [fieldH, setFieldH] = useState(INTENT_FIELD_MIN_H)
 
   const hasText = value.trim().length > 0
   const enough = value.trim().length >= INTENT_MIN_CHARS
   const showExample = !hasText
   const example = GOAL_EXAMPLES[exampleIdx % GOAL_EXAMPLES.length]
-  const showTagroChip = hasText && !assistExpanded
+  /* Chip always available once the field is in play — toggles the assist panel. */
+  const showTagroChip = focused || hasText || assistOpen
   const showTagroPanel = assistOpen && assistExpanded
-  const fieldNeedsChipPad = showTagroChip
 
   useEffect(() => {
     return () => {
@@ -71,27 +73,30 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     }
   }, [])
 
-  /* Canvas stepped grow — jump +2 lines of headroom when content hits the floor. */
-  useEffect(() => {
+  /* Grow only when content overflows — apply in layout effect so React style
+     never paints a collapsed height between keystrokes. */
+  useLayoutEffect(() => {
     const el = areaRef.current
     if (!el) return
-    el.style.height = 'auto'
-    const needed = el.scrollHeight
-    let next = fieldHRef.current
 
-    if (needed > fieldHRef.current - 4) {
-      next = Math.max(needed + INTENT_FIELD_STEP_H, fieldHRef.current + INTENT_FIELD_STEP_H)
-    } else if (needed <= INTENT_FIELD_MIN_H) {
-      next = INTENT_FIELD_MIN_H
-    } else if (needed < fieldHRef.current - INTENT_FIELD_STEP_H - 8) {
-      const steps = Math.max(0, Math.ceil((needed - INTENT_FIELD_MIN_H) / INTENT_FIELD_STEP_H))
-      next = INTENT_FIELD_MIN_H + steps * INTENT_FIELD_STEP_H
+    if (!value.trim()) {
+      fieldHRef.current = INTENT_FIELD_MIN_H
+    } else {
+      el.style.height = `${fieldHRef.current}px`
+      let guard = 0
+      while (el.scrollHeight > el.clientHeight + 2 && guard < 8) {
+        fieldHRef.current = Math.max(
+          fieldHRef.current + INTENT_FIELD_STEP_H,
+          el.scrollHeight + 4,
+        )
+        el.style.height = `${fieldHRef.current}px`
+        guard += 1
+      }
     }
 
-    fieldHRef.current = next
-    el.style.height = `${next}px`
+    el.style.height = `${fieldHRef.current}px`
     el.style.overflow = 'hidden'
-    /* Keyboard shift on .mob handles visibility — avoid scrollIntoView yank. */
+    setFieldH((prev) => (prev === fieldHRef.current ? prev : fieldHRef.current))
   }, [value])
 
   useEffect(() => {
@@ -128,33 +133,19 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     }
   }, [showExample])
 
-  /* Collapse panel when typing starts — chip remains for reopen. */
-  useEffect(() => {
-    const startedTyping = hasText && !prevHasText.current
-    prevHasText.current = hasText
-    if (!hasText) {
-      setAssistExpanded(true)
-      return
-    }
-    if (assistOpen && startedTyping) {
-      setAssistExpanded(false)
-      setAssistMenu('none')
-    }
-  }, [hasText, assistOpen])
-
   function openAssist() {
     if (blurTimer.current) clearTimeout(blurTimer.current)
     setFocused(true)
     setAssistOpen(true)
-    if (!hasText) setAssistExpanded(true)
+    setAssistExpanded(true)
   }
 
-  function reopenAssistPanel() {
+  function toggleAssistPanel() {
     if (blurTimer.current) clearTimeout(blurTimer.current)
-    setAssistOpen(true)
-    setAssistExpanded(true)
-    setAssistMenu('none')
     setFocused(true)
+    setAssistOpen(true)
+    setAssistExpanded((v) => !v)
+    setAssistMenu('none')
     requestAnimationFrame(() => areaRef.current?.focus())
   }
 
@@ -164,9 +155,8 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     if (blurTimer.current) clearTimeout(blurTimer.current)
     blurTimer.current = setTimeout(() => {
       setAssistOpen(false)
-      if (hasText) setAssistExpanded(false)
-      else setAssistExpanded(true)
-    }, 160)
+      setAssistExpanded(false)
+    }, 180)
   }
 
   function runTagroMode(mode: TagroMode) {
@@ -204,17 +194,17 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
   return (
     <>
       <h1 className="mob-h1">
-        <span className="mob-h1-ink">Woran arbeitest du gerade?</span>
-        <span className="mob-h1-muted">Tagro richtet deinen Workspace danach ein.</span>
+        <span className="mob-h1-ink">Worum geht es?</span>
+        <span className="mob-h1-muted">Tagro richtet Workspace und Struktur danach aus.</span>
       </h1>
 
-      <div className="mob-intent-wrap">
+      <div className={`mob-intent-wrap${showTagroPanel ? ' has-tagro-panel' : ''}`}>
         <div
           className={[
             'mob-intent-shell',
             hasText ? 'has-value' : '',
             focused ? 'is-focused' : '',
-            fieldNeedsChipPad ? 'has-chip' : '',
+            showTagroChip ? 'has-chip' : '',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -237,7 +227,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             }}
             style={{
               minHeight: INTENT_FIELD_MIN_H,
-              height: INTENT_FIELD_MIN_H,
+              height: fieldH,
               lineHeight: `${FIELD_LINE_H}px`,
             }}
           />
@@ -268,31 +258,23 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
           {showTagroChip ? (
             <button
               type="button"
-              className="mob-tagro-chip"
-              aria-label="Tagro Assist öffnen"
+              className={`mob-tagro-chip${showTagroPanel ? ' is-open' : ''}${tagroBusy ? ' is-busy' : ''}`}
+              aria-label={showTagroPanel ? 'Tagro Assist schließen' : 'Tagro Assist öffnen'}
+              aria-expanded={showTagroPanel}
               onMouseDown={(e) => e.preventDefault()}
-              onClick={reopenAssistPanel}
+              onClick={toggleAssistPanel}
             >
               <span className="mob-tagro-chip-ico" aria-hidden>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M11.4 2.6a1.45 1.45 0 0 1 2 2L5.7 12.3 2.5 13.5l1.2-3.2L11.4 2.6Z"
-                    stroke="currentColor"
-                    strokeWidth="1.35"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <TagroComposeIcon size={15} />
               </span>
-              Tagro
+              <span className="mob-tagro-chip-label">Tagro</span>
             </button>
           ) : null}
         </div>
 
-        {hasText ? (
-          <p className={`mob-ready-hint${enough ? ' is-ready' : ''}`}>
-            Mit Enter geht es weiter
-          </p>
-        ) : null}
+        <div className="mob-ready-hint-slot" aria-live="polite">
+          <ContinueHint show={hasText && enough} />
+        </div>
 
         {showTagroPanel ? (
           <div
@@ -304,17 +286,11 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             <div className="mob-tagro-panel-head">
               <span className="mob-tagro-badge">
                 <span className="mob-tagro-chip-ico" aria-hidden>
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M11.4 2.6a1.45 1.45 0 0 1 2 2L5.7 12.3 2.5 13.5l1.2-3.2L11.4 2.6Z"
-                      stroke="currentColor"
-                      strokeWidth="1.35"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <TagroComposeIcon size={14} />
                 </span>
-                Workspace-Ziel
+                Tagro
               </span>
+              <span className="mob-tagro-panel-title">Ziel schärfen</span>
               {tagroBusy ? <span className="mob-tagro-busy">Verdichtet…</span> : null}
             </div>
 

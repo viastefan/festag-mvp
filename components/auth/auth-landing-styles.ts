@@ -44,12 +44,12 @@ const AUTH_LANDING_STYLES_BASE = `
           --festag-control-radius-sm:var(--festag-auth-radius-sm);
           --festag-control-radius-lg:var(--festag-auth-radius-lg);
           --festag-input-radius:8px;
-          /* Hero H1 + workspace/username line + caret share one size (never diverge). */
-          --al-hero-display-size:34px;
-          --al-hero-display-lh:36px;
-          --al-hero-name-size:34px;
-          --al-hero-name-lh:36px;
-          --al-hero-caret-h:26px;
+          /* Hero H1 + workspace/username line — same as onboarding `.mob-h1` (29 / lh 1.08). */
+          --al-hero-display-size:29px;
+          --al-hero-display-lh:31px;
+          --al-hero-name-size:29px;
+          --al-hero-name-lh:31px;
+          --al-hero-caret-h:22px;
           --al-chrome-gutter:32px;
           --al-kb-shift:0px;
           /* Cool blue-slate muted — same family light + dark (#8891a0) */
@@ -509,7 +509,7 @@ const AUTH_LANDING_STYLES_BASE = `
           display:flex;
           flex-direction:column;
           gap:0;
-          margin-bottom:22px;
+          margin-bottom:18px;
           align-items:flex-start;
           text-align:left;
         }
@@ -526,9 +526,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-title,
         h1.al-title,
         h1.al-title.al-title-display {
-          font-size:32px !important;
+          font-size:var(--al-hero-display-size, 29px) !important;
           font-weight:400;
-          line-height:34px !important;
+          line-height:var(--al-hero-display-lh, 31px) !important;
           letter-spacing:var(--auth-tracking-display, 0.006em);
           color:#1e1e20;
           text-align:left;
@@ -610,8 +610,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable {
-          font-size:32px;
-          line-height:34px;
+          font-size:var(--al-hero-name-size, 29px);
+          line-height:var(--al-hero-name-lh, 31px);
           letter-spacing:var(--auth-tracking-display, 0.006em);
           font-weight:400;
           width:100%;
@@ -862,29 +862,29 @@ const AUTH_LANDING_STYLES_BASE = `
           color:var(--al-text-muted);
         }
         .al-title-display {
-          font-size:32px;
-          line-height:34px;
+          font-size:var(--al-hero-display-size, 29px);
+          line-height:var(--al-hero-display-lh, 31px);
           letter-spacing:var(--auth-tracking-display, 0.006em);
           margin:0;
         }
         /* Cold login — no remembered workspace: two-line sentence, no path under title. */
         .al-title--two-line {
-          line-height:1.12;
+          line-height:var(--al-hero-display-lh, 31px);
           letter-spacing:var(--auth-tracking-display, 0.006em);
         }
         .al-hero-gray {
-          font-size:32px;
-          line-height:34px;
+          font-size:var(--al-hero-name-size, 29px);
+          line-height:var(--al-hero-name-lh, 31px);
           letter-spacing:var(--auth-tracking-display, 0.006em);
           font-weight:400;
           margin:0;
         }
         .al-t1 {
           margin:8px 0 0;
-          font-size:14px;
+          font-size:var(--al-hero-name-size, 29px);
+          line-height:var(--al-hero-name-lh, 31px);
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           font-weight:400;
-          line-height:1.45;
-          letter-spacing:var(--festag-tracking-small, 0.015em);
           max-width:100%;
         }
         .al-subtitle {
@@ -2739,17 +2739,17 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           /* Vertical rhythm — intentional silence between layers. */
           .al-signin-head {
-            margin-bottom:var(--al-desktop-hero-gap, 40px);
+            margin-bottom:var(--al-desktop-hero-gap, 18px);
             gap:14px;
           }
           .al-root[data-auth-mode="signup"] .al-ws-status-slot:has(.al-ws-status) {
             margin-top:22px;
           }
           .al-t1 {
-            font-size:16px;
-            margin-top:10px;
-            line-height:1.55;
-            letter-spacing:-0.01em;
+            font-size:var(--al-hero-name-size, 29px);
+            margin-top:0;
+            line-height:var(--al-hero-name-lh, 31px);
+            letter-spacing:var(--auth-tracking-display, 0.006em);
           }
           .al-agreements-text,
           .al-signup-alt,
@@ -2905,12 +2905,12 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (min-width: 769px) and (max-height: 820px) {
           .al-root {
-            --al-hero-display-size:36px;
-            --al-hero-display-lh:38px;
-            --al-hero-name-size:36px;
-            --al-hero-name-lh:38px;
-            --al-hero-caret-h:26px;
-            --al-desktop-hero-gap:28px;
+            --al-hero-display-size:29px;
+            --al-hero-display-lh:31px;
+            --al-hero-name-size:29px;
+            --al-hero-name-lh:31px;
+            --al-hero-caret-h:22px;
+            --al-desktop-hero-gap:18px;
             --al-desktop-divider-gap:22px;
             --al-desktop-secondary-gap:22px;
             --festag-btn-height:44px;
@@ -2921,13 +2921,13 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (min-width: 769px) and (max-height: 700px) {
           .al-root {
-            --al-hero-display-size:34px;
-            --al-hero-display-lh:36px;
-            --al-hero-name-size:34px;
-            --al-hero-name-lh:36px;
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:28px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:28px;
             --festag-btn-height:42px;
             --festag-input-height:46px;
-            --al-desktop-hero-gap:22px;
+            --al-desktop-hero-gap:16px;
             --al-desktop-divider-gap:18px;
             --al-desktop-field-gap:14px;
             --al-desktop-secondary-gap:18px;
@@ -3341,9 +3341,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
-            /* Title + username — title taller; name keeps prior size. */
-            min-height:calc(var(--al-hero-display-lh, 45px) + var(--al-hero-name-lh, 42px));
-            margin-bottom:24px !important;
+            /* Title + username — same metric as onboarding H1 stack. */
+            min-height:calc(var(--al-hero-display-lh, 31px) + var(--al-hero-name-lh, 31px));
+            margin-bottom:18px !important;
             padding-top:0;
             width:100%;
             align-items:flex-start;
@@ -3381,12 +3381,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            /* Mobile H1 — calm; tight lh so username sits closer */
-            --al-hero-display-size:22px;
-            --al-hero-display-lh:24px;
-            --al-hero-name-size:22px;
-            --al-hero-name-lh:24px;
-            --al-hero-caret-h:18px;
+            /* Same as onboarding `.mob-h1` — never crush below 29/31. */
+            --al-hero-display-size:29px;
+            --al-hero-display-lh:31px;
+            --al-hero-name-size:29px;
+            --al-hero-name-lh:31px;
+            --al-hero-caret-h:22px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -3473,8 +3473,8 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="signup"] .al-signin-head {
             /* Same band as login (title + name) — do not permanently reserve status height. */
-            min-height:calc(var(--al-hero-display-lh, 45px) + var(--al-hero-name-lh, 42px));
-            margin-bottom:24px !important;
+            min-height:calc(var(--al-hero-display-lh, 31px) + var(--al-hero-name-lh, 31px));
+            margin-bottom:18px !important;
           }
           .al-root[data-auth-mode="login"] .al-content,
           .al-root[data-auth-mode="signup"] .al-content {
@@ -3573,7 +3573,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-signin-head {
             flex-shrink:0;
-            margin-bottom:clamp(18px, 2.8vh, 26px);
+            margin-bottom:18px;
             gap:0;
             width:100%;
             align-items:flex-start;
@@ -3585,13 +3585,13 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:flex-start;
             align-self:stretch;
           }
-          /* Mobile: H1 + username — calm compact scale, tight stack. */
+          /* Mobile: H1 + username — same as onboarding `.mob-h1`. */
           .al-root {
-            --al-hero-display-size:22px;
-            --al-hero-display-lh:24px;
-            --al-hero-name-size:22px;
-            --al-hero-name-lh:24px;
-            --al-hero-caret-h:18px;
+            --al-hero-display-size:29px;
+            --al-hero-display-lh:31px;
+            --al-hero-name-size:29px;
+            --al-hero-name-lh:31px;
+            --al-hero-caret-h:22px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -4299,11 +4299,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:22px;
-            --al-hero-display-lh:26px;
-            --al-hero-name-size:22px;
-            --al-hero-name-lh:26px;
-            --al-hero-caret-h:18px;
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:28px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:28px;
+            --al-hero-caret-h:20px;
             --festag-btn-height:42px;
             --festag-input-height:46px;
             --festag-email-input-height:46px;
@@ -4317,7 +4317,10 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-subtitle,
           .al-t1,
-          .al-flow-info { font-size:14px; }
+          .al-flow-info {
+            font-size:var(--al-hero-name-size, 26px);
+            line-height:var(--al-hero-name-lh, 28px);
+          }
           .al-btn {
             height:var(--festag-btn-height, 42px);
             min-height:var(--festag-btn-height, 42px);
@@ -4343,7 +4346,7 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-signin-stack { gap:12px; }
-          .al-signin-head { margin-bottom:clamp(14px, 2.4vh, 22px); }
+          .al-signin-head { margin-bottom:18px; }
           .al-agreements-text,
           .al-signup-alt,
           .al-work-email-tip-text { font-size:11.5px; }
@@ -4368,11 +4371,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:20px;
-            --al-hero-display-lh:24px;
-            --al-hero-name-size:20px;
-            --al-hero-name-lh:24px;
-            --al-hero-caret-h:16px;
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:26px;
+            --al-hero-name-size:24px;
+            --al-hero-name-lh:26px;
+            --al-hero-caret-h:18px;
             --festag-btn-height:42px;
             --festag-input-height:46px;
             --festag-email-input-height:46px;
@@ -4386,7 +4389,10 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-subtitle,
           .al-t1,
-          .al-flow-info { font-size:13px; }
+          .al-flow-info {
+            font-size:var(--al-hero-name-size, 24px);
+            line-height:var(--al-hero-name-lh, 26px);
+          }
           .al-btn {
             height:var(--festag-btn-height, 42px);
             min-height:var(--festag-btn-height, 42px);
@@ -4431,11 +4437,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:22px;
-            --al-hero-display-lh:26px;
-            --al-hero-name-size:22px;
-            --al-hero-name-lh:26px;
-            --al-hero-caret-h:18px;
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:28px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:28px;
+            --al-hero-caret-h:20px;
             --al-mobile-gutter:32px;
             --al-chrome-gutter:32px;
             --al-col-pad:32px;
@@ -4483,19 +4489,15 @@ const AUTH_LANDING_STYLES_BASE = `
           }
         }
 
-        /* Desktop Code eingeben — keep H1 large; path stays quiet under it (screenshot lock) */
+        /* Desktop Code eingeben — H1 + /Benutzer same optical size as login/register */
         @media (min-width: 769px) {
-          .al-root[data-auth-step="codeEntry"] {
-            --al-hero-name-size:20px;
-            --al-hero-name-lh:24px;
-          }
           .al-root[data-auth-step="codeEntry"] .al-hero-secondary,
           .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row .auth-ws-path,
           .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--tap,
           .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--edit {
-            font-size:var(--al-hero-name-size) !important;
-            line-height:var(--al-hero-name-lh) !important;
-            letter-spacing:0.01em !important;
+            font-size:var(--al-hero-name-size, 29px) !important;
+            line-height:var(--al-hero-name-lh, 31px) !important;
+            letter-spacing:var(--auth-tracking-display, 0.006em) !important;
             color:#8891a0 !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-signin-stack--code {
@@ -4515,11 +4517,10 @@ const AUTH_LANDING_STYLES_BASE = `
         /* ── Mobile OTP / Code eingeben — match desktop composition (leave desktop alone) ── */
         @media (max-width: 768px) {
           .al-root[data-auth-step="codeEntry"] {
-            --al-hero-display-size:22px;
-            --al-hero-display-lh:26px;
-            /* Path under H1 stays quieter than the title — same optical weight as desktop screenshot */
-            --al-hero-name-size:16px;
-            --al-hero-name-lh:20px;
+            --al-hero-display-size:29px;
+            --al-hero-display-lh:31px;
+            --al-hero-name-size:29px;
+            --al-hero-name-lh:31px;
             --festag-btn-height:46px;
             --festag-btn-font-size:14.5px;
           }
@@ -4541,9 +4542,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row .auth-ws-path,
           .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--tap,
           .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--edit {
-            font-size:var(--al-hero-name-size) !important;
-            line-height:var(--al-hero-name-lh) !important;
-            letter-spacing:0.01em !important;
+            font-size:var(--al-hero-name-size, 29px) !important;
+            line-height:var(--al-hero-name-lh, 31px) !important;
+            letter-spacing:var(--auth-tracking-display, 0.006em) !important;
             color:#8891a0 !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-ws-ok-badge {

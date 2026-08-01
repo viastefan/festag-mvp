@@ -21,8 +21,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-lyrics-dim: rgba(26, 25, 23, 0.28);
     --mob-lyrics-lit: #1A1917;
     --mob-gutter: 28px;
-    /* Same column as Login/Register --al-panel-width (AUTH_DESKTOP_CHROME_VARS). */
-    --mob-content-max: 300px;
+    /* ~80px wider than Login/Register --al-panel-width (300) — calm, not wide. */
+    --mob-content-max: 380px;
     --mob-radius: 6px;
     --mob-field-radius: 8px;
     --mob-dot-idle: rgba(26, 25, 23, 0.15);
@@ -78,17 +78,36 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px 0;
+    /* Match Login/Register mobile header chrome */
+    padding: max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) 16px 10px;
     max-width: none;
     width: 100%;
     margin: 0;
     box-sizing: border-box;
   }
+  /* Same fluid mark geometry as Login `.al-wordmark` / `.al-wordmark-img--fluid` */
+  .mob-wordmark.al-wordmark,
+  .mob-header .al-wordmark {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    color: #1e1e20;
+    pointer-events: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mob-wordmark .al-wordmark-img--fluid,
   .mob-mark {
-    width: 28px;
-    height: 28px;
+    display: block !important;
+    width: 36px !important;
+    height: 36px !important;
     object-fit: contain;
-    display: block;
     /* Light/read ivory: fluid mark is light art — ink like Login. */
     filter: brightness(0) saturate(100%);
     opacity: 0.9;
@@ -115,15 +134,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     max-width: calc(var(--mob-content-max) + var(--mob-gutter) * 2);
     margin: 0 auto;
-    /* Bottom pad clears absolute nav so center sits in the visible band */
-    padding: 8px var(--mob-gutter) 100px;
+    /* Top-anchored — vertical center reflows on every field/hint height change and feels like shake. */
+    padding: clamp(36px, 14vh, 120px) var(--mob-gutter) 100px;
     box-sizing: border-box;
     overflow: hidden;
     touch-action: pan-y;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
   }
+  /* Tagro panel sits under the field — don't clip it. */
+  .mob-body:has(.mob-intent-wrap.has-tagro-panel) {
+    overflow: visible;
+  }
   .mob-body--preparing {
+    padding-top: 8px;
     padding-bottom: 28px;
     justify-content: center;
   }
@@ -143,6 +167,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     scrollbar-width: none;
     justify-content: flex-start;
     align-items: stretch;
+  }
+  .mob-stage:has(.mob-intent-wrap.has-tagro-panel) {
+    overflow: visible;
+    padding-bottom: 120px;
   }
   .mob[data-kb-open] .mob-body {
     justify-content: flex-start;
@@ -191,6 +219,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: #b42318;
   }
 
+  .mob-ready-hint-slot {
+    min-height: 29px;
+    margin-top: 10px;
+  }
+  .mob-ready-hint-slot .mob-ready-hint {
+    margin-top: 0;
+  }
   .mob-ready-hint {
     margin: 10px 0 0;
     font-size: 13px;
@@ -198,7 +233,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     letter-spacing: var(--auth-tracking);
     color: var(--mob-muted);
     opacity: 0.72;
-    animation: mobShellIn .28s ease both;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
   .mob-ready-hint.is-ready {
     opacity: 1;
@@ -210,11 +247,21 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
 
   /* Intent field — taller idle (2 lines), login placeholder gray, rotating examples */
-  .mob-intent-wrap { position: relative; width: 100%; margin-top: 18px; }
+  .mob-intent-wrap {
+    position: relative;
+    width: 100%;
+    margin-top: 18px;
+    z-index: 2;
+  }
+  .mob-intent-wrap.has-tagro-panel {
+    z-index: 20;
+    padding-bottom: 8px;
+  }
   .mob-intent-shell {
     position: relative;
     border-radius: 8px;
-    border: 1px solid var(--mob-hairline);
+    /* Always 2px so focus never changes box size (1→2 caused per-focus jump). */
+    border: 2px solid var(--mob-hairline);
     background: transparent;
     padding: 14px 14px;
     min-height: 64px;
@@ -222,17 +269,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1);
+    transition: border-color .18s ease;
   }
   .mob-intent-shell.has-value { border-color: var(--mob-hairline-filled); }
-  /* Canvas focus = 1px border + 1px ring. Outer ring clips under .mob-stage overflow —
-     use inset ring so mobile stroke reads equally thick. */
   .mob-intent-shell.is-focused {
     border-color: var(--mob-caret) !important;
-    border-width: 2px !important;
     box-shadow: none !important;
   }
-  .mob-intent-shell.has-chip { padding-bottom: 44px; }
+  .mob-intent-shell.has-chip { padding-bottom: 48px; }
   .mob-intent-area {
     width: 100%;
     min-height: 44px;
@@ -253,7 +297,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-intent-area.is-empty { caret-color: transparent; }
 
-  /* Canvas Tagro chip — pinned inside field */
+  /* Tagro chip — soft rect, compose icon (same as portal TagroFieldAssist) */
   .mob-tagro-chip {
     position: absolute;
     right: 8px;
@@ -262,51 +306,73 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    height: 32px;
-    min-width: 90px;
-    padding: 0 14px 0 12px;
-    border-radius: 999px;
+    gap: 7px;
+    height: 34px;
+    min-width: 0;
+    padding: 0 12px 0 10px;
+    border-radius: 8px;
     border: 1px solid rgba(30, 30, 32, 0.08);
-    background: rgba(91, 100, 125, 0.10);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-    color: rgba(26, 25, 23, 0.72);
-    font-size: 12.5px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    color: #1e1e20;
+    font-size: 13px;
+    font-weight: 400;
     letter-spacing: var(--auth-tracking);
     font-family: inherit;
     cursor: pointer;
-    animation: mobTagroChipIn .32s cubic-bezier(.22,1,.36,1) both;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    -webkit-tap-highlight-color: transparent;
     white-space: nowrap;
+    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, color .15s ease;
+  }
+  .mob-tagro-chip:hover {
+    background: #fafafa;
+    border-color: rgba(30, 30, 32, 0.10);
+  }
+  .mob-tagro-chip:active {
+    background: #f5f5f6;
+    box-shadow: none;
+  }
+  .mob-tagro-chip.is-open {
+    background: rgba(91, 100, 125, 0.10);
+    border-color: rgba(91, 100, 125, 0.28);
+    color: #1a1917;
+  }
+  .mob-tagro-chip.is-busy {
+    opacity: 0.7;
+    pointer-events: none;
   }
   .mob-tagro-chip-ico {
     display: inline-flex;
-    color: var(--mob-primary);
+    align-items: center;
+    justify-content: center;
+    color: #5B647D;
+    flex-shrink: 0;
   }
-  @keyframes mobTagroChipIn {
-    from { opacity: 0; transform: translateY(4px) scale(0.96); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+  .mob-tagro-chip-ico svg {
+    display: block;
+  }
+  .mob-tagro-chip-label {
+    line-height: 1;
   }
 
-  /* Canvas Tagro panel — anchored under field (no portal) */
+  /* Tagro panel — anchored under field, elevated plate */
   .mob-tagro-panel {
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(100% + 10px);
-    z-index: 12;
+    top: calc(100% + 8px);
+    z-index: 24;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 8px 10px;
+    gap: 10px;
+    padding: 12px 12px 12px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.96);
+    background: #FFFFFF;
     border: 1px solid rgba(30, 30, 32, 0.08);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 28px rgba(0, 0, 0, 0.08);
-    animation: mobTagroFloatIn .34s cubic-bezier(.22,1,.36,1) both;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 12px 32px rgba(15, 23, 42, 0.10);
+    animation: mobTagroFloatIn .28s cubic-bezier(.22,1,.36,1) both;
     color: var(--mob-ink);
     pointer-events: auto;
   }
@@ -323,46 +389,53 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-tagro-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 8px 3px 5px;
-    border-radius: 7px;
-    font-size: 12px;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px 0 8px;
+    border-radius: 8px;
+    font-size: 12.5px;
     letter-spacing: var(--auth-tracking);
-    line-height: 1.3;
+    line-height: 1;
     background: rgba(91, 100, 125, 0.10);
-    color: rgba(26, 25, 23, 0.72);
+    color: #1a1917;
     white-space: nowrap;
+  }
+  .mob-tagro-panel-title {
+    font-size: 13px;
+    color: var(--mob-muted);
+    letter-spacing: var(--auth-tracking);
   }
   .mob-tagro-busy {
     margin-left: auto;
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--mob-muted);
   }
   .mob-tagro-modes {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
     align-items: center;
   }
   .mob-tagro-auto-wrap { position: relative; }
   .mob-tagro-auto {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    height: 28px;
-    padding: 0 8px;
+    gap: 5px;
+    height: 32px;
+    padding: 0 10px;
     border-radius: 8px;
-    border: none;
-    background: transparent;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #ffffff;
     color: var(--mob-ink);
     font-size: 12.5px;
     letter-spacing: var(--auth-tracking);
     font-family: inherit;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
   .mob-tagro-auto.is-open,
   .mob-tagro-auto:hover {
-    background: rgba(30, 30, 32, 0.05);
+    background: #fafafa;
   }
   .mob-tagro-auto:disabled { opacity: 0.45; cursor: default; }
   .mob-tagro-auto-menu {
@@ -402,25 +475,31 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin-top: 2px;
   }
   .mob-tagro-mode {
-    height: 28px;
-    padding: 0 10px;
+    height: 32px;
+    padding: 0 12px;
     border-radius: 8px;
     border: 1px solid rgba(30, 30, 32, 0.08);
-    background: transparent;
+    background: #ffffff;
     color: var(--mob-ink);
     font-size: 12.5px;
     font-family: inherit;
     cursor: pointer;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .mob-tagro-mode:hover:not(:disabled) {
+    background: #fafafa;
   }
   .mob-tagro-mode.is-on {
-    border-color: rgba(91, 100, 125, 0.55);
-    background: rgba(91, 100, 125, 0.16);
+    border-color: rgba(91, 100, 125, 0.45);
+    background: rgba(91, 100, 125, 0.12);
   }
   .mob-tagro-mode:disabled {
     color: var(--mob-muted);
     cursor: default;
-    opacity: 0.7;
+    opacity: 0.55;
+    box-shadow: none;
   }
 
   .mob-intent-example {
@@ -714,23 +793,30 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Desktop (≥769): same 300px column as Login/Register buttons/fields */
+  /* Desktop (≥769): same wider column as mobile onboarding */
   @media (min-width: 769px) {
     .mob {
       --mob-gutter: 48px;
-      --mob-content-max: 300px;
+      --mob-content-max: 380px;
     }
     .mob-header {
       width: 100%;
       max-width: none;
       margin: 0;
-      padding: 18px 36px 8px;
+      /* Match Login/Register desktop centered header */
+      padding: 24px 32px 12px;
       box-sizing: border-box;
       justify-content: space-between;
     }
+    .mob-wordmark.al-wordmark,
+    .mob-header .al-wordmark {
+      width: 42px;
+      height: 42px;
+    }
+    .mob-wordmark .al-wordmark-img--fluid,
     .mob-mark {
-      width: 28px;
-      height: 28px;
+      width: 38px !important;
+      height: 38px !important;
       filter: brightness(0) saturate(100%);
       opacity: 0.9;
     }
@@ -753,13 +839,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-body {
       max-width: none;
       width: 100%;
-      /* Bottom pad clears absolute nav so center sits in the visible band */
-      padding: 28px var(--mob-gutter) 120px;
-      justify-content: center;
+      padding: clamp(48px, 16vh, 140px) var(--mob-gutter) 120px;
+      justify-content: flex-start;
       align-items: center;
     }
     .mob-body--preparing {
+      padding-top: 28px;
       padding-bottom: 28px;
+      justify-content: center;
     }
     .mob-stage {
       width: 100%;

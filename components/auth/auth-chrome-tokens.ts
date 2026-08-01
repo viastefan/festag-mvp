@@ -44,23 +44,23 @@ export const AUTH_TRACKING_VARS = `
 
 /**
  * Desktop auth chrome (≥769px) — classic narrow login column.
- * 300px — tighter than the 340/480 stretches; calm centered stack.
- * Onboarding `.mob` content column matches this width 1:1.
+ * H1/T1 match onboarding `.mob-h1` (29px / lh 1.08) — never crush to size==lh.
+ * Gap to field matches onboarding intent (`margin-top: 18px`).
  */
 export const AUTH_DESKTOP_CHROME_VARS = `
   --al-panel-width:300px;
   --al-os-gutter:48px;
   --al-os-content-max:300px;
   ${AUTH_TRACKING_VARS.trim()}
-  --al-hero-display-size:28px;
-  --al-hero-display-lh:28px;
-  --al-hero-name-size:28px;
-  --al-hero-name-lh:28px;
+  --al-hero-display-size:29px;
+  --al-hero-display-lh:31px;
+  --al-hero-name-size:29px;
+  --al-hero-name-lh:31px;
   --al-hero-caret-h:22px;
   --festag-btn-height:42px;
   --festag-input-height:46px;
   --festag-input-font-size:15px;
-  --al-desktop-hero-gap:28px;
+  --al-desktop-hero-gap:18px;
   --al-desktop-stack-gap:14px;
   --al-desktop-divider-gap:28px;
   --al-desktop-field-gap:16px;
@@ -84,7 +84,7 @@ export const AUTH_MUTED_SOFT_READ = '#9a9288'
 
 /**
  * Shared mobile auth type + column (≤768).
- * One scale for login/register + onboarding — H1 and username match.
+ * Same H1/T1 as onboarding `.mob-h1` (29px / lh 1.08).
  */
 export const AUTH_MOBILE_CHROME_VARS = `
   --festag-auth-mobile-gutter:28px;
@@ -94,17 +94,16 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-mobile-gutter:28px;
   --dl-col-pad:28px;
   ${AUTH_TRACKING_VARS.trim()}
-  /* Match master canvas AuthStage — H1 + username sit tight */
-  --al-hero-display-size:22px;
-  --al-hero-display-lh:24px;
-  --al-hero-name-size:22px;
-  --al-hero-name-lh:24px;
-  --al-hero-caret-h:18px;
-  --dl-hero-display-size:22px;
-  --dl-hero-display-lh:24px;
-  --dl-hero-name-size:22px;
-  --dl-hero-name-lh:24px;
-  --dl-hero-caret-h:18px;
+  --al-hero-display-size:29px;
+  --al-hero-display-lh:31px;
+  --al-hero-name-size:29px;
+  --al-hero-name-lh:31px;
+  --al-hero-caret-h:22px;
+  --dl-hero-display-size:29px;
+  --dl-hero-display-lh:31px;
+  --dl-hero-name-size:29px;
+  --dl-hero-name-lh:31px;
+  --dl-hero-caret-h:22px;
   --festag-btn-height:44px;
   --festag-input-height:46px;
   /* Same as canvas AuthStage email — never taller/shorter than other fields. */

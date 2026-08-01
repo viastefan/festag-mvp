@@ -19,8 +19,8 @@ export default function AuthDestinationPreview({ kind }: { kind: AuthPreviewKind
           </header>
           <div className="al-dest-onb-body">
             <div className="al-dest-onb-hero">
-              <div className="al-dest-onb-h1">Woran arbeitest du gerade?</div>
-              <div className="al-dest-onb-sub">Tagro richtet deinen Workspace danach ein.</div>
+              <div className="al-dest-onb-h1">Worum geht es?</div>
+              <div className="al-dest-onb-sub">Tagro richtet Workspace und Struktur danach aus.</div>
             </div>
             <div className="al-dest-onb-field">
               <div className="al-dest-onb-input">

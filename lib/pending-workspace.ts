@@ -18,16 +18,13 @@ export function slugifyWorkspaceName(value: string): string {
     .slice(0, 32)
 }
 
+/** Register draft only — never pollutes login greeting (`festag_last_workspace_name`). */
 export function setPendingWorkspaceName(name: string) {
   if (typeof window === 'undefined') return
   const next = normalizeWorkspaceName(name)
   try {
-    if (next) {
-      window.localStorage.setItem(PENDING_KEY, next)
-      window.localStorage.setItem(LAST_WS_KEY, next)
-    } else {
-      window.localStorage.removeItem(PENDING_KEY)
-    }
+    if (next) window.localStorage.setItem(PENDING_KEY, next)
+    else window.localStorage.removeItem(PENDING_KEY)
   } catch { /* noop */ }
 }
 
@@ -45,6 +42,10 @@ export function clearPendingWorkspaceName() {
   try { window.localStorage.removeItem(PENDING_KEY) } catch { /* noop */ }
 }
 
+/**
+ * Confirmed workspace path for this device — only after successful auth / portal.
+ * Do not call from register check-name; that belongs in `setPendingWorkspaceName`.
+ */
 export function rememberWorkspaceName(name: string) {
   if (typeof window === 'undefined') return
   const next = normalizeWorkspaceName(name)
@@ -52,16 +53,19 @@ export function rememberWorkspaceName(name: string) {
   try { window.localStorage.setItem(LAST_WS_KEY, next) } catch { /* noop */ }
 }
 
+/** Login greeting only — never falls back to register pending draft. */
 export function getRememberedWorkspaceName(): string | null {
   if (typeof window === 'undefined') return null
   try {
-    return (
-      normalizeWorkspaceName(window.localStorage.getItem(LAST_WS_KEY) || '') ||
-      getPendingWorkspaceName()
-    )
+    return normalizeWorkspaceName(window.localStorage.getItem(LAST_WS_KEY) || '') || null
   } catch {
     return null
   }
+}
+
+export function clearRememberedWorkspaceName() {
+  if (typeof window === 'undefined') return
+  try { window.localStorage.removeItem(LAST_WS_KEY) } catch { /* noop */ }
 }
 
 export function resolveSignupWorkspaceName(input: string): string | null {
