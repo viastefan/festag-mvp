@@ -3535,6 +3535,7 @@ function field(
 	opts: { focused?: boolean; filled?: boolean; marginTop?: number } = {},
 ): CSSProperties {
 	const { focused = false, filled = false, marginTop = 8 } = opts
+	const light = t.mode === 'light'
 	return {
 		marginTop,
 		width: '100%',
@@ -3542,7 +3543,8 @@ function field(
 		minHeight: FIELD_H,
 		borderRadius: FIELD_RADIUS,
 		...inputStroke(t, { focused, filled }),
-		background: 'transparent',
+		/* Light: solid white paper (not ivory/autofill blue wash) */
+		background: light ? '#FFFFFF' : 'rgba(186, 194, 210, 0.06)',
 		color: t.ink,
 		padding: `0 ${FIELD_PAD_X}px`,
 		fontSize: FIELD_FONT,
@@ -3727,6 +3729,25 @@ const CSS = `
     box-sizing: border-box !important;
     outline: none !important;
     caret-color: #66708D !important;
+  }
+  /* Kill Chrome autofill blue — keep solid white paper */
+  .master-phone input.master-field:-webkit-autofill,
+  .master-phone input.master-field:-webkit-autofill:hover,
+  .master-phone input.master-field:-webkit-autofill:focus,
+  .master-phone input.master-field:-webkit-autofill:active {
+    -webkit-text-fill-color: #1A1917 !important;
+    caret-color: #66708D !important;
+    transition: background-color 9999s ease-out 0s;
+    -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  }
+  .master-phone input.master-field:-webkit-autofill:focus {
+    -webkit-box-shadow:
+      0 0 0 1px #66708D,
+      0 0 0 1000px #FFFFFF inset !important;
+    box-shadow:
+      0 0 0 1px #66708D,
+      0 0 0 1000px #FFFFFF inset !important;
   }
   .master-phone textarea.master-field {
     font-size: 15px !important;
