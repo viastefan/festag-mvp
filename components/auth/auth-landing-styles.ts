@@ -30,7 +30,7 @@ const AUTH_LANDING_STYLES_BASE = `
           min-height:100dvh; width:100%;
           position:relative;
           isolation:isolate;
-          --al-panel-width:340px;
+          --al-panel-width:300px;
           --al-mobile-gutter:32px;
           /* Optical center — same column as form, aligned under the viewport middle. */
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
@@ -45,10 +45,10 @@ const AUTH_LANDING_STYLES_BASE = `
           --festag-input-radius:8px;
           /* Hero H1 + workspace/username line + caret share one size (never diverge). */
           --al-hero-display-size:34px;
-          --al-hero-display-lh:40px;
+          --al-hero-display-lh:36px;
           --al-hero-name-size:34px;
-          --al-hero-name-lh:40px;
-          --al-hero-caret-h:28px;
+          --al-hero-name-lh:36px;
+          --al-hero-caret-h:26px;
           --al-chrome-gutter:32px;
           --al-kb-shift:0px;
           /* Cool blue-slate muted — same family light + dark (#8891a0) */
@@ -56,13 +56,14 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Placeholders — quieter than typed ink. */
           --al-text-muted-soft:#9AA3B0;
           ${AUTH_CHROME_VARS_LIGHT}
-          font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          /* Auth always Aeonik Regular — never inherit Geist default via --font-aeonik alias. */
+          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
-          /* Soft white canvas — Vercel-like (not cool elevated gray). */
-          background:#FFFFFF;
+          /* Soft read whisper — website Lesen family, light entry for new users. */
+          background:var(--festag-auth-canvas, #F5F2ED);
           color:#1e1e20;
           display:flex;
           flex-direction:column;
@@ -104,6 +105,7 @@ const AUTH_LANDING_STYLES_BASE = `
           display:none !important;
         }
         /* Auth copy always Aeonik Regular — beat globals Medium (500) defaults. */
+        .al-root,
         .al-root a,
         .al-root button,
         .al-root input,
@@ -117,6 +119,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root h2,
         .al-root h3,
         .al-root span {
+          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
         }
         /* Keep opaque canvas during route change — fade content only (no white flash). */
@@ -194,6 +197,30 @@ const AUTH_LANDING_STYLES_BASE = `
         /* Hide baked plate PNGs — mark is a true cutout via mask. */
         .al-wordmark-img {
           display:none !important;
+        }
+        /* Current fluid mark — shown on login/register light chrome */
+        .al-root.al-root--centered .al-wordmark::before {
+          display:none !important;
+        }
+        .al-root.al-root--centered .al-wordmark-img,
+        .al-root.al-root--centered .al-wordmark-img--fluid {
+          display:block !important;
+          width:36px;
+          height:36px;
+          object-fit:contain;
+          opacity:0.92;
+        }
+        /* Fluid mark is light-on-dark art — ink it for the light auth canvas */
+        .al-root.al-root--centered[data-theme="light"] .al-wordmark-img--fluid {
+          filter:brightness(0) saturate(100%);
+          opacity:0.9;
+        }
+        .al-root.al-root--centered[data-theme="light"] .al-wordmark {
+          color:#1e1e20;
+        }
+        .al-root.al-root--centered .al-wordmark {
+          width:40px;
+          height:40px;
         }
         .al-wordmark-mark,
         .al-wordmark-mark--silver {
@@ -273,7 +300,7 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#f5f5f7;
         }
         .al-auth-switch {
-          margin-top:28px;
+          margin-top:22px;
           width:100%;
         }
         .al-account-hint {
@@ -282,11 +309,11 @@ const AUTH_LANDING_STYLES_BASE = `
           padding:0;
           width:100%;
           text-align:left;
-          font-size:13.5px;
+          font-size:14px;
           font-weight:400;
-          line-height:1.5;
+          line-height:1.35;
           letter-spacing:0.01em;
-          color:rgba(245,245,247,0.42);
+          color:var(--al-text-muted, #8891a0);
         }
         .al-agreements .al-account-hint {
           margin-top:12px;
@@ -295,11 +322,16 @@ const AUTH_LANDING_STYLES_BASE = `
           display:inline;
           margin:0;
           padding:0;
-          border:0;
-          background:none;
-          font:inherit;
+          border:0 !important;
+          border-radius:0;
+          background:none !important;
+          box-shadow:none !important;
+          font-family:inherit;
+          font-size:14px;
           font-weight:400;
-          color:rgba(245,245,247,0.78);
+          line-height:1.35;
+          letter-spacing:0.01em;
+          color:var(--al-text-muted, #8891a0);
           text-decoration:none;
           cursor:pointer;
           -webkit-tap-highlight-color:transparent;
@@ -307,11 +339,20 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-account-hint-link:hover,
         .al-account-hint-link:focus-visible {
-          color:#F5F5F7;
+          color:#1e1e20;
           text-decoration:none;
+          background:none !important;
+          box-shadow:none !important;
+        }
+        .al-root[data-theme="dark"] .al-account-hint {
+          color:rgba(245,245,247,0.42);
         }
         .al-root[data-theme="dark"] .al-account-hint-link {
           color:rgba(245,245,247,0.78);
+        }
+        .al-root[data-theme="dark"] .al-account-hint-link:hover,
+        .al-root[data-theme="dark"] .al-account-hint-link:focus-visible {
+          color:#F5F5F7;
         }
         .al-footer-center {
           display:inline-flex;
@@ -463,8 +504,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-signin-head {
           display:flex;
           flex-direction:column;
-          gap:4px;
-          margin-bottom:28px;
+          gap:0;
+          margin-bottom:22px;
           align-items:flex-start;
           text-align:left;
         }
@@ -474,7 +515,7 @@ const AUTH_LANDING_STYLES_BASE = `
         h1.al-title.al-title-display {
           font-size:32px !important;
           font-weight:400;
-          line-height:39px !important;
+          line-height:34px !important;
           letter-spacing:-0.025em;
           color:#1e1e20;
           text-align:left;
@@ -496,8 +537,13 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         @media (min-width: 769px) {
           .al-wordmark {
-            width:36px;
-            height:36px;
+            width:42px;
+            height:42px;
+          }
+          .al-root.al-root--centered .al-wordmark-img,
+          .al-root.al-root--centered .al-wordmark-img--fluid {
+            width:38px;
+            height:38px;
           }
         }
         .al-root--centered .al-header-nav {
@@ -540,20 +586,29 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-hero-copy .al-title.al-title-display {
           color:#1e1e20;
         }
-        .al-hero-copy .al-ws-path,
-        .al-hero-copy button.al-ws-path--editable {
+        /* Glassy H1 lead must stay inked on light — never inherit dark-canvas white. */
+        .al-root[data-theme="light"] .al-glassy-hero .al-gword-lead,
+        .al-root[data-theme="light"] .al-glassy-hero .al-gword-inner:not(.al-hero-gray) {
+          color:#1e1e20 !important;
+        }
+        .al-root[data-theme="dark"] .al-glassy-hero .al-gword-lead,
+        .al-root[data-theme="dark"] .al-glassy-hero .al-gword-inner:not(.al-hero-gray) {
+          color:#F5F5F7 !important;
+        }
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy button.al-ws-path--editable {
           font-size:32px;
-          line-height:39px;
+          line-height:34px;
           letter-spacing:-0.025em;
           font-weight:400;
           width:100%;
-          margin:6px 0 0;
+          margin:2px 0 0;
           text-align:left;
         }
         .al-hero-copy .al-ws-path .al-ws-slash,
         .al-hero-copy button.al-ws-path--editable .al-ws-slash {
           font-size:32px;
-          line-height:39px;
+          line-height:34px;
           letter-spacing:-0.025em;
         }
         .al-ws-name-line {
@@ -700,6 +755,13 @@ const AUTH_LANDING_STYLES_BASE = `
           flex:0 1 auto;
           min-width:0;
         }
+        .al-ws-path-check-row .al-ws-path,
+        .al-ws-path-check-row button.al-ws-path--editable {
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+          max-width:100%;
+        }
         .al-ws-ok-badge {
           display:inline-flex;
           align-items:center;
@@ -788,18 +850,18 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-title-display {
           font-size:32px;
-          line-height:39px;
+          line-height:34px;
           letter-spacing:-0.025em;
           margin:0;
         }
         /* Cold login — no remembered workspace: two-line sentence, no path under title. */
         .al-title--two-line {
-          line-height:1.22;
+          line-height:1.12;
           letter-spacing:-0.028em;
         }
         .al-hero-gray {
           font-size:32px;
-          line-height:39px;
+          line-height:34px;
           letter-spacing:-0.025em;
           font-weight:400;
           margin:0;
@@ -1033,23 +1095,23 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         /*
-         * Light CTAs — white Linear on elevated cool canvas.
-         * Google is primary slate — excluded here.
+         * Light CTAs — white plates, minimal 3D (hairline + whisper bottom shadow).
+         * Google stays Festag primary blue (flat fill, no lift).
          */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch {
           background:var(--festag-btn-dark-bg, #ffffff) !important;
-          color:rgba(30, 30, 32, 0.82) !important;
-          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10)) !important;
+          color:var(--festag-btn-dark-fg, #1e1e20) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready {
           background:var(--festag-btn-ready-bg, #ffffff) !important;
           color:var(--festag-btn-ready-fg, #1e1e20) !important;
-          border:1px solid rgba(30, 30, 32, 0.12) !important;
+          border:1px solid var(--festag-btn-ready-border, rgba(30, 30, 32, 0.10)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1058,17 +1120,17 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
+          background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
           color:#1e1e20 !important;
-          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.14)) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.10)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:var(--festag-btn-ready-bg-hover, #F7F2E8) !important;
+          background:var(--festag-btn-ready-bg-hover, #fafafa) !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.14) !important;
+          border-color:var(--festag-btn-ready-border-hover, rgba(30, 30, 32, 0.12)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1076,16 +1138,16 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
+          background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.10) !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:var(--festag-btn-ready-bg-active, #EFE8DC) !important;
+          background:var(--festag-btn-ready-bg-active, #f5f5f6) !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.10) !important;
+          border-color:var(--festag-btn-ready-border-active, rgba(30, 30, 32, 0.08)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1098,7 +1160,6 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible {
           outline:none !important;
-          box-shadow:none !important;
         }
         /* Light Google — Festag primary blue. */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
@@ -1228,7 +1289,7 @@ const AUTH_LANDING_STYLES_BASE = `
           max-height:var(--festag-input-height, 41px);
           /* Fields stay soft-rect; Read CTAs can be pills via --festag-auth-radius. */
           border-radius:var(--festag-input-radius, 8px);
-          /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
+          /* Quiet 1px idle; focus steps to 1.5px primary (minimal thicken). */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
@@ -1314,7 +1375,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:not(:placeholder-shown) {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
+          border:var(--festag-input-border-width-filled, var(--festag-input-border-width, 1px)) solid var(--festag-input-border-filled, var(--festag-input-border-focus, #5B647D)) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1354,8 +1415,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width, 1px) !important;
-          border-color:var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
+          border-width:var(--festag-input-border-width-filled, var(--festag-input-border-width, 1px)) !important;
+          border-color:var(--festag-input-border-filled, var(--festag-input-border-focus, #5B647D)) !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:focus,
         .al-root:not([data-theme="dark"]) .al-input:focus-visible {
@@ -1375,7 +1436,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
+          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #5B647D) !important;
           outline:none !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
@@ -1388,7 +1449,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
           background-color:transparent !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
+          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
@@ -1698,11 +1759,49 @@ const AUTH_LANDING_STYLES_BASE = `
           white-space:nowrap;
           flex-shrink:0;
         }
-        /* Quiet test deep-links — fixed bottom-left (login + register). */
+        /* Auth brand credit — bottom-left, Aeonik Regular. */
+        .al-auth-credit {
+          position:fixed;
+          left:max(24px, env(safe-area-inset-left, 0px));
+          bottom:max(18px, env(safe-area-inset-bottom, 0px));
+          z-index:40;
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          gap:2px;
+          margin:0;
+          padding:0;
+          pointer-events:none;
+          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-weight:400;
+          -webkit-font-smoothing:antialiased;
+        }
+        .al-auth-credit-name {
+          font-size:12.5px;
+          font-weight:400;
+          line-height:1.25;
+          letter-spacing:0.01em;
+          color:rgba(30, 30, 32, 0.42);
+        }
+        .al-auth-credit-meta {
+          font-size:11.5px;
+          font-weight:400;
+          line-height:1.25;
+          letter-spacing:0.015em;
+          color:rgba(30, 30, 32, 0.32);
+        }
+        .al-root[data-theme="dark"] .al-auth-credit-name {
+          color:rgba(245, 245, 247, 0.42);
+        }
+        .al-root[data-theme="dark"] .al-auth-credit-meta {
+          color:rgba(245, 245, 247, 0.30);
+        }
+        /* Quiet test deep-links — fixed bottom-right (login + register). */
         .al-test-jumps {
           position:fixed;
-          left:max(16px, env(safe-area-inset-left, 0px));
+          right:max(16px, env(safe-area-inset-right, 0px));
           bottom:max(14px, env(safe-area-inset-bottom, 0px));
+          left:auto;
           z-index:40;
           display:inline-flex;
           align-items:center;
@@ -1711,6 +1810,7 @@ const AUTH_LANDING_STYLES_BASE = `
           padding:0;
         }
         .al-test-jumps a {
+          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-size:12px;
           font-weight:400;
           letter-spacing:0.01em;
@@ -1733,8 +1833,15 @@ const AUTH_LANDING_STYLES_BASE = `
           background:rgba(30, 30, 32, 0.04);
         }
         @media (max-width: 768px) {
+          .al-auth-credit {
+            left:max(16px, env(safe-area-inset-left, 0px));
+            bottom:max(14px, env(safe-area-inset-bottom, 0px));
+          }
+          .al-auth-credit-name { font-size:12px; }
+          .al-auth-credit-meta { font-size:11px; }
           .al-test-jumps {
-            left:max(12px, env(safe-area-inset-left, 0px));
+            right:max(12px, env(safe-area-inset-right, 0px));
+            left:auto;
             bottom:max(10px, env(safe-area-inset-bottom, 0px));
           }
         }
@@ -1919,7 +2026,7 @@ const AUTH_LANDING_STYLES_BASE = `
           to { opacity:1; transform:translateY(0); }
         }
         .al-title--status {
-          max-width:11em;
+          max-width:16em;
           text-wrap:balance;
         }
         .al-hero-status-cta {
@@ -2776,10 +2883,10 @@ const AUTH_LANDING_STYLES_BASE = `
         @media (min-width: 769px) and (max-height: 820px) {
           .al-root {
             --al-hero-display-size:36px;
-            --al-hero-display-lh:42px;
+            --al-hero-display-lh:38px;
             --al-hero-name-size:36px;
-            --al-hero-name-lh:42px;
-            --al-hero-caret-h:28px;
+            --al-hero-name-lh:38px;
+            --al-hero-caret-h:26px;
             --al-desktop-hero-gap:28px;
             --al-desktop-divider-gap:22px;
             --al-desktop-secondary-gap:22px;
@@ -2792,9 +2899,9 @@ const AUTH_LANDING_STYLES_BASE = `
         @media (min-width: 769px) and (max-height: 700px) {
           .al-root {
             --al-hero-display-size:34px;
-            --al-hero-display-lh:40px;
+            --al-hero-display-lh:36px;
             --al-hero-name-size:34px;
-            --al-hero-name-lh:40px;
+            --al-hero-name-lh:36px;
             --festag-btn-height:42px;
             --festag-input-height:44px;
             --al-desktop-hero-gap:22px;
@@ -2996,15 +3103,21 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-center--desktop {
             display:none !important;
           }
+          .al-auth-credit {
+            left:max(16px, env(safe-area-inset-left, 0px));
+            bottom:max(14px, env(safe-area-inset-bottom, 0px));
+            z-index:60;
+          }
           .al-test-jumps {
             position:fixed;
-            left:max(12px, env(safe-area-inset-left, 0px));
+            right:max(12px, env(safe-area-inset-right, 0px));
+            left:auto;
             bottom:max(12px, env(safe-area-inset-bottom, 0px));
             z-index:60;
             margin:0;
             width:auto;
             display:inline-flex !important;
-            justify-content:flex-start;
+            justify-content:flex-end;
             pointer-events:auto;
           }
           .al-test-jumps a {
@@ -3042,11 +3155,13 @@ const AUTH_LANDING_STYLES_BASE = `
             display:none !important;
           }
           /* Mode switch lives under content in .al-auth-switch — never hide it. */
-          .al-auth-switch .al-account-hint {
-            display:block !important;
+          .al-auth-switch .al-account-hint,
+          .al-auth-switch .al-account-hint-link {
+            display:inline !important;
             text-align:left;
           }
-          .al-root[data-auth-mode="signup"] .al-content > .al-account-hint {
+          .al-root[data-auth-mode="signup"] .al-content > .al-account-hint,
+          .al-root[data-auth-mode="signup"] .al-content > .al-account-hint-link {
             display:none !important;
           }
           .al-footer-legal--mobile {
@@ -3084,8 +3199,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-center:not(.al-footer-center--desktop) {
             display:none !important;
           }
-          .al-account-hint {
-            display:block !important;
+          .al-account-hint,
+          .al-auth-switch .al-account-hint-link {
+            display:inline !important;
           }
           /* Registrieren / Anmelden mode links — no underline on mobile. */
           .al-login-aux-action,
@@ -3263,12 +3379,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            /* Same H1 + username scale as onboarding. */
+            /* Same H1 + username scale as onboarding — tight leading. */
             --al-hero-display-size:34px;
-            --al-hero-display-lh:40px;
+            --al-hero-display-lh:36px;
             --al-hero-name-size:34px;
-            --al-hero-name-lh:40px;
-            --al-hero-caret-h:28px;
+            --al-hero-name-lh:36px;
+            --al-hero-caret-h:26px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -3470,10 +3586,10 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Mobile: H1 + username — same scale as onboarding. */
           .al-root {
             --al-hero-display-size:34px;
-            --al-hero-display-lh:40px;
+            --al-hero-display-lh:36px;
             --al-hero-name-size:34px;
-            --al-hero-name-lh:40px;
-            --al-hero-caret-h:28px;
+            --al-hero-name-lh:36px;
+            --al-hero-caret-h:26px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -3793,33 +3909,33 @@ const AUTH_LANDING_STYLES_BASE = `
             width:16px;
             height:16px;
           }
-          /* Light mobile — white CTAs on elevated cool; Google = Festag primary blue. */
+          /* Light mobile — white plates, hairline only; Google = primary blue. */
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple {
             background:var(--festag-btn-dark-bg, #ffffff) !important;
             color:#1e1e20 !important;
-            border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10)) !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08)) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready {
             background:var(--festag-btn-ready-bg, #ffffff) !important;
             color:var(--festag-btn-ready-fg, #1e1e20) !important;
-            border:1px solid rgba(30, 30, 32, 0.12) !important;
+            border:1px solid var(--festag-btn-ready-border, rgba(30, 30, 32, 0.10)) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:hover:not(:disabled) {
-            background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
-            border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.14)) !important;
+            background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
+            border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.10)) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled):not(.al-btn-primary--ready),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:active:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:active:not(:disabled) {
-            background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
-            border-color:rgba(30, 30, 32, 0.10) !important;
+            background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+            border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08)) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
@@ -4163,10 +4279,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
             --al-hero-display-size:32px;
-            --al-hero-display-lh:38px;
+            --al-hero-display-lh:34px;
             --al-hero-name-size:32px;
-            --al-hero-name-lh:38px;
-            --al-hero-caret-h:26px;
+            --al-hero-name-lh:34px;
+            --al-hero-caret-h:24px;
             --festag-btn-height:42px;
             --festag-input-height:42px;
             --festag-email-input-height:48px;
@@ -4232,10 +4348,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
             --al-hero-display-size:30px;
-            --al-hero-display-lh:36px;
+            --al-hero-display-lh:32px;
             --al-hero-name-size:30px;
-            --al-hero-name-lh:36px;
-            --al-hero-caret-h:24px;
+            --al-hero-name-lh:32px;
+            --al-hero-caret-h:22px;
             --festag-btn-height:42px;
             --festag-input-height:42px;
             --festag-email-input-height:48px;
@@ -4295,10 +4411,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
             --al-hero-display-size:32px;
-            --al-hero-display-lh:38px;
+            --al-hero-display-lh:34px;
             --al-hero-name-size:32px;
-            --al-hero-name-lh:38px;
-            --al-hero-caret-h:26px;
+            --al-hero-name-lh:34px;
+            --al-hero-caret-h:24px;
             --al-mobile-gutter:32px;
             --al-chrome-gutter:32px;
             --al-col-pad:32px;

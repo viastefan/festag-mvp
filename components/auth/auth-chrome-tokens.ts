@@ -4,15 +4,19 @@
  * Geometry: serious soft rects (`8px`), not pills — same in Light / Read / Dark.
  * Dark: flat Festag Night OLED + quiet ghost CTAs; ready = warm bone.
  * Accent: Festag primary blue `#5B647D` (Light). Read Google = warm charcoal.
- * Light: clean white canvas (`#FFFFFF`) + white Linear CTAs.
+ * Light: Festag sand canvas (`#F5F2ED`, website Lesen) + white Linear CTAs.
  * Read: sandy cream canvas only — layout/spacing identical to Light.
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
-/** Auth light canvas — clean white (Vercel-like), not cool gray. */
-export const AUTH_LIGHT_CANVAS = '#FFFFFF'
+/**
+ * Login/Register light canvas — full Festag sand (website Lesen),
+ * so it never reads as sterile white without a system “read” filter.
+ * Primary blue accents stay Festag.
+ */
+export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
 /**
  * Auth dark canvas — Primary Dusk (same OS foundation as mobile onboarding).
  * Deeper than flat Night OLED so auth feels cinematic, not like a login card.
@@ -22,22 +26,22 @@ export const AUTH_DARK_CANVAS = '#0C0D12'
 export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
 
 /**
- * Desktop auth chrome (≥769px) — classic black-login column width.
- * Calm 480px form column (not the wide OS marketing stretch).
+ * Desktop auth chrome (≥769px) — classic narrow login column.
+ * 300px — tighter than the 340/480 stretches; calm centered stack.
  */
 export const AUTH_DESKTOP_CHROME_VARS = `
-  --al-panel-width:480px;
+  --al-panel-width:300px;
   --al-os-gutter:48px;
-  --al-os-content-max:480px;
-  --al-hero-display-size:40px;
-  --al-hero-display-lh:46px;
-  --al-hero-name-size:40px;
-  --al-hero-name-lh:46px;
-  --al-hero-caret-h:32px;
-  --festag-btn-height:48px;
-  --festag-input-height:50px;
-  --festag-input-font-size:16px;
-  --al-desktop-hero-gap:36px;
+  --al-os-content-max:300px;
+  --al-hero-display-size:28px;
+  --al-hero-display-lh:30px;
+  --al-hero-name-size:28px;
+  --al-hero-name-lh:30px;
+  --al-hero-caret-h:22px;
+  --festag-btn-height:42px;
+  --festag-input-height:42px;
+  --festag-input-font-size:14.5px;
+  --al-desktop-hero-gap:28px;
   --al-desktop-stack-gap:14px;
   --al-desktop-divider-gap:28px;
   --al-desktop-field-gap:16px;
@@ -71,15 +75,15 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-mobile-gutter:32px;
   --dl-col-pad:32px;
   --al-hero-display-size:34px;
-  --al-hero-display-lh:40px;
+  --al-hero-display-lh:36px;
   --al-hero-name-size:34px;
-  --al-hero-name-lh:40px;
-  --al-hero-caret-h:28px;
+  --al-hero-name-lh:36px;
+  --al-hero-caret-h:26px;
   --dl-hero-display-size:34px;
-  --dl-hero-display-lh:40px;
+  --dl-hero-display-lh:36px;
   --dl-hero-name-size:34px;
-  --dl-hero-name-lh:40px;
-  --dl-hero-caret-h:28px;
+  --dl-hero-name-lh:36px;
+  --dl-hero-caret-h:26px;
   --festag-btn-height:44px;
   --festag-input-height:44px;
   /* Email field — a touch taller than OAuth / secondary CTAs. */
@@ -101,7 +105,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   /* Email field only — 1px taller than CTAs. */
   --festag-input-height:41px;
   --festag-input-font-size:16px;
-  /* White Linear CTAs on cool elevated canvas. */
+  /* Soft white CTAs — hairline only on read canvas (no 3D lift). */
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#fafafa;
   --festag-btn-dark-bg-active:#f5f5f6;
@@ -109,15 +113,22 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
   --festag-btn-dark-border:rgba(30,30,32,0.08);
-  --festag-btn-dark-border-hover:rgba(30,30,32,0.08);
+  --festag-btn-dark-border-hover:rgba(30,30,32,0.10);
   --festag-btn-dark-border-active:rgba(30,30,32,0.08);
-  --festag-btn-dark-shadow:0 1px 2px rgba(0,0,0,0.04);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0,0,0,0.04);
+  --festag-btn-dark-shadow:none;
+  --festag-btn-dark-shadow-hover:none;
   --festag-btn-dark-shadow-active:none;
+  /* Ready Weiter — same white plate; hairline only (canvas already separates white). */
   --festag-btn-ready-bg:#ffffff;
   --festag-btn-ready-bg-hover:#fafafa;
   --festag-btn-ready-bg-active:#f5f5f6;
   --festag-btn-ready-fg:#1e1e20;
+  --festag-btn-ready-border:rgba(30,30,32,0.10);
+  --festag-btn-ready-border-hover:rgba(30,30,32,0.12);
+  --festag-btn-ready-border-active:rgba(30,30,32,0.08);
+  --festag-btn-ready-shadow:none;
+  --festag-btn-ready-shadow-hover:none;
+  --festag-btn-ready-shadow-active:none;
   /* Accent + Google — Festag primary blue. */
   --festag-btn-google-bg:${FESTAG_NIGHT.primary};
   --festag-btn-google-bg-hover:#6A738C;
@@ -128,10 +139,12 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
-  --festag-input-border:rgba(30,30,32,0.15);
-  --festag-input-border-hover:rgba(30,30,32,0.20);
+  /* Stronger primary-tinted strokes — idle thin, focus minimally thicker. */
+  --festag-input-border:rgba(91,100,125,0.34);
+  --festag-input-border-hover:rgba(91,100,125,0.48);
   --festag-input-border-width:1px;
-  /* Focus = Festag primary blue (same as Google CTA). */
+  --festag-input-border-filled:${FESTAG_NIGHT.primary};
+  --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${FESTAG_NIGHT.primary};
   --festag-input-border-width-focus:1.5px;
   --festag-oauth-icon-opacity:0.92;
@@ -163,15 +176,18 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
   --festag-btn-dark-border:rgba(30,30,32,0.08);
-  --festag-btn-dark-border-hover:rgba(30,30,32,0.08);
+  --festag-btn-dark-border-hover:rgba(30,30,32,0.10);
   --festag-btn-dark-border-active:rgba(30,30,32,0.08);
-  --festag-btn-dark-shadow:0 1px 2px rgba(0,0,0,0.04);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0,0,0,0.04);
+  --festag-btn-dark-shadow:none;
+  --festag-btn-dark-shadow-hover:none;
   --festag-btn-dark-shadow-active:none;
   --festag-btn-ready-bg:#ffffff;
   --festag-btn-ready-bg-hover:#fafafa;
   --festag-btn-ready-bg-active:#f5f5f6;
   --festag-btn-ready-fg:#1e1e20;
+  --festag-btn-ready-shadow:none;
+  --festag-btn-ready-shadow-hover:none;
+  --festag-btn-ready-shadow-active:none;
   /* Google — warm charcoal (not primary blue). */
   --festag-btn-google-bg:#2F2C2A;
   --festag-btn-google-bg-hover:#3A3632;
@@ -185,6 +201,8 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-width:1px;
+  --festag-input-border-filled:#5C554C;
+  --festag-input-border-width-filled:1px;
   --festag-input-border-focus:#5C554C;
   --festag-input-border-width-focus:1.5px;
   --festag-oauth-icon-opacity:0.92;
@@ -254,7 +272,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border:rgba(255,255,255,0.08);
   --festag-input-border-hover:rgba(255,255,255,0.14);
   --festag-input-border-width:1px;
-  /* Focus = Festag primary blue (same as light). */
+  /* Focus = Festag primary blue (same as light) — minimally thicker than idle. */
+  --festag-input-border-filled:rgba(255,255,255,0.22);
+  --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${FESTAG_NIGHT.primary};
   --festag-input-border-width-focus:1.5px;
   --festag-input-focus-glow:none;

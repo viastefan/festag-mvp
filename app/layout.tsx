@@ -118,8 +118,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/onboarding' || path === '/join' || path === '/preparing' || path === '/dev/pending' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/onboarding/') === 0 || path.indexOf('/join/') === 0 || path.indexOf('/preparing/') === 0 || path.indexOf('/dev/pending/') === 0;
   var docsLanding = path === '/docs' || path.indexOf('/docs/') === 0;
   var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0 || path.indexOf('/impressum/') === 0 || path.indexOf('/widerruf/') === 0 || path.indexOf('/privacy/') === 0 || path.indexOf('/terms/') === 0 || path.indexOf('/terms-of-use/') === 0;
+  var loginRegister = path === '/login' || path === '/register' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0;
   // Legal docs are always-light — force data-theme=light (not only canvas bg).
   if (legalLanding) attr = 'light';
+  // Login/Register always light (soft read whisper) — never inherit portal dark.
+  if (loginRegister) { attr = 'light'; t = 'light'; }
   document.documentElement.setAttribute('data-theme', attr);
   document.documentElement.setAttribute('data-theme-choice', t);
   document.documentElement.setAttribute('data-theme-surface', surface);
@@ -133,15 +136,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       ? (t === 'dark' ? '#070708' : t === 'read' ? '#F5F2ED' : '#FCFCFD')
     : devPortal
       ? (t === 'dark' ? '#05060A' : t === 'read' ? '#F5F2ED' : '#E8E9ED')
+    : loginRegister
+      ? '#F5F2ED'
     : t === 'dark'
       ? (authLanding ? '#0C0D12' : '#070708')
       : t === 'read'
         ? '#F5F2ED'
         : authLanding
-          ? (t === 'read' ? '#F5F2ED' : '#FFFFFF')
+          ? '#F5F2ED'
           : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
-  document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
+  document.documentElement.style.colorScheme = legalLanding || loginRegister ? 'light' : (t === 'dark') ? 'dark' : 'light';
   if (authLanding) document.documentElement.setAttribute('data-auth-landing', '');
   else document.documentElement.removeAttribute('data-auth-landing');
   document.documentElement.removeAttribute('data-enter-landing');
@@ -166,7 +171,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  { background:#070708; color-scheme:dark; }
           html[data-theme="read"]  { background:#F5F2ED; color-scheme:light; }
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
-          html[data-theme="light"][data-auth-landing] { background:#F5F5F7; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
@@ -175,7 +180,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  body { background:#070708; }
           html[data-theme="read"]  body { background:#F5F2ED; }
           html[data-theme="light"] body { background:#F5F5F7; }
-          html[data-theme="light"][data-auth-landing] body { background:#F5F5F7; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] body { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] body { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] body { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }

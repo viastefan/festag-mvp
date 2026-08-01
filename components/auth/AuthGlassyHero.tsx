@@ -139,14 +139,23 @@ export const AUTH_GLASSY_HERO_CSS = `
     from { opacity: 0; }
     to { opacity: 1; }
   }
+  /* Light-first auth — dark ink on white. Dark chrome overrides below. */
   .al-gword-lead {
-    color: #F5F5F7;
+    color: #1e1e20;
     opacity: 1;
+  }
+  .al-root[data-theme="dark"] .al-gword-lead,
+  .al-root.onb-sand-dark .al-gword-lead {
+    color: #F5F5F7;
   }
   /* One H1 size — muted rest is gray ink, not a second title scale. */
   .al-gword-inner.al-hero-gray {
-    color: #8B909A;
+    color: #8891a0;
     opacity: 1;
+  }
+  .al-root[data-theme="dark"] .al-gword-inner.al-hero-gray,
+  .al-root.onb-sand-dark .al-gword-inner.al-hero-gray {
+    color: #8B909A;
   }
   @keyframes alGwordIn {
     from {
@@ -165,6 +174,7 @@ export const AUTH_GLASSY_HERO_CSS = `
   .al-hero-secondary {
     display: block;
     width: 100%;
+    margin-top: 2px;
     animation: alHeroSecondaryIn .52s cubic-bezier(.22, 1, .36, 1) both;
     animation-delay: .14s;
   }

@@ -20,7 +20,8 @@ import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnte
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
-import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import { applyTheme } from '@/lib/theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
 import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
 import {
@@ -56,7 +57,7 @@ const EMAIL_EMPTY_ERROR = 'Bitte E-Mail-Adresse eingeben.'
 const EMAIL_INVALID_ERROR = 'Bitte eine gültige E-Mail-Adresse eingeben.'
 const EMAIL_ALREADY_USED_ERROR =
   'Diese E-Mail wird bereits verwendet. Melde dich an oder nutze eine andere Adresse.'
-const EMAIL_ALREADY_USED_TITLE = 'Diese E-Mail ist schon da.'
+const EMAIL_ALREADY_USED_TITLE = 'Für diese E-Mail gibt es schon ein Konto.'
 
 function isEmailFieldError(msg: string): boolean {
   return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
@@ -202,11 +203,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   /** Signup: normalized email that already has an account — drives H1 status (not the red box). */
   const [accountExistsFor, setAccountExistsFor] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
-  const { setMode: setThemeMode, rootRef } = useAuthTheme('client')
-  // Gate is light by default — serious, calm, subscribe-ready (dark only as opt-in elsewhere).
+  // Login/Register always light (soft read whisper). Visual only on this route —
+  // do not call useAuthTheme (it would re-apply stored portal dark onto .al-root).
+  const rootRef = (el: HTMLElement | null) => {
+    if (el) el.setAttribute('data-theme', 'light')
+  }
   useLayoutEffect(() => {
-    setThemeMode('light')
-  }, [setThemeMode])
+    applyTheme('light', 'client')
+    document.querySelectorAll('.al-root, .dl-root').forEach((el) => {
+      el.setAttribute('data-theme', 'light')
+    })
+  }, [])
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
   /** After first soft login↔register flip, stay locked so gate/glassy never re-fire. */
   const [softModeLocked, setSoftModeLocked] = useState(softModeEnter)
@@ -760,11 +767,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setWsHydrated(true)
   }, [wsHydrated])
 
-  /* Auth OS — dusk continuity for login + register (same foundation as Build). */
-  useLayoutEffect(() => {
-    applyAuthTheme('dark', isSignup ? 'dev' : 'client')
-    setThemeMode('dark')
-  }, [isSignup, setThemeMode])
+  /* Auth OS dusk continuity removed — login/register stay light full-page. */
 
   // Login: when a remembered `/username` is present, live-check then animate green ✓
   // (same trust signal as „Benutzer frei“ on register).
@@ -1317,8 +1320,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     onSubmit: () => { void handleVerifyCode() },
   })
 
-  const googleLabelFull = 'Mit Google'
-  const appleLabelFull = 'Mit Apple'
+  const googleLabelFull = isSignup ? 'Mit Google registrieren' : 'Mit Google fortfahren'
+  const appleLabelFull = isSignup ? 'Mit Apple registrieren' : 'Mit Apple fortfahren'
 
   const googleButton = (
     <button
@@ -1456,7 +1459,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           onClick={() => { void openSsoFlow() }}
           disabled={oauthLoading || (isSignup && !hasInvite && !wsReadyForSignup)}
         >
-          SSO
+          Single Sign-On (SSO)
         </button>
       </div>
 
@@ -1602,17 +1605,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   const accountHint = !subFlow ? (
     isSignup ? (
-      <p className="al-account-hint">
-        <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
-          Anmelden
-        </button>
-      </p>
+      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
+        Anmelden
+      </button>
     ) : (
-      <p className="al-account-hint">
-        <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
-          Konto erstellen
-        </button>
-      </p>
+      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
+        Konto erstellen
+      </button>
     )
   ) : null
 
@@ -1653,12 +1652,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
             <img
-              className="al-wordmark-img al-wordmark-img--light"
-              src="/brand/festag-mark.png?v=20260727-cutout"
+              className="al-wordmark-img al-wordmark-img--fluid"
+              src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
-              width={28}
-              height={28}
+              width={36}
+              height={36}
             />
           </span>
           <div className="al-header-actions">
@@ -1691,7 +1690,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <AuthGlassyHero
                               animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
                               instant={softModeLocked}
-                              lead={devInviteToken ? 'Einladung annehmen.' : 'Benutzername auswählen.'}
+                              lead={devInviteToken ? 'Einladung annehmen.' : 'Erstelle dein Konto.'}
                             />
                           ) : displayWorkspaceName ? (
                             <AuthGlassyHero
@@ -1801,6 +1800,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         </main>
       </div>
+
+      <footer className="al-auth-credit" aria-label="Festag">
+        <span className="al-auth-credit-name">Tagro Superintelligence</span>
+        <span className="al-auth-credit-meta">OpenAI</span>
+      </footer>
 
       {/* Dev/test — jump straight into Build onboarding */}
       <div className="al-test-jumps" aria-label="Test Onboarding">

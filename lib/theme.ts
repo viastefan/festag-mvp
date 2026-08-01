@@ -100,10 +100,10 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
     return FESTAG_ELEVATED.canvasDesktop
   }
   if (isDark) return FESTAG_NIGHT.canvas
-  // Auth landings — soft white light (not cool portal elevated gray).
+  // Auth landings — soft read whisper in light; full sand in read; onboarding stays dark via mode.
   if (isAuthLandingPath(pathname)) {
     if (resolved === 'read') return FESTAG_SAND.canvas
-    return '#FFFFFF'
+    return FESTAG_SAND.canvas
   }
   // README / Lesen — Claude sandy white (previous warm light look).
   if (resolved === 'read') return FESTAG_SAND.canvas

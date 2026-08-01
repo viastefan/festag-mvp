@@ -1474,7 +1474,9 @@ export const AUTH_OS_STYLES = `
     --festag-btn-dark-shadow-active: none;
     --festag-input-border: rgba(30, 30, 32, 0.14);
     --festag-input-border-hover: rgba(30, 30, 32, 0.2);
+    --festag-input-border-width: 1px;
     --festag-input-border-focus: #5B647D;
+    --festag-input-border-width-focus: 1.5px;
     background: #F5F5F7 !important;
     color: #1d1d1f;
   }
@@ -1633,6 +1635,7 @@ export const AUTH_OS_STYLES = `
   }
   .al-root.al-root--gate[data-theme="light"] .al-input:focus,
   .al-root.al-root--gate[data-theme="light"] .al-input:focus-visible {
+    border-width: var(--festag-input-border-width-focus, 1.5px) !important;
     border-color: #5B647D !important;
     background: transparent !important;
     box-shadow: none !important;
