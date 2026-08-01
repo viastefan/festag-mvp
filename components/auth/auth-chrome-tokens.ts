@@ -145,8 +145,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --al-accent:${FESTAG_NIGHT.primary};
   --festag-caret:${AUTH_CARET};
   --festag-input-caret:${AUTH_CARET};
-  --festag-input-fill:#FFFFFF;
-  --festag-input-fill-focus:#FFFFFF;
+  --festag-input-fill:transparent;
+  --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
   /* Stronger primary-tinted strokes — idle thin, focus minimally thicker. */
   --festag-input-border:rgba(91,100,125,0.34);
@@ -209,8 +209,8 @@ export const AUTH_CHROME_VARS_READ = `
   --al-accent:#5C554C;
   --festag-caret:${AUTH_CARET};
   --festag-input-caret:${AUTH_CARET};
-  --festag-input-fill:#FFFFFF;
-  --festag-input-fill-focus:#FFFFFF;
+  --festag-input-fill:transparent;
+  --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_READ};
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
@@ -308,9 +308,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --al-text-muted-soft:${AUTH_MUTED_SOFT_DARK};
 `
 
-export const AUTH_INPUT_FILL_LIGHT = '#FFFFFF'
-export const AUTH_INPUT_FILL_LIGHT_FOCUS = '#FFFFFF'
-export const AUTH_INPUT_AUTOFILL_LIGHT = '#FFFFFF'
+export const AUTH_INPUT_FILL_LIGHT = 'transparent'
+export const AUTH_INPUT_FILL_LIGHT_FOCUS = 'transparent'
+export const AUTH_INPUT_AUTOFILL_LIGHT = AUTH_LIGHT_CANVAS
 export const AUTH_INPUT_FILL_DARK = 'transparent'
 export const AUTH_INPUT_FILL_DARK_FOCUS = 'transparent'
 /** Chrome autofill needs opaque inset — match auth canvas so it reads as no fill. */

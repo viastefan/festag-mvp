@@ -1368,8 +1368,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input-shell .al-input {
           position:relative;
           z-index:2;
-          background:#FFFFFF !important;
-          background-color:#FFFFFF !important;
+          background:transparent !important;
         }
         .al-input-shell.has-value .al-input-fake-ph {
           display:none;
@@ -1402,10 +1401,10 @@ const AUTH_LANDING_STYLES_BASE = `
           outline-offset:0 !important;
           box-shadow:0 0 0 1px var(--festag-input-border-focus, #66708D);
         }
-        /* Hard-lock light fills — solid white paper on ivory canvas. */
+        /* Hard-lock light fills — transparent stroke fields (Intent-style). CTAs stay white. */
         .al-root:not([data-theme="dark"]) .al-input {
-          background:#FFFFFF !important;
-          background-color:#FFFFFF !important;
+          background:transparent !important;
+          background-color:transparent !important;
           background-image:none !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
@@ -1420,28 +1419,28 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root:not([data-theme="dark"]) .al-input:hover,
         .al-root:not([data-theme="dark"]) .al-input:active {
-          background:#FFFFFF !important;
-          background-color:#FFFFFF !important;
+          background:transparent !important;
+          background-color:transparent !important;
           border-width:var(--festag-input-border-width, 1px) !important;
           border-color:var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown),
         .al-root:not([data-theme="dark"]) .al-input-shell.has-value .al-input {
-          background:#FFFFFF !important;
-          background-color:#FFFFFF !important;
+          background:transparent !important;
+          background-color:transparent !important;
           border-width:1px !important;
           border-color:var(--festag-input-border-filled, var(--festag-input-border-focus, #66708D)) !important;
           box-shadow:0 0 0 1px var(--festag-input-border-filled, var(--festag-input-border-focus, #66708D));
         }
         .al-root:not([data-theme="dark"]) .al-input:focus,
         .al-root:not([data-theme="dark"]) .al-input:focus-visible {
-          background:#FFFFFF !important;
-          background-color:#FFFFFF !important;
+          background:transparent !important;
+          background-color:transparent !important;
           border-width:1px !important;
           box-shadow:0 0 0 1px var(--festag-input-border-focus, #66708D);
           border-color:var(--festag-input-border-focus, #66708D) !important;
         }
-        /* Chrome autofill — solid white (kill browser blue/yellow wash). */
+        /* Chrome autofill — ivory inset so field reads transparent on canvas. */
         .al-input:-webkit-autofill,
         .al-input:-webkit-autofill:hover,
         .al-input:-webkit-autofill:focus,
@@ -1450,40 +1449,40 @@ const AUTH_LANDING_STYLES_BASE = `
           caret-color:var(--festag-input-caret, #66708D);
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
-          background-color:#FFFFFF !important;
+          background-color:transparent !important;
           background-image:none !important;
           border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #66708D) !important;
           outline:none !important;
-          -webkit-box-shadow:0 0 0 1000px #FFFFFF inset !important;
-          box-shadow:0 0 0 1000px #FFFFFF inset !important;
+          -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
+          box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .al-input:-webkit-autofill:focus {
           border:1px solid var(--festag-input-border-focus, #66708D) !important;
           -webkit-box-shadow:
             0 0 0 1px var(--festag-input-border-focus, #66708D),
-            0 0 0 1000px #FFFFFF inset !important;
+            0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:
             0 0 0 1px var(--festag-input-border-focus, #66708D),
-            0 0 0 1000px #FFFFFF inset !important;
+            0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
-          background-color:#FFFFFF !important;
+          background-color:transparent !important;
           border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #66708D) !important;
-          -webkit-box-shadow:0 0 0 1000px #FFFFFF inset !important;
-          box-shadow:0 0 0 1000px #FFFFFF inset !important;
+          -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
+          box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
           border:1px solid var(--festag-input-border-focus, #66708D) !important;
           -webkit-box-shadow:
             0 0 0 1px var(--festag-input-border-focus, #66708D),
-            0 0 0 1000px #FFFFFF inset !important;
+            0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:
             0 0 0 1px var(--festag-input-border-focus, #66708D),
-            0 0 0 1000px #FFFFFF inset !important;
+            0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
         }
         .al-code-input {
           text-align:center;
