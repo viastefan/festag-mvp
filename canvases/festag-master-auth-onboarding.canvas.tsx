@@ -3567,7 +3567,7 @@ function choiceRow(
 	const on = Boolean(opts.on)
 	const light = t.mode === 'light'
 	/* Idle: quiet 1px hairline. Selected: primary stroke. Hover via .master-choice CSS. */
-	const idleStroke = light ? 'rgba(30, 30, 32, 0.05)' : 'rgba(255, 255, 255, 0.06)'
+	const idleStroke = light ? 'rgba(30, 30, 32, 0.04)' : 'rgba(255, 255, 255, 0.05)'
 	return {
 		width: '100%',
 		height: FIELD_H,
@@ -3719,9 +3719,16 @@ const CSS = `
     .master-prep-orb, .master-prep-bridge { animation: none !important; }
   }
   /* Clarify / Quellen rows — quiet idle hairline; lift on hover; primary when on */
+  .master-phone button.master-choice:not(.is-on) {
+    border: 1px solid rgba(30, 30, 32, 0.04) !important;
+    box-shadow: none !important;
+  }
   .master-phone button.master-choice:not(.is-on):hover {
-    border-color: rgba(30, 30, 32, 0.14) !important;
+    border-color: rgba(30, 30, 32, 0.12) !important;
     border-width: 1px !important;
+  }
+  .master-phone button.master-choice.is-on {
+    border: 2px solid #5B647D !important;
   }
   /* Canonical form fields — match AuthStage email (46 / 15 / focus ring) */
   .master-phone input.master-field {

@@ -10,8 +10,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-caret: #66708D;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
     --mob-card-bg-on: #FFFFFF;
-    --mob-card-border: rgba(30, 30, 32, 0.05);
-    --mob-card-border-hover: rgba(30, 30, 32, 0.14);
+    --mob-card-border: rgba(30, 30, 32, 0.04);
+    --mob-card-border-hover: rgba(30, 30, 32, 0.12);
     --mob-icon-tile: rgba(30, 30, 32, 0.04);
     --mob-canvas: #FAF9F5;
     --mob-wash-top: #FBFAF6;
