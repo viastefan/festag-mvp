@@ -12,6 +12,7 @@ import {
   OnbLogoSlack,
   OnbLogoVercel,
 } from '@/components/auth/OnboardingSourceLogos'
+import EnterReturnIcon from '@/components/auth/master-onboarding/EnterReturnIcon'
 import type { IntegrationId } from '@/lib/platform/integrations'
 import { INTEGRATION_CATALOG } from '@/lib/platform/integrations'
 
@@ -135,6 +136,14 @@ export default function ConnectStage({
       <p className="mob-connect-foot">
         Weitere Clients verbindest du später im Execution Panel.
       </p>
+      {connected.size > 0 ? (
+        <p className="mob-chip-hint">
+          <span>Nochmal klicken für weiter</span>
+          <span className="mob-enter-ico" aria-hidden>
+            <EnterReturnIcon />
+          </span>
+        </p>
+      ) : null}
     </>
   )
 }

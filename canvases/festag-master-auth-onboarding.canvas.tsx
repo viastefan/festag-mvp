@@ -59,6 +59,52 @@ function flowDotIndex(sid: StepId): number {
 	return -1
 }
 
+/** Thin MacBook-style Return — inherits currentColor */
+function EnterReturnIcon({ size = 14 }: { size?: number }) {
+	return (
+		<svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
+			<path
+				d="M3.5 10.5h7.25a2.75 2.75 0 0 0 2.75-2.75V3.5"
+				stroke="currentColor"
+				strokeWidth="1.2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+			<path
+				d="M6.25 7.75 3.5 10.5l2.75 2.75"
+				stroke="currentColor"
+				strokeWidth="1.2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
+	)
+}
+
+function ContinueHint({ color }: { color: string }) {
+	return (
+		<p
+			style={{
+				margin: '14px 0 0',
+				fontSize: 13,
+				lineHeight: 1.45,
+				letterSpacing: '0.01em',
+				color,
+				fontFamily: 'Aeonik, system-ui, sans-serif',
+				fontWeight: 400,
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: 8,
+			}}
+		>
+			<span>Nochmal klicken für weiter</span>
+			<span aria-hidden style={{ display: 'inline-flex', color: 'inherit', opacity: 0.92 }}>
+				<EnterReturnIcon />
+			</span>
+		</p>
+	)
+}
+
 function stepIndex(id: StepId): number {
 	return STEPS.findIndex((s) => s.id === id)
 }
@@ -350,6 +396,7 @@ export default function FestagMasterAuthOnboarding() {
 	const [intentReady, setIntentReady] = useState(false)
 	const [docsOpen, setDocsOpen] = useState(false)
 	const touchRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
+	const enterArmRef = useRef(0)
 	const t = useMemo(() => themeFor(appearance), [appearance])
 
 	const i = Math.min(Math.max(step, 0), STEPS.length - 1)
@@ -377,6 +424,31 @@ export default function FestagMasterAuthOnboarding() {
 	useEffect(() => {
 		setHeroTick((n) => n + 1)
 	}, [sid, authMode])
+
+	useEffect(() => {
+		function onKey(ev: Event) {
+			const e = ev as KeyboardEvent
+			if (e.key !== 'Enter' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
+			const el = e.target as HTMLElement | null
+			if (el && (el.tagName === 'TEXTAREA' || el.isContentEditable)) return
+
+			const canClarify = sid === 'clarify' && Boolean(clarifyPick)
+			const canConnect = sid === 'connect' && connected.length > 0
+			if (!canClarify && !canConnect) return
+
+			e.preventDefault()
+			const now = Date.now()
+			if (now - enterArmRef.current < 900) {
+				enterArmRef.current = 0
+				if (canClarify) go(stepIndex('connect'))
+				else go(stepIndex('preparing'))
+				return
+			}
+			enterArmRef.current = now
+		}
+		window.addEventListener('keydown', onKey)
+		return () => window.removeEventListener('keydown', onKey)
+	}, [sid, clarifyPick, connected.length])
 
 	function go(n: number) {
 		setDragX(0)
@@ -1246,6 +1318,7 @@ function ConnectStage({
 			>
 				Weitere Clients verbindest du später im Execution Panel.
 			</p>
+			{connected.length > 0 ? <ContinueHint color={t.muted} /> : null}
 		</>
 	)
 }
@@ -2135,21 +2208,7 @@ function ClarifyStage({
 					)
 				})}
 			</div>
-			{picked ? (
-				<p
-					style={{
-						margin: '14px 0 0',
-						fontSize: 13,
-						lineHeight: 1.45,
-						letterSpacing: '0.01em',
-						color: t.muted,
-						fontFamily: 'Aeonik, system-ui, sans-serif',
-						fontWeight: 400,
-					}}
-				>
-					Nochmal klicken für weiter
-				</p>
-			) : null}
+			{picked ? <ContinueHint color={t.muted} /> : null}
 		</>
 	)
 }

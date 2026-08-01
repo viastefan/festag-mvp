@@ -98,6 +98,7 @@ function MasterBuildInner() {
 
   const swipeRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
   const mobRootRef = useRef<HTMLDivElement | null>(null)
+  const enterArmRef = useRef(0)
 
   const blueprint: TagroBlueprint = useMemo(
     () => analyzeIntent(intentText, clarifyPick),
@@ -505,14 +506,41 @@ function MasterBuildInner() {
       if (e.key !== 'Enter' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
       const el = e.target as HTMLElement | null
       if (el && (el.tagName === 'TEXTAREA' || el.isContentEditable)) return
-      if (current === 'connect' && !submitting) {
-        e.preventDefault()
-        void finishToPreparing()
+
+      const canClarify = current === 'clarify' && Boolean(clarifyPick)
+      const canConnect = current === 'connect' && !submitting && connected.size > 0
+      if (!canClarify && !canConnect) return
+
+      e.preventDefault()
+      const now = Date.now()
+      if (now - enterArmRef.current < 900) {
+        enterArmRef.current = 0
+        if (canClarify) {
+          void (async () => {
+            setError('')
+            const ok = await persistIntent(intentText, clarifyPick)
+            if (!ok && !isPreview) return
+            setCurrent('connect')
+          })()
+        } else {
+          void finishToPreparing()
+        }
+        return
       }
+      enterArmRef.current = now
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [current, submitting, finishToPreparing])
+  }, [
+    current,
+    submitting,
+    clarifyPick,
+    connected.size,
+    finishToPreparing,
+    intentText,
+    isPreview,
+    persistIntent,
+  ])
 
   const goAfterIntent = useCallback(async () => {
     if (!intentReady && intentText.trim().length < 8) return

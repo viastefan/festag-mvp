@@ -1,5 +1,6 @@
 'use client'
 
+import EnterReturnIcon from '@/components/auth/master-onboarding/EnterReturnIcon'
 import {
   CLARIFY_HEADER,
   CLARIFY_OPTIONS,
@@ -43,7 +44,14 @@ export default function ClarifyStage({ value, onPick, blueprint }: Props) {
           </button>
         ))}
       </div>
-      {picked ? <p className="mob-chip-hint">Nochmal klicken für weiter</p> : null}
+      {picked ? (
+        <p className="mob-chip-hint">
+          <span>Nochmal klicken für weiter</span>
+          <span className="mob-enter-ico" aria-hidden>
+            <EnterReturnIcon />
+          </span>
+        </p>
+      ) : null}
     </>
   )
 }

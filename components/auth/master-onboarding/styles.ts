@@ -497,6 +497,18 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     line-height: 1.45;
     letter-spacing: var(--auth-tracking);
     color: var(--mob-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mob-enter-ico {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: inherit;
+    opacity: 0.92;
+  }
+  .mob-enter-ico svg {
+    display: block;
   }
 
   /* Connect list */
