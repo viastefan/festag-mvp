@@ -25,7 +25,7 @@ type Props = {
 }
 
 /**
- * Prepare screen — ivory lyrics + logo-style paired dots (master canvas 1:1).
+ * Prepare screen — ivory lyrics + Festag mark + loading beads (master canvas 1:1).
  */
 export default function WorkspaceInitSequence({ active, onComplete, className = '' }: Props) {
   const lines = useMemo(() => [...MASTER_PREP_LINES], [])
@@ -149,30 +149,26 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
           </div>
 
           <div className="ws-init-mark" aria-hidden>
-            {(
-              [
-                { kind: 'bar', rot: 0 },
-                { kind: 'diag', rot: 28 },
-                { kind: 'pair', rot: -12 },
-                { kind: 'tall', rot: 8 },
-              ] as const
-            ).map((cell, i) => {
-              const lit = fillProgress > (i + 0.2) / 4 || ready
-              return (
-                <span
-                  key={i}
-                  className={`ws-init-meta ws-init-meta--${cell.kind}${lit ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
-                  style={{
-                    ['--prep-rot' as string]: `${cell.rot}deg`,
-                    ['--prep-delay' as string]: `${i * 0.18}s`,
-                  }}
-                >
-                  <i className="ws-init-orb ws-init-orb--a" />
-                  <i className="ws-init-bridge" />
-                  <i className="ws-init-orb ws-init-orb--b" />
-                </span>
-              )
-            })}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="ws-init-logo"
+              src="/brand/festag-mark-fluid.png?v=20260731"
+              alt=""
+              width={28}
+              height={28}
+            />
+            <span className="ws-init-beads">
+              {[0, 1, 2, 3].map((i) => {
+                const lit = fillProgress > (i + 0.15) / 4 || ready
+                return (
+                  <span
+                    key={i}
+                    className={`ws-init-bead${lit ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
+                    style={{ ['--prep-delay' as string]: `${i * 0.14}s` }}
+                  />
+                )
+              })}
+            </span>
           </div>
         </div>
       </div>
@@ -236,135 +232,46 @@ const INIT_CSS = /* css */ `
   .ws-init-line span.is-lit { color: rgba(26, 25, 23, 0.92); }
 
   .ws-init-mark {
-    display: grid;
-    grid-template-columns: repeat(2, auto);
-    grid-template-rows: repeat(2, auto);
-    gap: 10px 14px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
     flex-shrink: 0;
     align-self: flex-start;
+    height: 36px;
     min-height: 36px;
     color: rgba(26, 25, 23, 0.88);
   }
-  .ws-init-meta {
-    position: relative;
+  .ws-init-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: brightness(0) saturate(100%);
+    opacity: 0.9;
+  }
+  .ws-init-beads {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .ws-init-bead {
     display: block;
-    width: 22px;
-    height: 12px;
-    transform: rotate(var(--prep-rot, 0deg));
-    transform-origin: center;
-    opacity: 0.18;
-    transition: opacity .35s ease;
-  }
-  .ws-init-meta.is-lit { opacity: 0.78; }
-  .ws-init-meta.is-ready { opacity: 0.92; }
-  .ws-init-meta--bar { width: 26px; height: 11px; }
-  .ws-init-meta--diag { width: 20px; height: 16px; }
-  .ws-init-meta--pair { width: 18px; height: 12px; }
-  .ws-init-meta--tall { width: 16px; height: 18px; }
-  .ws-init-orb, .ws-init-bridge {
-    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
     background: currentColor;
-    pointer-events: none;
+    opacity: 0.18;
+    flex-shrink: 0;
+    transition: width .38s cubic-bezier(.22,1,.36,1), opacity .28s ease;
   }
-  .ws-init-orb {
-    border-radius: 999px;
-    top: 50%;
-    transform: translateY(-50%);
+  .ws-init-bead.is-lit {
+    width: 18px;
+    opacity: 0.72;
   }
-  .ws-init-bridge {
-    border-radius: 999px;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 5px;
-    left: 5px;
-    width: 12px;
-  }
-  .ws-init-meta--bar .ws-init-orb--a {
-    left: 0; width: 8px; height: 8px;
-    animation: wsPrepOrbA 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--bar .ws-init-orb--b {
-    right: 0; width: 14px; height: 8px;
-    animation: wsPrepOrbBar 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--bar .ws-init-bridge {
-    left: 5px; width: 12px; height: 5.5px;
-    animation: wsPrepBridge 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--diag .ws-init-orb--a {
-    left: 0; top: 70%; width: 7px; height: 7px;
-    animation: wsPrepOrbA 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--diag .ws-init-orb--b {
-    right: 0; top: 30%; width: 7.5px; height: 7.5px;
-    transform: translateY(-50%);
-    animation: wsPrepOrbB 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--diag .ws-init-bridge {
-    left: 4px; top: 50%; width: 11px; height: 4.5px;
-    transform: translateY(-50%) rotate(-32deg);
-    animation: wsPrepBridge 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--pair .ws-init-orb--a {
-    left: 0; width: 7px; height: 7px;
-    animation: wsPrepOrbA 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--pair .ws-init-orb--b {
-    right: 0; width: 6px; height: 6px;
-    animation: wsPrepOrbB 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--pair .ws-init-bridge {
-    left: 4px; width: 9px; height: 4px;
-    animation: wsPrepBridge 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--tall .ws-init-orb--a {
-    left: 1px; top: 18%; width: 6px; height: 6px;
-    transform: translateY(-50%);
-    animation: wsPrepOrbA 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--tall .ws-init-orb--b {
-    left: 2px; top: 78%; width: 9px; height: 6.5px;
-    transform: translateY(-50%);
-    animation: wsPrepOrbBar 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta--tall .ws-init-bridge {
-    left: 4px; top: 48%; width: 4.5px; height: 10px;
-    transform: translateY(-50%);
-    animation: wsPrepBridgeV 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .ws-init-meta:not(.is-lit) .ws-init-orb,
-  .ws-init-meta:not(.is-lit) .ws-init-bridge { animation: none !important; }
-  @keyframes wsPrepOrbA {
-    0%, 100% { width: 7.5px; height: 7.5px; opacity: 0.95; }
-    50% { width: 5px; height: 5px; opacity: 0.72; }
-  }
-  @keyframes wsPrepOrbB {
-    0%, 100% { width: 5.5px; height: 5.5px; opacity: 0.75; }
-    50% { width: 8px; height: 8px; opacity: 0.95; }
-  }
-  @keyframes wsPrepOrbBar {
-    0%, 100% { width: 13px; height: 7.5px; opacity: 0.92; }
-    50% { width: 9px; height: 6px; opacity: 0.7; }
-  }
-  @keyframes wsPrepBridge {
-    0%, 100% { width: 11px; opacity: 0.95; }
-    50% { width: 8px; opacity: 0.8; }
-  }
-  @keyframes wsPrepBridgeV {
-    0%, 100% { height: 10px; opacity: 0.95; }
-    50% { height: 7px; opacity: 0.8; }
+  .ws-init-bead.is-ready {
+    width: 18px;
+    opacity: 0.88;
   }
 
   @media (max-width: 380px) {
@@ -372,6 +279,6 @@ const INIT_CSS = /* css */ `
   }
   @media (prefers-reduced-motion: reduce) {
     .ws-init, .ws-init-line { transition: none !important; }
-    .ws-init-orb, .ws-init-bridge { animation: none !important; }
+    .ws-init-bead { transition: none !important; }
   }
 `

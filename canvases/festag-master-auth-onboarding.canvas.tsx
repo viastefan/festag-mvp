@@ -2800,7 +2800,7 @@ function PreparingStage({
 				})}
 			</div>
 
-			{/* Logo metaballs — always two joined orbs (circle + companion), mosaic orientations */}
+			{/* Real mark + loading forms in one calm horizontal line */}
 			<button
 				type="button"
 				aria-label={ready ? 'Festag öffnen' : 'Workspace wird eingerichtet'}
@@ -2809,16 +2809,15 @@ function PreparingStage({
 					if (ready) onOpen?.()
 				}}
 				style={{
-					display: 'grid',
-					gridTemplateColumns: 'repeat(2, auto)',
-					gridTemplateRows: 'repeat(2, auto)',
+					display: 'flex',
+					flexDirection: 'row',
 					alignItems: 'center',
-					justifyContent: 'start',
+					justifyContent: 'flex-start',
 					alignSelf: 'flex-start',
-					gap: '10px 14px',
-					height: 'auto',
+					gap: 14,
+					height: 36,
 					minHeight: 36,
-					padding: '2px 2px',
+					padding: 0,
 					border: 'none',
 					background: 'transparent',
 					color: t.ink,
@@ -2826,32 +2825,50 @@ function PreparingStage({
 					fontFamily: 'inherit',
 				}}
 			>
-				{(
-					[
-						{ kind: 'bar', rot: 0 },
-						{ kind: 'diag', rot: 28 },
-						{ kind: 'pair', rot: -12 },
-						{ kind: 'tall', rot: 8 },
-					] as const
-				).map((cell, i) => {
-					const lit = fillProgress > (i + 0.2) / 4 || ready
-					return (
-						<span
-							key={i}
-							aria-hidden
-							className={`master-prep-meta master-prep-meta--${cell.kind}${lit ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
-							style={{
-								['--prep-rot' as string]: `${cell.rot}deg`,
-								['--prep-delay' as string]: `${i * 0.18}s`,
-								opacity: ready ? 0.92 : lit ? 0.78 : 0.18,
-							}}
-						>
-							<span className="master-prep-orb master-prep-orb--a" />
-							<span className="master-prep-bridge" />
-							<span className="master-prep-orb master-prep-orb--b" />
-						</span>
-					)
-				})}
+				<img
+					src={MARK}
+					alt=""
+					width={28}
+					height={28}
+					aria-hidden
+					style={{
+						width: 28,
+						height: 28,
+						objectFit: 'contain',
+						flexShrink: 0,
+						filter: t.mode === 'light' ? 'brightness(0) saturate(100%)' : 'none',
+						opacity: ready ? 0.95 : 0.88,
+						transition: 'opacity .35s ease',
+					}}
+				/>
+				<span
+					aria-hidden
+					style={{
+						display: 'inline-flex',
+						alignItems: 'center',
+						gap: 7,
+					}}
+				>
+					{[0, 1, 2, 3].map((i) => {
+						const lit = fillProgress > (i + 0.15) / 4 || ready
+						return (
+							<span
+								key={i}
+								className={`master-prep-bead${lit ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
+								style={{
+									['--prep-delay' as string]: `${i * 0.14}s`,
+									width: lit || ready ? 18 : 8,
+									height: 8,
+									borderRadius: 999,
+									background: t.ink,
+									opacity: ready ? 0.88 : lit ? 0.72 : 0.18,
+									transition:
+										'width .38s cubic-bezier(.22,1,.36,1), opacity .28s ease',
+								}}
+							/>
+						)
+					})}
+				</span>
 			</button>
 		</div>
 	)
@@ -3412,134 +3429,7 @@ const CSS = `
   .master-tagro-spin {
     animation: masterTagroSpin 0.85s linear infinite;
   }
-  /* Preparing — logo metaball mosaic (two joined orbs, never loose dots / scaleX bars) */
-  .master-prep-meta {
-    position: relative;
-    display: block;
-    width: 22px;
-    height: 12px;
-    transform: rotate(var(--prep-rot, 0deg));
-    transform-origin: center;
-    transition: opacity .35s ease;
-    flex-shrink: 0;
-  }
-  .master-prep-meta--bar { width: 26px; height: 11px; }
-  .master-prep-meta--diag { width: 20px; height: 16px; }
-  .master-prep-meta--pair { width: 18px; height: 12px; }
-  .master-prep-meta--tall { width: 16px; height: 18px; }
-  .master-prep-orb,
-  .master-prep-bridge {
-    position: absolute;
-    background: currentColor;
-    pointer-events: none;
-  }
-  .master-prep-orb {
-    border-radius: 999px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  .master-prep-bridge {
-    border-radius: 999px;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 5px;
-    left: 5px;
-    width: 12px;
-    opacity: 0.95;
-  }
-  /* Horizontal bar — circle + longer pill (logo top) */
-  .master-prep-meta--bar .master-prep-orb--a {
-    left: 0; width: 8px; height: 8px;
-    animation: masterPrepOrbA 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--bar .master-prep-orb--b {
-    right: 0; width: 14px; height: 8px;
-    animation: masterPrepOrbBar 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--bar .master-prep-bridge {
-    left: 5px; width: 12px; height: 5.5px;
-    animation: masterPrepBridge 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  /* Diagonal pair — two circles joined (logo bottom) */
-  .master-prep-meta--diag .master-prep-orb--a {
-    left: 0; top: 70%; width: 7px; height: 7px;
-    animation: masterPrepOrbA 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--diag .master-prep-orb--b {
-    right: 0; top: 30%; width: 7.5px; height: 7.5px;
-    transform: translateY(-50%);
-    animation: masterPrepOrbB 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--diag .master-prep-bridge {
-    left: 4px; top: 50%; width: 11px; height: 4.5px;
-    transform: translateY(-50%) rotate(-32deg);
-    animation: masterPrepBridge 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  /* Compact equal-ish pair */
-  .master-prep-meta--pair .master-prep-orb--a {
-    left: 0; width: 7px; height: 7px;
-    animation: masterPrepOrbA 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--pair .master-prep-orb--b {
-    right: 0; width: 6px; height: 6px;
-    animation: masterPrepOrbB 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--pair .master-prep-bridge {
-    left: 4px; width: 9px; height: 4px;
-    animation: masterPrepBridge 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  /* Tall / vertical lean — longer companion */
-  .master-prep-meta--tall .master-prep-orb--a {
-    left: 1px; top: 18%; width: 6px; height: 6px;
-    transform: translateY(-50%);
-    animation: masterPrepOrbA 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--tall .master-prep-orb--b {
-    left: 2px; top: 78%; width: 9px; height: 6.5px;
-    transform: translateY(-50%);
-    animation: masterPrepOrbBar 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta--tall .master-prep-bridge {
-    left: 4px; top: 48%; width: 4.5px; height: 10px;
-    transform: translateY(-50%);
-    animation: masterPrepBridgeV 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
-    animation-delay: var(--prep-delay, 0s);
-  }
-  .master-prep-meta:not(.is-lit) .master-prep-orb,
-  .master-prep-meta:not(.is-lit) .master-prep-bridge {
-    animation: none !important;
-  }
-  @keyframes masterPrepOrbA {
-    0%, 100% { width: 7.5px; height: 7.5px; opacity: 0.95; }
-    50% { width: 5px; height: 5px; opacity: 0.72; }
-  }
-  @keyframes masterPrepOrbB {
-    0%, 100% { width: 5.5px; height: 5.5px; opacity: 0.75; }
-    50% { width: 8px; height: 8px; opacity: 0.95; }
-  }
-  @keyframes masterPrepOrbBar {
-    0%, 100% { width: 13px; height: 7.5px; opacity: 0.92; }
-    50% { width: 9px; height: 6px; opacity: 0.7; }
-  }
-  @keyframes masterPrepBridge {
-    0%, 100% { width: 11px; opacity: 0.95; }
-    50% { width: 8px; opacity: 0.8; }
-  }
-  @keyframes masterPrepBridgeV {
-    0%, 100% { height: 10px; opacity: 0.95; }
-    50% { height: 7px; opacity: 0.8; }
-  }
+  /* Preparing — mark + beads use inline styles in PreparingStage */
   @media (prefers-reduced-motion: reduce) {
     .master-prep-orb, .master-prep-bridge { animation: none !important; }
   }
