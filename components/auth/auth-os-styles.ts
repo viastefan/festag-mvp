@@ -134,9 +134,8 @@ export const AUTH_OS_STYLES = `
   html:has(.al-root.onb-sand-dark) .auth-docs-pop.auth-docs-pop--dark,
   .al-root.onb-sand-dark .auth-docs-pop.auth-docs-pop--dark {
     background: var(--festag-black-popup, #171A24) !important;
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.28),
-      0 10px 28px rgba(0, 0, 0, 0.36) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
   }
   html[data-auth-landing][data-theme="dark"] .auth-docs-mobile-host .festag-popup-backdrop,
   html:has(.al-root.onb-sand-dark) .auth-docs-mobile-host .festag-popup-backdrop {

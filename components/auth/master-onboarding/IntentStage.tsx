@@ -273,7 +273,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
         </div>
 
         <div className="mob-ready-hint-slot" aria-live="polite">
-          <ContinueHint show={hasText && enough} />
+          <ContinueHint show={hasText && enough} onContinue={onAdvance} />
         </div>
 
         {showTagroPanel ? (

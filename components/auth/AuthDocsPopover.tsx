@@ -285,19 +285,17 @@ const AUTH_DOCS_CSS = `
       opacity var(--festag-sheet-ms, 240ms) ease,
       transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
   }
-  /* Light — clean paper (no sand wash / no gray inset). */
+  /* Light — clean paper, quiet contact shadow (no heavy ambient lift). */
   .auth-docs-pop.auth-docs-pop--light {
     background: #FFFFFF !important;
-    box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 8px 24px rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
   }
   /* Dark — dusk popup surface (inherits --festag-black-popup from auth html). */
   .auth-docs-pop.auth-docs-pop--dark {
     background: var(--festag-black-popup, #171A24) !important;
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.28),
-      0 10px 24px rgba(0, 0, 0, 0.36) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
     color: #f5f5f7;
   }
   .auth-docs-pop.is-visible {

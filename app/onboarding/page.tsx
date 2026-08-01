@@ -536,21 +536,9 @@ function MasterBuildInner() {
     }
   }, [clarifyPick, intentReady, intentText, isPreview, persistIntent])
 
-  const onClarifyPick = useCallback(
-    (opt: ClarifyOption) => {
-      if (clarifyPick === opt) {
-        void (async () => {
-          setError('')
-          const ok = await persistIntent(intentText, opt)
-          if (!ok && !isPreview) return
-          setCurrent('connect')
-        })()
-        return
-      }
-      setClarifyPick(opt)
-    },
-    [clarifyPick, intentText, isPreview, persistIntent],
-  )
+  const onClarifyPick = useCallback((opt: ClarifyOption) => {
+    setClarifyPick(opt)
+  }, [])
 
   const toggleSource = useCallback(
     async (id: IntegrationId) => {
@@ -722,6 +710,7 @@ function MasterBuildInner() {
               <ClarifyStage
                 value={clarifyPick}
                 onPick={onClarifyPick}
+                onContinue={advance}
                 blueprint={blueprint}
               />
             ) : null}
@@ -731,8 +720,9 @@ function MasterBuildInner() {
                 sources={sources}
                 connected={connected}
                 onToggle={(id) => void toggleSource(id)}
+                onContinue={advance}
               />
-                                ) : null}
+            ) : null}
                               </div>
                       </div>
 

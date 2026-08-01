@@ -11,10 +11,11 @@ import type { TagroBlueprint } from '@/lib/tagro/workspace-blueprint'
 type Props = {
   value: string
   onPick: (v: ClarifyOption) => void
+  onContinue: () => void
   blueprint: TagroBlueprint
 }
 
-export default function ClarifyStage({ value, onPick, blueprint }: Props) {
+export default function ClarifyStage({ value, onPick, onContinue, blueprint }: Props) {
   const guess = blueprint.workspaceType !== '—' ? blueprint.workspaceType : 'deinem Workspace'
   const picked = CLARIFY_OPTIONS.includes(value as ClarifyOption)
     ? (value as ClarifyOption)
@@ -44,7 +45,9 @@ export default function ClarifyStage({ value, onPick, blueprint }: Props) {
           </button>
         ))}
       </div>
-      <ContinueHint show={Boolean(picked)} className="mob-chip-hint" />
+      <div className="mob-continue-slot">
+        <ContinueHint show={Boolean(picked)} onContinue={onContinue} />
+      </div>
     </>
   )
 }

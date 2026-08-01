@@ -82,27 +82,38 @@ function EnterReturnIcon({ size = 14 }: { size?: number }) {
 	)
 }
 
-function ContinueHint({ color }: { color: string }) {
+function ContinueHint({ onContinue }: { color?: string; onContinue?: () => void }) {
 	return (
-		<p
+		<button
+			type="button"
+			onClick={() => onContinue?.()}
 			style={{
-				margin: '14px 0 0',
-				fontSize: 13,
-				lineHeight: 1.45,
-				letterSpacing: '0.01em',
-				color,
-				fontFamily: 'Aeonik, system-ui, sans-serif',
-				fontWeight: 400,
+				width: '100%',
+				height: 46,
+				margin: '16px 0 0',
+				padding: '0 16px',
 				display: 'inline-flex',
 				alignItems: 'center',
-				gap: 8,
+				justifyContent: 'space-between',
+				gap: 10,
+				borderRadius: 8,
+				border: '1px solid rgba(30, 30, 32, 0.08)',
+				background: '#ffffff',
+				color: '#1e1e20',
+				boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
+				fontFamily: 'Aeonik, system-ui, sans-serif',
+				fontSize: 14.5,
+				fontWeight: 400,
+				letterSpacing: '0.01em',
+				lineHeight: 1,
+				cursor: 'pointer',
 			}}
 		>
 			<span>Weiter</span>
-			<span aria-hidden style={{ display: 'inline-flex', color: 'inherit', opacity: 0.92 }}>
-				<EnterReturnIcon size={13} />
+			<span aria-hidden style={{ display: 'inline-flex', color: 'inherit', opacity: 0.72 }}>
+				<EnterReturnIcon size={14} />
 			</span>
-		</p>
+		</button>
 	)
 }
 
@@ -562,11 +573,6 @@ export default function FestagMasterAuthOnboarding() {
 	}
 
 	function onClarifyPick(v: string) {
-		/* First tap selects + updates header; same option again → continue */
-		if (clarifyPick === v) {
-			go(stepIndex('connect'))
-			return
-		}
 		setClarifyPick(v)
 	}
 
@@ -967,6 +973,7 @@ export default function FestagMasterAuthOnboarding() {
 										t={t}
 										value={clarifyPick}
 										onPick={onClarifyPick}
+										onContinue={advance}
 										blueprint={blueprint}
 									/>
 								) : null}
@@ -976,6 +983,7 @@ export default function FestagMasterAuthOnboarding() {
 										sources={rankedIntegrations}
 										connected={connected}
 										onToggle={toggleSource}
+										onContinue={advance}
 									/>
 								) : null}
 								{sid === 'preparing' ? (
@@ -1154,11 +1162,13 @@ function ConnectStage({
 	sources,
 	connected,
 	onToggle,
+	onContinue,
 }: {
 	t: Theme
 	sources: string[]
 	connected: string[]
 	onToggle: (name: string) => void
+	onContinue?: () => void
 }) {
 	/*
 	 * Soft edge fades via overlays (not mask-image).
@@ -1334,7 +1344,7 @@ function ConnectStage({
 			>
 				Weitere Quellen ergänzt du später im Execution Panel.
 			</p>
-			{connected.length > 0 ? <ContinueHint color={t.muted} /> : null}
+			{connected.length > 0 ? <ContinueHint onContinue={onContinue} /> : null}
 		</>
 	)
 }
@@ -2186,11 +2196,13 @@ function ClarifyStage({
 	t,
 	value,
 	onPick,
+	onContinue,
 	blueprint,
 }: {
 	t: Theme
 	value: string
 	onPick: (v: string) => void
+	onContinue?: () => void
 	blueprint: TagroBlueprint
 }) {
 	const guess = blueprint.workspaceType !== '—' ? blueprint.workspaceType : 'deinem Workspace'
@@ -2237,7 +2249,7 @@ function ClarifyStage({
 					)
 				})}
 			</div>
-			{picked ? <ContinueHint color={t.muted} /> : null}
+			{picked ? <ContinueHint onContinue={onContinue} /> : null}
 		</>
 	)
 }

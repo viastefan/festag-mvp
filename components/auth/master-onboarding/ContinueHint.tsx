@@ -2,21 +2,27 @@
 
 import EnterReturnIcon from '@/components/auth/master-onboarding/EnterReturnIcon'
 
-/** Small “Weiter” + Mac return — same glyph as auth / Cursor. */
+/** White Weiter CTA — hidden until `show`, then appears under the stage. */
 export default function ContinueHint({
-  className = 'mob-ready-hint is-ready',
+  className = 'mob-continue-btn',
   show = true,
+  onContinue,
 }: {
   className?: string
   show?: boolean
+  onContinue?: () => void
 }) {
   if (!show) return null
   return (
-    <p className={className} aria-live="polite">
-      <span>Weiter</span>
+    <button
+      type="button"
+      className={className}
+      onClick={() => onContinue?.()}
+    >
+      <span className="mob-continue-btn-label">Weiter</span>
       <span className="mob-enter-ico" aria-hidden>
-        <EnterReturnIcon size={13} />
+        <EnterReturnIcon size={14} />
       </span>
-    </p>
+    </button>
   )
 }

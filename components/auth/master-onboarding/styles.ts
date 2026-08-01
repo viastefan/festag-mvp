@@ -85,7 +85,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 0;
     box-sizing: border-box;
   }
-  /* Same fluid mark geometry as Login `.al-wordmark` / `.al-wordmark-img--fluid` */
+  /* Same fluid mark geometry as Login .al-wordmark / .al-wordmark-img--fluid */
   .mob-wordmark.al-wordmark,
   .mob-header .al-wordmark {
     position: relative;
@@ -219,27 +219,56 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: #b42318;
   }
 
-  .mob-ready-hint-slot {
-    min-height: 29px;
-    margin-top: 10px;
+  .mob-ready-hint-slot,
+  .mob-continue-slot {
+    min-height: 46px;
+    margin-top: 16px;
+    width: 100%;
   }
-  .mob-ready-hint-slot .mob-ready-hint {
-    margin-top: 0;
-  }
-  .mob-ready-hint {
-    margin: 10px 0 0;
-    font-size: 13px;
-    line-height: 1.45;
-    letter-spacing: var(--auth-tracking);
-    color: var(--mob-muted);
-    opacity: 0.72;
+  .mob-continue-btn {
+    width: 100%;
+    height: 46px;
+    margin: 0;
+    padding: 0 16px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #ffffff;
+    color: #1e1e20;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 400;
+    letter-spacing: var(--auth-tracking);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    animation: mobShellIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   }
-  .mob-ready-hint.is-ready {
-    opacity: 1;
-    color: var(--mob-ink);
+  .mob-continue-btn:hover {
+    background: #fafafa;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .mob-continue-btn:active {
+    background: #f5f5f6;
+    box-shadow: none;
+  }
+  .mob-continue-btn:focus,
+  .mob-continue-btn:focus-visible {
+    outline: none;
+  }
+  .mob-continue-btn-label {
+    flex: 1;
+    text-align: left;
+  }
+  .mob-continue-btn .mob-enter-ico {
+    color: #1e1e20;
+    opacity: 0.72;
   }
   @keyframes mobShellIn {
     from { opacity: 0; transform: translateY(4px); }
@@ -595,14 +624,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border: 2px solid var(--mob-primary) !important;
   }
   .mob-chip-hint {
-    margin: 14px 0 0;
-    font-size: 13px;
-    line-height: 1.45;
-    letter-spacing: var(--auth-tracking);
-    color: var(--mob-muted);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    /* legacy class — continue CTA uses .mob-continue-btn */
+    margin: 16px 0 0;
   }
   .mob-enter-ico {
     display: inline-flex;
@@ -875,7 +898,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   @media (prefers-reduced-motion: reduce) {
     .mob-intent-caret { animation: none !important; opacity: 0.7; }
     .mob-intent-example { transition: none !important; filter: none !important; }
-    .mob-ready-hint { animation: none !important; }
+    .mob-continue-btn { animation: none !important; }
     .mob-tagro-chip,
     .mob-tagro-panel { animation: none !important; }
     .mob.is-exiting { transition: none !important; }

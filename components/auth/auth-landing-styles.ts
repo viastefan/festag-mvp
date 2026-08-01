@@ -44,7 +44,7 @@ const AUTH_LANDING_STYLES_BASE = `
           --festag-control-radius-sm:var(--festag-auth-radius-sm);
           --festag-control-radius-lg:var(--festag-auth-radius-lg);
           --festag-input-radius:8px;
-          /* Hero H1 + workspace/username line — same as onboarding `.mob-h1` (29 / lh 1.08). */
+          /* Hero H1 + workspace/username line — same as onboarding .mob-h1 (29 / lh 1.08). */
           --al-hero-display-size:29px;
           --al-hero-display-lh:31px;
           --al-hero-name-size:29px;
@@ -3381,7 +3381,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            /* Same as onboarding `.mob-h1` — never crush below 29/31. */
+            /* Same as onboarding .mob-h1 — never crush below 29/31. */
             --al-hero-display-size:29px;
             --al-hero-display-lh:31px;
             --al-hero-name-size:29px;
@@ -3585,7 +3585,7 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:flex-start;
             align-self:stretch;
           }
-          /* Mobile: H1 + username — same as onboarding `.mob-h1`. */
+          /* Mobile: H1 + username — same as onboarding .mob-h1. */
           .al-root {
             --al-hero-display-size:29px;
             --al-hero-display-lh:31px;
