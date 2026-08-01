@@ -43,17 +43,19 @@ const STEPS: Array<{ id: StepId; label: string }> = [
 	{ id: 'preparing', label: 'Prepare' },
 ]
 
-/** User-facing page control — clarify folds into Ziel, auth stays off-screen */
-const FLOW_DOTS: Array<{ id: 'intent' | 'connect' | 'preparing'; label: string }> = [
+/** User-facing page control — auth stays off-screen; each onboarding slide gets a bead */
+const FLOW_DOTS: Array<{ id: 'intent' | 'clarify' | 'connect' | 'preparing'; label: string }> = [
 	{ id: 'intent', label: 'Ziel' },
+	{ id: 'clarify', label: 'Passt das?' },
 	{ id: 'connect', label: 'Quellen' },
 	{ id: 'preparing', label: 'Prepare' },
 ]
 
 function flowDotIndex(sid: StepId): number {
-	if (sid === 'intent' || sid === 'clarify') return 0
-	if (sid === 'connect') return 1
-	if (sid === 'preparing') return 2
+	if (sid === 'intent') return 0
+	if (sid === 'clarify') return 1
+	if (sid === 'connect') return 2
+	if (sid === 'preparing') return 3
 	return -1
 }
 
@@ -405,8 +407,8 @@ export default function FestagMasterAuthOnboarding() {
 			return
 		}
 		if (sid === 'connect') {
-			/* Skip clarify on the way back — Ziel is the page-control home */
-			go(stepIndex('intent'))
+			/* Prefer Passt-das when that slide was visited; else Ziel */
+			go(stepIndex(clarifyPick ? 'clarify' : 'intent'))
 			return
 		}
 		if (sid === 'clarify') {
