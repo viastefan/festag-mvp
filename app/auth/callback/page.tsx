@@ -19,6 +19,7 @@ import {
   hasGithubIdentity,
   isDevMidFlowNext,
 } from '@/lib/github/link-session'
+import { buildProviderProfilePatch } from '@/lib/auth-provider-profile'
 
 type OtpType = 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -162,13 +163,19 @@ function CallbackInner() {
         try {
           const { data: existing } = await supabase
             .from('profiles')
-            .select('id,role,approval_status')
+            .select('id,role,approval_status,full_name,first_name,avatar_url')
             .eq('id', user.id)
             .maybeSingle()
-          const patch: Record<string, any> = buildGithubProfilePatch(user, {
-            // Only set primary provider when GitHub is the primary login.
-            setPrimaryProvider: provider === 'github',
-          })
+          const patch: Record<string, any> = {
+            ...buildGithubProfilePatch(user, {
+              // Only set primary provider when GitHub is the primary login.
+              setPrimaryProvider: provider === 'github',
+            }),
+            ...buildProviderProfilePatch(user, {
+              preferProvider: 'github',
+              existing: existing as any,
+            }),
+          }
           const currentRole = (existing as any)?.role
           if (!currentRole) {
             patch.role = 'client'
@@ -179,10 +186,14 @@ function CallbackInner() {
         try {
           const { data: existing } = await supabase
             .from('profiles')
-            .select('id,role')
+            .select('id,role,full_name,first_name,avatar_url')
             .eq('id', user.id)
             .maybeSingle()
           const patch: Record<string, any> = {
+            ...buildProviderProfilePatch(user, {
+              preferProvider: provider === 'email' ? undefined : provider,
+              existing: existing as any,
+            }),
             id: user.id,
             email: user.email ?? null,
             updated_at: new Date().toISOString(),

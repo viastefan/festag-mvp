@@ -266,7 +266,7 @@ const EXPLAIN_CSS = `
     max-height: min(88dvh, 720px);
     border-radius: 12px;
     border: 0;
-    background: #FCFCFC;
+    background: #FAF9F5;
     box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
     padding: 28px 28px 24px;
     display: flex;

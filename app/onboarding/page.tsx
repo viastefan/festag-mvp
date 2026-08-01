@@ -26,6 +26,7 @@ import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
 import RotatingFieldHint from '@/components/auth/RotatingFieldHint'
 import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
+import { providerProfileFields } from '@/lib/auth-provider-profile'
 import {
   RELATIONSHIP_LABELS,
   isDevRelationshipKind,
@@ -267,10 +268,10 @@ export default function BuildProjectsOnboardingPage() {
         if (cancelled) return
         setUserId(user.id)
 
-        /* Pre-fill name from Supabase user metadata (GitHub / OAuth) */
-        const meta = user.user_metadata ?? {}
-        const ghName = meta.full_name || meta.name || meta.user_name || ''
-        if (ghName && !fullName) setFullName(ghName)
+        /* Pre-fill name from Google / Apple / GitHub / SSO — Client & Developer */
+        const fromProvider = providerProfileFields(user)
+        const providerName = fromProvider.fullName || ''
+        if (providerName && !fullName) setFullName(providerName)
 
         /* Resuming from mid-onboarding GitHub link — keep step query. */
         const resumeStep = normalizeStepParam(new URLSearchParams(window.location.search).get('step'))
@@ -380,7 +381,25 @@ export default function BuildProjectsOnboardingPage() {
 
         if (isResuming && resumeStep) setCurrent(resumeStep)
 
-        if ((prof as any)?.full_name && !fullName) setFullName((prof as any).full_name)
+        const resolvedName =
+          String((prof as any)?.full_name || '').trim() || providerName.trim()
+        if (resolvedName && !fullName) setFullName(resolvedName)
+
+        /* Provider already gave a real name — skip Anzeigename (Client + Developer) */
+        if (!isResuming && resolvedName.length >= 2) {
+          setCurrent('context')
+          void supabase.from('profiles').upsert(
+            {
+              id: user.id,
+              full_name: resolvedName,
+              ...(fromProvider.firstName ? { first_name: fromProvider.firstName } : {}),
+              ...(fromProvider.avatarUrl ? { avatar_url: fromProvider.avatarUrl } : {}),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'id' },
+          )
+        }
+
         if (cancelled) return
         setBooting(false)
       } catch {
@@ -560,6 +579,7 @@ export default function BuildProjectsOnboardingPage() {
 
         const { error: upsertError } = await supabase.from('profiles').upsert({
           id: userId,
+          ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
           ...(shortPosition ? { position: shortPosition } : {}),
           /* Bridge until Settings reads Workspace Profile only. */
           dev_profile_facts: ctx,

@@ -843,7 +843,7 @@ const RECOVERY_CSS = `
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(15, 23, 42, 0.52);
+    background: rgba(26, 25, 23, 0.34);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     opacity: 0;
@@ -857,7 +857,7 @@ const RECOVERY_CSS = `
     max-height: min(92dvh, 720px);
     border-radius: 12px;
     border: 1px solid rgba(30, 30, 32, 0.10);
-    background: #FCFCFC;
+    background: #FAF9F5;
     box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
     padding: 30px 28px 24px;
     display: flex;

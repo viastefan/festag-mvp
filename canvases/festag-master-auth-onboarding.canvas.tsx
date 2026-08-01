@@ -1,16 +1,38 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from 'react'
-import { Button, Row, Stack, Text, useCanvasState } from 'cursor/canvas'
+import { Button, Row, Stack, Text, useCanvasState, useHostTheme } from 'cursor/canvas'
 
 /**
  * FESTAG MASTER — Auth + Tagro Intelligence Layer
  * Register = identity only. Then: describe your goal → Tagro builds a Workspace Blueprint.
- * Clarify only when confidence is low. Appearance switcher stays in canvas chrome.
+ * Clarify only when confidence is low. Appearance follows OS / host (prefer Read/light).
  */
+
+type Appearance = 'dark' | 'light'
+
+/** OS + Cursor host → Festag phone chrome. Prefers light/read when unclear. */
+function useSystemAppearance(): Appearance {
+	const host = useHostTheme()
+	const [sys, setSys] = useState<Appearance>(() => {
+		if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+			return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+		}
+		/* Host SDK falls back to dark — Festag prefers ivory/read when unknown */
+		return host.kind === 'dark' ? 'dark' : 'light'
+	})
+	useEffect(() => {
+		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+		const mq = window.matchMedia('(prefers-color-scheme: dark)')
+		const apply = () => setSys(mq.matches ? 'dark' : 'light')
+		apply()
+		mq.addEventListener('change', apply)
+		return () => mq.removeEventListener('change', apply)
+	}, [])
+	return sys
+}
 
 const MARK =
 	'/Users/stefandirnberger/.cursor/projects/Users-stefandirnberger-Documents-festag-mvp/assets/festag-mark.png'
 
-type Appearance = 'dark' | 'light'
 type StepId = 'auth' | 'intent' | 'clarify' | 'connect' | 'preparing'
 
 const STEPS: Array<{ id: StepId; label: string }> = [
@@ -54,10 +76,27 @@ const GOAL_EXAMPLES = [
 
 const CLARIFY_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 
-/** Intent field: 15px × 1.5lh — grow in 3-line steps when the caret hits the bottom */
-const INTENT_LINE_H = Math.round(15 * 1.5)
-const INTENT_FIELD_MIN_H = INTENT_LINE_H * 6
-const INTENT_FIELD_STEP_H = INTENT_LINE_H * 3
+/** Intent field — same chrome as login email (46px / 15px / 14px pad), grows by lines */
+const INTENT_LOGIN_H = 46
+const INTENT_LINE_H = Math.round(15 * 1.45)
+const INTENT_FIELD_MIN_H = INTENT_LINE_H
+const INTENT_FIELD_STEP_H = INTENT_LINE_H * 2
+const INTENT_PAD_X = 14
+const INTENT_PAD_Y = Math.max(0, Math.round((INTENT_LOGIN_H - 2 - INTENT_LINE_H) / 2))
+
+/** Idle 1px hairline → focus 2px primary (outer ring, no layout jump). */
+function inputStroke(
+	t: Theme,
+	opts: { focused?: boolean; filled?: boolean } = {},
+): Pick<CSSProperties, 'border' | 'boxShadow' | 'transition'> {
+	const { focused = false, filled = false } = opts
+	const stroke = focused ? t.primary : filled ? t.fieldBorderFilled : t.hairline
+	return {
+		border: `1px solid ${stroke}`,
+		boxShadow: focused ? `0 0 0 1px ${t.primary}` : 'none',
+		transition: 'border-color .18s ease, box-shadow .18s ease',
+	}
+}
 
 /** Weiter only lights when the work email looks real — not just any short string. */
 function isValidWorkEmail(raw: string): boolean {
@@ -259,7 +298,14 @@ export default function FestagMasterAuthOnboarding() {
 	const [heroTick, setHeroTick] = useState(0)
 	const [prepProgress, setPrepProgress] = useCanvasState('prepProgress', 0)
 	const [prepReady, setPrepReady] = useCanvasState('prepReady', false)
-	const [appearance, setAppearance] = useCanvasState<Appearance>('appearance', 'dark')
+	/* auto = follow phone/laptop OS; lock to light (Read) or dark when chrome buttons used */
+	const [appearanceLock, setAppearanceLock] = useCanvasState<'auto' | Appearance>(
+		'appearanceLock',
+		'auto',
+	)
+	const systemAppearance = useSystemAppearance()
+	const appearance: Appearance =
+		appearanceLock === 'auto' ? systemAppearance : appearanceLock
 	const [dragX, setDragX] = useState(0)
 	const [dragging, setDragging] = useState(false)
 	const [intentReady, setIntentReady] = useState(false)
@@ -455,32 +501,70 @@ export default function FestagMasterAuthOnboarding() {
 	}
 
 	return (
-		<Stack gap={16} style={{ padding: 20, minHeight: '100%' }}>
+		<Stack
+			gap={16}
+			style={{
+				padding: 20,
+				minHeight: '100%',
+				fontFamily: 'Aeonik, system-ui, sans-serif',
+				fontWeight: 400,
+				letterSpacing: '0.01em',
+			}}
+		>
 			<style>{CSS}</style>
 			<Row gap={12} align="center" wrap>
-				<Text weight="medium" style={{ fontSize: 15 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						fontFamily: 'Aeonik, system-ui, sans-serif',
+						fontWeight: 400,
+						letterSpacing: '0.015em',
+					}}
+				>
 					Festag Master — Auth & Onboarding
 				</Text>
-				<Text tone="tertiary" style={{ fontSize: 12 }}>
+				<Text
+					tone="tertiary"
+					style={{
+						fontSize: 12,
+						fontFamily: 'Aeonik, system-ui, sans-serif',
+						fontWeight: 400,
+						letterSpacing: '0.02em',
+					}}
+				>
 					Identity → Goal → Tagro Blueprint → Sources → Prepare
 				</Text>
 				<div style={{ flex: 1, minWidth: 8 }} />
-				{/* Theme switcher — canvas chrome only, not inside phone cards */}
+				{/* Theme — follows OS by default; Read = ivory #FAF9F5 */}
 				<Row gap={6} align="center">
-					<Text tone="tertiary" style={{ fontSize: 12 }}>
+					<Text
+						tone="tertiary"
+						style={{
+							fontSize: 12,
+							fontFamily: 'Aeonik, system-ui, sans-serif',
+							fontWeight: 400,
+							letterSpacing: '0.02em',
+						}}
+					>
 						Appearance
 					</Text>
 					<Button
-						variant={appearance === 'dark' ? 'primary' : 'secondary'}
-						onClick={() => setAppearance('dark')}
+						variant={appearanceLock === 'auto' ? 'primary' : 'secondary'}
+						onClick={() => setAppearanceLock('auto')}
 					>
-						Dark
+						Auto
 					</Button>
 					<Button
-						variant={appearance === 'light' ? 'primary' : 'secondary'}
-						onClick={() => setAppearance('light')}
+						variant={appearanceLock === 'light' ? 'primary' : 'secondary'}
+						onClick={() => setAppearanceLock('light')}
 					>
-						Light
+						Read
+					</Button>
+					<Button
+						variant={appearanceLock === 'dark' ? 'primary' : 'secondary'}
+						onClick={() => setAppearanceLock('dark')}
+					>
+						Night
 					</Button>
 				</Row>
 			</Row>
@@ -517,6 +601,7 @@ export default function FestagMasterAuthOnboarding() {
 			<Row gap={24} align="start" wrap>
 				<div style={phoneShell(t)}>
 					<div
+						className="master-phone"
 						style={{
 							...phoneScreen(t),
 							transform: sid === 'auth' ? undefined : `translateX(${dragX}px)`,
@@ -555,6 +640,7 @@ export default function FestagMasterAuthOnboarding() {
 							if (touchRef.current) onPointerUp()
 						}}
 					>
+						{sid !== 'preparing' ? (
 						<div style={headerBar}>
 							<img
 								src={MARK}
@@ -606,9 +692,36 @@ export default function FestagMasterAuthOnboarding() {
 								</svg>
 							</button>
 						</div>
+						) : null}
 
-						<div style={{ ...contentArea, paddingBottom: sid === 'auth' ? 28 : 100 }}>
-							<div style={contentCard} key={`${sid}-${authMode}-${heroTick}`}>
+						<div
+							style={{
+								...contentArea,
+								...(sid === 'preparing'
+									? {
+											padding: '0 28px 28px',
+											justifyContent: 'center',
+										}
+									: {
+											paddingBottom: sid === 'auth' ? 28 : 100,
+										}),
+							}}
+						>
+							<div
+								style={{
+									...contentCard,
+									...(sid === 'preparing'
+										? {
+												margin: 0,
+												flex: 1,
+												maxWidth: '100%',
+												justifyContent: 'center',
+												minHeight: 0,
+											}
+										: null),
+								}}
+								key={`${sid}-${authMode}-${heroTick}`}
+							>
 								{sid === 'auth' ? (
 									<AuthStage
 										t={t}
@@ -618,6 +731,25 @@ export default function FestagMasterAuthOnboarding() {
 										onName={setDisplayName}
 										onEmail={setEmail}
 										onSwitchMode={(m: 'login' | 'register') => setAuthMode(m)}
+										onProvider={(provider) => {
+											const person =
+												provider === 'apple'
+													? {
+															name: 'Stefan Dirnberger',
+															email: 'stefan@icloud.com',
+														}
+													: {
+															name: 'Stefan Dirnberger',
+															email: 'stefan@gmail.com',
+														}
+											setDisplayName(person.name)
+											setEmail(person.email)
+											if (authMode === 'login') {
+												go(STEPS.findIndex((s) => s.id === 'preparing'))
+											} else {
+												go(STEPS.findIndex((s) => s.id === 'intent'))
+											}
+										}}
 										onWeiter={() => {
 											if (!canContinue()) return
 											if (authMode === 'login') go(STEPS.findIndex((s) => s.id === 'preparing'))
@@ -661,18 +793,17 @@ export default function FestagMasterAuthOnboarding() {
 											setPrepProgress(p)
 											setPrepReady(ready)
 										}}
+										onOpen={() => {
+											if (prepReady) go(0)
+										}}
 									/>
 								) : null}
 							</div>
 						</div>
 
-						{flowActive >= 0 ? (
+						{flowActive >= 0 && sid !== 'preparing' ? (
 							<div
-								style={{
-									...appleDotsTrack(t),
-									/* Above prepare command bar so the last pill stays readable */
-									...(sid === 'preparing' ? { bottom: 92 } : null),
-								}}
+								style={appleDotsTrack(t)}
 								role="tablist"
 								aria-label="Onboarding-Fortschritt"
 							>
@@ -715,66 +846,6 @@ export default function FestagMasterAuthOnboarding() {
 										</button>
 									)
 								})}
-							</div>
-						) : null}
-
-						{sid === 'preparing' ? (
-							<div
-								style={{
-									...commandBar(t),
-									flexDirection: 'column',
-									alignItems: 'stretch',
-									gap: 0,
-									paddingTop: 18,
-									paddingBottom: 26,
-								}}
-							>
-								<button
-									type="button"
-									onClick={() => {
-										if (prepReady) go(0)
-									}}
-									aria-label={prepReady ? 'Festag öffnen' : 'Workspace wird eingerichtet'}
-									aria-busy={!prepReady}
-									style={{
-										position: 'relative',
-										height: 4,
-										width: '100%',
-										borderRadius: 99,
-										border: 'none',
-										padding: 0,
-										background:
-											t.mode === 'light'
-												? 'rgba(30, 30, 32, 0.08)'
-												: 'rgba(245, 245, 247, 0.10)',
-										overflow: 'hidden',
-										cursor: prepReady ? 'pointer' : 'default',
-										fontFamily: 'inherit',
-										boxShadow:
-											t.mode === 'light' ? 'inset 0 0.5px 0 rgba(255,255,255,0.65)' : 'none',
-									}}
-								>
-									<span
-										aria-hidden
-										style={{
-											position: 'absolute',
-											inset: 0,
-											/* No primary blue — ink in light, soft bone in dark */
-											background: prepReady
-												? t.mode === 'light'
-													? '#1A1917'
-													: '#EBE8E3'
-												: t.mode === 'light'
-													? 'rgba(26, 25, 23, 0.72)'
-													: 'rgba(230, 232, 238, 0.78)',
-											transform: `scaleX(${Math.min(1, Math.max(0, prepProgress))})`,
-											transformOrigin: 'left center',
-											transition:
-												'transform .12s linear, background .28s ease',
-											borderRadius: 99,
-										}}
-									/>
-								</button>
 							</div>
 						) : null}
 
@@ -874,9 +945,13 @@ function ConnectStage({
 	connected: string[]
 	onToggle: (name: string) => void
 }) {
-	/* Soft fade only top/bottom into the phone wash — no side masks (they clip selected strokes) */
-	const listEdgeMask =
-		'linear-gradient(to bottom, transparent 0%, #000 20px, #000 calc(100% - 64px), transparent 100%)'
+	/*
+	 * Soft edge fades via overlays (not mask-image).
+	 * Mask would fade the selected 2px stroke itself — looks broken when
+	 * a connected row sits in the top/bottom gradient. Overlays keep strokes
+	 * crisp while the list still dissolves into the phone wash.
+	 */
+	const edgeFade = t.canvas
 
 	return (
 		<>
@@ -886,7 +961,7 @@ function ConnectStage({
 					margin: 0,
 					fontSize: 26,
 					lineHeight: 1.15,
-					letterSpacing: '-0.02em',
+					letterSpacing: '-0.01em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
@@ -909,12 +984,6 @@ function ConnectStage({
 						paddingLeft: 0,
 						paddingRight: 0,
 						scrollbarWidth: 'none',
-						WebkitMaskImage: listEdgeMask,
-						maskImage: listEdgeMask,
-						WebkitMaskRepeat: 'no-repeat',
-						maskRepeat: 'no-repeat',
-						WebkitMaskSize: '100% 100%',
-						maskSize: '100% 100%',
 					}}
 				>
 					{sources.map((src) => {
@@ -924,17 +993,34 @@ function ConnectStage({
 							<button
 								key={src}
 								type="button"
-								onClick={() => onToggle(src)}
+								onClick={(e: { currentTarget: HTMLButtonElement }) => {
+									onToggle(src)
+									/* Keep selection in the solid band when possible */
+									const el = e.currentTarget
+									requestAnimationFrame(() => {
+										el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+									})
+								}}
 								style={{
 									display: 'flex',
 									alignItems: 'center',
 									gap: 12,
 									padding: '11px 14px',
 									borderRadius: 8,
-									/* Selected = primary stroke only; no muddy fill */
+									/* Selected = primary stroke + opaque fill — survives soft edge wash */
 									border: `2px solid ${on ? t.primary : t.cardBorder}`,
-									background: on ? t.cardBgOn : t.cardBg,
-									boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+									background: on
+										? t.mode === 'light'
+											? '#FFFFFF'
+											: '#151518'
+										: t.cardBg,
+									boxShadow: on
+										? t.mode === 'light'
+											? '0 1px 3px rgba(0,0,0,0.06)'
+											: '0 1px 3px rgba(0,0,0,0.35)'
+										: t.mode === 'light'
+											? '0 1px 2px rgba(0,0,0,0.04)'
+											: 'none',
 									flexShrink: 0,
 									boxSizing: 'border-box',
 									cursor: 'pointer',
@@ -942,7 +1028,8 @@ function ConnectStage({
 									width: '100%',
 									textAlign: 'left',
 									margin: 0,
-									transition: 'border-color .18s ease, background .18s ease',
+									transition:
+										'border-color .18s ease, background .18s ease, box-shadow .18s ease',
 								}}
 							>
 								<span
@@ -971,13 +1058,41 @@ function ConnectStage({
 								>
 									{src}
 								</span>
-								<span style={{ fontSize: 11.5, color: t.muted, letterSpacing: '0.01em' }}>
+								<span style={{ fontSize: 11.5, color: t.muted, letterSpacing: '0.05em' }}>
 									{on ? 'Verbunden' : 'Bald'}
 								</span>
 							</button>
 						)
 					})}
 				</div>
+				{/* Top dissolve — soft, short; selected stroke stays geometrically sharp underneath */}
+				<div
+					aria-hidden
+					style={{
+						pointerEvents: 'none',
+						position: 'absolute',
+						left: 0,
+						right: 0,
+						top: 0,
+						height: 22,
+						background: `linear-gradient(to bottom, ${edgeFade} 0%, rgba(0,0,0,0) 100%)`,
+						zIndex: 2,
+					}}
+				/>
+				{/* Bottom dissolve into phone wash / dots */}
+				<div
+					aria-hidden
+					style={{
+						pointerEvents: 'none',
+						position: 'absolute',
+						left: 0,
+						right: 0,
+						bottom: 0,
+						height: 64,
+						background: `linear-gradient(to top, ${edgeFade} 18%, rgba(0,0,0,0) 100%)`,
+						zIndex: 2,
+					}}
+				/>
 			</div>
 
 			<p
@@ -1362,7 +1477,7 @@ function IntentCanvasStage({
 					margin: 0,
 					fontSize: 26,
 					lineHeight: 1.15,
-					letterSpacing: '-0.02em',
+					letterSpacing: '-0.01em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
@@ -1379,18 +1494,22 @@ function IntentCanvasStage({
 					style={{
 						position: 'relative',
 						borderRadius: 8,
-						border: `1px solid ${focused ? t.primary : hasText ? t.fieldBorderFilled : t.hairline}`,
+						/* Idle thin, focus thick — same contract as login email */
+						...inputStroke(t, { focused, filled: hasText }),
 						background: 'transparent',
-						padding: fieldNeedsChipPad ? '12px 14px 44px' : '12px 14px',
-						minHeight: INTENT_FIELD_MIN_H + 24,
+						padding: fieldNeedsChipPad
+							? `${INTENT_PAD_Y}px ${INTENT_PAD_X}px 44px`
+							: `${INTENT_PAD_Y}px ${INTENT_PAD_X}px`,
+						minHeight: INTENT_LOGIN_H,
 						boxSizing: 'border-box',
-						transition: 'border-color .18s ease, padding .28s cubic-bezier(.22,1,.36,1)',
+						transition:
+							'border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1)',
 					}}
 				>
 					<textarea
 						ref={areaRef}
 						value={value}
-						rows={6}
+						rows={1}
 						placeholder=""
 						aria-label={`Ziel, z. B. ${example}`}
 						onChange={(e: { target: { value: string } }) => onChange(e.target.value)}
@@ -1413,7 +1532,7 @@ function IntentCanvasStage({
 							background: 'transparent',
 							color: t.ink,
 							fontSize: 15,
-							lineHeight: 1.5,
+							lineHeight: `${INTENT_LINE_H}px`,
 							fontFamily: 'inherit',
 							fontWeight: 400,
 							resize: 'none',
@@ -1429,12 +1548,11 @@ function IntentCanvasStage({
 							key={example}
 							style={{
 								position: 'absolute',
-								/* Same origin as textarea text — no extra inset (that pushed copy past the caret) */
-								left: 14,
-								top: 12,
-								right: 14,
+								left: INTENT_PAD_X,
+								top: INTENT_PAD_Y,
+								right: INTENT_PAD_X,
 								fontSize: 15,
-								lineHeight: 1.5,
+								lineHeight: `${INTENT_LINE_H}px`,
 								fontWeight: 400,
 								letterSpacing: '0.01em',
 								color: t.muted,
@@ -1445,6 +1563,9 @@ function IntentCanvasStage({
 								transition:
 									'opacity .42s cubic-bezier(.22,1,.36,1), transform .42s cubic-bezier(.22,1,.36,1), filter .42s ease',
 								willChange: 'opacity, transform, filter',
+								whiteSpace: 'nowrap',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
 							}}
 						>
 							{example}
@@ -1456,8 +1577,8 @@ function IntentCanvasStage({
 							className="master-idle-caret"
 							style={{
 								position: 'absolute',
-								left: 14,
-								top: 14,
+								left: INTENT_PAD_X,
+								top: INTENT_PAD_Y + Math.round((INTENT_LINE_H - 18) / 2),
 								width: 2,
 								height: 18,
 								borderRadius: 1,
@@ -1816,7 +1937,7 @@ function ClarifyStage({
 					margin: 0,
 					fontSize: 26,
 					lineHeight: 1.2,
-					letterSpacing: '-0.02em',
+					letterSpacing: '-0.01em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
@@ -1838,13 +1959,15 @@ function ClarifyStage({
 							onClick={() => onPick(opt)}
 							style={{
 								textAlign: 'left',
-								padding: '14px 16px',
+								padding: '11px 14px',
 								borderRadius: 8,
 								border: `2px solid ${on ? t.primary : t.cardBorder}`,
 								background: on ? t.cardBgOn : t.cardBg,
 								boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
 								color: t.ink,
-								fontSize: 15,
+								fontSize: 13.5,
+								letterSpacing: '-0.005em',
+								lineHeight: 1.25,
 								fontFamily: 'inherit',
 								cursor: 'pointer',
 							}}
@@ -1866,6 +1989,7 @@ function AuthStage({
 	onName,
 	onEmail,
 	onSwitchMode,
+	onProvider,
 	onWeiter,
 }: {
 	t: Theme
@@ -1875,6 +1999,7 @@ function AuthStage({
 	onName: (v: string) => void
 	onEmail: (v: string) => void
 	onSwitchMode: (m: 'login' | 'register') => void
+	onProvider: (provider: 'google' | 'apple') => void
 	onWeiter: () => void
 }) {
 	const isLogin = mode === 'login'
@@ -1913,7 +2038,7 @@ function AuthStage({
 						padding: 0,
 						fontSize: 26,
 						lineHeight: 1.15,
-						letterSpacing: '-0.02em',
+						letterSpacing: '-0.01em',
 						fontWeight: 400,
 						fontFamily: 'Aeonik, system-ui, sans-serif',
 						color: t.ink,
@@ -1930,7 +2055,7 @@ function AuthStage({
 							gap: 2,
 							fontSize: 26,
 							lineHeight: 1.15,
-							letterSpacing: '-0.02em',
+							letterSpacing: '-0.01em',
 							fontWeight: 400,
 							fontFamily: 'Aeonik, system-ui, sans-serif',
 						}}
@@ -1950,7 +2075,7 @@ function AuthStage({
 								color: nameFocused ? t.primary : t.muted,
 								fontSize: 26,
 								lineHeight: 1.15,
-								letterSpacing: '-0.02em',
+								letterSpacing: '-0.01em',
 								fontWeight: 400,
 								fontFamily: 'inherit',
 								padding: 0,
@@ -1987,7 +2112,7 @@ function AuthStage({
 								fontFamily: 'Aeonik, system-ui, sans-serif',
 								fontSize: 26,
 								lineHeight: 1.15,
-								letterSpacing: '-0.02em',
+								letterSpacing: '-0.01em',
 								fontWeight: 400,
 								color: t.muted,
 								textAlign: 'left',
@@ -2047,7 +2172,7 @@ function AuthStage({
 								maxWidth: '100%',
 								fontSize: 26,
 								lineHeight: 1.15,
-								letterSpacing: '-0.02em',
+								letterSpacing: '-0.01em',
 								fontWeight: 400,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
 							}}
@@ -2095,7 +2220,7 @@ function AuthStage({
 									color: t.ink,
 									fontSize: 26,
 									lineHeight: 1.15,
-									letterSpacing: '-0.02em',
+									letterSpacing: '-0.01em',
 									fontWeight: 400,
 									fontFamily: 'Aeonik, system-ui, sans-serif',
 									padding: 0,
@@ -2158,26 +2283,43 @@ function AuthStage({
 			</div>
 
 			<div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
-				<div
+				<button
+					type="button"
+					onClick={() => onProvider('google')}
 					style={{
 						...oauth(t),
-						background: t.primary,
-						border: '1px solid transparent',
-						color: '#F5F5F7',
-						boxShadow: 'none',
+						background: t.mode === 'light' ? '#FFFFFF' : 'transparent',
+						border:
+							t.mode === 'light'
+								? `1px solid ${t.ctaReadyBorder}`
+								: `1px solid ${t.hairline}`,
+						color: t.ink,
+						boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+						cursor: 'pointer',
+						fontFamily: 'inherit',
+						width: '100%',
 					}}
 				>
-					<span style={{ display: 'inline-flex', opacity: 0.92, color: '#F5F5F7' }}>
+					<span style={{ display: 'inline-flex', opacity: 0.72, color: t.ink }}>
 						<GoogleIcon />
 					</span>
 					<span>{isLogin ? 'Mit Google fortfahren' : 'Mit Google registrieren'}</span>
-				</div>
-				<div style={oauth(t)}>
+				</button>
+				<button
+					type="button"
+					onClick={() => onProvider('apple')}
+					style={{
+						...oauth(t),
+						cursor: 'pointer',
+						fontFamily: 'inherit',
+						width: '100%',
+					}}
+				>
 					<span style={{ display: 'inline-flex', opacity: 0.42, color: t.ink }}>
 						<AppleIcon />
 					</span>
 					<span>{isLogin ? 'Mit Apple fortfahren' : 'Mit Apple registrieren'}</span>
-				</div>
+				</button>
 				<div style={divider(t)}>
 					<span style={{ flex: 1, height: 1, background: t.divider }} />
 					<span style={{ color: t.muted, fontSize: 13 }}>oder</span>
@@ -2426,7 +2568,7 @@ function AuthDocsSheet({
 							margin: 0,
 							fontSize: 26,
 							lineHeight: 1.22,
-							letterSpacing: '-0.02em',
+							letterSpacing: '-0.01em',
 							fontWeight: 400,
 							fontFamily: 'Aeonik, system-ui, sans-serif',
 							color: t.ink,
@@ -2518,9 +2660,11 @@ function AuthDocsSheet({
 function PreparingStage({
 	t,
 	onProgress,
+	onOpen,
 }: {
 	t: Theme
 	onProgress: (progress: number, ready: boolean) => void
+	onOpen?: () => void
 }) {
 	const lines = PREP_LINES
 	const [index, setIndex] = useState(0)
@@ -2528,8 +2672,9 @@ function PreparingStage({
 	const raf = useRef(0)
 	const fillStart = useRef(0)
 	const stepMs = 2400
-	/* Tight slot — same height for every line (no wrap bump) */
-	const LINE_SLOT = 34
+	/* Match card H1 size (26) — slot keeps one-line carousel spacing */
+	const PREP_FONT = 26
+	const LINE_SLOT = Math.round(PREP_FONT * 1.3)
 	const gray = t.lyricsDim
 	const white = t.lyricsLit
 
@@ -2591,24 +2736,12 @@ function PreparingStage({
 				flexDirection: 'column',
 				alignItems: 'center',
 				justifyContent: 'center',
-				minHeight: 420,
+				flex: 1,
 				width: '100%',
+				minHeight: '100%',
 				gap: 28,
 			}}
 		>
-			<img
-				src={MARK}
-				alt="Festag"
-				width={56}
-				height={56}
-				style={{
-					width: 56,
-					height: 56,
-					objectFit: 'contain',
-					opacity: 0.96,
-					flexShrink: 0,
-				}}
-			/>
 			<div
 				style={{
 					position: 'relative',
@@ -2645,16 +2778,16 @@ function PreparingStage({
 								top: LINE_SLOT,
 								margin: 0,
 								height: LINE_SLOT,
-								fontSize: 22,
+								fontSize: PREP_FONT,
 								lineHeight: `${LINE_SLOT}px`,
-								letterSpacing: '-0.012em',
+								letterSpacing: '-0.01em',
 								fontWeight: 400,
 								color: gray,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
-								/* One line only — wrapping made some steps look taller than the first */
 								whiteSpace: 'nowrap',
 								overflow: 'hidden',
 								textOverflow: 'ellipsis',
+								textAlign: 'center',
 								transform: `translate3d(0, ${offset * LINE_SLOT}px, 0)`,
 								opacity,
 								transition:
@@ -2676,6 +2809,48 @@ function PreparingStage({
 					)
 				})}
 			</div>
+
+			{/* Soft assembling dots — replaces bottom progress bar */}
+			<button
+				type="button"
+				aria-label={ready ? 'Festag öffnen' : 'Workspace wird eingerichtet'}
+				aria-busy={!ready}
+				onClick={() => {
+					if (ready) onOpen?.()
+				}}
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					gap: 7,
+					height: 28,
+					padding: '0 10px',
+					border: 'none',
+					background: 'transparent',
+					cursor: ready ? 'pointer' : 'default',
+					fontFamily: 'inherit',
+				}}
+			>
+				{[0, 1, 2].map((i) => {
+					const litDot = fillProgress > (i + 0.35) / 3 || ready
+					return (
+						<span
+							key={i}
+							aria-hidden
+							className={ready ? undefined : 'master-prep-dot'}
+							style={{
+								width: ready ? 7 : 6,
+								height: ready ? 7 : 6,
+								borderRadius: 99,
+								background: t.ink,
+								opacity: ready ? 0.85 : litDot ? 0.55 : 0.18,
+								animationDelay: ready ? undefined : `${i * 0.18}s`,
+								transition: 'opacity .35s ease, width .28s ease, height .28s ease',
+							}}
+						/>
+					)
+				})}
+			</button>
 		</div>
 	)
 }
@@ -2720,7 +2895,7 @@ function Hero({
 				margin: 0,
 				fontSize: 26,
 				lineHeight: 1.15,
-				letterSpacing: '-0.02em',
+				letterSpacing: '-0.01em',
 				fontWeight: 400,
 				fontFamily: 'Aeonik, system-ui, sans-serif',
 				animation: 'masterShellIn .42s cubic-bezier(.22,1,.36,1) both',
@@ -2882,6 +3057,8 @@ function phoneScreen(t: Theme): CSSProperties {
 		display: 'flex',
 		flexDirection: 'column',
 		fontFamily: 'Aeonik, system-ui, sans-serif',
+		fontWeight: 400,
+		letterSpacing: '0.01em',
 		position: 'relative',
 	}
 }
@@ -3057,14 +3234,12 @@ function field(
 	opts: { focused?: boolean; filled?: boolean } = {},
 ): CSSProperties {
 	const { focused = false, filled = false } = opts
-	/* Always 2px so focus doesn’t jump the layout — idle hairline, focus = primary */
-	const stroke = focused ? t.primary : filled ? t.fieldBorderFilled : t.hairline
 	return {
 		marginTop: 8,
 		width: '100%',
 		height: 46,
 		borderRadius: 8,
-		border: `2px solid ${stroke}`,
+		...inputStroke(t, { focused, filled }),
 		background: 'transparent',
 		color: t.ink,
 		padding: '0 14px',
@@ -3073,7 +3248,6 @@ function field(
 		boxSizing: 'border-box',
 		outline: 'none',
 		caretColor: t.primary,
-		transition: 'border-color .18s ease',
 	}
 }
 
@@ -3193,5 +3367,25 @@ const CSS = `
   }
   .master-tagro-spin {
     animation: masterTagroSpin 0.85s linear infinite;
+  }
+  @keyframes masterPrepDot {
+    0%, 80%, 100% { opacity: 0.18; transform: scale(0.85); }
+    40% { opacity: 0.72; transform: scale(1); }
+  }
+  .master-prep-dot {
+    animation: masterPrepDot 1.15s ease-in-out infinite;
+  }
+  /* Headers + UI: Aeonik Regular, slightly open tracking */
+  .master-phone h1,
+  .master-phone button,
+  .master-phone input,
+  .master-phone textarea,
+  .master-phone p,
+  .master-phone span {
+    font-family: Aeonik, system-ui, sans-serif;
+    font-weight: 400;
+  }
+  .master-phone h1 {
+    letter-spacing: -0.01em;
   }
 `

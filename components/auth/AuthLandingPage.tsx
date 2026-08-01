@@ -186,7 +186,10 @@ function inferSessionMethod(user: any): Method {
 }
 
 export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
-  const isSignup = mode === 'signup'
+  /** Instant login↔register flip before App Router pathname catches up (canvas parity). */
+  const [optimisticMode, setOptimisticMode] = useState<AuthLandingMode | null>(null)
+  const activeMode = optimisticMode ?? mode
+  const isSignup = activeMode === 'signup'
   const supabase = createClient()
   const router = useRouter()
   const [oauthLoading, setOauthLoading] = useState(false)
@@ -654,7 +657,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
     const href = `${url.pathname}${url.search}`
-    // Soft in-shell flip — panel stays planted; only mode/content swaps.
+    // Instant in-shell flip (canvas parity) — don’t wait on App Router soft-nav.
+    setOptimisticMode(targetPath === '/register' ? 'signup' : 'login')
     try { router.prefetch(href) } catch { /* noop */ }
     try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
     setSoftModeLocked(true)
@@ -663,7 +667,16 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       router.push(href)
     } catch {
       window.location.assign(href)
+      return
     }
+    // Failsafe: if soft-nav stalls, hard-assign so Anmelden/Konto erstellen always lands.
+    window.setTimeout(() => {
+      try {
+        const here = window.location.pathname
+        if (here === targetPath || here.startsWith(`${targetPath}/`)) return
+      } catch { /* noop */ }
+      window.location.assign(href)
+    }, 900)
   }
 
   function navigateWithFade(href: string) {
@@ -879,6 +892,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setSoftModeLocked(true)
     setSoftEnterPulse(true)
   }, [mode, isSignup])
+
+  useEffect(() => {
+    if (optimisticMode && mode === optimisticMode) setOptimisticMode(null)
+  }, [mode, optimisticMode])
 
   useEffect(() => {
     if (!softEnterPulse) return
@@ -1621,7 +1638,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         ref={rootRef}
         className="al-root al-root--centered"
         data-theme="light"
-        data-auth-mode={mode}
+        data-auth-mode={activeMode}
         style={{
           minHeight: '100dvh',
           display: 'flex',
@@ -1641,7 +1658,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       ref={rootRef}
       className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softModeLocked ? ' al-soft-mode' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
       data-theme="light"
-      data-auth-mode={mode}
+      data-auth-mode={activeMode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>

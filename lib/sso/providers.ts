@@ -72,26 +72,26 @@ export async function provisionSsoWorkspaceMember(params: {
   return { joined: true, workspaceId: params.provider.workspace_id }
 }
 
+import { providerProfileFields } from '@/lib/auth-provider-profile'
+
 export function ssoProfilePatch(user: {
   id: string
   email?: string | null
   user_metadata?: Record<string, unknown> | null
+  identities?: Array<{
+    provider?: string
+    identity_data?: Record<string, unknown> | null
+  }> | null
 }): Record<string, unknown> {
-  const meta = (user.user_metadata ?? {}) as Record<string, unknown>
-  const fullName =
-    (typeof meta.full_name === 'string' && meta.full_name.trim()) ||
-    (typeof meta.name === 'string' && meta.name.trim()) ||
-    (typeof meta.custom_claims === 'object' &&
-      meta.custom_claims &&
-      typeof (meta.custom_claims as Record<string, unknown>).name === 'string' &&
-      String((meta.custom_claims as Record<string, unknown>).name).trim()) ||
-    null
+  const fields = providerProfileFields(user)
 
   return {
     id: user.id,
-    email: user.email ?? null,
+    email: fields.email ?? user.email ?? null,
     provider: 'sso',
-    ...(fullName ? { full_name: fullName } : {}),
+    ...(fields.fullName ? { full_name: fields.fullName } : {}),
+    ...(fields.firstName ? { first_name: fields.firstName } : {}),
+    ...(fields.avatarUrl ? { avatar_url: fields.avatarUrl } : {}),
     updated_at: new Date().toISOString(),
   }
 }

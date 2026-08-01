@@ -16,6 +16,7 @@ import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { joinCompletionRedirect } from '@/lib/platform/join'
+import { providerProfileFields } from '@/lib/auth-provider-profile'
 
 function JoinProjectInner() {
   const search = useSearchParams()
@@ -80,9 +81,9 @@ function JoinProjectInner() {
       if (cancelled) return
       if (profile?.full_name) setFullName(profile.full_name)
       else {
-        const meta = user.user_metadata || {}
-        const guess = String(meta.full_name || meta.name || '').trim()
-        if (guess) setFullName(guess)
+        const fromProvider = providerProfileFields(user)
+        if (fromProvider.fullName) setFullName(fromProvider.fullName)
+        if (!profile?.avatar_url && fromProvider.avatarUrl) setAvatarUrl(fromProvider.avatarUrl)
       }
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url)
       if (info?.projectTitle) setProjectTitle(info.projectTitle)

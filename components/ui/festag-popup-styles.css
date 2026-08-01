@@ -22,7 +22,7 @@
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
 
 .festag-popup-surface {
-  --fp-bg: var(--raised, #F7F4EC);
+  --fp-bg: var(--raised, #FAF9F5);
   --fp-text: var(--text, #1e1e20);
   /* Warm muted — sand / read path. */
   --fp-muted: #8a8378;
