@@ -19,6 +19,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-lyrics-dim: rgba(26, 25, 23, 0.28);
     --mob-lyrics-lit: #1A1917;
     --mob-gutter: 28px;
+    /* Same column as Login/Register --al-panel-width (AUTH_DESKTOP_CHROME_VARS). */
     --mob-content-max: 300px;
     --mob-radius: 6px;
     --mob-field-radius: 8px;
@@ -26,6 +27,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-dot-done: rgba(26, 25, 23, 0.35);
     --mob-dot-active: rgba(26, 25, 23, 0.85);
     --mob-kb-shift: 0px;
+    /* Shared with Login/Register (auth-chrome-tokens AUTH_TRACKING_*). */
+    --auth-tracking: 0.01em;
+    --auth-tracking-display: 0.006em;
 
     position: fixed;
     inset: 0;
@@ -38,7 +42,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: var(--mob-ink);
     font-family: 'Aeonik', system-ui, sans-serif;
     font-weight: 400;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     transform: translate3d(0, calc(-1 * var(--mob-kb-shift, 0px)), 0);
@@ -158,7 +162,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 0;
     font-size: 26px;
     line-height: 1.15;
-    letter-spacing: 0.012em;
+    letter-spacing: var(--auth-tracking-display);
     font-weight: 400;
     font-family: Aeonik, system-ui, sans-serif;
   }
@@ -179,7 +183,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 10px 0 0;
     font-size: 13px;
     line-height: 1.45;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     color: var(--mob-muted);
     opacity: 0.72;
     animation: mobShellIn .28s ease both;
@@ -222,7 +226,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     line-height: 22px;
     font-family: inherit;
     font-weight: 400;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     resize: none !important;
     outline: none;
     box-sizing: border-box;
@@ -250,7 +254,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     color: rgba(26, 25, 23, 0.72);
     font-size: 12.5px;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     font-family: inherit;
     cursor: pointer;
     animation: mobTagroChipIn .32s cubic-bezier(.22,1,.36,1) both;
@@ -305,7 +309,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     padding: 3px 8px 3px 5px;
     border-radius: 7px;
     font-size: 12px;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     line-height: 1.3;
     background: rgba(91, 100, 125, 0.10);
     color: rgba(26, 25, 23, 0.72);
@@ -334,7 +338,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     background: transparent;
     color: var(--mob-ink);
     font-size: 12.5px;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     font-family: inherit;
     cursor: pointer;
   }
@@ -408,7 +412,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     right: 14px;
     font-size: 15px;
     line-height: 22px;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     color: var(--mob-muted);
     pointer-events: none;
     white-space: nowrap;
@@ -464,7 +468,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-shadow: none;
     color: var(--mob-ink);
     font-size: 15px;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     line-height: 1.25;
     font-family: inherit;
     font-weight: 400;
@@ -484,7 +488,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 14px 0 0;
     font-size: 13px;
     line-height: 1.45;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     color: var(--mob-muted);
   }
 
@@ -574,7 +578,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     flex: 1;
     font-size: 15px;
     color: var(--mob-ink);
-    letter-spacing: 0.02em;
+    letter-spacing: var(--auth-tracking);
     line-height: 1.25;
     opacity: 0.88;
   }
@@ -582,14 +586,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-connect-state {
     font-size: 12.5px;
     color: var(--mob-muted);
-    letter-spacing: 0.025em;
+    letter-spacing: var(--auth-tracking);
     flex-shrink: 0;
   }
   .mob-connect-foot {
     margin: 10px 0 0;
     font-size: 12px;
     line-height: 1.4;
-    letter-spacing: 0.025em;
+    letter-spacing: var(--auth-tracking);
     color: var(--mob-muted);
   }
 
@@ -657,11 +661,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Desktop (≥769): canvas desktop composition — wider column so it doesn't look tiny on large screens */
+  /* Desktop (≥769): same 300px column as Login/Register buttons/fields */
   @media (min-width: 769px) {
     .mob {
       --mob-gutter: 48px;
-      --mob-content-max: 360px;
+      --mob-content-max: 300px;
     }
     .mob-header {
       width: 100%;
@@ -723,7 +727,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-h1 {
       font-size: 28px;
       line-height: 1.18;
-      letter-spacing: 0.012em;
+      letter-spacing: var(--auth-tracking-display);
       text-align: left;
     }
   }

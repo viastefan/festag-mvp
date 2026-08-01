@@ -225,7 +225,7 @@ const INIT_CSS = /* css */ `
   .ws-init-stage {
     flex: 1;
     width: 100%;
-    max-width: 360px;
+    max-width: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -251,7 +251,7 @@ const INIT_CSS = /* css */ `
     height: ${Math.round(26 * 1.3)}px;
     font-size: 26px;
     line-height: ${Math.round(26 * 1.3)}px;
-    letter-spacing: 0.012em;
+    letter-spacing: 0.006em;
     font-weight: 400;
     color: rgba(26, 25, 23, 0.28);
     white-space: nowrap;

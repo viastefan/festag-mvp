@@ -91,7 +91,7 @@ export const AUTH_GLASSY_HERO_CSS = `
     margin: 0;
     max-width: 100%;
     font-weight: 400;
-    letter-spacing: -0.012em;
+    letter-spacing: var(--auth-tracking-display, 0.006em);
     text-align: left;
   }
   .al-glassy-hero-line {

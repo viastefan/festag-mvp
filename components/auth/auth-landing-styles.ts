@@ -21,6 +21,7 @@ import {
   AUTH_INPUT_FG_DARK,
   AUTH_INPUT_PLACEHOLDER_DARK,
   AUTH_MOBILE_CHROME_VARS,
+  AUTH_TRACKING_VARS,
 } from '@/components/auth/auth-chrome-tokens'
 
 const AUTH_LANDING_STYLES_BASE = `
@@ -55,10 +56,12 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-text-muted:#8891a0;
           /* Placeholders — quieter than typed ink. */
           --al-text-muted-soft:#9AA3B0;
+          ${AUTH_TRACKING_VARS}
           ${AUTH_CHROME_VARS_LIGHT}
           /* Auth always Aeonik Regular — never inherit Geist default via --font-aeonik alias. */
           font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
+          letter-spacing:var(--auth-tracking, 0.01em);
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
@@ -313,7 +316,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:14px;
           font-weight:400;
           line-height:1.35;
-          letter-spacing:0.01em;
+          letter-spacing:var(--auth-tracking, 0.01em);
           color:var(--al-text-muted, #8891a0);
         }
         .al-agreements .al-account-hint {
@@ -331,7 +334,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:14px;
           font-weight:400;
           line-height:1.35;
-          letter-spacing:0.01em;
+          letter-spacing:var(--auth-tracking, 0.01em);
           color:var(--al-text-muted, #8891a0);
           text-decoration:none;
           cursor:pointer;
@@ -526,7 +529,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:32px !important;
           font-weight:400;
           line-height:34px !important;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           color:#1e1e20;
           text-align:left;
         }
@@ -577,7 +580,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-hero-copy .auth-expand-compact {
           font-size:var(--al-hero-display-size) !important;
           line-height:var(--al-hero-display-lh) !important;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           font-weight:400 !important;
           width:100%;
           margin:0;
@@ -609,7 +612,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy button.al-ws-path--editable {
           font-size:32px;
           line-height:34px;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           font-weight:400;
           width:100%;
           margin:2px 0 0;
@@ -619,7 +622,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-hero-copy button.al-ws-path--editable .al-ws-slash {
           font-size:32px;
           line-height:34px;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
         }
         .al-ws-name-line {
           position:relative;
@@ -660,7 +663,7 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-shrink:0;
           font-size:32px;
           line-height:39px;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           font-weight:400;
           color:var(--al-text-muted);
         }
@@ -684,7 +687,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:var(--al-hero-display-size) !important;
           line-height:var(--al-hero-display-lh) !important;
           font-weight:400 !important;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           box-shadow:none;
           -webkit-appearance:none;
           appearance:none;
@@ -861,18 +864,18 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-title-display {
           font-size:32px;
           line-height:34px;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           margin:0;
         }
         /* Cold login — no remembered workspace: two-line sentence, no path under title. */
         .al-title--two-line {
           line-height:1.12;
-          letter-spacing:-0.028em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
         }
         .al-hero-gray {
           font-size:32px;
           line-height:34px;
-          letter-spacing:-0.025em;
+          letter-spacing:var(--auth-tracking-display, 0.006em);
           font-weight:400;
           margin:0;
         }
@@ -1002,7 +1005,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-family:inherit;
           font-size:13.5px;
           font-weight:400;
-          letter-spacing:var(--ls-body, 0.021em);
+          letter-spacing:var(--auth-tracking, 0.01em);
           cursor:pointer;
           padding:0 16px;
           white-space:nowrap;
@@ -2591,7 +2594,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-glassy-hero {
             font-size:var(--al-hero-display-size, 40px) !important;
             line-height:var(--al-hero-display-lh, 46px) !important;
-            letter-spacing:-0.028em !important;
+            letter-spacing:var(--auth-tracking-display, 0.006em) !important;
             font-weight:400 !important;
           }
           .al-hero-secondary,
@@ -2603,7 +2606,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy .auth-expand-idle-caret {
             font-size:var(--al-hero-name-size, var(--al-hero-display-size, 40px)) !important;
             line-height:var(--al-hero-name-lh, var(--al-hero-display-lh, 46px)) !important;
-            letter-spacing:-0.028em !important;
+            letter-spacing:var(--auth-tracking-display, 0.006em) !important;
           }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
             height:var(--al-hero-caret-h, 32px) !important;
@@ -2615,7 +2618,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:var(--festag-btn-height, 46px);
             max-height:var(--festag-btn-height, 46px);
             font-size:14.5px;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--auth-tracking, 0.01em);
             border-radius:var(--festag-auth-radius, 6px);
             transition:
               background .32s cubic-bezier(.22,1,.36,1),
@@ -3379,7 +3382,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
             font-size:var(--al-hero-display-size) !important;
             line-height:var(--al-hero-display-lh) !important;
-            letter-spacing:-0.028em;
+            letter-spacing:var(--auth-tracking-display, 0.006em);
           }
           /* Name / path under H1 — keep previous size (not bumped with title). */
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-input,
@@ -3588,7 +3591,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-title-display {
             font-size:var(--al-hero-display-size) !important;
             line-height:var(--al-hero-display-lh) !important;
-            letter-spacing:-0.028em;
+            letter-spacing:var(--auth-tracking-display, 0.006em);
             font-weight:400;
             text-align:left;
           }
@@ -3618,7 +3621,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-ws-slash {
             font-size:var(--al-hero-name-size, var(--al-hero-display-size)) !important;
             line-height:var(--al-hero-name-lh, var(--al-hero-display-lh)) !important;
-            letter-spacing:-0.025em;
+            letter-spacing:var(--auth-tracking-display, 0.006em);
             font-weight:400;
             text-align:left;
           }
@@ -4507,7 +4510,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-step="codeEntry"] .al-glassy-hero {
             font-size:var(--al-hero-display-size) !important;
             line-height:var(--al-hero-display-lh) !important;
-            letter-spacing:-0.02em !important;
+            letter-spacing:var(--auth-tracking-display, 0.006em) !important;
             font-weight:400 !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-hero-secondary,

@@ -32,13 +32,26 @@ export const AUTH_DARK_CANVAS = '#0C0D12'
 export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
 
 /**
+ * Shared Aeonik Regular tracking — Login, Register, Onboarding.
+ * Slightly open (not negative display crush), quieter than the old 0.02em stretch.
+ */
+export const AUTH_TRACKING_UI = '0.01em'
+export const AUTH_TRACKING_DISPLAY = '0.006em'
+export const AUTH_TRACKING_VARS = `
+  --auth-tracking:${AUTH_TRACKING_UI};
+  --auth-tracking-display:${AUTH_TRACKING_DISPLAY};
+`
+
+/**
  * Desktop auth chrome (≥769px) — classic narrow login column.
  * 300px — tighter than the 340/480 stretches; calm centered stack.
+ * Onboarding `.mob` content column matches this width 1:1.
  */
 export const AUTH_DESKTOP_CHROME_VARS = `
   --al-panel-width:300px;
   --al-os-gutter:48px;
   --al-os-content-max:300px;
+  ${AUTH_TRACKING_VARS.trim()}
   --al-hero-display-size:28px;
   --al-hero-display-lh:30px;
   --al-hero-name-size:28px;
@@ -80,6 +93,7 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --al-col-pad:28px;
   --dl-mobile-gutter:28px;
   --dl-col-pad:28px;
+  ${AUTH_TRACKING_VARS.trim()}
   /* Match master canvas AuthStage / onboarding H1 (26) — not oversized 34 */
   --al-hero-display-size:22px;
   --al-hero-display-lh:26px;
