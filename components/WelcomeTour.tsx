@@ -348,7 +348,7 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
             <X size={15} weight="regular" />
           </button>
           <div className="wt-mark" aria-hidden>
-            <img src="/brand/favicon.svg?v=20260724-split-mark" alt="" width={44} height={44} className="wt-mark-img" />
+            <img src="/brand/favicon.svg?v=20260801-fluid-circle" alt="" width={44} height={44} className="wt-mark-img" />
           </div>
           <h2 className="wt-title">{WELCOME_TOUR_INTRO.title}</h2>
           <p className="wt-body">{WELCOME_TOUR_INTRO.body}</p>
