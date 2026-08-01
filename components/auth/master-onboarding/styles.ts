@@ -130,8 +130,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 0;
     font-size: 22px;
     line-height: 1.18;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.012em;
     font-weight: 400;
+    font-family: Aeonik, system-ui, sans-serif;
   }
   .mob-h1-ink { color: var(--mob-ink); display: block; }
   .mob-h1-muted { color: var(--mob-muted); display: block; }
@@ -150,7 +151,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 14px 0 0;
     font-size: 13px;
     line-height: 1.45;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     color: var(--mob-muted);
     animation: mobShellIn .28s ease both;
   }
@@ -215,7 +216,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     color: rgba(26, 25, 23, 0.72);
     font-size: 12.5px;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     font-family: inherit;
     cursor: pointer;
     animation: mobTagroChipIn .32s cubic-bezier(.22,1,.36,1) both;
@@ -270,7 +271,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     padding: 3px 8px 3px 5px;
     border-radius: 7px;
     font-size: 12px;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     line-height: 1.3;
     background: rgba(91, 100, 125, 0.10);
     color: rgba(26, 25, 23, 0.72);
@@ -299,7 +300,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     background: transparent;
     color: var(--mob-ink);
     font-size: 12.5px;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     font-family: inherit;
     cursor: pointer;
   }
@@ -373,7 +374,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     right: 14px;
     font-size: 15px;
     line-height: 22px;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     color: var(--mob-muted);
     pointer-events: none;
     white-space: nowrap;
@@ -429,7 +430,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-shadow: none;
     color: var(--mob-ink);
     font-size: 15px;
-    letter-spacing: -0.005em;
+    letter-spacing: 0.02em;
     line-height: 1.25;
     font-family: inherit;
     font-weight: 400;
@@ -449,7 +450,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 14px 0 0;
     font-size: 13px;
     line-height: 1.45;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     color: var(--mob-muted);
   }
 
@@ -539,7 +540,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     flex: 1;
     font-size: 15px;
     color: var(--mob-ink);
-    letter-spacing: -0.005em;
+    letter-spacing: 0.02em;
     line-height: 1.25;
     opacity: 0.88;
   }
@@ -547,14 +548,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-connect-state {
     font-size: 12.5px;
     color: var(--mob-muted);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.025em;
     flex-shrink: 0;
   }
   .mob-connect-foot {
     margin: 10px 0 0;
     font-size: 12px;
     line-height: 1.4;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.025em;
     color: var(--mob-muted);
   }
 
@@ -628,7 +629,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     font-family: 'Aeonik', system-ui, sans-serif;
     font-weight: 500;
     font-size: 11px;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.025em;
     line-height: 1.2;
     color: #8891a0;
     opacity: 1;
@@ -717,7 +718,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-h1 {
       font-size: 26px;
       line-height: 1.15;
-      letter-spacing: -0.01em;
+      letter-spacing: 0.012em;
       text-align: left;
     }
   }

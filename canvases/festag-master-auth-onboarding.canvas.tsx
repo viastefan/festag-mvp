@@ -535,7 +535,7 @@ export default function FestagMasterAuthOnboarding() {
 				minHeight: '100%',
 				fontFamily: 'Aeonik, system-ui, sans-serif',
 				fontWeight: 400,
-				letterSpacing: '0.01em',
+				letterSpacing: '0.02em',
 			}}
 		>
 			<style>{CSS}</style>
@@ -993,7 +993,7 @@ function ConnectStage({
 					margin: 0,
 					fontSize: 26,
 					lineHeight: 1.15,
-					letterSpacing: '-0.01em',
+					letterSpacing: '0.02em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
@@ -1062,14 +1062,14 @@ function ConnectStage({
 										flex: 1,
 										fontSize: FIELD_FONT,
 										color: t.ink,
-										letterSpacing: '-0.005em',
+										letterSpacing: '0.02em',
 										lineHeight: 1.25,
 										opacity: on ? 1 : 0.88,
 									}}
 								>
 									{src}
 								</span>
-								<span style={{ fontSize: 12.5, color: t.muted, letterSpacing: '0.01em' }}>
+								<span style={{ fontSize: 12.5, color: t.muted, letterSpacing: '0.02em' }}>
 									{on ? 'Verbunden' : 'Bald'}
 								</span>
 							</button>
@@ -1509,7 +1509,7 @@ function IntentCanvasStage({
 					margin: 0,
 					fontSize: 26,
 					lineHeight: 1.15,
-					letterSpacing: '-0.01em',
+					letterSpacing: '0.02em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
@@ -1585,7 +1585,7 @@ function IntentCanvasStage({
 								fontSize: FIELD_FONT,
 								lineHeight: `${FIELD_LINE_H}px`,
 								fontWeight: 400,
-								letterSpacing: '0.01em',
+								letterSpacing: '0.02em',
 								color: t.muted,
 								pointerEvents: 'none',
 								opacity: exampleIn ? (focused ? 0.42 : 0.72) : 0,
@@ -1645,7 +1645,7 @@ function IntentCanvasStage({
 									: '0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 14px rgba(0,0,0,0.28)',
 								color: chipInk,
 								fontSize: 12.5,
-								letterSpacing: '0.01em',
+								letterSpacing: '0.02em',
 								fontFamily: 'inherit',
 								cursor: 'pointer',
 								animation: 'masterTagroChipIn .32s cubic-bezier(.22,1,.36,1) both',
@@ -1676,7 +1676,7 @@ function IntentCanvasStage({
 							fontSize: 13,
 							lineHeight: 1.45,
 							color: t.muted,
-							letterSpacing: '0.01em',
+							letterSpacing: '0.02em',
 							animation: 'masterShellIn .28s ease both',
 						}}
 					>
@@ -1721,7 +1721,7 @@ function IntentCanvasStage({
 									padding: '3px 8px 3px 5px',
 									borderRadius: 7,
 									fontSize: 12,
-									letterSpacing: '0.01em',
+									letterSpacing: '0.02em',
 									lineHeight: 1.3,
 									background: light ? 'rgba(91, 100, 125, 0.10)' : 'rgba(91, 100, 125, 0.14)',
 									color: light ? 'rgba(26, 25, 23, 0.72)' : 'rgba(200, 208, 224, 0.88)',
@@ -1768,7 +1768,7 @@ function IntentCanvasStage({
 												: 'transparent',
 										color: popInk,
 										fontSize: 12.5,
-										letterSpacing: '0.01em',
+										letterSpacing: '0.02em',
 										fontFamily: 'inherit',
 										cursor: 'pointer',
 										opacity: tagroBusy ? 0.45 : 1,
@@ -1978,7 +1978,7 @@ function ClarifyStage({
 					margin: 0,
 					fontSize: 26,
 					lineHeight: 1.2,
-					letterSpacing: '-0.01em',
+					letterSpacing: '0.02em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
@@ -2010,7 +2010,7 @@ function ClarifyStage({
 						margin: '14px 0 0',
 						fontSize: 13,
 						lineHeight: 1.45,
-						letterSpacing: '0.01em',
+						letterSpacing: '0.02em',
 						color: t.muted,
 						fontFamily: 'Aeonik, system-ui, sans-serif',
 						fontWeight: 400,
@@ -2080,7 +2080,7 @@ function AuthStage({
 						padding: 0,
 						fontSize: 26,
 						lineHeight: 1.15,
-						letterSpacing: '-0.01em',
+						letterSpacing: '0.02em',
 						fontWeight: 400,
 						fontFamily: 'Aeonik, system-ui, sans-serif',
 						color: t.ink,
@@ -2099,7 +2099,7 @@ function AuthStage({
 								gap: 2,
 								fontSize: 26,
 								lineHeight: 1.15,
-								letterSpacing: '-0.01em',
+								letterSpacing: '0.02em',
 								fontWeight: 400,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
 								color: t.muted,
@@ -2139,7 +2139,7 @@ function AuthStage({
 								fontFamily: 'Aeonik, system-ui, sans-serif',
 								fontSize: 26,
 								lineHeight: 1.15,
-								letterSpacing: '-0.01em',
+								letterSpacing: '0.02em',
 								fontWeight: 400,
 								color: t.muted,
 								textAlign: 'left',
@@ -2199,7 +2199,7 @@ function AuthStage({
 								maxWidth: '100%',
 								fontSize: 26,
 								lineHeight: 1.15,
-								letterSpacing: '-0.01em',
+								letterSpacing: '0.02em',
 								fontWeight: 400,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
 							}}
@@ -2247,7 +2247,7 @@ function AuthStage({
 									color: t.ink,
 									fontSize: 26,
 									lineHeight: 1.15,
-									letterSpacing: '-0.01em',
+									letterSpacing: '0.02em',
 									fontWeight: 400,
 									fontFamily: 'Aeonik, system-ui, sans-serif',
 									padding: 0,
@@ -2646,7 +2646,7 @@ function AuthDocsSheet({
 									style={{
 										display: 'block',
 										fontSize: 13.5,
-										letterSpacing: '-0.01em',
+										letterSpacing: '0.02em',
 										color: t.ink,
 									}}
 								>
@@ -2801,7 +2801,7 @@ function AuthDocsSheet({
 							margin: 0,
 							fontSize: 26,
 							lineHeight: 1.22,
-							letterSpacing: '-0.01em',
+							letterSpacing: '0.02em',
 							fontWeight: 400,
 							fontFamily: 'Aeonik, system-ui, sans-serif',
 							color: t.ink,
@@ -2815,7 +2815,7 @@ function AuthDocsSheet({
 							fontSize: 15.5,
 							lineHeight: 1.62,
 							color: t.muted,
-							letterSpacing: '0.01em',
+							letterSpacing: '0.02em',
 						}}
 					>
 						Workspace, Tagro und Anbindungen — ohne Umwege.
@@ -2843,7 +2843,7 @@ function AuthDocsSheet({
 										display: 'block',
 										fontSize: 15,
 										color: t.ink,
-										letterSpacing: '-0.01em',
+										letterSpacing: '0.02em',
 									}}
 								>
 									{item.title}
@@ -3013,7 +3013,7 @@ function PreparingStage({
 								height: LINE_SLOT,
 								fontSize: PREP_FONT,
 								lineHeight: `${LINE_SLOT}px`,
-								letterSpacing: '-0.01em',
+								letterSpacing: '0.02em',
 								fontWeight: 400,
 								color: gray,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
@@ -3157,7 +3157,7 @@ function Hero({
 				margin: 0,
 				fontSize: 26,
 				lineHeight: 1.15,
-				letterSpacing: '-0.01em',
+				letterSpacing: '0.02em',
 				fontWeight: 400,
 				fontFamily: 'Aeonik, system-ui, sans-serif',
 				animation: 'masterShellIn .42s cubic-bezier(.22,1,.36,1) both',
@@ -3338,7 +3338,7 @@ function phoneScreen(t: Theme): CSSProperties {
 		flexDirection: 'column',
 		fontFamily: 'Aeonik, system-ui, sans-serif',
 		fontWeight: 400,
-		letterSpacing: '0.01em',
+		letterSpacing: '0.02em',
 		position: 'relative',
 	}
 }
@@ -3361,7 +3361,7 @@ function desktopScreen(t: Theme): CSSProperties {
 		flexDirection: 'column',
 		fontFamily: 'Aeonik, system-ui, sans-serif',
 		fontWeight: 400,
-		letterSpacing: '0.01em',
+		letterSpacing: '0.02em',
 		position: 'relative',
 	}
 }
@@ -3585,7 +3585,7 @@ function choiceRow(
 		color: t.ink,
 		fontSize: FIELD_FONT,
 		fontWeight: 400,
-		letterSpacing: '-0.005em',
+		letterSpacing: '0.02em',
 		lineHeight: 1.25,
 		fontFamily: 'inherit',
 		textAlign: 'left' as const,
@@ -3770,7 +3770,7 @@ const CSS = `
     outline: none !important;
     caret-color: #66708D !important;
   }
-  /* Headers + UI: Aeonik Regular, slightly open tracking */
+  /* Headers + UI: Aeonik Regular; headers open a touch; buttons/meta open more */
   .master-phone h1,
   .master-phone button,
   .master-phone input,
@@ -3781,6 +3781,16 @@ const CSS = `
     font-weight: 400;
   }
   .master-phone h1 {
-    letter-spacing: -0.01em;
+    letter-spacing: 0.012em !important;
+    font-weight: 400 !important;
+  }
+  .master-phone button {
+    letter-spacing: 0.02em !important;
+  }
+  .master-phone button span {
+    letter-spacing: 0.02em !important;
+  }
+  .master-phone p {
+    letter-spacing: 0.02em !important;
   }
 `
