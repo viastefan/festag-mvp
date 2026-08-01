@@ -8,8 +8,13 @@
 import type { WorkspaceUnderstanding } from '@/lib/platform/identity'
 
 /** UI copy — never “APIs” / “OAuth” / “configure integrations”. */
-export const CONNECT_WORKSPACE_HEADLINE = 'Verbinde deinen Workspace.'
-export const CONNECT_WORKSPACE_SUPPORT = 'Verbinde die Tools, die du schon nutzt.'
+export const CONNECT_WORKSPACE_HEADLINE = 'Verbinde deinen Workspace'
+/** Muted continuation of the same H1 sentence (opacity-only hierarchy). */
+export const CONNECT_WORKSPACE_REST =
+  ' und arbeite mit den Tools, die du bereits nutzt.'
+/** Calm support line under the H1 — not a second title. */
+export const CONNECT_WORKSPACE_SUPPORT =
+  'Verbinde Dienste, um Projekte zu synchronisieren, zu kommunizieren und deinen Workflow zu optimieren.'
 
 /** Only visible states on integration cards. */
 export const INTEGRATION_STATES = [

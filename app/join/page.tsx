@@ -216,9 +216,12 @@ function JoinProjectInner() {
                   <section className="al-signin" aria-label="Join Project">
                     <div className="al-hero-copy">
                       <h1 className="al-title al-title-display onb-hero-line">
-                        {heroLead}
+                        <span className="onb-hero-lead">{heroLead}</span>
                         <span className="al-hero-gray">{heroRest}</span>
                       </h1>
+                      <p className="al-os-support">
+                        Kurz dein Name — dann öffnet sich das Projekt direkt.
+                      </p>
                     </div>
                     <div className="al-signin-stack">
                       <form className="al-method-group" onSubmit={(e) => void handleSubmit(e)}>
@@ -382,7 +385,13 @@ const JOIN_CSS = `
   .onb-name-input { flex: 1; min-width: 0; }
   .onb-cta { margin-top: 14px; width: 100%; }
   .onb-hero-line { text-align: left; }
-  .al-hero-gray { color: rgba(230, 232, 238, 0.42); }
+  .al-hero-gray {
+    color: inherit;
+    opacity: 0.58;
+  }
+  .onb-hero-lead {
+    color: #F5F5F7;
+  }
   @media (min-width: 769px) {
     .al-signin { max-width: 480px; width: 100%; }
     .onb-hero-line {

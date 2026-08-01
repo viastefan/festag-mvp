@@ -1739,20 +1739,40 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       ) : !subFlow ? (
                         <div className="al-hero-copy">
                           {isSignup ? (
-                            <AuthGlassyHero
-                              animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
-                              lead={devInviteToken ? 'Einladung annehmen.' : 'Alles beginnt hier.'}
-                            />
+                            <>
+                              <AuthGlassyHero
+                                animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
+                                lead={devInviteToken ? 'Einladung annehmen.' : 'Alles beginnt hier.'}
+                                rest={devInviteToken ? ' Willkommen im Workspace.' : ' Dein Workspace entsteht in wenigen Schritten.'}
+                              />
+                              <p className="al-os-support">
+                                {devInviteToken
+                                  ? 'Du trittst einem bestehenden Workspace bei — ohne Setup-Theater.'
+                                  : 'Ein Name, ein Zugang, dann baut Tagro den Rest mit dir.'}
+                              </p>
+                            </>
                           ) : displayWorkspaceName ? (
-                            <AuthGlassyHero
-                              animKey={`login-ws-${displayWorkspaceName}`}
-                              lead={loginMainTitle}
-                            />
+                            <>
+                              <AuthGlassyHero
+                                animKey={`login-ws-${displayWorkspaceName}`}
+                                lead="Willkommen zurück."
+                                rest=" Dein Workspace wartet."
+                              />
+                              <p className="al-os-support">
+                                Melde dich an, um dort weiterzumachen, wo du aufgehört hast.
+                              </p>
+                            </>
                           ) : (
-                            <AuthGlassyHero
-                              animKey="login-cold"
-                              lead="Betrete deinen Workspace."
-                            />
+                            <>
+                              <AuthGlassyHero
+                                animKey="login-cold"
+                                lead="Betrete deinen Workspace."
+                                rest=" Alles, was zählt, wartet dort."
+                              />
+                              <p className="al-os-support">
+                                Ein ruhiger Einstieg in dein Betriebssystem für Projekte.
+                              </p>
+                            </>
                           )}
                           {isSignup && !hasInvite ? (
                             <div className="al-hero-secondary">

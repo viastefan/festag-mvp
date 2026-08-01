@@ -295,7 +295,14 @@ export default function WorkspaceCreatePage() {
                   <section className="al-signin" aria-label="Workspace erstellen">
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
-                        <AuthGlassyHero animKey="ws-create" lead="Alles beginnt hier." />
+                        <AuthGlassyHero
+                          animKey="ws-create"
+                          lead="Alles beginnt hier."
+                          rest=" Dein Workspace entsteht in wenigen Schritten."
+                        />
+                        <p className="al-os-support">
+                          Wähle einen Namen — Tagro richtet den Rest mit dir ein.
+                        </p>
                         {availability === 'available' && displayName && !wsNameEditing && !mobileLiveCaret ? (
                           <span className="al-ws-path-check-row">
                             <AuthWorkspacePath

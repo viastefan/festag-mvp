@@ -38,6 +38,7 @@ import {
 } from '@/lib/platform/identity'
 import {
   CONNECT_WORKSPACE_HEADLINE,
+  CONNECT_WORKSPACE_REST,
   CONNECT_WORKSPACE_SUPPORT,
   INTEGRATION_BLURBS,
   integrationStateLabel,
@@ -121,26 +122,31 @@ function IntegrationMark({ id, name }: { id: string; name: string }) {
 const NAME_HERO = {
   lead: 'Dein Name.',
   rest: ' Wie sollen dich andere im Workspace sehen?',
+  support: 'So erscheint dein Profil für Team und Kunden.',
 }
 
 const CONTEXT_HERO = {
   lead: 'Erzähl Tagro von deiner Arbeit.',
   rest: ' Ein Satz reicht — Tagro personalisiert den Rest.',
+  support: 'Je klarer der Kontext, desto präziser dein Workspace.',
 }
 
 const FOCUS_HERO = {
   lead: 'Wobei arbeitest du am meisten?',
   rest: ' Mehrere möglich. Optional.',
+  support: 'Tagro priorisiert Status, Risiken und nächste Schritte danach.',
 }
 
 const INTEGRATIONS_HERO = {
   lead: CONNECT_WORKSPACE_HEADLINE,
-  rest: ` ${CONNECT_WORKSPACE_SUPPORT}`,
+  rest: CONNECT_WORKSPACE_REST,
+  support: CONNECT_WORKSPACE_SUPPORT,
 }
 
 const TYPE_HERO = {
   lead: 'Passt dieser Workspace-Typ?',
   rest: ' Tagro schlägt vor.',
+  support: 'Du kannst das später jederzeit anpassen.',
 }
 
 /** Skip Workspace Type UI when Tagro is this confident or higher. */
@@ -996,6 +1002,9 @@ export default function BuildProjectsOnboardingPage() {
                   >
 
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
+                      <p className="onb-step-label">
+                        Schritt {stepIdx + 1} von {STEPS.length}
+                      </p>
                       <div className="al-hero-copy">
                         {!animating ? (
                           <GlassyHeroWords
@@ -1009,6 +1018,9 @@ export default function BuildProjectsOnboardingPage() {
                             <span className="al-hero-gray">{heroCopy.rest}</span>
                           </h1>
                         )}
+                        {'support' in heroCopy && heroCopy.support ? (
+                          <p className="onb-support">{heroCopy.support}</p>
+                        ) : null}
                       </div>
                     </div>
 
@@ -1339,34 +1351,38 @@ export default function BuildProjectsOnboardingPage() {
 
         {/* ── OS command bar: progress + primary action ─────────────── */}
         <div className={`onb-command-bar${revealing ? ' onb-chrome-exit' : ''}`}>
-          <ol className="onb-dots" aria-label="Onboarding-Fortschritt">
-            {STEPS.map((s, i) => {
-              const canGoBack = i < stepIdx
-              const canAdvance = i >= stepIdx && !isLast
-              const clickable = canGoBack || canAdvance
-              return (
-                <li key={s}>
-                  <button
-                    type="button"
-                    className={`onb-dot${i === stepIdx ? ' is-active' : ''}${canGoBack ? ' is-done' : ''}${clickable ? ' is-clickable' : ''}`}
-                    aria-current={i === stepIdx ? 'step' : undefined}
-                    aria-label={
-                      i === stepIdx
-                        ? `Schritt ${i + 1} von ${STEPS.length}, tippen für weiter`
-                        : canGoBack
-                          ? `Zurück zu Schritt ${i + 1}`
-                          : canAdvance
-                            ? `Weiter zu Schritt ${i + 1}`
-                            : `Schritt ${i + 1}`
-                    }
-                    disabled={!clickable || submitting || revealing}
-                    onClick={() => onDotClick(i)}
-                  />
-                </li>
-              )
-            })}
-          </ol>
-          <span className="onb-command-divider" aria-hidden />
+          <div className="onb-command-progress">
+            <ol className="onb-dots" aria-label="Onboarding-Fortschritt">
+              {STEPS.map((s, i) => {
+                const canGoBack = i < stepIdx
+                const canAdvance = i >= stepIdx && !isLast
+                const clickable = canGoBack || canAdvance
+                return (
+                  <li key={s}>
+                    <button
+                      type="button"
+                      className={`onb-dot${i === stepIdx ? ' is-active' : ''}${canGoBack ? ' is-done' : ''}${clickable ? ' is-clickable' : ''}`}
+                      aria-current={i === stepIdx ? 'step' : undefined}
+                      aria-label={
+                        i === stepIdx
+                          ? `Schritt ${i + 1} von ${STEPS.length}, tippen für weiter`
+                          : canGoBack
+                            ? `Zurück zu Schritt ${i + 1}`
+                            : canAdvance
+                              ? `Weiter zu Schritt ${i + 1}`
+                              : `Schritt ${i + 1}`
+                      }
+                      disabled={!clickable || submitting || revealing}
+                      onClick={() => onDotClick(i)}
+                    />
+                  </li>
+                )
+              })}
+            </ol>
+            <span className="onb-command-count" aria-hidden="true">
+              {stepIdx + 1} von {STEPS.length}
+            </span>
+          </div>
           <button
             type="button"
             className={`onb-command-cta${commandDisabled ? '' : ' is-ready'}`}
@@ -1423,29 +1439,59 @@ const DEV_ONB_CSS = `
   /* Shared dusk / inputs / CTAs / hero scale → AUTH_OS_STYLES */
 
   .al-root.onb-sand-dark .onb-command-bar {
-    background: rgba(18, 19, 24, 0.72);
-    border: 1px solid rgba(232, 230, 225, 0.08);
+    background: rgba(12, 13, 18, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.04) inset,
-      0 12px 40px rgba(0, 0, 0, 0.42);
+      0 1px 0 rgba(255, 255, 255, 0.025) inset,
+      0 8px 28px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(18px) saturate(1.1);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  }
+  .al-root.onb-sand-dark .onb-command-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 4px;
+  }
+  .al-root.onb-sand-dark .onb-command-count {
+    font-size: 12.5px;
+    letter-spacing: 0.01em;
+    color: rgba(245, 245, 247, 0.38);
+    white-space: nowrap;
   }
   .al-root.onb-sand-dark .onb-dots {
     background: transparent;
     border: none;
     padding: 4px 2px;
-    gap: 8px;
+    gap: 7px;
   }
   .al-root.onb-sand-dark .onb-dot {
-    background: rgba(232, 230, 225, 0.20);
-    width: 8px;
-    height: 8px;
+    background: rgba(232, 230, 225, 0.16);
+    width: 7px;
+    height: 7px;
   }
   .al-root.onb-sand-dark .onb-dot.is-active {
-    background: rgba(232, 230, 225, 0.90);
-    width: 26px;
+    background: rgba(245, 245, 247, 0.88);
+    width: 22px;
   }
   .al-root.onb-sand-dark .onb-dot.is-done {
-    background: rgba(232, 230, 225, 0.40);
+    background: rgba(232, 230, 225, 0.32);
+  }
+  .al-root.onb-sand-dark .onb-command-cta.is-ready:not(:disabled) {
+    background: #5B647D;
+    color: #F5F5F7;
+    border-radius: 8px;
+    padding: 11px 16px 11px 14px;
+  }
+  .al-root.onb-sand-dark .onb-command-cta.is-ready:not(:disabled):hover,
+  .al-root.onb-sand-dark .onb-command-cta.is-ready:not(:disabled):focus-visible {
+    background: #66708A;
+    color: #F5F5F7;
+    box-shadow: 0 0 0 3px rgba(91, 100, 125, 0.22);
+  }
+  .al-root.onb-sand-dark .onb-command-cta.is-ready:not(:disabled):active {
+    background: #515970;
+    transform: scale(0.99);
   }
 
   .onb-hero-lead {
@@ -1763,12 +1809,12 @@ const DEV_ONB_CSS = `
   .onb-sources-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     width: 100%;
-    padding: 13px 14px;
+    padding: 16px 16px;
     border-radius: 14px;
-    border: 1px solid rgba(232, 230, 225, 0.07);
-    background: rgba(232, 230, 225, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    background: rgba(255, 255, 255, 0.028);
     flex-shrink: 0;
     box-sizing: border-box;
     text-align: left;
@@ -1787,18 +1833,18 @@ const DEV_ONB_CSS = `
     cursor: pointer;
   }
   .onb-sources-row.is-actionable:hover {
-    background: rgba(232, 230, 225, 0.055);
-    border-color: rgba(232, 230, 225, 0.12);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
     transform: translateY(-1px);
   }
   .onb-sources-row.is-soon .onb-sources-status { opacity: 0.72; }
   .onb-sources-row.is-soon .onb-sources-name { opacity: 0.88; }
   .onb-sources-row.is-soon .onb-sources-logo { opacity: 1; filter: none; }
   .onb-sources-row.is-connected {
-    border-color: rgba(91, 100, 125, 0.55);
-    background: rgba(91, 100, 125, 0.10);
-    box-shadow: 0 0 0 1px rgba(91, 100, 125, 0.18);
+    border-color: rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: none;
   }
   .onb-sources-logo {
     width: 28px;
@@ -1895,35 +1941,32 @@ const DEV_ONB_CSS = `
     left: 0;
     right: 0;
     bottom: 0;
-    height: 88px;
+    height: 96px;
     pointer-events: none;
     z-index: 1;
     background: linear-gradient(
       to bottom,
-      rgba(12, 13, 18, 0) 0%,
-      rgba(14, 16, 24, 0.28) 30%,
-      rgba(14, 16, 24, 0.72) 58%,
-      rgba(14, 16, 24, 0.94) 82%,
-      #0E1018 100%
+      transparent 0%,
+      rgba(12, 13, 18, 0.55) 55%,
+      rgba(12, 13, 18, 0.92) 100%
     );
+    opacity: 0.92;
   }
   .onb-sources-fade--top {
     top: 0;
     bottom: auto;
-    height: 64px;
+    height: 56px;
     opacity: 0;
     transition: opacity .32s cubic-bezier(.22, 1, .36, 1);
     background: linear-gradient(
       to top,
-      rgba(12, 13, 18, 0) 0%,
-      rgba(14, 16, 24, 0.28) 30%,
-      rgba(14, 16, 24, 0.72) 58%,
-      rgba(14, 16, 24, 0.94) 82%,
-      #0E1018 100%
+      transparent 0%,
+      rgba(12, 13, 18, 0.55) 55%,
+      rgba(12, 13, 18, 0.92) 100%
     );
   }
   .onb-sources-scroll.is-scrolled .onb-sources-fade--top {
-    opacity: 1;
+    opacity: 0.92;
   }
   .onb-focus-scroll {
     margin-top: 10px;
@@ -2341,31 +2384,42 @@ const DEV_ONB_CSS = `
     transform: translateX(-50%);
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 20px;
     z-index: 5;
-    padding: 6px 6px 6px 14px;
-    border-radius: 999px;
-    background: rgba(18, 19, 24, 0.72);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 8px 8px 8px 16px;
+    border-radius: 16px;
+    background: rgba(12, 13, 18, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.04) inset,
-      0 12px 40px rgba(0, 0, 0, 0.42);
-    backdrop-filter: blur(20px) saturate(1.25);
-    -webkit-backdrop-filter: blur(20px) saturate(1.25);
+      0 1px 0 rgba(255, 255, 255, 0.025) inset,
+      0 8px 28px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(18px) saturate(1.1);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
     max-width: calc(100vw - 32px);
+    min-width: min(420px, calc(100vw - 32px));
+  }
+  .onb-command-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .onb-command-count {
+    font-size: 12.5px;
+    letter-spacing: 0.01em;
+    color: rgba(245, 245, 247, 0.38);
+    white-space: nowrap;
   }
   .onb-command-divider {
-    width: 1px;
-    height: 16px;
-    margin: 0 4px 0 10px;
-    background: rgba(255, 255, 255, 0.12);
-    flex-shrink: 0;
+    display: none;
   }
   .onb-command-cta {
     appearance: none;
     -webkit-appearance: none;
     border: 0;
     background: transparent;
-    color: rgba(245, 245, 247, 0.88);
+    color: rgba(245, 245, 247, 0.72);
     font: inherit;
     font-size: 14.5px;
     font-weight: 400;
@@ -2376,12 +2430,14 @@ const DEV_ONB_CSS = `
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    border-radius: 999px;
+    border-radius: 8px;
     white-space: nowrap;
     transition:
       background .32s cubic-bezier(.22, 1, .36, 1),
       color .28s ease,
-      opacity .28s ease;
+      opacity .28s ease,
+      box-shadow .28s ease,
+      transform .18s cubic-bezier(.22, 1, .36, 1);
   }
   .onb-command-cta:disabled {
     opacity: 0.34;

@@ -144,10 +144,13 @@ function InviteAcceptInner() {
                     ) : (
                       <>
                         <div className="al-hero-copy">
-                          <h1 className="al-title al-title-display">
-                            {title}
+                          <h1 className="al-title al-title-display onb-hero-line">
+                            <span className="onb-hero-lead">{title}</span>
                             <span className="al-hero-gray">{rest}</span>
                           </h1>
+                          <p className="al-os-support">
+                            Ein Workspace. Eine Wahrheit. Weiter mit Festag.
+                          </p>
                         </div>
                         <div className="al-signin-stack" style={{ marginTop: 28 }}>
                           {error ? <p className="al-error" role="alert">{error}</p> : null}

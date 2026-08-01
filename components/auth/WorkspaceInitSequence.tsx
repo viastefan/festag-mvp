@@ -88,14 +88,15 @@ const INIT_CSS = `
     inset: 0;
     z-index: 80;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     box-sizing: border-box;
-    padding: 24px max(20px, env(safe-area-inset-right)) 24px max(20px, env(safe-area-inset-left));
-    background: #0C0D12;
+    padding: clamp(72px, 14vh, 120px) max(24px, env(safe-area-inset-right)) 24px max(var(--al-os-gutter, 72px), env(safe-area-inset-left));
+    background:
+      radial-gradient(ellipse 90% 48% at 40% -8%, rgba(255, 255, 255, 0.035), transparent 55%),
+      linear-gradient(180deg, #10121A 0%, #0C0D12 48%, #0B0C10 100%);
     opacity: 0;
     transition: opacity .35s cubic-bezier(.22,1,.36,1);
-    /* visible — blur on the line must not get clipped at the sides */
     overflow: visible;
   }
   .ws-init.is-entered { opacity: 1; }
@@ -104,22 +105,21 @@ const INIT_CSS = `
     inset: 0;
     pointer-events: none;
     background:
-      radial-gradient(ellipse 70% 42% at 50% -8%, rgba(91, 100, 125, 0.18), transparent 58%),
-      radial-gradient(ellipse 55% 36% at 82% 108%, rgba(91, 100, 125, 0.08), transparent 52%),
-      linear-gradient(180deg, #10121A 0%, #0C0D12 42%, #0E1018 100%);
+      radial-gradient(ellipse 90% 48% at 40% -8%, rgba(255, 255, 255, 0.035), transparent 55%),
+      linear-gradient(180deg, #10121A 0%, #0C0D12 48%, #0B0C10 100%);
   }
   .ws-init-stage {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     gap: 22px;
-    width: min(100%, 560px);
+    width: min(100%, 640px);
     max-width: 100%;
     box-sizing: border-box;
-    padding: 12px 8px;
+    padding: 12px 0;
     overflow: visible;
   }
   .ws-init-line {
@@ -128,31 +128,31 @@ const INIT_CSS = `
     max-width: 100%;
     box-sizing: border-box;
     font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
-    font-size: clamp(17px, 4.6vw, 22px);
-    line-height: 1.4;
-    letter-spacing: -0.018em;
+    font-size: clamp(22px, 3.2vw, 36px);
+    line-height: 1.25;
+    letter-spacing: -0.028em;
     font-weight: 400;
-    color: rgba(230, 232, 238, 0.92);
-    text-align: center;
+    color: rgba(245, 245, 247, 0.92);
+    text-align: left;
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: normal;
     text-wrap: balance;
-    padding: 0 4px;
-    /* reserve height so wrap / swap doesn't jump */
+    padding: 0;
     min-height: 2.8em;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     animation: wsInitIn .42s cubic-bezier(.16,1,.3,1) both;
   }
   .ws-init-track {
-    width: min(160px, 38vw);
+    width: min(200px, 42vw);
     height: 2px;
     border-radius: 999px;
     background: rgba(230, 232, 238, 0.08);
     overflow: hidden;
     flex-shrink: 0;
+    align-self: flex-start;
   }
   .ws-init-fill {
     height: 100%;
@@ -173,10 +173,21 @@ const INIT_CSS = `
       filter: blur(0);
     }
   }
+  @media (max-width: 768px) {
+    .ws-init {
+      padding: clamp(56px, 12vh, 88px) 32px 24px;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    .ws-init-line {
+      font-size: 28px;
+      line-height: 32px;
+    }
+  }
   @media (max-width: 380px) {
     .ws-init-line {
-      font-size: 16.5px;
-      letter-spacing: -0.012em;
+      font-size: 24px;
+      letter-spacing: -0.02em;
     }
   }
   @media (prefers-reduced-motion: reduce) {

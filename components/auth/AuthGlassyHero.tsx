@@ -106,6 +106,11 @@ export const AUTH_GLASSY_HERO_CSS = `
   }
   .al-gword-lead {
     color: inherit;
+    opacity: 1;
+  }
+  .al-gword-inner.al-hero-gray {
+    color: inherit;
+    opacity: 0.58;
   }
   @keyframes alGwordIn {
     from {

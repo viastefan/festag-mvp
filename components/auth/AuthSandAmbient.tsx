@@ -1,9 +1,8 @@
 'use client'
 
 /**
- * Auth atmosphere — primary-dusk wash for Dev onboarding.
- * Cool slate glow from Festag primary `#5B647D`, still deep and dark.
- * Other variants stay flat (Festag Night / light auth).
+ * Auth atmosphere — quiet graphite depth for the auth OS.
+ * Almost monochromatic; never colorful. Primary blue lives only on CTAs.
  */
 
 export type AuthSandVariant =
@@ -57,27 +56,27 @@ const DUSK_CSS = `
   }
   .auth-sand-ambient__glow--top {
     top: -18%;
-    left: 50%;
+    left: 40%;
+    width: 110%;
+    height: 48%;
+    transform: translateX(-50%);
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.045) 0%,
+      rgba(255, 255, 255, 0.012) 42%,
+      transparent 70%
+    );
+  }
+  .auth-sand-ambient__glow--bottom {
+    left: 55%;
+    bottom: -22%;
     width: 120%;
     height: 52%;
     transform: translateX(-50%);
     background: radial-gradient(
       ellipse at center,
-      rgba(91, 100, 125, 0.16) 0%,
-      rgba(91, 100, 125, 0.05) 42%,
-      transparent 70%
-    );
-  }
-  .auth-sand-ambient__glow--bottom {
-    left: 50%;
-    bottom: -22%;
-    width: 130%;
-    height: 58%;
-    transform: translateX(-50%);
-    background: radial-gradient(
-      ellipse at center,
-      rgba(91, 100, 125, 0.14) 0%,
-      rgba(70, 78, 102, 0.05) 42%,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.01) 42%,
       transparent 72%
     );
   }

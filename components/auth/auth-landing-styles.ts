@@ -281,11 +281,11 @@ const AUTH_LANDING_STYLES_BASE = `
           margin:0;
           padding:0;
           width:100%;
-          text-align:center;
-          font-size:13px;
+          text-align:left;
+          font-size:13.5px;
           font-weight:400;
           line-height:1.5;
-          letter-spacing:0.02em;
+          letter-spacing:0.01em;
           color:rgba(245,245,247,0.42);
         }
         .al-agreements .al-account-hint {
@@ -3005,7 +3005,7 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Mode switch lives under content in .al-auth-switch — never hide it. */
           .al-auth-switch .al-account-hint {
             display:block !important;
-            text-align:center;
+            text-align:left;
           }
           .al-root[data-auth-mode="signup"] .al-content > .al-account-hint {
             display:none !important;

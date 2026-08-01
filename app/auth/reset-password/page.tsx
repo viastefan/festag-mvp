@@ -112,7 +112,13 @@ function ResetPasswordInner() {
                         <AuthGlassyHero
                           animKey={done ? 'rp-done' : 'rp'}
                           lead={done ? 'Alles bereit.' : 'Neues Passwort.'}
+                          rest={done ? ' Du kannst dich wieder anmelden.' : ' Sicher und nur für dich.'}
                         />
+                        <p className="al-os-support">
+                          {done
+                            ? 'Einen Moment — wir bringen dich zurück in deinen Workspace.'
+                            : 'Wähle ein starkes Passwort. Danach geht es direkt weiter.'}
+                        </p>
                       </div>
                     </div>
                     <div className="al-content">
