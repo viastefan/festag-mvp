@@ -224,15 +224,14 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             rows={1}
             placeholder=""
             aria-label={`Ziel, z. B. ${example}`}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => onChange(e.target.value.replace(/\r?\n/g, ' '))}
             onFocus={openAssist}
             onClick={openAssist}
             onBlur={scheduleCloseAssist}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && enough) {
-                e.preventDefault()
-                onAdvance()
-              }
+              if (e.key !== 'Enter') return
+              e.preventDefault()
+              if (enough) onAdvance()
             }}
             style={{
               minHeight: INTENT_FIELD_MIN_H,
@@ -287,8 +286,10 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
           ) : null}
         </div>
 
-        {ready ? (
-          <p className="mob-ready-hint">Tagro hat genug — Enter oder wische weiter.</p>
+        {hasText ? (
+          <p className={`mob-ready-hint${enough ? ' is-ready' : ''}`}>
+            Mit Enter geht es weiter
+          </p>
         ) : null}
 
         {showTagroPanel ? (

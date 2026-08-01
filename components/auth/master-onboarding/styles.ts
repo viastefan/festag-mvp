@@ -176,12 +176,17 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
 
   .mob-ready-hint {
-    margin: 14px 0 0;
+    margin: 10px 0 0;
     font-size: 13px;
     line-height: 1.45;
     letter-spacing: 0.02em;
     color: var(--mob-muted);
+    opacity: 0.72;
     animation: mobShellIn .28s ease both;
+  }
+  .mob-ready-hint.is-ready {
+    opacity: 1;
+    color: var(--mob-ink);
   }
   @keyframes mobShellIn {
     from { opacity: 0; transform: translateY(4px); }

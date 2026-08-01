@@ -1665,15 +1665,16 @@ function IntentCanvasStage({
 						rows={1}
 						placeholder=""
 						aria-label={`Ziel, z. B. ${example}`}
-						onChange={(e: { target: { value: string } }) => onChange(e.target.value)}
+						onChange={(e: { target: { value: string } }) =>
+							onChange(e.target.value.replace(/\r?\n/g, ' '))
+						}
 						onFocus={openAssist}
 						onClick={openAssist}
 						onBlur={scheduleCloseAssist}
-						onKeyDown={(e: { key: string; shiftKey: boolean; preventDefault: () => void }) => {
-							if (e.key === 'Enter' && !e.shiftKey && enough) {
-								e.preventDefault()
-								onAdvance()
-							}
+						onKeyDown={(e: { key: string; preventDefault: () => void }) => {
+							if (e.key !== 'Enter') return
+							e.preventDefault()
+							if (enough) onAdvance()
 						}}
 						style={{
 							width: '100%',
@@ -1790,18 +1791,19 @@ function IntentCanvasStage({
 					) : null}
 				</div>
 
-				{ready ? (
+				{hasText ? (
 					<p
 						style={{
-							margin: '14px 0 0',
+							margin: '10px 0 0',
 							fontSize: 13,
 							lineHeight: 1.45,
-							color: t.muted,
+							color: enough ? t.ink : t.muted,
+							opacity: enough ? 1 : 0.72,
 							letterSpacing: '0.02em',
 							animation: 'masterShellIn .28s ease both',
 						}}
 					>
-						Tagro hat genug — Enter oder wische weiter.
+						Mit Enter geht es weiter
 					</p>
 				) : null}
 
