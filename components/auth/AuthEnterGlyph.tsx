@@ -2,7 +2,7 @@
 
 /**
  * Discreet Enter affordance inside primary auth CTAs (Weiter, Bestätigen).
- * SVG (not ↵ text) so Aeonik / custom fonts never drop the glyph.
+ * Hairline stroke (not filled) — always readable on light and dark CTAs.
  * Layout: label left, icon right.
  */
 export default function AuthEnterGlyph({ ready = true }: { ready?: boolean }) {
@@ -13,15 +13,25 @@ export default function AuthEnterGlyph({ ready = true }: { ready?: boolean }) {
     >
       <svg
         className="al-enter-glyph-svg"
-        width="15"
-        height="15"
+        width="14"
+        height="14"
         viewBox="0 0 16 16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path
-          d="M12.5 3.5v5.25a1.75 1.75 0 0 1-1.75 1.75H4.56l1.72 1.72a.75.75 0 1 1-1.06 1.06l-3-3a.75.75 0 0 1 0-1.06l3-3a.75.75 0 0 1 1.06 1.06L4.56 8.75h6.19c.14 0 .25-.11.25-.25V3.5a.75.75 0 0 1 1.5 0Z"
-          fill="currentColor"
+          d="M3.5 9.75h6.25A2.75 2.75 0 0 0 12.5 7V3.5"
+          stroke="currentColor"
+          strokeWidth="1.15"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M5.75 7.25 3.5 9.75l2.25 2.5"
+          stroke="currentColor"
+          strokeWidth="1.15"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     </span>
@@ -49,28 +59,41 @@ export const AUTH_ENTER_GLYPH_CSS = `
     justify-content: center;
     flex: 0 0 auto !important;
     margin-left: auto;
-    width: 16px;
-    height: 16px;
-    color: #5B647D !important;
-    opacity: 0;
-    transform: translateY(0.5px);
-    transition: opacity 0.28s cubic-bezier(.22,1,.36,1), transform 0.28s cubic-bezier(.22,1,.36,1);
+    width: 15px;
+    height: 15px;
+    /* Primary cursor slate — always visible on white / bone CTAs */
+    color: var(--festag-caret, #66708D) !important;
+    opacity: 0.62;
+    transform: none;
+    transition: opacity 0.22s cubic-bezier(.22,1,.36,1);
     pointer-events: none;
     user-select: none;
   }
   .al-enter-glyph-svg {
     display: block;
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
+    overflow: visible;
   }
   .al-btn.al-btn-primary--ready .al-enter-glyph.is-ready,
   .al-enter-glyph.is-ready {
-    opacity: 0.78 !important;
-    transform: none;
+    opacity: 0.92 !important;
   }
+  /* Stay visible while loading — only slightly quieter */
   .al-btn:disabled .al-enter-glyph,
   .al-btn:disabled .al-enter-glyph.is-ready {
-    opacity: 0 !important;
+    opacity: 0.48 !important;
+  }
+  .al-root[data-theme="dark"] .al-enter-glyph,
+  .al-root.onb-sand-dark .al-enter-glyph,
+  .dl-root[data-theme="dark"] .al-enter-glyph {
+    color: rgba(230, 232, 238, 0.78) !important;
+  }
+  .al-root[data-theme="dark"] .al-btn-primary--ready .al-enter-glyph,
+  .al-root.onb-sand-dark .al-btn-primary--ready .al-enter-glyph,
+  .dl-root[data-theme="dark"] .al-btn-primary--ready .al-enter-glyph {
+    /* Bone / ready plate — soft dark ink, not washed slate */
+    color: rgba(26, 25, 23, 0.55) !important;
   }
   /* Full-page light auth — keep column calm and vertically centered */
   .al-root.al-root--centered[data-theme="light"][data-auth-mode="login"] .al-main,
@@ -85,16 +108,16 @@ export const AUTH_ENTER_GLYPH_CSS = `
       padding-right: 14px !important;
     }
     .al-enter-glyph {
-      width: 15px;
-      height: 15px;
-    }
-    .al-enter-glyph-svg {
       width: 14px;
       height: 14px;
     }
+    .al-enter-glyph-svg {
+      width: 13px;
+      height: 13px;
+    }
     .al-btn.al-btn-primary--ready .al-enter-glyph.is-ready,
     .al-enter-glyph.is-ready {
-      opacity: 0.72 !important;
+      opacity: 0.9 !important;
     }
     .al-root.al-root--centered[data-theme="light"][data-auth-mode="login"] .al-main,
     .al-root.al-root--centered[data-theme="light"][data-auth-mode="signup"] .al-main {

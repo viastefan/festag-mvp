@@ -1653,7 +1653,8 @@ export const AUTH_OS_STYLES = `
     box-shadow: none !important;
   }
   .al-root.al-root--gate[data-theme="light"] .al-btn-primary--ready .al-enter-glyph.is-ready {
-    opacity: 0.42;
+    opacity: 0.88;
+    color: var(--festag-caret, #66708D) !important;
   }
   .al-root.al-root--gate[data-theme="light"] .al-input,
   .al-root.al-root--gate[data-theme="light"] .al-input-shell .al-input {
