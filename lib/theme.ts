@@ -202,6 +202,12 @@ export function setTheme(mode: ThemeMode, surface?: ThemeSurface) {
 
 export function setFontMode(mode: FontMode) {
   localStorage.setItem(FONT_KEY, mode)
+  /* User made an explicit choice — don't re-migrate Geist→Aeonik on next load. */
+  try {
+    localStorage.setItem('festag_font_aeonik_default', '1')
+  } catch {
+    /* ignore */
+  }
   applyFontMode(mode)
   window.dispatchEvent(new CustomEvent('festag-font', { detail: mode }))
 }
@@ -251,11 +257,11 @@ export function applyAppearancePreferences(pathname?: string) {
 }
 
 export function getFontMode(): FontMode {
-  if (typeof window === 'undefined') return 'geist'
+  if (typeof window === 'undefined') return 'aeonik'
   const saved = localStorage.getItem(FONT_KEY)
   if (saved === 'sf-pro') return 'sf-pro'
-  if (saved === 'aeonik') return 'aeonik'
-  return 'geist'
+  if (saved === 'geist') return 'geist'
+  return 'aeonik'
 }
 
 export function getDensityMode(): DensityMode {

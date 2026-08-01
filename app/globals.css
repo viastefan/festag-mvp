@@ -16,8 +16,7 @@
   font-weight: 500; font-style: italic; font-display: swap;
 }
 
-/* Geist — aktiv als UI-Default. Aeonik bleibt geladen für schnellen Rollback
-   (Einstellungen → Schrift → Aeonik, oder --font-aeonik wieder auf --font-aeonik-face). */
+/* Geist — optional UI font (Einstellungen → Schrift). Aeonik is the product default. */
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-Regular.ttf') format('truetype');
@@ -1407,16 +1406,15 @@ body.locked { overflow: hidden; touch-action: none; }
 }
 
 /* Global typography system
-   ACTIVE DEFAULT: Geist.
-   Rollback: Einstellungen → Schrift → Aeonik (setzt data-font="aeonik"),
-   oder hier --font-aeonik / --font-primary wieder auf var(--font-aeonik-face). */
+   ACTIVE DEFAULT: Aeonik.
+   Optional: Einstellungen → Schrift → Geist / SF Pro. */
 :root {
   --font-geist: 'Geist', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
   --font-aeonik-face: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
   /* Legacy token used across the codebase — points at the active UI font. */
-  --font-aeonik: var(--font-geist);
+  --font-aeonik: var(--font-aeonik-face);
   --font-sf-pro: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  --font-primary: var(--font-geist);
+  --font-primary: var(--font-aeonik-face);
   --font-ui: var(--font-primary);
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;

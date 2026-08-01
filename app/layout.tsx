@@ -78,7 +78,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" data-theme="light" data-theme-surface="client" data-font="geist" suppressHydrationWarning>
+    <html lang="de" data-theme="light" data-theme-surface="client" data-font="aeonik" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -158,7 +158,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   document.documentElement.lang = lang;
   document.documentElement.setAttribute('data-language', lang);
   var font = localStorage.getItem('festag_font');
-  if (font !== 'aeonik' && font !== 'sf-pro' && font !== 'geist') font = 'geist';
+  /* One-time: old product default was Geist — switch to Aeonik unless already migrated. */
+  if (font === 'geist' && !localStorage.getItem('festag_font_aeonik_default')) {
+    font = 'aeonik';
+    try {
+      localStorage.setItem('festag_font', 'aeonik');
+      localStorage.setItem('festag_font_aeonik_default', '1');
+    } catch (_) {}
+  }
+  if (font !== 'aeonik' && font !== 'sf-pro' && font !== 'geist') font = 'aeonik';
   document.documentElement.setAttribute('data-font', font);
 }catch(e){}})();
             `.trim(),

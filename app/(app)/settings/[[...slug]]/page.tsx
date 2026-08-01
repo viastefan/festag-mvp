@@ -234,7 +234,7 @@ export default function SettingsPage() {
   const workspace = useSettingsWorkspace()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setLocalTheme] = useState<ThemeMode>('light')
-  const [font, setLocalFont] = useState<FontMode>('geist')
+  const [font, setLocalFont] = useState<FontMode>('aeonik')
   const [uiDensity, setLocalUiDensity] = useState<UiDensity>('comfortable')
   const [reducedMotion, setLocalReducedMotion] = useState(false)
   const [avatarColor, setLocalAvatarColor] = useState<string>(AVATAR_COLORS[12])
@@ -1536,22 +1536,22 @@ export default function SettingsPage() {
             <div className="set-row">
               <div>
                 <div className="set-label">Schrift</div>
-                <div className="set-label-sub">Geist ist der Default. Aeonik bleibt zum Zurücksetzen, SF Pro folgt dem System.</div>
+                <div className="set-label-sub">Aeonik ist der Default. Geist und SF Pro bleiben optional.</div>
               </div>
               <div className="set-segment">
-                <button
-                  type="button"
-                  className={font === 'geist' ? 'on' : ''}
-                  onClick={() => pickFont('geist')}
-                >
-                  Geist
-                </button>
                 <button
                   type="button"
                   className={font === 'aeonik' ? 'on' : ''}
                   onClick={() => pickFont('aeonik')}
                 >
                   Aeonik
+                </button>
+                <button
+                  type="button"
+                  className={font === 'geist' ? 'on' : ''}
+                  onClick={() => pickFont('geist')}
+                >
+                  Geist
                 </button>
                 <button
                   type="button"
