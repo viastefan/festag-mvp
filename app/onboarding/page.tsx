@@ -20,7 +20,6 @@ import {
 } from '@/lib/auth-theme'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
-import AuthEnterHint from '@/components/auth/AuthEnterHint'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 
 import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
@@ -1392,7 +1391,7 @@ export default function BuildProjectsOnboardingPage() {
           </div>
           <button
             type="button"
-            className={`onb-command-cta onb-command-cta--enter${commandDisabled ? '' : ' is-ready'}`}
+            className={`onb-command-cta${commandDisabled ? '' : ' is-ready'}`}
             disabled={commandDisabled}
             onClick={() => void handleContinue()}
           >
@@ -1400,7 +1399,6 @@ export default function BuildProjectsOnboardingPage() {
             <span className="onb-command-arrow" aria-hidden>
               →
             </span>
-            <AuthEnterHint ready={!commandDisabled} />
           </button>
         </div>
       </div>

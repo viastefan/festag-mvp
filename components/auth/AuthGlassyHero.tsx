@@ -14,6 +14,8 @@ type Props = {
   className?: string
   /** Two-line titles (e.g. Melde dich an / bei Festag.) as separate lead lines. */
   lines?: string[]
+  /** Skip word-rise — used for soft login ↔ register swaps. */
+  instant?: boolean
 }
 
 function Words({
@@ -50,11 +52,15 @@ export default function AuthGlassyHero({
   animKey,
   className = '',
   lines,
+  /** Skip word-rise — used for soft login ↔ register swaps. */
+  instant = false,
 }: Props) {
+  const heroClass = `al-title al-title-display al-glassy-hero${instant ? ' al-glassy-hero--instant' : ''}${className ? ` ${className}` : ''}`
+
   if (lines && lines.length > 0) {
     let i = 0
     return (
-      <h1 key={animKey} className={`al-title al-title-display al-glassy-hero ${className}`.trim()}>
+      <h1 key={animKey} className={heroClass}>
         {lines.map((line, li) => {
           const start = i
           const count = line.trim().split(/\s+/).filter(Boolean).length
@@ -72,7 +78,7 @@ export default function AuthGlassyHero({
 
   const leadCount = lead.trim().split(/\s+/).filter(Boolean).length
   return (
-    <h1 key={animKey} className={`al-title al-title-display al-glassy-hero ${className}`.trim()}>
+    <h1 key={animKey} className={heroClass}>
       <Words text={lead} tone="lead" startIndex={0} />
       {rest.trim() ? <Words text={rest} tone="muted" startIndex={leadCount} /> : null}
     </h1>
@@ -104,13 +110,43 @@ export const AUTH_GLASSY_HERO_CSS = `
     animation: alGwordIn .58s cubic-bezier(.16, 1, .3, 1) both;
     animation-delay: calc(var(--i, 0) * 32ms);
   }
+  .al-glassy-hero--instant .al-gword-inner {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  /* Soft login ↔ register: panel stays; never re-run glassy / assemble.
+     al-soft-mode persists for the shell lifetime so animations don't restart
+     when the brief al-soft-enter pulse ends. */
+  .al-root.al-soft-mode .al-gword-inner,
+  .al-root.al-soft-mode .al-hero-secondary,
+  .al-root.al-soft-mode .al-signin:not(.al-signin--out) > .al-content:not(.animating),
+  .al-root.al-soft-enter .al-gword-inner,
+  .al-root.al-soft-enter .al-hero-secondary,
+  .al-root.al-soft-enter .al-signin:not(.al-signin--out) > .al-content:not(.animating) {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .al-root.al-soft-enter .al-signin-head,
+  .al-root.al-soft-enter .al-signin > .al-content,
+  .al-root.al-soft-enter .al-auth-switch {
+    animation: alSoftSwapFade 0.18s ease both !important;
+  }
+  @keyframes alSoftSwapFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
   .al-gword-lead {
-    color: inherit;
+    color: #F5F5F7;
     opacity: 1;
   }
+  /* One H1 size — muted rest is gray ink, not a second title scale. */
   .al-gword-inner.al-hero-gray {
-    color: inherit;
-    opacity: 0.58;
+    color: #8B909A;
+    opacity: 1;
   }
   @keyframes alGwordIn {
     from {

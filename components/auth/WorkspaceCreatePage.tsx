@@ -14,8 +14,8 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
-import AuthEnterHint from '@/components/auth/AuthEnterHint'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
+import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnterGlyph'
 import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import {
   getPendingWorkspaceName,
@@ -275,6 +275,7 @@ export default function WorkspaceCreatePage() {
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>
       <style>{AUTH_GLASSY_HERO_CSS}</style>
+      <style>{AUTH_ENTER_GLYPH_CSS}</style>
       <AuthSandAmbient variant="dev-onboarding" />
 
       <div className="al-container">
@@ -371,13 +372,13 @@ export default function WorkspaceCreatePage() {
                       <div className="al-signin-stack">
                         {error ? <p className="al-error">{error}</p> : null}
                         <button
-                          className={`al-btn al-btn-primary al-btn--enter-hint${ready && !submitting ? ' al-btn-primary--ready' : ''}`}
+                          className={`al-btn al-btn-primary al-btn--enter-glyph${ready && !submitting ? ' al-btn-primary--ready' : ''}`}
                           type="button"
                           onClick={() => void handleCreate()}
                           disabled={submitting || !ready}
                         >
                           <span className="al-btn-label">{submitting ? 'Wird erstellt…' : 'Weiter'}</span>
-                          <AuthEnterHint ready={ready && !submitting} />
+                          <AuthEnterGlyph ready={ready && !submitting} />
                         </button>
                       </div>
                     </div>

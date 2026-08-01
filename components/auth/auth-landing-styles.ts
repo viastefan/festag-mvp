@@ -861,9 +861,11 @@ const AUTH_LANDING_STYLES_BASE = `
           opacity:0;
           pointer-events:none;
         }
+        .al-root.al-soft-mode .al-signin:not(.al-signin--out),
         .al-root.al-soft-enter .al-signin:not(.al-signin--out) {
-          animation: alContentIn 0.22s cubic-bezier(.22,1,.36,1) both;
+          animation: none;
         }
+        .al-root.al-soft-mode .al-content:not(.animating),
         .al-root.al-soft-enter .al-content:not(.animating) {
           animation: none;
         }
@@ -2721,17 +2723,18 @@ const AUTH_LANDING_STYLES_BASE = `
             white-space:nowrap;
           }
 
-          /* Staggered OS entrance — logo → headline → controls → footer. */
-          .al-root:not(.exiting):not(.al-panel-enter) .al-header {
+          /* Staggered OS entrance — logo → headline → controls → footer.
+             Skip when soft-mode (login↔register) so rise/glassy never re-fire. */
+          .al-root:not(.exiting):not(.al-panel-enter):not(.al-soft-mode):not(.al-soft-enter) .al-header {
             animation: alOsChromeIn .7s cubic-bezier(.22,1,.36,1) both;
           }
-          .al-root:not(.exiting):not(.al-panel-enter) .al-signin-head {
+          .al-root:not(.exiting):not(.al-panel-enter):not(.al-soft-mode):not(.al-soft-enter) .al-signin-head {
             animation: alOsRiseIn .78s cubic-bezier(.22,1,.36,1) .08s both;
           }
-          .al-root:not(.exiting):not(.al-panel-enter) .al-content {
+          .al-root:not(.exiting):not(.al-panel-enter):not(.al-soft-mode):not(.al-soft-enter) .al-content {
             animation: alOsRiseIn .82s cubic-bezier(.22,1,.36,1) .16s both;
           }
-          .al-root:not(.exiting):not(.al-panel-enter) .al-footer-meta {
+          .al-root:not(.exiting):not(.al-panel-enter):not(.al-soft-mode):not(.al-soft-enter) .al-footer-meta {
             animation: alOsChromeIn .7s cubic-bezier(.22,1,.36,1) .28s both;
           }
           @keyframes alOsRiseIn {
@@ -2746,6 +2749,10 @@ const AUTH_LANDING_STYLES_BASE = `
               filter:blur(0);
             }
           }
+          .al-root.al-soft-mode:not(.exiting):not(.al-panel-enter) .al-header,
+          .al-root.al-soft-mode:not(.exiting):not(.al-panel-enter) .al-signin-head,
+          .al-root.al-soft-mode:not(.exiting):not(.al-panel-enter) .al-content,
+          .al-root.al-soft-mode:not(.exiting):not(.al-panel-enter) .al-footer-meta,
           .al-root.al-soft-enter:not(.exiting):not(.al-panel-enter) .al-header,
           .al-root.al-soft-enter:not(.exiting):not(.al-panel-enter) .al-signin-head,
           .al-root.al-soft-enter:not(.exiting):not(.al-panel-enter) .al-content,

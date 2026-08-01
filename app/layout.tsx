@@ -166,7 +166,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  { background:#070708; color-scheme:dark; }
           html[data-theme="read"]  { background:#F5F2ED; color-scheme:light; }
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
-          html[data-theme="light"][data-auth-landing] { background:#FFFFFF; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] { background:#F5F5F7; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
@@ -175,7 +175,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  body { background:#070708; }
           html[data-theme="read"]  body { background:#F5F2ED; }
           html[data-theme="light"] body { background:#F5F5F7; }
-          html[data-theme="light"][data-auth-landing] body { background:#FFFFFF; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] body { background:#F5F5F7; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] body { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] body { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }

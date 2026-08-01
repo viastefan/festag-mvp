@@ -11,9 +11,9 @@ import { Hexagon, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
+import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnterGlyph'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
-import AuthEnterHint from '@/components/auth/AuthEnterHint'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { joinCompletionRedirect } from '@/lib/platform/join'
 
@@ -191,6 +191,7 @@ function JoinProjectInner() {
     <main className="al-root al-root--centered onb-sand-dark" data-theme="dark">
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>
+      <style>{AUTH_ENTER_GLYPH_CSS}</style>
       <style>{JOIN_CSS}</style>
       <AuthSandAmbient variant="dev-onboarding" />
 
@@ -287,11 +288,11 @@ function JoinProjectInner() {
 
                         <button
                           type="submit"
-                          className={`al-btn al-btn-primary al-btn--enter-hint onb-cta${ready ? ' al-btn-primary--ready' : ''}`}
+                          className={`al-btn al-btn-primary al-btn--enter-glyph onb-cta${ready ? ' al-btn-primary--ready' : ''}`}
                           disabled={submitting || !ready}
                         >
                           <span className="al-btn-label">{submitting ? 'Öffne…' : 'Weiter'}</span>
-                          <AuthEnterHint ready={ready && !submitting} />
+                          <AuthEnterGlyph ready={ready && !submitting} />
                         </button>
                       </form>
                     </div>

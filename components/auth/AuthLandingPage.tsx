@@ -16,11 +16,9 @@ import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
+import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnterGlyph'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
-import AuthEnterHint from '@/components/auth/AuthEnterHint'
-import AuthDestinationPreview from '@/components/auth/AuthDestinationPreview'
-import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
@@ -205,7 +203,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [accountExistsFor, setAccountExistsFor] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
   const { setMode: setThemeMode, rootRef } = useAuthTheme('client')
+  // Gate is light by default — serious, calm, subscribe-ready (dark only as opt-in elsewhere).
+  useLayoutEffect(() => {
+    setThemeMode('light')
+  }, [setThemeMode])
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
+  /** After first soft login↔register flip, stay locked so gate/glassy never re-fire. */
+  const [softModeLocked, setSoftModeLocked] = useState(softModeEnter)
+  const [softEnterPulse, setSoftEnterPulse] = useState(softModeEnter)
   const [booting, setBooting] = useState(() => !softModeEnter)
   const [supportOpen, setSupportOpen] = useState(false)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
@@ -642,35 +647,16 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
     const href = `${url.pathname}${url.search}`
-    // Push (not replace) so mobile back returns to the previous auth mode.
-    // Shared (client-auth) layout keeps this page mounted — only `mode` flips.
+    // Soft in-shell flip — panel stays planted; only mode/content swaps.
     try { router.prefetch(href) } catch { /* noop */ }
     try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
-    prepareAuthRouteTransition(href)
-    // Soft crossfade — opacity only. Instant push was a flicker; scale made it wobble.
-    setAnimating(true)
-    const delay = prefersReducedMotion() ? 0 : 160
-    window.setTimeout(() => {
-      try {
-        router.push(href)
-      } catch {
-        window.location.assign(href)
-        return
-      }
-      // Localhost soft-nav can stall on cold compile. Never leave the card
-      // faded + pointer-events:none — restore UI, then hard-assign if needed.
-      window.setTimeout(() => {
-        const here = window.location.pathname
-        const arrived = here === targetPath || here.startsWith(`${targetPath}/`)
-        if (arrived) return
-        setAnimating(false)
-        window.setTimeout(() => {
-          const still = window.location.pathname
-          if (still === targetPath || still.startsWith(`${targetPath}/`)) return
-          window.location.assign(href)
-        }, 900)
-      }, 400)
-    }, delay)
+    setSoftModeLocked(true)
+    setSoftEnterPulse(true)
+    try {
+      router.push(href)
+    } catch {
+      window.location.assign(href)
+    }
   }
 
   function navigateWithFade(href: string) {
@@ -852,8 +838,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }, [])
 
   // In-shell mode flips (link + browser back) — instant, no remount / no boot.
+  // softModeLocked stays for the shell lifetime so gate/glassy CSS never re-fires
+  // when the brief al-soft-enter pulse ends.
   const modeMountedRef = useRef(false)
-  const [softEnterPulse, setSoftEnterPulse] = useState(softModeEnter)
   useEffect(() => {
     if (!modeMountedRef.current) {
       modeMountedRef.current = true
@@ -886,12 +873,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         setWsNameEditing(true)
       }
     } catch { /* noop */ }
+    setSoftModeLocked(true)
     setSoftEnterPulse(true)
   }, [mode, isSignup])
 
   useEffect(() => {
     if (!softEnterPulse) return
-    const t = window.setTimeout(() => setSoftEnterPulse(false), 240)
+    const t = window.setTimeout(() => setSoftEnterPulse(false), 220)
     return () => window.clearTimeout(t)
   }, [softEnterPulse, mode])
 
@@ -1329,8 +1317,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     onSubmit: () => { void handleVerifyCode() },
   })
 
-  const googleLabelFull = isSignup ? 'Mit Google registrieren' : 'Mit Google fortfahren'
-  const appleLabelFull = isSignup ? 'Mit Apple registrieren' : 'Mit Apple fortfahren'
+  const googleLabelFull = 'Mit Google'
+  const appleLabelFull = 'Mit Apple'
 
   const googleButton = (
     <button
@@ -1403,13 +1391,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
       <div className="al-method-group al-method-group--oauth">
         {googleButton}
-        {!isSignup && lastMethod === 'google' && (
-          <p className="al-hint al-hint--last">Zuletzt hier angemeldet</p>
-        )}
         {appleButton}
-        {!isSignup && lastMethod === 'apple' && (
-          <p className="al-hint al-hint--last">Zuletzt hier angemeldet</p>
-        )}
       </div>
 
       <div className="al-divider" aria-hidden="true">
@@ -1457,17 +1439,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         ) : null}
         <button
-          className={`al-btn al-btn-primary al-btn--enter-hint${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
+          className={`al-btn al-btn-primary al-btn--enter-glyph${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleEmailSubmit}
           disabled={loading || (isSignup && !hasInvite && !wsReadyForSignup)}
         >
           <span className="al-btn-label">{loading ? 'Wird gesendet…' : 'Weiter'}</span>
-          <AuthEnterHint ready={emailCtaReady && !loading} />
+          <AuthEnterGlyph ready={emailCtaReady && !loading} />
         </button>
-        {!isSignup && lastMethod === 'email' && (
-          <p className="al-hint al-hint--last-email">Zuletzt hier angemeldet</p>
-        )}
       </div>
 
       <div className="al-method-group al-sso-group">
@@ -1477,11 +1456,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           onClick={() => { void openSsoFlow() }}
           disabled={oauthLoading || (isSignup && !hasInvite && !wsReadyForSignup)}
         >
-          Single Sign-On (SSO)
+          SSO
         </button>
-        {!isSignup && lastMethod === 'sso' && (
-          <p className="al-hint al-hint--last-sso">Zuletzt hier angemeldet</p>
-        )}
       </div>
 
       {!isSignup && showForgotPassword ? (
@@ -1538,13 +1514,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           />
         </div>
         <button
-          className={`al-btn al-btn-primary al-btn--enter-hint${ssoReady ? ' al-btn-primary--ready' : ''}`}
+          className={`al-btn al-btn-primary al-btn--enter-glyph${ssoReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleSsoSubmit}
           disabled={oauthLoading || !ssoDomainPreview}
         >
           <span className="al-btn-label">{oauthLoading ? 'Weiterleitung…' : 'Weiter'}</span>
-          <AuthEnterHint ready={ssoReady && !oauthLoading} />
+          <AuthEnterGlyph ready={ssoReady && !oauthLoading} />
         </button>
         <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
       </div>
@@ -1581,13 +1557,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         autoFocus
       />
       <button
-        className="al-btn al-btn-primary al-btn-primary--ready al-btn--enter-hint"
+        className="al-btn al-btn-primary al-btn-primary--ready al-btn--enter-glyph"
         type="button"
         onClick={() => handleVerifyCode()}
         disabled={loading}
       >
         <span className="al-btn-label">{loading ? 'Wird geprüft…' : 'Bestätigen'}</span>
-        <AuthEnterHint ready={!loading} />
+        <AuthEnterGlyph ready={!loading} />
       </button>
       <p className="al-code-help">
         Sie haben keinen Code erhalten?{' '}
@@ -1627,16 +1603,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const accountHint = !subFlow ? (
     isSignup ? (
       <p className="al-account-hint">
-        Du hast bereits ein Konto?{' '}
         <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
           Anmelden
         </button>
       </p>
     ) : (
       <p className="al-account-hint">
-        Noch kein Konto?{' '}
         <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
-          Registrieren
+          Konto erstellen
         </button>
       </p>
     )
@@ -1646,22 +1620,19 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     return (
       <main
         ref={rootRef}
-        className="al-root al-root--centered al-root--gate onb-sand-dark"
-        data-theme="dark"
+        className="al-root al-root--centered"
+        data-theme="light"
         data-auth-mode={mode}
         style={{
           minHeight: '100dvh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'transparent',
         }}
       >
+        <style>{AUTH_LANDING_STYLES}</style>
         <style>{AUTH_OS_STYLES}</style>
-        <AuthDestinationPreview kind={isSignup ? 'onboarding' : 'dashboard'} />
-        <div style={{ position: 'relative', zIndex: 3 }}>
-          <FestagWorkingDots size="lg" label="Lädt" />
-        </div>
+        <FestagWorkingDots size="lg" label="Lädt" />
       </main>
     )
   }
@@ -1669,25 +1640,25 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   return (
     <main
       ref={rootRef}
-      className={`al-root al-root--centered al-root--gate onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
-      data-theme="dark"
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softModeLocked ? ' al-soft-mode' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
+      data-theme="light"
       data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>
       <style>{AUTH_GLASSY_HERO_CSS}</style>
-      <AuthDestinationPreview kind={isSignup ? 'onboarding' : 'dashboard'} />
+      <style>{AUTH_ENTER_GLYPH_CSS}</style>
 
       <div className="al-container">
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
             <img
-              className="al-wordmark-img al-wordmark-img--dark"
-              src="/brand/festag-mark-fluid.png?v=20260731"
+              className="al-wordmark-img al-wordmark-img--light"
+              src="/brand/festag-mark.png?v=20260727-cutout"
               alt=""
               aria-hidden="true"
-              width={36}
-              height={36}
+              width={28}
+              height={28}
             />
           </span>
           <div className="al-header-actions">
@@ -1701,26 +1672,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
                   <section
-                    key={mode}
-                    className={`al-signin al-gate-sheet${animating ? ' al-signin--out' : ''}`}
+                    className={`al-signin${animating ? ' al-signin--out' : ''}`}
                     aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}
-                    role="dialog"
-                    aria-modal="true"
                   >
-                    {isMobileAuth ? (
-                      <FestagPopupDragHandle
-                        onDismiss={() => {
-                          /* Auth gate stays open — grip is OS affordance, not dismiss. */
-                        }}
-                        label="Auth-Sheet"
-                        visible={!animating}
-                      />
-                    ) : null}
                     <div className="al-signin-head">
                       {!subFlow && emailTakenActive ? (
                         <div className="al-hero-copy al-hero-copy--status">
                           <AuthGlassyHero
                             animKey="email-taken"
+                            instant={softModeLocked}
                             className="al-title--status"
                             lead={EMAIL_ALREADY_USED_TITLE}
                           />
@@ -1728,40 +1688,23 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       ) : !subFlow ? (
                         <div className="al-hero-copy">
                           {isSignup ? (
-                            <>
-                              <AuthGlassyHero
-                                animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
-                                lead={devInviteToken ? 'Einladung annehmen.' : 'Alles beginnt hier.'}
-                                rest={devInviteToken ? ' Willkommen im Workspace.' : ' Dein Workspace entsteht in wenigen Schritten.'}
-                              />
-                              <p className="al-os-support">
-                                {devInviteToken
-                                  ? 'Du trittst einem bestehenden Workspace bei — ohne Setup-Theater.'
-                                  : 'Ein Name, ein Zugang, dann baut Tagro den Rest mit dir.'}
-                              </p>
-                            </>
+                            <AuthGlassyHero
+                              animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
+                              instant={softModeLocked}
+                              lead={devInviteToken ? 'Einladung annehmen.' : 'Konto erstellen.'}
+                            />
                           ) : displayWorkspaceName ? (
-                            <>
-                              <AuthGlassyHero
-                                animKey={`login-ws-${displayWorkspaceName}`}
-                                lead="Willkommen zurück."
-                                rest=" Dein Workspace wartet."
-                              />
-                              <p className="al-os-support">
-                                Melde dich an, um dort weiterzumachen, wo du aufgehört hast.
-                              </p>
-                            </>
+                            <AuthGlassyHero
+                              animKey={`login-ws-${displayWorkspaceName}`}
+                              instant={softModeLocked}
+                              lead="Willkommen zurück."
+                            />
                           ) : (
-                            <>
-                              <AuthGlassyHero
-                                animKey="login-cold"
-                                lead="Betrete deinen Workspace."
-                                rest=" Alles, was zählt, wartet dort."
-                              />
-                              <p className="al-os-support">
-                                Ein ruhiger Einstieg in dein Betriebssystem für Projekte.
-                              </p>
-                            </>
+                            <AuthGlassyHero
+                              animKey="login-cold"
+                              instant={softModeLocked}
+                              lead="Willkommen bei Festag."
+                            />
                           )}
                           {isSignup && !hasInvite ? (
                             <div className="al-hero-secondary">
@@ -1785,7 +1728,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                       ? <UsernameCheckBadge status={wsBadgeStatus} title={wsBadgeTitle} />
                                       : null
                                   }
-                                  srLabel="Workspace-Name"
+                                  srLabel="Account-Name"
                                   type="text"
                                   inputMode="text"
                                   value={workspaceName}
@@ -1804,7 +1747,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   autoCapitalize="words"
                                   spellCheck={false}
                                   maxLength={64}
-                                  aria-label="Workspace-Name"
+                                  aria-label="Account-Name"
                                   aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
                                   aria-describedby={wsBadgeStatus ? 'al-ws-check-live' : undefined}
                                   persistIdleCaret={mobileRegisterCaret && !workspaceName}
@@ -1822,17 +1765,21 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         </div>
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="sso" lead="Weiter mit deinem Unternehmen." />
-                          <div className="al-hero-secondary">
-                            {loginWorkspacePath}
-                          </div>
+                          <AuthGlassyHero animKey="sso" instant={softModeLocked} lead="Mit SSO fortfahren." />
+                          {loginWorkspacePath ? (
+                            <div className="al-hero-secondary">
+                              {loginWorkspacePath}
+                            </div>
+                          ) : null}
                         </div>
                       ) : (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="otp" lead="Code empfangen." />
-                          <div className="al-hero-secondary">
-                            {loginWorkspacePath}
-                          </div>
+                          <AuthGlassyHero animKey="otp" instant={softModeLocked} lead="Code eingeben." />
+                          {loginWorkspacePath ? (
+                            <div className="al-hero-secondary">
+                              {loginWorkspacePath}
+                            </div>
+                          ) : null}
                         </div>
                       )}
                     </div>

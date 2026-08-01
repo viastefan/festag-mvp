@@ -11,7 +11,6 @@ import { createClient } from '@/lib/supabase/client'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
-import AuthEnterHint from '@/components/auth/AuthEnterHint'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { joinProjectHref } from '@/lib/platform/join'
 
@@ -158,22 +157,20 @@ function InviteAcceptInner() {
                           {authed ? (
                             <button
                               type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready al-btn--enter-hint"
+                              className="al-btn al-btn-primary al-btn-primary--ready"
                               disabled={joining}
                               onClick={() => void join()}
                             >
                               <span className="al-btn-label">{joining ? 'Öffne…' : 'Weiter'}</span>
-                              <AuthEnterHint ready={!joining} />
                             </button>
                           ) : (
                             <>
                               <button
                                 type="button"
-                                className="al-btn al-btn-primary al-btn-primary--ready al-btn--enter-hint"
+                                className="al-btn al-btn-primary al-btn-primary--ready"
                                 onClick={goRegister}
                               >
                                 <span className="al-btn-label">Konto erstellen</span>
-                                <AuthEnterHint ready />
                               </button>
                               <button
                                 type="button"
