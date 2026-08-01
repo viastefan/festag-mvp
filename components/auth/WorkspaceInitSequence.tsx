@@ -210,14 +210,22 @@ const INIT_CSS = /* css */ `
       linear-gradient(180deg, #FBFAF6 0%, #FAF9F5 48%, #F3F0E8 100%);
     opacity: 0;
     transition: opacity .35s ease;
-    font-family: Aeonik, system-ui, sans-serif;
-    font-weight: 400;
+    font-family: 'Aeonik', system-ui, sans-serif !important;
+    font-weight: 400 !important;
+    font-synthesis: none;
+  }
+  .ws-init,
+  .ws-init button,
+  .ws-init p,
+  .ws-init span {
+    font-family: 'Aeonik', system-ui, sans-serif !important;
+    font-weight: 400 !important;
   }
   .ws-init.is-entered { opacity: 1; }
   .ws-init-stage {
     flex: 1;
     width: 100%;
-    max-width: 300px;
+    max-width: 360px;
     display: flex;
     flex-direction: column;
     align-items: center;

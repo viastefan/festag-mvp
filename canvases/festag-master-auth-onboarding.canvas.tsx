@@ -3101,7 +3101,7 @@ function PreparingStage({
 				style={{
 					position: 'relative',
 					width: '100%',
-					maxWidth: 300,
+					maxWidth: 360,
 					height: LINE_SLOT * 3,
 					overflow: 'hidden',
 					maskImage:
@@ -3440,7 +3440,7 @@ const contentArea: CSSProperties = {
 
 const contentCard: CSSProperties = {
 	width: '100%',
-	maxWidth: 300,
+	maxWidth: 360,
 	margin: '0 auto',
 	alignSelf: 'center',
 	display: 'flex',

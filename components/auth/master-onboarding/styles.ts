@@ -36,13 +36,28 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       radial-gradient(ellipse 90% 48% at 40% -8%, rgba(91, 100, 125, 0.04), transparent 55%),
       linear-gradient(180deg, var(--mob-wash-top) 0%, var(--mob-canvas) 48%, var(--mob-wash-bottom) 100%);
     color: var(--mob-ink);
-    font-family: Aeonik, system-ui, sans-serif;
+    font-family: 'Aeonik', system-ui, sans-serif;
     font-weight: 400;
     letter-spacing: 0.02em;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     transform: translate3d(0, calc(-1 * var(--mob-kb-shift, 0px)), 0);
     transition: transform .18s ease;
+  }
+  /* Beat globals Medium (500) — canvas SSOT is Aeonik Regular */
+  .mob,
+  .mob h1,
+  .mob h2,
+  .mob p,
+  .mob span,
+  .mob button,
+  .mob input,
+  .mob textarea,
+  .mob label,
+  .mob a {
+    font-family: 'Aeonik', system-ui, sans-serif !important;
+    font-weight: 400 !important;
+    font-synthesis: none;
   }
   .mob.is-exiting { opacity: 0; transition: opacity .28s ease; pointer-events: none; }
   .mob.is-booting { opacity: 0; }
@@ -573,7 +588,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: var(--mob-muted);
   }
 
-  /* Bottom navi — fade + glass capsule + TagroSI (all steps) */
+  /* Bottom navi — bare beads only (canvas SSOT, no glass capsule) */
   .mob-nav {
     position: absolute;
     left: 0;
@@ -584,7 +599,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     align-items: center;
     justify-content: center;
     padding: 10px 20px calc(12px + max(12px, env(safe-area-inset-bottom, 0px)));
-    background: linear-gradient(to top, var(--mob-canvas) 55%, rgba(250, 249, 245, 0));
+    background: transparent;
     box-sizing: border-box;
     pointer-events: none;
   }
@@ -592,7 +607,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     pointer-events: none;
   }
   .mob-dots {
@@ -606,12 +621,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     gap: 9px;
     min-height: 8px;
     padding: 0;
+    margin: 0;
     border-radius: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     pointer-events: auto;
   }
   .mob-dot {
@@ -619,12 +635,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 8px;
     height: 8px;
     border-radius: 999px;
-    border: none;
+    border: none !important;
     padding: 0;
     margin: 0;
     background: var(--mob-dot-idle);
     cursor: pointer;
     flex-shrink: 0;
+    box-shadow: none !important;
+    outline: none;
     transition: width .38s cubic-bezier(.22,1,.36,1), background .28s ease;
   }
   .mob-dot.is-done { background: var(--mob-dot-done); }
@@ -634,11 +652,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Desktop (≥769): same 300px column, horizontally + vertically centered */
+  /* Desktop (≥769): canvas desktop composition — wider column so it doesn't look tiny on large screens */
   @media (min-width: 769px) {
     .mob {
       --mob-gutter: 48px;
-      --mob-content-max: 300px;
+      --mob-content-max: 360px;
     }
     .mob-header {
       width: 100%;
@@ -655,13 +673,21 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       opacity: 0.9;
     }
     .mob-nav {
-      padding: 16px 24px 24px;
+      padding: 20px 24px 28px;
+      background: transparent;
     }
-    .mob-nav-inner { gap: 12px; }
+    .mob-nav-inner { gap: 0; }
     .mob-dots {
       min-height: 8px;
       padding: 0;
+      background: transparent !important;
+      box-shadow: none !important;
     }
+    .mob-dot {
+      width: 9px;
+      height: 9px;
+    }
+    .mob-dot.is-active { width: 28px; }
     .mob-body {
       max-width: none;
       width: 100%;
@@ -690,8 +716,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       justify-content: center;
     }
     .mob-h1 {
-      font-size: 26px;
-      line-height: 1.15;
+      font-size: 28px;
+      line-height: 1.18;
       letter-spacing: 0.012em;
       text-align: left;
     }

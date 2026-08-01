@@ -119,8 +119,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root h2,
         .al-root h3,
         .al-root span {
-          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-weight:400;
+          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif !important;
+          font-weight:400 !important;
+          font-synthesis:none;
         }
         /* Keep opaque canvas during route change — fade content only (no white flash). */
         .al-root.exiting { pointer-events:none; }
