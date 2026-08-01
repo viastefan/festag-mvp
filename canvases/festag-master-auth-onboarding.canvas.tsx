@@ -2918,7 +2918,7 @@ function PreparingStage({
 				})}
 			</div>
 
-			{/* Soft assembling dots — replaces bottom progress bar */}
+			{/* Logo-style paired dots — two related points (big/small), like the fluid mark */}
 			<button
 				type="button"
 				aria-label={ready ? 'Festag öffnen' : 'Workspace wird eingerichtet'}
@@ -2928,10 +2928,11 @@ function PreparingStage({
 				}}
 				style={{
 					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'flex-start',
+					flexDirection: 'column',
+					alignItems: 'flex-start',
+					justifyContent: 'center',
 					alignSelf: 'flex-start',
-					gap: 7,
+					gap: 5,
 					height: 28,
 					padding: '0 2px',
 					border: 'none',
@@ -2940,23 +2941,49 @@ function PreparingStage({
 					fontFamily: 'inherit',
 				}}
 			>
-				{[0, 1, 2].map((i) => {
-					const litDot = fillProgress > (i + 0.35) / 3 || ready
+				{[0, 1].map((row) => {
+					const lit = fillProgress > (row + 0.35) / 2 || ready
 					return (
 						<span
-							key={i}
+							key={row}
 							aria-hidden
-							className={ready ? undefined : 'master-prep-dot'}
+							className={ready || lit ? 'master-prep-pair' : undefined}
 							style={{
-								width: ready ? 7 : 6,
-								height: ready ? 7 : 6,
-								borderRadius: 99,
-								background: t.ink,
-								opacity: ready ? 0.85 : litDot ? 0.55 : 0.18,
-								animationDelay: ready ? undefined : `${i * 0.18}s`,
-								transition: 'opacity .35s ease, width .28s ease, height .28s ease',
+								display: 'flex',
+								alignItems: 'center',
+								gap: 4,
+								height: 8,
+								opacity: ready ? 0.9 : lit ? 0.7 : 0.2,
+								transform: row === 1 ? 'scaleX(0.78)' : undefined,
+								transformOrigin: 'left center',
+								transition: 'opacity .35s ease',
+								animationDelay: ready || !lit ? undefined : `${row * 0.2}s`,
 							}}
-						/>
+						>
+							<span
+								className={lit && !ready ? 'master-prep-n master-prep-n--a' : undefined}
+								style={{
+									display: 'block',
+									width: ready ? 7 : 6.5,
+									height: ready ? 7 : 6.5,
+									borderRadius: 99,
+									background: t.ink,
+									flexShrink: 0,
+								}}
+							/>
+							<span
+								className={lit && !ready ? 'master-prep-n master-prep-n--b' : undefined}
+								style={{
+									display: 'block',
+									width: ready ? 4 : 3.5,
+									height: ready ? 4 : 3.5,
+									borderRadius: 99,
+									background: t.ink,
+									flexShrink: 0,
+									opacity: ready ? 0.85 : 0.7,
+								}}
+							/>
+						</span>
 					)
 				})}
 			</button>
@@ -3484,12 +3511,29 @@ const CSS = `
   .master-tagro-spin {
     animation: masterTagroSpin 0.85s linear infinite;
   }
-  @keyframes masterPrepDot {
-    0%, 80%, 100% { opacity: 0.18; transform: scale(0.85); }
-    40% { opacity: 0.72; transform: scale(1); }
+  @keyframes masterPrepSwapA {
+    0%, 100% { width: 6.5px; height: 6.5px; opacity: 0.95; }
+    50% { width: 3.5px; height: 3.5px; opacity: 0.5; }
   }
-  .master-prep-dot {
-    animation: masterPrepDot 1.15s ease-in-out infinite;
+  @keyframes masterPrepSwapB {
+    0%, 100% { width: 3.5px; height: 3.5px; opacity: 0.5; }
+    50% { width: 6.5px; height: 6.5px; opacity: 0.95; }
+  }
+  .master-prep-n {
+    display: block;
+    border-radius: 99px;
+    flex-shrink: 0;
+    will-change: width, height, opacity;
+  }
+  .master-prep-n--a {
+    animation: masterPrepSwapA 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  }
+  .master-prep-n--b {
+    animation: masterPrepSwapB 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  }
+  .master-prep-pair:nth-child(2) .master-prep-n--a,
+  .master-prep-pair:nth-child(2) .master-prep-n--b {
+    animation-delay: 0.22s;
   }
   /* Headers + UI: Aeonik Regular, slightly open tracking */
   .master-phone h1,

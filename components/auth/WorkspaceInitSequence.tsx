@@ -73,8 +73,15 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
           <p className="ws-init-line" key={index}>
             {lines[index]}
           </p>
-          <div className="ws-init-track" aria-hidden>
-            <div className="ws-init-fill" style={{ transform: `scaleX(${progress})` }} />
+          <div className="ws-init-mark" aria-hidden>
+            <span className={`ws-init-pair${progress >= 0.4 ? ' is-lit' : ''}${progress >= 1 ? ' is-ready' : ''}`}>
+              <i className="ws-init-n ws-init-n--a" />
+              <i className="ws-init-n ws-init-n--b" />
+            </span>
+            <span className={`ws-init-pair ws-init-pair--short${progress >= 0.75 ? ' is-lit' : ''}${progress >= 1 ? ' is-ready' : ''}`}>
+              <i className="ws-init-n ws-init-n--a" />
+              <i className="ws-init-n ws-init-n--b" />
+            </span>
           </div>
         </div>
       </div>
@@ -145,23 +152,70 @@ const INIT_CSS = `
     justify-content: flex-start;
     animation: wsInitIn .42s cubic-bezier(.16,1,.3,1) both;
   }
-  .ws-init-track {
-    width: min(200px, 42vw);
-    height: 2px;
-    border-radius: 999px;
-    background: rgba(230, 232, 238, 0.08);
-    overflow: hidden;
+  .ws-init-mark {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
     flex-shrink: 0;
     align-self: flex-start;
+    min-height: 28px;
+    justify-content: center;
   }
-  .ws-init-fill {
-    height: 100%;
-    width: 100%;
+  .ws-init-pair {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 8px;
+    opacity: 0.22;
+    transition: opacity .35s ease;
+  }
+  .ws-init-pair--short {
     transform-origin: left center;
-    /* Soft ink / bone — never primary blue */
-    background: rgba(230, 232, 238, 0.78);
-    transition: transform .45s cubic-bezier(.22,1,.36,1);
+    transform: scaleX(0.78);
   }
+  .ws-init-pair.is-lit {
+    opacity: 0.72;
+  }
+  .ws-init-pair.is-ready {
+    opacity: 0.92;
+  }
+  .ws-init-n {
+    display: block;
+    border-radius: 50%;
+    background: rgba(230, 232, 238, 0.92);
+    flex-shrink: 0;
+  }
+  .ws-init-n--a {
+    width: 7px;
+    height: 7px;
+    animation: wsInitSwapA 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  }
+  .ws-init-n--b {
+    width: 4px;
+    height: 4px;
+    animation: wsInitSwapB 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  }
+  .ws-init-pair:nth-child(2) .ws-init-n--a,
+  .ws-init-pair:nth-child(2) .ws-init-n--b { animation-delay: .2s; }
+  .ws-init-pair:not(.is-lit) .ws-init-n--a,
+  .ws-init-pair:not(.is-lit) .ws-init-n--b {
+    animation: none;
+  }
+  @keyframes wsInitSwapA {
+    0%, 100% { width: 7px; height: 7px; opacity: 0.95; }
+    50% { width: 4px; height: 4px; opacity: 0.5; }
+  }
+  @keyframes wsInitSwapB {
+    0%, 100% { width: 4px; height: 4px; opacity: 0.5; }
+    50% { width: 7px; height: 7px; opacity: 0.95; }
+  }
+  html[data-theme="light"] .ws-init-n,
+  html[data-theme="read"] .ws-init-n {
+    background: rgba(26, 25, 23, 0.88);
+  }
+  .ws-init-track { display: none; }
+  .ws-init-fill { display: none; }
   html[data-theme="light"] .ws-init,
   html[data-theme="read"] .ws-init {
     background:
