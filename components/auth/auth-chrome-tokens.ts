@@ -4,16 +4,16 @@
  * Geometry: serious soft rects (`8px`), not pills — same in Light / Read / Dark.
  * Dark: flat Festag Night OLED + quiet ghost CTAs; ready = warm bone.
  * Accent: Festag primary blue `#5B647D` (Light). Read Google = warm charcoal.
- * Light: Festag sand canvas (`#F5F2ED`, website Lesen) + white Linear CTAs.
- * Read: sandy cream canvas only — layout/spacing identical to Light.
+ * Light: Anthropic / Claude ivory (`#FAF9F5`, same as Lesen) + white Linear CTAs.
+ * Read: same ivory canvas — layout/spacing identical to Light.
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
 /**
- * Login/Register light canvas — full Festag sand (website Lesen),
- * so it never reads as sterile white without a system “read” filter.
+ * Login/Register light canvas — Anthropic paper ivory (anthropic.com body),
+ * shared with Lesen so auth never reads as sterile white.
  * Primary blue accents stay Festag.
  */
 export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
@@ -22,7 +22,7 @@ export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
  * Deeper than flat Night OLED so auth feels cinematic, not like a login card.
  */
 export const AUTH_DARK_CANVAS = '#0C0D12'
-/** Auth read canvas — sandy cream (screenshot / Claude family). */
+/** Auth read canvas — same Anthropic / Claude ivory as light. */
 export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
 
 /**

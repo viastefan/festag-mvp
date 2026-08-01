@@ -158,8 +158,36 @@ const INIT_CSS = `
     height: 100%;
     width: 100%;
     transform-origin: left center;
-    background: rgba(91, 100, 125, 0.85);
+    /* Soft ink / bone — never primary blue */
+    background: rgba(230, 232, 238, 0.78);
     transition: transform .45s cubic-bezier(.22,1,.36,1);
+  }
+  html[data-theme="light"] .ws-init,
+  html[data-theme="read"] .ws-init {
+    background:
+      radial-gradient(ellipse 90% 48% at 40% -8%, rgba(91, 100, 125, 0.04), transparent 55%),
+      linear-gradient(180deg, #FBFAF6 0%, #FAF9F5 48%, #F3F0E8 100%);
+  }
+  html[data-theme="light"] .ws-init-ambient,
+  html[data-theme="read"] .ws-init-ambient {
+    background:
+      radial-gradient(ellipse 90% 48% at 40% -8%, rgba(91, 100, 125, 0.04), transparent 55%),
+      linear-gradient(180deg, #FBFAF6 0%, #FAF9F5 48%, #F3F0E8 100%);
+  }
+  html[data-theme="light"] .ws-init-line,
+  html[data-theme="read"] .ws-init-line {
+    color: rgba(26, 25, 23, 0.92);
+  }
+  html[data-theme="light"] .ws-init-track,
+  html[data-theme="read"] .ws-init-track {
+    background: rgba(30, 30, 32, 0.08);
+  }
+  html[data-theme="light"] .ws-init-fill,
+  html[data-theme="read"] .ws-init-fill {
+    background: rgba(26, 25, 23, 0.72);
+  }
+  html[data-theme="dark"] .ws-init-fill {
+    background: rgba(235, 232, 227, 0.82);
   }
   @keyframes wsInitIn {
     from {

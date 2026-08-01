@@ -133,17 +133,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   var bg = legalLanding
     ? '#ffffff'
     : docsLanding
-      ? (t === 'dark' ? '#070708' : t === 'read' ? '#F5F2ED' : '#FCFCFD')
+      ? (t === 'dark' ? '#070708' : t === 'read' ? '#FAF9F5' : '#FCFCFD')
     : devPortal
-      ? (t === 'dark' ? '#05060A' : t === 'read' ? '#F5F2ED' : '#E8E9ED')
+      ? (t === 'dark' ? '#05060A' : t === 'read' ? '#FAF9F5' : '#E8E9ED')
     : loginRegister
-      ? '#F5F2ED'
+      ? '#FAF9F5'
     : t === 'dark'
       ? (authLanding ? '#0C0D12' : '#070708')
       : t === 'read'
-        ? '#F5F2ED'
+        ? '#FAF9F5'
         : authLanding
-          ? '#F5F2ED'
+          ? '#FAF9F5'
           : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = legalLanding || loginRegister ? 'light' : (t === 'dark') ? 'dark' : 'light';
@@ -169,30 +169,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
              when navigating between pages of different scroll height. */
           html { overflow-y: scroll; }
           html[data-theme="dark"]  { background:#070708; color-scheme:dark; }
-          html[data-theme="read"]  { background:#F5F2ED; color-scheme:light; }
+          html[data-theme="read"]  { background:#FAF9F5; color-scheme:light; }
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
-          html[data-theme="light"][data-auth-landing] { background:#F5F2ED; border-radius:0 !important; }
-          html[data-theme="read"][data-auth-landing] { background:#F5F2ED; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] { background:#FAF9F5; border-radius:0 !important; }
+          html[data-theme="read"][data-auth-landing] { background:#FAF9F5; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] { background:#070708; }
-          html[data-theme="read"][data-docs-landing] { background:#F5F2ED; }
+          html[data-theme="read"][data-docs-landing] { background:#FAF9F5; }
           html[data-theme="dark"]  body { background:#070708; }
-          html[data-theme="read"]  body { background:#F5F2ED; }
+          html[data-theme="read"]  body { background:#FAF9F5; }
           html[data-theme="light"] body { background:#F5F5F7; }
-          html[data-theme="light"][data-auth-landing] body { background:#F5F2ED; border-radius:0 !important; }
-          html[data-theme="read"][data-auth-landing] body { background:#F5F2ED; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] body { background:#FAF9F5; border-radius:0 !important; }
+          html[data-theme="read"][data-auth-landing] body { background:#FAF9F5; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] body { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] body { background:#070708; }
-          html[data-theme="read"][data-docs-landing] body { background:#F5F2ED; }
+          html[data-theme="read"][data-docs-landing] body { background:#FAF9F5; }
           /* Developer portal canvas — dark / light cool / read sandy cream. */
           html[data-theme="dark"][data-dev-portal] { background:#070708; }
           html[data-theme="dark"][data-dev-portal] body { background:#070708; }
           html[data-theme="light"][data-dev-portal] { background:#f7f8f8; }
           html[data-theme="light"][data-dev-portal] body { background:#f7f8f8; }
-          html[data-theme="read"][data-dev-portal] { background:#F5F2ED; }
-          html[data-theme="read"][data-dev-portal] body { background:#F5F2ED; }
+          html[data-theme="read"][data-dev-portal] { background:#FAF9F5; }
+          html[data-theme="read"][data-dev-portal] body { background:#FAF9F5; }
         `}} />
       </head>
       <body>

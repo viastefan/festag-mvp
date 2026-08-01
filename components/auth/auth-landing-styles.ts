@@ -62,8 +62,8 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
-          /* Soft read whisper — website Lesen family, light entry for new users. */
-          background:var(--festag-auth-canvas, #F5F2ED);
+          /* Anthropic / Claude ivory — same paper as Lesen (anthropic.com body). */
+          background:var(--festag-auth-canvas, #FAF9F5);
           color:#1e1e20;
           display:flex;
           flex-direction:column;
@@ -71,10 +71,10 @@ const AUTH_LANDING_STYLES_BASE = `
           border-radius:0 !important;
           position:relative;
         }
-        /* Read — sandy cream palette only; same geometry as Light. */
+        /* Read — same Anthropic ivory; geometry identical to Light. */
         .al-root[data-theme="read"] {
           ${AUTH_CHROME_VARS_READ}
-          background:#F5F2ED !important;
+          background:#FAF9F5 !important;
           background-image:none !important;
           color:#1e1e20;
         }
@@ -1759,43 +1759,6 @@ const AUTH_LANDING_STYLES_BASE = `
           white-space:nowrap;
           flex-shrink:0;
         }
-        /* Auth brand credit — bottom-left, Aeonik Regular. */
-        .al-auth-credit {
-          position:fixed;
-          left:max(24px, env(safe-area-inset-left, 0px));
-          bottom:max(18px, env(safe-area-inset-bottom, 0px));
-          z-index:40;
-          display:flex;
-          flex-direction:column;
-          align-items:flex-start;
-          gap:2px;
-          margin:0;
-          padding:0;
-          pointer-events:none;
-          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-weight:400;
-          -webkit-font-smoothing:antialiased;
-        }
-        .al-auth-credit-name {
-          font-size:12.5px;
-          font-weight:400;
-          line-height:1.25;
-          letter-spacing:0.01em;
-          color:rgba(30, 30, 32, 0.42);
-        }
-        .al-auth-credit-meta {
-          font-size:11.5px;
-          font-weight:400;
-          line-height:1.25;
-          letter-spacing:0.015em;
-          color:rgba(30, 30, 32, 0.32);
-        }
-        .al-root[data-theme="dark"] .al-auth-credit-name {
-          color:rgba(245, 245, 247, 0.42);
-        }
-        .al-root[data-theme="dark"] .al-auth-credit-meta {
-          color:rgba(245, 245, 247, 0.30);
-        }
         /* Quiet test deep-links — fixed bottom-right (login + register). */
         .al-test-jumps {
           position:fixed;
@@ -1833,12 +1796,6 @@ const AUTH_LANDING_STYLES_BASE = `
           background:rgba(30, 30, 32, 0.04);
         }
         @media (max-width: 768px) {
-          .al-auth-credit {
-            left:max(16px, env(safe-area-inset-left, 0px));
-            bottom:max(14px, env(safe-area-inset-bottom, 0px));
-          }
-          .al-auth-credit-name { font-size:12px; }
-          .al-auth-credit-meta { font-size:11px; }
           .al-test-jumps {
             right:max(12px, env(safe-area-inset-right, 0px));
             left:auto;
@@ -2960,10 +2917,10 @@ const AUTH_LANDING_STYLES_BASE = `
             border-radius:0 !important;
           }
           .al-root {
-            background:#FFFFFF;
+            background:#FAF9F5;
           }
           .al-root[data-theme="read"] {
-            background:#F5F2ED !important;
+            background:#FAF9F5 !important;
           }
           .al-container {
             position:relative;
@@ -3102,11 +3059,6 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-links--desktop,
           .al-footer-center--desktop {
             display:none !important;
-          }
-          .al-auth-credit {
-            left:max(16px, env(safe-area-inset-left, 0px));
-            bottom:max(14px, env(safe-area-inset-bottom, 0px));
-            z-index:60;
           }
           .al-test-jumps {
             position:fixed;

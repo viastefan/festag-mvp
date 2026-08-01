@@ -356,7 +356,7 @@ const CLIENT_SETTINGS_EXTRA_CSS = `
     --ds-surface: #FFFFFF;
   }
   html[data-theme="read"] .cs-root.ds-root {
-    --ds-canvas: #F5F2ED;
+    --ds-canvas: #FAF9F5;
     --ds-surface: #FFFFFF;
   }
   html[data-theme="dark"] .cs-root.ds-root,

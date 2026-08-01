@@ -301,7 +301,7 @@ const ATM_PORTAL_CSS = `
     flex-shrink: 0;
     border: 1px solid rgba(15, 23, 42, 0.10);
   }
-  .atm-item-swatch[data-mode="read"] { background: #F5F2ED; }
+  .atm-item-swatch[data-mode="read"] { background: #FAF9F5; }
   .atm-item-swatch[data-mode="light"] { background: #FFFFFF; border-color: rgba(15,23,42,0.12); }
   .atm-item-swatch[data-mode="dark"] { background: #070708; border-color: rgba(255,255,255,0.14); }
   @keyframes atmIn {

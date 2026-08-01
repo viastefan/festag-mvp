@@ -38,6 +38,10 @@ import {
   workspaceProfilePatch,
 } from '@/lib/platform/identity'
 import {
+  analyzeIntent,
+  blueprintMetadataPatch,
+} from '@/lib/tagro/workspace-blueprint'
+import {
   CONNECT_WORKSPACE_HEADLINE,
   CONNECT_WORKSPACE_REST,
   CONNECT_WORKSPACE_SUPPORT,
@@ -547,6 +551,7 @@ export default function BuildProjectsOnboardingPage() {
         }
         /* Silent Tagro understanding — never shown as technical analysis. */
         const inferred = inferWorkspaceUnderstanding(ctx)
+        const blueprint = analyzeIntent(ctx)
         const shortPosition =
           position.trim() ||
           inferred.role?.slice(0, 64) ||
@@ -558,6 +563,9 @@ export default function BuildProjectsOnboardingPage() {
           ...(shortPosition ? { position: shortPosition } : {}),
           /* Bridge until Settings reads Workspace Profile only. */
           dev_profile_facts: ctx,
+          ...(blueprint.intentSummary
+            ? { dev_profile_summary: `${blueprint.workspaceType}: ${blueprint.intentSummary}`.slice(0, 400) }
+            : {}),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' })
         if (upsertError) {
@@ -577,10 +585,11 @@ export default function BuildProjectsOnboardingPage() {
           wsId = owned?.id ?? null
           if (wsId) setWorkspaceId(wsId)
           if (owned) {
-            const nextMeta = workspaceProfilePatch(
+            let nextMeta = workspaceProfilePatch(
               (owned.metadata as Record<string, unknown>) ?? {},
               { context: ctx, inferred, source: 'onboarding' },
             )
+            nextMeta = blueprintMetadataPatch(nextMeta, blueprint)
             await supabase.from('workspaces').update({
               metadata: nextMeta,
               updated_at: new Date().toISOString(),
@@ -592,10 +601,11 @@ export default function BuildProjectsOnboardingPage() {
             .select('metadata')
             .eq('id', wsId)
             .maybeSingle()
-          const nextMeta = workspaceProfilePatch(
+          let nextMeta = workspaceProfilePatch(
             (ws?.metadata as Record<string, unknown>) ?? {},
             { context: ctx, inferred, source: 'onboarding' },
           )
+          nextMeta = blueprintMetadataPatch(nextMeta, blueprint)
           const { error: wsErr } = await supabase.from('workspaces').update({
             metadata: nextMeta,
             updated_at: new Date().toISOString(),

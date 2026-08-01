@@ -1,15 +1,17 @@
 /**
- * Festag sand / README (Lesen) canvas — matches warm auth cream from screenshot.
- * Claude / Anthropic sandy white family (not cool gray, not orange wash).
+ * Festag sand / README (Lesen) canvas — Anthropic / Claude paper ivory.
+ * Sampled from anthropic.com body (`#FAF9F5`), not cool gray / orange wash.
  */
 
 export const FESTAG_SAND = {
-  /** Main canvas — README + auth read (warm sandy cream). */
-  canvas: '#F5F2ED',
-  /** Soft ivory lift. */
-  canvasSoft: '#FAF9F5',
-  /** Deeper parchment for nested wash. */
+  /** Main canvas — Anthropic body / Claude ivory (login, register, Lesen). */
+  canvas: '#FAF9F5',
+  /** Soft ivory lift (slightly brighter than body). */
+  canvasSoft: '#FCFBF8',
+  /** Deeper parchment — Anthropic section wash. */
   canvasDeep: '#F0EEE6',
+  /** Warm mid cream (previous Festag sand). */
+  canvasWarm: '#F5F2ED',
   /** Idle CTA fill — soft white on sand. */
   cta: '#FFFFFF',
   ctaHover: '#F7F6F2',

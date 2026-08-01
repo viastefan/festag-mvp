@@ -1,0 +1,3197 @@
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from 'react'
+import { Button, Row, Stack, Text, useCanvasState } from 'cursor/canvas'
+
+/**
+ * FESTAG MASTER — Auth + Tagro Intelligence Layer
+ * Register = identity only. Then: describe your goal → Tagro builds a Workspace Blueprint.
+ * Clarify only when confidence is low. Appearance switcher stays in canvas chrome.
+ */
+
+const MARK =
+	'/Users/stefandirnberger/.cursor/projects/Users-stefandirnberger-Documents-festag-mvp/assets/festag-mark.png'
+
+type Appearance = 'dark' | 'light'
+type StepId = 'auth' | 'intent' | 'clarify' | 'connect' | 'preparing'
+
+const STEPS: Array<{ id: StepId; label: string }> = [
+	{ id: 'auth', label: 'Register' },
+	{ id: 'intent', label: 'Ziel' },
+	{ id: 'clarify', label: 'Passt das?' },
+	{ id: 'connect', label: 'Quellen' },
+	{ id: 'preparing', label: 'Prepare' },
+]
+
+/** User-facing page control — clarify folds into Ziel, auth stays off-screen */
+const FLOW_DOTS: Array<{ id: 'intent' | 'connect' | 'preparing'; label: string }> = [
+	{ id: 'intent', label: 'Ziel' },
+	{ id: 'connect', label: 'Quellen' },
+	{ id: 'preparing', label: 'Prepare' },
+]
+
+function flowDotIndex(sid: StepId): number {
+	if (sid === 'intent' || sid === 'clarify') return 0
+	if (sid === 'connect') return 1
+	if (sid === 'preparing') return 2
+	return -1
+}
+
+function stepIndex(id: StepId): number {
+	return STEPS.findIndex((s) => s.id === id)
+}
+
+const GOAL_EXAMPLES = [
+	'Ich entwickle Webseiten für Kunden.',
+	'Ich suche einen Freelancer für mein Startup.',
+	'Ich möchte Kundenprojekte organisieren.',
+	'Ich arbeite alleine an einer SaaS.',
+	'Wir sind eine Agentur mit 8 Mitarbeitern.',
+	'Ich suche einen Entwickler für mein Projekt.',
+	'Ich möchte GitHub und Supabase verbinden.',
+	'Ich leite ein Produktteam.',
+	'Ich brauche ein Projektmanagement für Kunden.',
+	'Ich baue gerade meine erste App.',
+]
+
+const CLARIFY_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
+
+/** Intent field: 15px × 1.5lh — grow in 3-line steps when the caret hits the bottom */
+const INTENT_LINE_H = Math.round(15 * 1.5)
+const INTENT_FIELD_MIN_H = INTENT_LINE_H * 6
+const INTENT_FIELD_STEP_H = INTENT_LINE_H * 3
+
+/** Weiter only lights when the work email looks real — not just any short string. */
+function isValidWorkEmail(raw: string): boolean {
+	const e = raw.trim()
+	return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)
+}
+
+type TagroBlueprint = {
+	workspaceType: string
+	confidence: number
+	mode: 'developer' | 'client' | 'hybrid' | ''
+	signals: Array<{ label: string; score: number }>
+	modules: string[]
+	integrations: string[]
+	navigation: string[]
+	primaryGoal: string
+	needs: string[]
+	needsClarify: boolean
+	intentSummary: string
+}
+
+function analyzeIntent(raw: string, clarifyPick = ''): TagroBlueprint {
+	const s = raw.trim().toLowerCase()
+	const empty: TagroBlueprint = {
+		workspaceType: '—',
+		confidence: 0,
+		mode: '',
+		signals: [],
+		modules: [],
+		integrations: [],
+		navigation: ['Dashboard', 'Projects', 'Tagro'],
+		primaryGoal: '',
+		needs: [],
+		needsClarify: false,
+		intentSummary: '',
+	}
+	if (s.length < 4 && !clarifyPick) return empty
+
+	let agency = 0
+	let freelancer = 0
+	let startup = 0
+	let company = 0
+	let developer = 0
+	let client = 0
+	let github = 0
+	let figma = 0
+	let portal = 0
+
+	if (/agentur|agency|mitarbeiter|kundenprojekt/.test(s)) agency += 42
+	if (/kunde|kunden|client|extern/.test(s)) {
+		agency += 18
+		client += 28
+		portal += 35
+	}
+	if (/freelance|freelancer|allein|solo|selbstständig/.test(s)) freelancer += 48
+	if (/startup|gründung|mvp|saas/.test(s)) startup += 44
+	if (/unternehmen|firma|company|enterprise|konzern|team leiten|produktteam/.test(s)) company += 40
+	if (/entwickl|bau|software|app|code|github|frontend|backend|webseite|website/.test(s)) developer += 40
+	if (/suche.*(freelancer|entwickler)|brauche.*(freelancer|entwickler)/.test(s)) {
+		client += 35
+		portal += 25
+	}
+	if (/github|supabase|vercel|repo/.test(s)) github += 55
+	if (/figma|design/.test(s)) figma += 40
+	if (/organisieren|projektmanagement|status|rechnung|invoice/.test(s)) {
+		agency += 12
+		portal += 20
+	}
+
+	if (clarifyPick === 'Agentur') agency += 55
+	if (clarifyPick === 'Developer') {
+		developer += 55
+		freelancer += 40
+	}
+	if (clarifyPick === 'Startup') startup += 55
+	if (clarifyPick === 'Unternehmen') company += 55
+
+	const typeScores: Array<[string, number]> = [
+		['Agency', agency],
+		['Developer', Math.max(freelancer, developer)],
+		['Startup', startup],
+		['Company', company],
+	]
+	typeScores.sort((a, b) => b[1] - a[1])
+	const topType = typeScores[0][0]
+	const topScore = typeScores[0][1]
+	const second = typeScores[1][1]
+	const confidence = Math.min(98, Math.max(0, Math.round(topScore + (topScore - second) * 0.35)))
+
+	let mode: TagroBlueprint['mode'] = ''
+	if (developer >= 28 && client >= 28) mode = 'hybrid'
+	else if (client > developer + 8) mode = 'client'
+	else if (developer > 20) mode = 'developer'
+	else if (topType === 'Agency' || topType === 'Developer') mode = 'hybrid'
+	else if (topType === 'Company') mode = 'client'
+	else if (topType === 'Startup') mode = 'developer'
+
+	const signals: Array<{ label: string; score: number }> = []
+	if (agency > 12) signals.push({ label: 'Agency', score: Math.min(99, agency + 20) })
+	if (developer > 12 || freelancer > 12)
+		signals.push({ label: 'Developer', score: Math.min(99, Math.max(developer, freelancer) + 22) })
+	if (startup > 12) signals.push({ label: 'Startup', score: Math.min(99, startup + 22) })
+	if (company > 12) signals.push({ label: 'Company', score: Math.min(99, company + 20) })
+	if (github > 20) signals.push({ label: 'Needs GitHub', score: Math.min(99, github + 20) })
+	if (portal > 20) signals.push({ label: 'Likely Client Portal', score: Math.min(99, portal + 18) })
+	if (figma > 20) signals.push({ label: 'Needs Figma', score: Math.min(99, figma + 18) })
+	signals.sort((a, b) => b.score - a.score)
+
+	const modulesByType: Record<string, string[]> = {
+		Agency: ['Projects', 'Clients', 'Tasks', 'Status Reports', 'Files', 'Billing'],
+		Developer: ['Projects', 'Tasks', 'Files', 'Invoices', 'Messages'],
+		Startup: ['Projects', 'Tasks', 'Roadmap', 'Git', 'AI'],
+		Company: ['Overview', 'Projects', 'People', 'Reports', 'Files'],
+	}
+	const navByMode: Record<string, string[]> = {
+		developer: ['Dashboard', 'Projects', 'Git', 'Tasks', 'Tagro'],
+		client: ['Dashboard', 'Projects', 'Progress', 'Files', 'Tagro'],
+		hybrid: ['Dashboard', 'Projects', 'Clients', 'Tasks', 'Tagro'],
+		'': ['Dashboard', 'Projects', 'Tagro'],
+	}
+	const integByType: Record<string, string[]> = {
+		Agency: ['GitHub', 'Figma', 'Slack', 'Google Calendar', 'Notion'],
+		Developer: ['GitHub', 'Figma', 'Slack', 'Google Calendar'],
+		Startup: ['GitHub', 'Linear', 'Supabase', 'Vercel', 'Notion'],
+		Company: ['Microsoft', 'Jira', 'Slack', 'Google Calendar', 'GitHub'],
+	}
+
+	const modules = modulesByType[topType] || ['Projects', 'Tasks', 'Files']
+	const integrations = [
+		...(github > 20 ? ['GitHub', 'Supabase'] : []),
+		...(figma > 20 ? ['Figma'] : []),
+		...(integByType[topType] || INTEGRATIONS.default),
+	]
+	const seen = new Set<string>()
+	const integrationsUnique = integrations.filter((x) => (seen.has(x) ? false : (seen.add(x), true))).slice(0, 6)
+
+	const needs: string[] = []
+	if (client > 15) needs.push('Clients')
+	if (developer > 15) needs.push('Delivery')
+	if (portal > 20) needs.push('Status & Freigaben')
+	if (freelancer > 20 || /freelancer|entwickler/.test(s)) needs.push('Collaborators')
+	if (github > 20) needs.push('Repos')
+
+	let primaryGoal = 'Workspace einrichten'
+	if (/webseite|website|app|saas|produkt/.test(s)) primaryGoal = 'Digitale Produkte bauen'
+	else if (/suche|brauche/.test(s)) primaryGoal = 'Mitwirkende finden'
+	else if (/organisieren|projektmanagement/.test(s)) primaryGoal = 'Arbeit organisieren'
+	else if (/kunde/.test(s)) primaryGoal = 'Kundenarbeit liefern'
+
+	const needsClarify = s.length >= 6 && confidence > 0 && confidence < 72 && !clarifyPick
+
+	return {
+		workspaceType: topScore > 8 ? topType : '—',
+		confidence: topScore > 8 ? confidence : 0,
+		mode,
+		signals: signals.slice(0, 5),
+		modules,
+		integrations: integrationsUnique,
+		navigation: navByMode[mode] || navByMode[''],
+		primaryGoal,
+		needs: needs.slice(0, 4),
+		needsClarify,
+		intentSummary: raw.trim().slice(0, 160),
+	}
+}
+
+const INTEGRATIONS: Record<string, string[]> = {
+	developer: ['GitHub', 'Linear', 'Supabase', 'Vercel', 'Jira', 'Slack'],
+	client: ['Slack', 'Figma', 'Notion', 'Google Drive', 'Google Calendar'],
+	hybrid: ['GitHub', 'Slack', 'Figma', 'Notion', 'Linear', 'Google Calendar'],
+	Agency: ['Slack', 'Figma', 'Notion', 'GitHub', 'Linear'],
+	Startup: ['Notion', 'GitHub', 'Linear', 'Slack', 'Vercel'],
+	Company: ['Microsoft', 'Jira', 'Slack', 'GitHub', 'Google Calendar'],
+	default: ['GitHub', 'Linear', 'Jira', 'Slack', 'Figma', 'Notion', 'Discord', 'Google Calendar'],
+}
+
+const PREP_LINES = [
+	'Blueprint anwenden…',
+	'Module einrichten…',
+	'Navigation anpassen…',
+	'Empfehlungen aufbauen…',
+	'Gleich soweit…',
+]
+
+const MODE_LABEL: Record<string, string> = {
+	developer: 'Developer',
+	client: 'Client',
+	hybrid: 'Hybrid',
+}
+
+export default function FestagMasterAuthOnboarding() {
+	const [step, setStep] = useCanvasState('step', 0)
+	const [authMode, setAuthMode] = useCanvasState<'login' | 'register'>('authMode', 'login')
+	const [displayName, setDisplayName] = useCanvasState('displayName', '')
+	const [email, setEmail] = useCanvasState('email', '')
+	const [intentText, setIntentText] = useCanvasState('intentText', '')
+	const [clarifyPick, setClarifyPick] = useCanvasState('clarifyPick', '')
+	const [connected, setConnected] = useCanvasState<string[]>('connected', ['GitHub'])
+	const [heroTick, setHeroTick] = useState(0)
+	const [prepProgress, setPrepProgress] = useCanvasState('prepProgress', 0)
+	const [prepReady, setPrepReady] = useCanvasState('prepReady', false)
+	const [appearance, setAppearance] = useCanvasState<Appearance>('appearance', 'dark')
+	const [dragX, setDragX] = useState(0)
+	const [dragging, setDragging] = useState(false)
+	const [intentReady, setIntentReady] = useState(false)
+	const [docsOpen, setDocsOpen] = useState(false)
+	const touchRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
+	const t = useMemo(() => themeFor(appearance), [appearance])
+
+	const i = Math.min(Math.max(step, 0), STEPS.length - 1)
+	const sid = STEPS[i].id
+	const name = displayName.trim() || 'Stefan'
+	const blueprint = useMemo(
+		() => analyzeIntent(intentText, clarifyPick),
+		[intentText, clarifyPick],
+	)
+	const rankedIntegrations = useMemo(() => {
+		const seen = new Set<string>()
+		const out: string[] = []
+		for (const x of [...blueprint.integrations, ...INTEGRATIONS.default]) {
+			if (!seen.has(x)) {
+				seen.add(x)
+				out.push(x)
+			}
+		}
+		return out.slice(0, 8)
+	}, [blueprint.integrations])
+
+	const flowDots = FLOW_DOTS
+	const flowActive = flowDotIndex(sid)
+
+	useEffect(() => {
+		setHeroTick((n) => n + 1)
+	}, [sid, authMode])
+
+	function go(n: number) {
+		setDragX(0)
+		setStep(Math.min(Math.max(n, 0), STEPS.length - 1))
+	}
+
+	function goAfterIntent() {
+		const bp = analyzeIntent(intentText, clarifyPick)
+		if (bp.needsClarify) go(stepIndex('clarify'))
+		else go(stepIndex('connect'))
+	}
+
+	function toggleSource(src: string) {
+		setConnected(
+			connected.includes(src)
+				? connected.filter((x) => x !== src)
+				: [...connected, src],
+		)
+	}
+
+	function canContinue() {
+		if (sid === 'auth') {
+			const emailOk = isValidWorkEmail(email)
+			if (authMode === 'register') return name.trim().length > 1 && emailOk
+			return emailOk
+		}
+		return true
+	}
+
+	/** Forward swipe only when the step has a real choice / fill. */
+	function canSwipeForward() {
+		/* Intent: not “enough characters” alone — Tagro waits until typing settles */
+		if (sid === 'intent') return intentReady
+		if (sid === 'clarify') return Boolean(clarifyPick)
+		if (sid === 'connect') return connected.length > 0
+		if (sid === 'preparing') return prepReady
+		return false
+	}
+
+	function canSwipeBack() {
+		return sid !== 'auth'
+	}
+
+	function advance() {
+		if (sid === 'intent') {
+			goAfterIntent()
+			return
+		}
+		if (sid === 'clarify') {
+			go(stepIndex('connect'))
+			return
+		}
+		if (sid === 'connect') {
+			go(stepIndex('preparing'))
+			return
+		}
+		if (sid === 'preparing' && prepReady) {
+			go(stepIndex('auth'))
+		}
+	}
+
+	function retreat() {
+		if (sid === 'preparing') {
+			go(stepIndex('connect'))
+			return
+		}
+		if (sid === 'connect') {
+			/* Skip clarify on the way back — Ziel is the page-control home */
+			go(stepIndex('intent'))
+			return
+		}
+		if (sid === 'clarify') {
+			go(stepIndex('intent'))
+			return
+		}
+		if (sid === 'intent') {
+			go(stepIndex('auth'))
+		}
+	}
+
+	function onClarifyPick(v: string) {
+		setClarifyPick(v)
+		window.setTimeout(() => go(stepIndex('connect')), 220)
+	}
+
+	function onFlowDotClick(dotId: (typeof FLOW_DOTS)[number]['id']) {
+		const targetFlow = FLOW_DOTS.findIndex((d) => d.id === dotId)
+		if (targetFlow < 0 || flowActive < 0) return
+
+		/* Past segment → jump back to that page */
+		if (targetFlow < flowActive) {
+			go(stepIndex(dotId))
+			return
+		}
+		/* Current pill → advance one step when ready */
+		if (targetFlow === flowActive) {
+			if (canSwipeForward()) advance()
+			return
+		}
+		/* Next pill only — never skip ahead to Prepare from Ziel */
+		if (targetFlow === flowActive + 1 && canSwipeForward()) {
+			advance()
+		}
+	}
+
+	function isSwipeBlockedTarget(target: EventTarget | null) {
+		const el = target as { closest?: (s: string) => unknown } | null
+		if (!el?.closest) return false
+		return Boolean(
+			el.closest('input, textarea, button, a, [role="status"]'),
+		)
+	}
+
+	function onPointerDown(clientX: number, clientY: number, target?: EventTarget | null) {
+		if (sid === 'auth' || docsOpen) return
+		if (isSwipeBlockedTarget(target ?? null)) {
+			touchRef.current = null
+			return
+		}
+		touchRef.current = { x: clientX, y: clientY, locked: null }
+	}
+
+	function onPointerMove(clientX: number, clientY: number) {
+		const start = touchRef.current
+		if (!start) return
+		const dx = clientX - start.x
+		const dy = clientY - start.y
+		if (start.locked === null) {
+			if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return
+			start.locked = Math.abs(dx) > Math.abs(dy) * 1.15
+			if (!start.locked) {
+				touchRef.current = null
+				return
+			}
+			setDragging(true)
+		}
+		if (!start.locked) return
+		const blockFwd = dx < 0 && !canSwipeForward()
+		const blockBack = dx > 0 && !canSwipeBack()
+		const resistance = blockFwd || blockBack ? 0.22 : 1
+		setDragX(dx * resistance)
+	}
+
+	function onPointerUp() {
+		const start = touchRef.current
+		touchRef.current = null
+		const dx = dragX
+		const wasDragging = dragging
+		setDragging(false)
+		if (start?.locked && wasDragging && Math.abs(dx) > 56) {
+			if (dx < 0 && canSwipeForward()) {
+				advance()
+				return
+			}
+			if (dx > 0 && canSwipeBack()) {
+				retreat()
+				return
+			}
+		}
+		setDragX(0)
+	}
+
+	return (
+		<Stack gap={16} style={{ padding: 20, minHeight: '100%' }}>
+			<style>{CSS}</style>
+			<Row gap={12} align="center" wrap>
+				<Text weight="medium" style={{ fontSize: 15 }}>
+					Festag Master — Auth & Onboarding
+				</Text>
+				<Text tone="tertiary" style={{ fontSize: 12 }}>
+					Identity → Goal → Tagro Blueprint → Sources → Prepare
+				</Text>
+				<div style={{ flex: 1, minWidth: 8 }} />
+				{/* Theme switcher — canvas chrome only, not inside phone cards */}
+				<Row gap={6} align="center">
+					<Text tone="tertiary" style={{ fontSize: 12 }}>
+						Appearance
+					</Text>
+					<Button
+						variant={appearance === 'dark' ? 'primary' : 'secondary'}
+						onClick={() => setAppearance('dark')}
+					>
+						Dark
+					</Button>
+					<Button
+						variant={appearance === 'light' ? 'primary' : 'secondary'}
+						onClick={() => setAppearance('light')}
+					>
+						Light
+					</Button>
+				</Row>
+			</Row>
+
+			<Row gap={6} wrap>
+				{STEPS.map((s, idx) => (
+					<span key={s.id}>
+						<Button
+							variant={idx === i ? 'primary' : 'secondary'}
+							onClick={() => go(idx)}
+						>
+							{idx + 1}. {s.label}
+						</Button>
+					</span>
+				))}
+			</Row>
+			{sid === 'auth' ? (
+				<Row gap={8}>
+					<Button
+						variant={authMode === 'login' ? 'primary' : 'secondary'}
+						onClick={() => setAuthMode('login')}
+					>
+						Login
+					</Button>
+					<Button
+						variant={authMode === 'register' ? 'primary' : 'secondary'}
+						onClick={() => setAuthMode('register')}
+					>
+						Register
+					</Button>
+				</Row>
+			) : null}
+
+			<Row gap={24} align="start" wrap>
+				<div style={phoneShell(t)}>
+					<div
+						style={{
+							...phoneScreen(t),
+							transform: sid === 'auth' ? undefined : `translateX(${dragX}px)`,
+							transition: dragging
+								? 'none'
+								: 'transform .42s cubic-bezier(.22,1,.36,1)',
+							willChange: dragging ? 'transform' : 'auto',
+							touchAction: sid === 'auth' ? 'auto' : 'pan-y',
+						}}
+						onTouchStart={(e: {
+							touches: Array<{ clientX: number; clientY: number }>
+							target: EventTarget | null
+						}) => {
+							const p = e.touches[0]
+							if (p) onPointerDown(p.clientX, p.clientY, e.target)
+						}}
+						onTouchMove={(e: { touches: Array<{ clientX: number; clientY: number }> }) => {
+							const p = e.touches[0]
+							if (p) onPointerMove(p.clientX, p.clientY)
+						}}
+						onTouchEnd={() => onPointerUp()}
+						onTouchCancel={() => {
+							touchRef.current = null
+							setDragging(false)
+							setDragX(0)
+						}}
+						onMouseDown={(e: { clientX: number; clientY: number; target: EventTarget | null }) =>
+							onPointerDown(e.clientX, e.clientY, e.target)
+						}
+						onMouseMove={(e: { clientX: number; clientY: number }) => {
+							if (!touchRef.current) return
+							onPointerMove(e.clientX, e.clientY)
+						}}
+						onMouseUp={() => onPointerUp()}
+						onMouseLeave={() => {
+							if (touchRef.current) onPointerUp()
+						}}
+					>
+						<div style={headerBar}>
+							<img
+								src={MARK}
+								alt=""
+								width={28}
+								height={28}
+								style={{
+									width: 28,
+									height: 28,
+									objectFit: 'contain',
+									/* New 3D mark — no invert/ink filter */
+									opacity: 0.95,
+								}}
+							/>
+							<div style={{ flex: 1 }} />
+							<button
+								type="button"
+								aria-label="Dokumentation"
+								aria-expanded={docsOpen}
+								onClick={() => setDocsOpen(true)}
+								style={{
+									width: 36,
+									height: 36,
+									borderRadius: 8,
+									border: 'none',
+									background: 'transparent',
+									display: 'inline-flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									cursor: 'pointer',
+									padding: 0,
+								}}
+							>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+									<path
+										d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v16.5H6.5A2.5 2.5 0 0 0 4 22V5.5Z"
+										stroke={t.ink}
+										strokeOpacity={0.55}
+										strokeWidth="1.6"
+										strokeLinejoin="round"
+									/>
+									<path
+										d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v16.5h5.5A2.5 2.5 0 0 1 20 22V5.5Z"
+										stroke={t.ink}
+										strokeOpacity={0.55}
+										strokeWidth="1.6"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							</button>
+						</div>
+
+						<div style={{ ...contentArea, paddingBottom: sid === 'auth' ? 28 : 100 }}>
+							<div style={contentCard} key={`${sid}-${authMode}-${heroTick}`}>
+								{sid === 'auth' ? (
+									<AuthStage
+										t={t}
+										mode={authMode}
+										name={displayName}
+										email={email}
+										onName={setDisplayName}
+										onEmail={setEmail}
+										onSwitchMode={(m: 'login' | 'register') => setAuthMode(m)}
+										onWeiter={() => {
+											if (!canContinue()) return
+											if (authMode === 'login') go(STEPS.findIndex((s) => s.id === 'preparing'))
+											else go(i + 1)
+										}}
+									/>
+								) : null}
+								{sid === 'intent' ? (
+									<IntentCanvasStage
+										t={t}
+										value={intentText}
+										onChange={(v) => {
+											setIntentText(v)
+											setIntentReady(false)
+										}}
+										onReadyChange={setIntentReady}
+										onAdvance={goAfterIntent}
+										ready={intentReady}
+									/>
+								) : null}
+								{sid === 'clarify' ? (
+									<ClarifyStage
+										t={t}
+										value={clarifyPick}
+										onPick={onClarifyPick}
+										blueprint={blueprint}
+									/>
+								) : null}
+								{sid === 'connect' ? (
+									<ConnectStage
+										t={t}
+										sources={rankedIntegrations}
+										connected={connected}
+										onToggle={toggleSource}
+									/>
+								) : null}
+								{sid === 'preparing' ? (
+									<PreparingStage
+										t={t}
+										onProgress={(p, ready) => {
+											setPrepProgress(p)
+											setPrepReady(ready)
+										}}
+									/>
+								) : null}
+							</div>
+						</div>
+
+						{flowActive >= 0 ? (
+							<div
+								style={{
+									...appleDotsTrack(t),
+									/* Above prepare command bar so the last pill stays readable */
+									...(sid === 'preparing' ? { bottom: 92 } : null),
+								}}
+								role="tablist"
+								aria-label="Onboarding-Fortschritt"
+							>
+								{flowDots.map((s, di) => {
+									const active = di === flowActive
+									const done = di < flowActive
+									const canGoNext = canSwipeForward()
+									return (
+										<button
+											key={s.id}
+											type="button"
+											aria-label={
+												active
+													? canGoNext
+														? `${s.label}, weiter`
+														: `${s.label}, aktuelle Folie`
+													: done
+														? `Zurück zu ${s.label}`
+														: di === flowActive + 1 && canGoNext
+															? `Weiter zu ${s.label}`
+															: `${s.label}`
+											}
+											aria-current={active ? 'step' : undefined}
+											onClick={() => onFlowDotClick(s.id)}
+											style={{
+												...appleDotBead(t, active ? 'active' : done ? 'done' : 'idle'),
+												border: 'none',
+												padding: 0,
+												margin: 0,
+												cursor:
+													done || active || (di === flowActive + 1 && canGoNext)
+														? 'pointer'
+														: 'default',
+												position: 'relative',
+												transition:
+													'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
+											}}
+										>
+											<span aria-hidden style={{ position: 'absolute', inset: '-12px -8px' }} />
+										</button>
+									)
+								})}
+							</div>
+						) : null}
+
+						{sid === 'preparing' ? (
+							<div
+								style={{
+									...commandBar(t),
+									flexDirection: 'column',
+									alignItems: 'stretch',
+									gap: 0,
+									paddingTop: 18,
+									paddingBottom: 26,
+								}}
+							>
+								<button
+									type="button"
+									onClick={() => {
+										if (prepReady) go(0)
+									}}
+									aria-label={prepReady ? 'Festag öffnen' : 'Workspace wird eingerichtet'}
+									aria-busy={!prepReady}
+									style={{
+										position: 'relative',
+										height: 4,
+										width: '100%',
+										borderRadius: 99,
+										border: 'none',
+										padding: 0,
+										background:
+											t.mode === 'light'
+												? 'rgba(30, 30, 32, 0.08)'
+												: 'rgba(245, 245, 247, 0.10)',
+										overflow: 'hidden',
+										cursor: prepReady ? 'pointer' : 'default',
+										fontFamily: 'inherit',
+										boxShadow:
+											t.mode === 'light' ? 'inset 0 0.5px 0 rgba(255,255,255,0.65)' : 'none',
+									}}
+								>
+									<span
+										aria-hidden
+										style={{
+											position: 'absolute',
+											inset: 0,
+											/* No primary blue — ink in light, soft bone in dark */
+											background: prepReady
+												? t.mode === 'light'
+													? '#1A1917'
+													: '#EBE8E3'
+												: t.mode === 'light'
+													? 'rgba(26, 25, 23, 0.72)'
+													: 'rgba(230, 232, 238, 0.78)',
+											transform: `scaleX(${Math.min(1, Math.max(0, prepProgress))})`,
+											transformOrigin: 'left center',
+											transition:
+												'transform .12s linear, background .28s ease',
+											borderRadius: 99,
+										}}
+									/>
+								</button>
+							</div>
+						) : null}
+
+						<AuthDocsSheet t={t} open={docsOpen} onClose={() => setDocsOpen(false)} />
+					</div>
+				</div>
+
+				<Stack gap={12} style={{ flex: '1 1 280px', maxWidth: 360 }}>
+					<Text weight="medium" style={{ fontSize: 14 }}>
+						Tagro Memory
+					</Text>
+					<ArchRow label="Account" value={name} hint="Display Name — Identität, kein Workspace" />
+					<ArchRow
+						label="Intent"
+						value={blueprint.intentSummary || '—'}
+						hint="Natürliche Sprache → Blueprint"
+					/>
+					<ArchRow
+						label="Workspace Type"
+						value={
+							blueprint.workspaceType !== '—'
+								? `${blueprint.workspaceType}, ${blueprint.confidence}%`
+								: '—'
+						}
+						hint={blueprint.needsClarify ? 'Confidence niedrig — Passt das?' : 'Live aus dem Ziel-Satz'}
+					/>
+					<ArchRow
+						label="Mode"
+						value={blueprint.mode ? MODE_LABEL[blueprint.mode] : '—'}
+						hint="preferred_workspace_mode — später in Settings änderbar"
+					/>
+					<ArchRow
+						label="Modules"
+						value={blueprint.modules.length ? blueprint.modules.join(', ') : '—'}
+						hint="Dashboard entsteht aus dem Blueprint"
+					/>
+					<ArchRow
+						label="Navigation"
+						value={blueprint.navigation.join(', ')}
+						hint="Kein fester Rollen-Portal-Split"
+					/>
+					<ArchRow
+						label="Integrations"
+						value={connected.length ? connected.join(', ') : blueprint.integrations.slice(0, 4).join(', ') || '—'}
+						hint="Gerankt aus dem Intent"
+					/>
+					<div
+						style={{
+							marginTop: 8,
+							padding: 14,
+							borderRadius: 10,
+							border: `1px solid ${t.hairline}`,
+							background: t.panelBg,
+						}}
+					>
+						<Text tone="tertiary" style={{ fontSize: 12, lineHeight: 1.5 }}>
+							Kein Rollen-Quiz. Ein Ziel-Satz → strukturierte Zusammenfassung → Workspace.
+							Nur bei Unsicherheit eine kurze Bestätigung.
+						</Text>
+					</div>
+				</Stack>
+			</Row>
+		</Stack>
+	)
+}
+
+function ArchRow({
+	label,
+	value,
+	hint,
+}: {
+	label: string
+	value: string
+	hint: string
+}) {
+	return (
+		<div>
+			<Text tone="tertiary" style={{ fontSize: 11 }}>
+				{label}
+			</Text>
+			<Text style={{ fontSize: 14, marginTop: 2 }}>{value}</Text>
+			<Text tone="tertiary" style={{ fontSize: 11, marginTop: 2 }}>
+				{hint}
+			</Text>
+		</div>
+	)
+}
+
+function ConnectStage({
+	t,
+	sources,
+	connected,
+	onToggle,
+}: {
+	t: Theme
+	sources: string[]
+	connected: string[]
+	onToggle: (name: string) => void
+}) {
+	/* Soft fade only top/bottom into the phone wash — no side masks (they clip selected strokes) */
+	const listEdgeMask =
+		'linear-gradient(to bottom, transparent 0%, #000 20px, #000 calc(100% - 64px), transparent 100%)'
+
+	return (
+		<>
+			{/* Same glassy H1 as connect-workspace mobile */}
+			<h1
+				style={{
+					margin: 0,
+					fontSize: 26,
+					lineHeight: 1.15,
+					letterSpacing: '-0.02em',
+					fontWeight: 400,
+					fontFamily: 'Aeonik, system-ui, sans-serif',
+				}}
+			>
+				<span style={{ display: 'block', color: t.ink }}>Verbinde deinen Workspace.</span>
+				<span style={{ display: 'block', color: t.muted }}>Verbinde die Tools, die du schon nutzt.</span>
+			</h1>
+
+			<div style={{ position: 'relative', width: '100%', marginTop: 16, marginBottom: 4 }}>
+				<div
+					style={{
+						maxHeight: 288,
+						overflowY: 'auto',
+						overflowX: 'hidden',
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 6,
+						paddingTop: 10,
+						paddingBottom: 56,
+						paddingLeft: 0,
+						paddingRight: 0,
+						scrollbarWidth: 'none',
+						WebkitMaskImage: listEdgeMask,
+						maskImage: listEdgeMask,
+						WebkitMaskRepeat: 'no-repeat',
+						maskRepeat: 'no-repeat',
+						WebkitMaskSize: '100% 100%',
+						maskSize: '100% 100%',
+					}}
+				>
+					{sources.map((src) => {
+						const on = connected.includes(src)
+						const Logo = logoForSource(src, t.markInk)
+						return (
+							<button
+								key={src}
+								type="button"
+								onClick={() => onToggle(src)}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 12,
+									padding: '11px 14px',
+									borderRadius: 8,
+									/* Selected = primary stroke only; no muddy fill */
+									border: `2px solid ${on ? t.primary : t.cardBorder}`,
+									background: on ? t.cardBgOn : t.cardBg,
+									boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+									flexShrink: 0,
+									boxSizing: 'border-box',
+									cursor: 'pointer',
+									fontFamily: 'inherit',
+									width: '100%',
+									textAlign: 'left',
+									margin: 0,
+									transition: 'border-color .18s ease, background .18s ease',
+								}}
+							>
+								<span
+									style={{
+										width: 28,
+										height: 28,
+										borderRadius: 8,
+										display: 'inline-flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										background: t.iconTile,
+										flexShrink: 0,
+									}}
+								>
+									<Logo />
+								</span>
+								<span
+									style={{
+										flex: 1,
+										fontSize: 13.5,
+										color: t.ink,
+										letterSpacing: '-0.005em',
+										lineHeight: 1.25,
+										opacity: on ? 1 : 0.88,
+									}}
+								>
+									{src}
+								</span>
+								<span style={{ fontSize: 11.5, color: t.muted, letterSpacing: '0.01em' }}>
+									{on ? 'Verbunden' : 'Bald'}
+								</span>
+							</button>
+						)
+					})}
+				</div>
+			</div>
+
+			<p
+				style={{
+					margin: '10px 0 0',
+					fontSize: 12,
+					color: t.muted,
+					letterSpacing: '0.02em',
+					textAlign: 'left',
+					lineHeight: 1.4,
+				}}
+			>
+				Weitere Clients verbindest du später im Execution Panel.
+			</p>
+		</>
+	)
+}
+
+function logoForSource(name: string, markInk: string): () => ReactElement {
+	const key = name.toLowerCase()
+	if (key.includes('github')) return () => <LogoGithub ink={markInk} />
+	if (key.includes('linear')) return LogoLinear
+	if (key.includes('jira')) return LogoJira
+	if (key.includes('slack')) return LogoSlack
+	if (key.includes('notion')) return () => <LogoNotion ink={markInk} />
+	if (key.includes('figma')) return LogoFigma
+	if (key.includes('vercel')) return () => <LogoVercel ink={markInk} />
+	if (key.includes('discord')) return LogoDiscord
+	if (key.includes('calendar') || key.includes('google')) return LogoGoogle
+	if (key.includes('microsoft')) return LogoMicrosoft
+	if (key.includes('supabase')) return LogoSupabase
+	return () => <LogoFallback ink={markInk} />
+}
+
+function LogoGithub({ ink = '#FFFFFF' }: { ink?: string }) {
+	return (
+		<svg width="16" height="16" viewBox="0 0 98 96" aria-hidden>
+			<path
+				fill={ink}
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.876 0 48.854 0z"
+			/>
+		</svg>
+	)
+}
+function LogoLinear() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 100 100" aria-hidden>
+			<path
+				fill="#5E6AD2"
+				d="M1.227 61.122 38.878 98.773a4.64 4.64 0 0 0 7.17-.542L1.77 53.12a4.64 4.64 0 0 0-.543 8.002Zm6.98-13.78 43.43 43.43a4.64 4.64 0 0 0 2.26-1.07L10.533 44.27a4.64 4.64 0 0 0-2.326 3.072ZM14.32 38.04l47.64 47.64a57 57 0 0 0 4.53-4.97L19.29 33.51a57 57 0 0 0-4.97 4.53Zm9.75-8.08 45.97 45.97C92.05 52.4 92.05 20.28 69.96 5.72L24.07 29.96Zm21.36-21.2C30.45 3.64 11.25 18.76 6.3 38.1L45.43 8.76Z"
+			/>
+		</svg>
+	)
+}
+function LogoJira() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 32 32" aria-hidden>
+			<path
+				fill="#2684FF"
+				d="M29.12 15.34 16.66 2.88a.96.96 0 0 0-1.36 0L12.5 5.68l3.66 3.66c.86-.3 1.84-.1 2.52.58a3.05 3.05 0 0 1 .58 2.58l3.52 3.52c.86-.3 1.84-.1 2.52.58a3.06 3.06 0 0 1 0 4.32 3.06 3.06 0 0 1-4.32 0 3.05 3.05 0 0 1-.62-3.3l-3.28-3.28v8.64a3.06 3.06 0 0 1 1.94 4.08 3.06 3.06 0 1 1-1.94-4.08V12.7a3.05 3.05 0 0 1-1.7-1.7L11.08 7.1 2.88 15.3a.96.96 0 0 0 0 1.36l12.46 12.46c.38.38.98.38 1.36 0l12.42-12.42a.96.96 0 0 0 0-1.36z"
+			/>
+		</svg>
+	)
+}
+function LogoSlack() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 127 127" aria-hidden>
+			<path
+				fill="#E01E5A"
+				d="M27.2 80c0 7.3-5.9 13.2-13.2 13.2S.8 87.3.8 80s5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2s13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2s-13.2-5.9-13.2-13.2V80z"
+			/>
+			<path
+				fill="#36C5F0"
+				d="M47 27.2c-7.3 0-13.2-5.9-13.2-13.2S39.7.8 47 .8s13.2 5.9 13.2 13.2v13.2H47zm0 6.6c7.3 0 13.2 5.9 13.2 13.2S54.3 60.2 47 60.2H14C6.7 60.2.8 54.3.8 47S6.7 33.8 14 33.8H47z"
+			/>
+			<path
+				fill="#2EB67D"
+				d="M99.8 47c0-7.3 5.9-13.2 13.2-13.2s13.2 5.9 13.2 13.2-5.9 13.2-13.2 13.2H99.8V47zm-6.6 0c0 7.3-5.9 13.2-13.2 13.2S66.8 54.3 66.8 47V14c0-7.3 5.9-13.2 13.2-13.2s13.2 5.9 13.2 13.2v33z"
+			/>
+			<path
+				fill="#ECB22E"
+				d="M80 99.8c7.3 0 13.2 5.9 13.2 13.2s-5.9 13.2-13.2 13.2-13.2-5.9-13.2-13.2V99.8H80zm0-6.6c-7.3 0-13.2-5.9-13.2-13.2S72.7 66.8 80 66.8h33c7.3 0 13.2 5.9 13.2 13.2s-5.9 13.2-13.2 13.2H80z"
+			/>
+		</svg>
+	)
+}
+function LogoNotion({ ink = '#FFFFFF' }: { ink?: string }) {
+	return (
+		<svg width="14" height="14" viewBox="0 0 100 100" aria-hidden>
+			<path
+				fill={ink}
+				d="M18 12h52c2 0 4 1 5 3l13 18c1 2 2 4 2 6v49c0 4-3 7-7 7H31c-2 0-4-1-5-3L13 74c-1-2-2-4-2-6V19c0-4 3-7 7-7z"
+			/>
+			<path
+				fill={ink === '#FFFFFF' ? '#0C0D12' : '#FAF9F5'}
+				d="M32 30h28v6H40v10h17v6H40v16h-8V30zm36 0c6 0 10 4 10 10v28c0 6-4 10-10 10s-10-4-10-10V40c0-6 4-10 10-10zm0 8c-2 0-3 1-3 3v26c0 2 1 3 3 3s3-1 3-3V41c0-2-1-3-3-3z"
+			/>
+		</svg>
+	)
+}
+function LogoFigma() {
+	return (
+		<svg width="12" height="18" viewBox="0 0 38 57" aria-hidden>
+			<path fill="#F24E1E" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" />
+			<path fill="#FF7262" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z" />
+			<path fill="#A259FF" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z" />
+			<path fill="#1ABCFE" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" />
+			<path fill="#0ACF83" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" />
+		</svg>
+	)
+}
+function LogoVercel({ ink = '#FFFFFF' }: { ink?: string }) {
+	return (
+		<svg width="14" height="12" viewBox="0 0 76 65" aria-hidden>
+			<path fill={ink} d="M37.5 0 75 65H0z" />
+		</svg>
+	)
+}
+function LogoDiscord() {
+	return (
+		<svg width="16" height="12" viewBox="0 0 71 55" aria-hidden>
+			<path
+				fill="#5865F2"
+				d="M60.1 4.9A58.5 58.5 0 0 0 45.4.2a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.4 37.4 0 0 0 25.4.3a.23.23 0 0 0-.23-.11A58.4 58.4 0 0 0 10.5 4.9a.2.2 0 0 0-.1.08C1.5 18.7-.9 32.2.3 45.5a.24.24 0 0 0 .09.16 58.8 58.8 0 0 0 17.7 9 0.23.23 0 0 0 .25-.08 42 42 0 0 0 3.6-5.9.22.22 0 0 0-.12-.31 38.7 38.7 0 0 1-5.5-2.6.23.23 0 0 1-.02-.38c.37-.28.74-.56 1.1-.85a.22.22 0 0 1 .23-.03c11.6 5.3 24.1 5.3 35.5 0a.22.22 0 0 1 .24.03c.35.29.72.57 1.1.85a.23.23 0 0 1-.02.38 36.4 36.4 0 0 1-5.52 2.6.23.23 0 0 0-.12.31 47.2 47.2 0 0 0 3.6 5.9.23.23 0 0 0 .25.08 58.6 58.6 0 0 0 17.7-9 .23.23 0 0 0 .09-.16c1.4-15.4-2.3-28.8-9.9-40.5a.18.18 0 0 0-.09-.09zM23.7 37.3c-3.5 0-6.4-3.2-6.4-7.1s2.8-7.1 6.4-7.1 6.5 3.2 6.4 7.1c0 3.9-2.8 7.1-6.4 7.1zm23.3 0c-3.5 0-6.4-3.2-6.4-7.1s2.8-7.1 6.4-7.1 6.5 3.2 6.4 7.1c0 3.9-2.9 7.1-6.4 7.1z"
+			/>
+		</svg>
+	)
+}
+function LogoGoogle() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden>
+			<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+			<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+			<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+			<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+		</svg>
+	)
+}
+function LogoMicrosoft() {
+	return (
+		<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+			<path fill="#F25022" d="M1 1h10v10H1z" />
+			<path fill="#7FBA00" d="M13 1h10v10H13z" />
+			<path fill="#00A4EF" d="M1 13h10v10H1z" />
+			<path fill="#FFB900" d="M13 13h10v10H13z" />
+		</svg>
+	)
+}
+function LogoSupabase() {
+	return (
+		<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+			<path
+				fill="#3ECF8E"
+				d="M13.9 2.2c-.4-.6-1.3-.3-1.3.4v7.7H3.4c-1 0-1.5 1.2-.8 1.9l6.7 7.6c.4.5 1.2.2 1.2-.4v-7.6h9.2c1 0 1.5-1.2.8-1.9L13.9 2.2z"
+			/>
+		</svg>
+	)
+}
+function LogoFallback({ ink = 'rgba(230,232,238,0.35)' }: { ink?: string }) {
+	return (
+		<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+			<rect x="3" y="3" width="18" height="18" rx="4" fill={ink} opacity={0.35} />
+		</svg>
+	)
+}
+
+function IntentCanvasStage({
+	t,
+	value,
+	onChange,
+	onReadyChange,
+	onAdvance,
+	ready,
+}: {
+	t: Theme
+	value: string
+	onChange: (v: string) => void
+	onReadyChange: (ready: boolean) => void
+	onAdvance: () => void
+	ready: boolean
+}) {
+	const [focused, setFocused] = useState(false)
+	const [assistOpen, setAssistOpen] = useState(false)
+	const [assistExpanded, setAssistExpanded] = useState(true)
+	const [assistMenu, setAssistMenu] = useState<'none' | 'auto'>('none')
+	const [assistAuto, setAssistAuto] = useState<'Auto' | 'Formell' | 'Sprachlich'>('Auto')
+	const [tagroBusy, setTagroBusy] = useState(false)
+	const [tagroMode, setTagroMode] = useState<'polish' | 'summary' | 'detail' | null>(null)
+	const [exampleIdx, setExampleIdx] = useState(0)
+	const [exampleIn, setExampleIn] = useState(true)
+	const areaRef = useRef<HTMLTextAreaElement | null>(null)
+	const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const tagroTimers = useRef<ReturnType<typeof setTimeout>[]>([])
+	/** Allocated textarea height — grows by 3 lines when typing hits the bottom */
+	const fieldHRef = useRef(INTENT_FIELD_MIN_H)
+	const hasText = value.trim().length > 0
+	const enough = value.trim().length >= 8
+	const showExample = !hasText
+	const light = t.mode === 'light'
+
+	useEffect(() => {
+		const el = areaRef.current
+		if (!el) return
+		/* Measure natural content height */
+		el.style.height = 'auto'
+		const needed = el.scrollHeight
+		let next = fieldHRef.current
+
+		if (needed > fieldHRef.current - 4) {
+			/* Reached the end — jump +3 lines of headroom */
+			next = Math.max(needed + INTENT_FIELD_STEP_H, fieldHRef.current + INTENT_FIELD_STEP_H)
+		} else if (needed <= INTENT_FIELD_MIN_H) {
+			next = INTENT_FIELD_MIN_H
+		} else if (needed < fieldHRef.current - INTENT_FIELD_STEP_H - 8) {
+			/* Shrunk — step back toward content, never below min */
+			const steps = Math.max(0, Math.ceil((needed - INTENT_FIELD_MIN_H) / INTENT_FIELD_STEP_H))
+			next = INTENT_FIELD_MIN_H + steps * INTENT_FIELD_STEP_H
+		}
+
+		fieldHRef.current = next
+		el.style.height = `${next}px`
+		el.style.overflow = 'hidden'
+
+		/* Keep caret in view — whole phone content scrolls, not the field alone */
+		requestAnimationFrame(() => {
+			el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+		})
+	}, [value])
+
+	useEffect(() => {
+		return () => {
+			if (blurTimer.current) clearTimeout(blurTimer.current)
+			if (settleTimer.current) clearTimeout(settleTimer.current)
+			for (const id of tagroTimers.current) clearTimeout(id)
+		}
+	}, [])
+
+	/* Finished writing = pause after enough signal — not a Weiter button */
+	useEffect(() => {
+		if (settleTimer.current) clearTimeout(settleTimer.current)
+		if (!enough) {
+			onReadyChange(false)
+			return
+		}
+		settleTimer.current = setTimeout(() => {
+			onReadyChange(true)
+		}, 1100)
+		return () => {
+			if (settleTimer.current) clearTimeout(settleTimer.current)
+		}
+	}, [value, enough, onReadyChange])
+
+	useEffect(() => {
+		if (!showExample) return
+		let fade: ReturnType<typeof setTimeout> | null = null
+		const tick = window.setInterval(() => {
+			setExampleIn(false)
+			fade = setTimeout(() => {
+				setExampleIdx((i) => (i + 1) % GOAL_EXAMPLES.length)
+				setExampleIn(true)
+			}, 420)
+		}, 3800)
+		return () => {
+			window.clearInterval(tick)
+			if (fade) clearTimeout(fade)
+		}
+	}, [showExample])
+
+	/* Collapse only when the user starts typing — never when reopening Tagro */
+	const prevHasText = useRef(hasText)
+	useEffect(() => {
+		const startedTyping = hasText && !prevHasText.current
+		prevHasText.current = hasText
+		if (!hasText) {
+			setAssistExpanded(true)
+			return
+		}
+		if (assistOpen && startedTyping) {
+			setAssistExpanded(false)
+			setAssistMenu('none')
+		}
+	}, [hasText, assistOpen])
+
+	function openAssist() {
+		if (blurTimer.current) clearTimeout(blurTimer.current)
+		setFocused(true)
+		setAssistOpen(true)
+		/* Empty field → full panel. With text, leave chip/panel as the user left it. */
+		if (!hasText) setAssistExpanded(true)
+	}
+
+	function reopenAssistPanel() {
+		if (blurTimer.current) clearTimeout(blurTimer.current)
+		setAssistOpen(true)
+		setAssistExpanded(true)
+		setAssistMenu('none')
+		setFocused(true)
+		requestAnimationFrame(() => areaRef.current?.focus())
+	}
+
+	function scheduleCloseAssist() {
+		setFocused(false)
+		setAssistMenu('none')
+		if (blurTimer.current) clearTimeout(blurTimer.current)
+		blurTimer.current = setTimeout(() => {
+			setAssistOpen(false)
+			/* Keep collapsed when there is text so the Tagro chip stays for reopen */
+			if (hasText) setAssistExpanded(false)
+			else setAssistExpanded(true)
+		}, 160)
+	}
+
+	function runTagroMode(mode: 'polish' | 'summary' | 'detail') {
+		const raw = value.trim()
+		if (!raw || tagroBusy) return
+		for (const id of tagroTimers.current) clearTimeout(id)
+		tagroTimers.current = []
+		setTagroMode(mode)
+		setTagroBusy(true)
+		tagroTimers.current.push(
+			setTimeout(() => {
+				let next = raw
+				if (mode === 'summary') {
+					next = raw.length > 160 ? `${raw.slice(0, 156).trim()}…` : raw
+				} else if (mode === 'detail') {
+					next = /workspace|festag|tagro/i.test(raw)
+						? raw
+						: `${raw} Tagro richtet Workspace, Module und Anbindungen danach ein.`
+				} else if (assistAuto === 'Sprachlich') {
+					next = raw.replace(/\s+/g, ' ').trim()
+					if (!/[.!?]$/.test(next)) next = `${next}.`
+					next = next.charAt(0).toUpperCase() + next.slice(1)
+				} else {
+					/* Formell / Auto */
+					next = raw.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ', ').trim()
+					next = next.charAt(0).toUpperCase() + next.slice(1)
+					if (!/[.!?]$/.test(next)) next = `${next}.`
+				}
+				onChange(next)
+				setTagroBusy(false)
+				setTagroMode(null)
+			}, 900),
+		)
+	}
+
+	const example = GOAL_EXAMPLES[exampleIdx]
+	const modes: Array<{ id: 'polish' | 'summary' | 'detail'; label: string }> = [
+		{ id: 'polish', label: 'Besser schreiben' },
+		{ id: 'summary', label: 'Zusammenfassen' },
+		{ id: 'detail', label: 'Detaillierter' },
+	]
+	/* Chip stays for reopen even after outside-click closes the panel */
+	const showTagroChip = hasText && !assistExpanded
+	const showTagroPanel = assistOpen && assistExpanded
+	const fieldNeedsChipPad = showTagroChip
+
+	const popBg = light
+		? assistMenu !== 'none'
+			? '#FFFFFF'
+			: 'rgba(255,255,255,0.96)'
+		: assistMenu !== 'none'
+			? '#0E0E10'
+			: hasText
+				? 'rgba(21, 21, 24, 0.97)'
+				: 'rgba(14, 14, 16, 0.96)'
+	const popBorder = light
+		? 'rgba(30, 30, 32, 0.08)'
+		: `rgba(255, 255, 255, ${assistMenu !== 'none' ? '0.08' : hasText ? '0.07' : '0.06'})`
+	const popInk = light ? '#1A1917' : '#E6E6EA'
+	const popMuted = light ? 'rgba(26, 25, 23, 0.48)' : 'rgba(230, 230, 234, 0.48)'
+	const chipBg = light ? 'rgba(91, 100, 125, 0.10)' : 'rgba(18, 20, 28, 0.96)'
+	const chipBorder = light ? 'rgba(30, 30, 32, 0.08)' : 'rgba(230, 232, 238, 0.10)'
+	const chipInk = light ? 'rgba(26, 25, 23, 0.72)' : 'rgba(230, 232, 238, 0.72)'
+
+	return (
+		<>
+			<h1
+				style={{
+					margin: 0,
+					fontSize: 26,
+					lineHeight: 1.15,
+					letterSpacing: '-0.02em',
+					fontWeight: 400,
+					fontFamily: 'Aeonik, system-ui, sans-serif',
+				}}
+			>
+				<span style={{ display: 'block', color: t.ink }}>Woran arbeitest du gerade?</span>
+				<span style={{ display: 'block', color: t.muted }}>
+					Tagro richtet deinen Workspace danach ein.
+				</span>
+			</h1>
+
+			{/* Field + Tagro assist (same contract as Über mich / TagroFieldAssist) */}
+			<div style={{ position: 'relative', width: '100%', marginTop: 18 }}>
+				<div
+					style={{
+						position: 'relative',
+						borderRadius: 8,
+						border: `1px solid ${focused ? t.primary : hasText ? t.fieldBorderFilled : t.hairline}`,
+						background: 'transparent',
+						padding: fieldNeedsChipPad ? '12px 14px 44px' : '12px 14px',
+						minHeight: INTENT_FIELD_MIN_H + 24,
+						boxSizing: 'border-box',
+						transition: 'border-color .18s ease, padding .28s cubic-bezier(.22,1,.36,1)',
+					}}
+				>
+					<textarea
+						ref={areaRef}
+						value={value}
+						rows={6}
+						placeholder=""
+						aria-label={`Ziel, z. B. ${example}`}
+						onChange={(e: { target: { value: string } }) => onChange(e.target.value)}
+						onFocus={openAssist}
+						onClick={openAssist}
+						onBlur={scheduleCloseAssist}
+						onKeyDown={(e: { key: string; shiftKey: boolean; preventDefault: () => void }) => {
+							/* Enter = “fertig geschrieben” — Shift+Enter stays newline */
+							if (e.key === 'Enter' && !e.shiftKey && enough) {
+								e.preventDefault()
+								onAdvance()
+							}
+						}}
+						style={{
+							width: '100%',
+							minHeight: INTENT_FIELD_MIN_H,
+							height: INTENT_FIELD_MIN_H,
+							padding: 0,
+							border: 'none',
+							background: 'transparent',
+							color: t.ink,
+							fontSize: 15,
+							lineHeight: 1.5,
+							fontFamily: 'inherit',
+							fontWeight: 400,
+							resize: 'none',
+							outline: 'none',
+							boxSizing: 'border-box',
+							overflow: 'hidden',
+							caretColor: hasText ? t.primary : 'transparent',
+						}}
+					/>
+					{showExample ? (
+						<span
+							aria-hidden
+							key={example}
+							style={{
+								position: 'absolute',
+								/* Same origin as textarea text — no extra inset (that pushed copy past the caret) */
+								left: 14,
+								top: 12,
+								right: 14,
+								fontSize: 15,
+								lineHeight: 1.5,
+								fontWeight: 400,
+								letterSpacing: '0.01em',
+								color: t.muted,
+								pointerEvents: 'none',
+								opacity: exampleIn ? (focused ? 0.42 : 0.72) : 0,
+								transform: exampleIn ? 'translate3d(0, 0, 0)' : 'translate3d(0, 10px, 0)',
+								filter: exampleIn ? 'blur(0)' : 'blur(6px)',
+								transition:
+									'opacity .42s cubic-bezier(.22,1,.36,1), transform .42s cubic-bezier(.22,1,.36,1), filter .42s ease',
+								willChange: 'opacity, transform, filter',
+							}}
+						>
+							{example}
+						</span>
+					) : null}
+					{!hasText ? (
+						<span
+							aria-hidden
+							className="master-idle-caret"
+							style={{
+								position: 'absolute',
+								left: 14,
+								top: 14,
+								width: 2,
+								height: 18,
+								borderRadius: 1,
+								background: t.primary,
+								pointerEvents: 'none',
+							}}
+						/>
+					) : null}
+
+					{showTagroChip ? (
+						<button
+							type="button"
+							aria-label="Tagro Assist öffnen"
+							onMouseDown={(e: { preventDefault?: () => void }) => e.preventDefault?.()}
+							onClick={reopenAssistPanel}
+							style={{
+								position: 'absolute',
+								right: 8,
+								bottom: 8,
+								zIndex: 12,
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: 6,
+								height: 32,
+								minWidth: 90,
+								padding: '0 12px 0 10px',
+								borderRadius: 999,
+								border: `1px solid ${chipBorder}`,
+								background: chipBg,
+								boxShadow: light
+									? '0 1px 2px rgba(0,0,0,0.06)'
+									: '0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 14px rgba(0,0,0,0.28)',
+								color: chipInk,
+								fontSize: 12.5,
+								letterSpacing: '0.01em',
+								fontFamily: 'inherit',
+								cursor: 'pointer',
+								animation: 'masterTagroChipIn .32s cubic-bezier(.22,1,.36,1) both',
+								backdropFilter: 'blur(16px)',
+								WebkitBackdropFilter: 'blur(16px)',
+								whiteSpace: 'nowrap',
+							}}
+						>
+							<span aria-hidden style={{ display: 'inline-flex', color: t.primary }}>
+								<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+									<path
+										d="M11.4 2.6a1.45 1.45 0 0 1 2 2L5.7 12.3 2.5 13.5l1.2-3.2L11.4 2.6Z"
+										stroke="currentColor"
+										strokeWidth="1.35"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							</span>
+							Tagro
+						</button>
+					) : null}
+				</div>
+
+				{ready ? (
+					<p
+						style={{
+							margin: '14px 0 0',
+							fontSize: 13,
+							lineHeight: 1.45,
+							color: t.muted,
+							letterSpacing: '0.01em',
+							animation: 'masterShellIn .28s ease both',
+						}}
+					>
+						Tagro hat genug — Enter oder wische weiter.
+					</p>
+				) : null}
+
+				{showTagroPanel ? (
+					<div
+						role="dialog"
+						aria-label="Tagro Assist"
+						onMouseDown={(e: { preventDefault?: () => void }) => e.preventDefault?.()}
+						style={{
+							position: 'absolute',
+							left: 0,
+							right: 0,
+							top: 'calc(100% + 10px)',
+							zIndex: 12,
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 6,
+							padding: '8px 10px',
+							borderRadius: 12,
+							background: popBg,
+							border: `1px solid ${popBorder}`,
+							boxShadow: light
+								? '0 1px 2px rgba(0,0,0,0.04), 0 12px 28px rgba(0,0,0,0.08)'
+								: '0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 32px rgba(0,0,0,0.42)',
+							animation: 'masterTagroFloatIn .34s cubic-bezier(.22,1,.36,1) both',
+							pointerEvents: 'auto',
+							color: popInk,
+							backdropFilter: 'blur(18px)',
+							WebkitBackdropFilter: 'blur(18px)',
+						}}
+					>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+							<span
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									gap: 5,
+									padding: '3px 8px 3px 5px',
+									borderRadius: 7,
+									fontSize: 12,
+									letterSpacing: '0.01em',
+									lineHeight: 1.3,
+									background: light ? 'rgba(91, 100, 125, 0.10)' : 'rgba(91, 100, 125, 0.14)',
+									color: light ? 'rgba(26, 25, 23, 0.72)' : 'rgba(200, 208, 224, 0.88)',
+									whiteSpace: 'nowrap',
+								}}
+							>
+								<span aria-hidden style={{ display: 'inline-flex', flexShrink: 0, color: t.primary }}>
+									<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+										<path
+											d="M11.4 2.6a1.45 1.45 0 0 1 2 2L5.7 12.3 2.5 13.5l1.2-3.2L11.4 2.6Z"
+											stroke="currentColor"
+											strokeWidth="1.35"
+											strokeLinejoin="round"
+										/>
+									</svg>
+								</span>
+								Workspace-Ziel
+							</span>
+							{tagroBusy ? (
+								<span style={{ marginLeft: 'auto', fontSize: 11.5, color: popMuted }}>
+									Verdichtet…
+								</span>
+							) : null}
+						</div>
+						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+							<div style={{ position: 'relative' }}>
+								<button
+									type="button"
+									disabled={tagroBusy}
+									onClick={() => setAssistMenu((m) => (m === 'auto' ? 'none' : 'auto'))}
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										gap: 4,
+										height: 28,
+										padding: '0 8px',
+										borderRadius: 8,
+										border: 'none',
+										background:
+											assistMenu === 'auto'
+												? light
+													? 'rgba(30,30,32,0.05)'
+													: 'rgba(255,255,255,0.05)'
+												: 'transparent',
+										color: popInk,
+										fontSize: 12.5,
+										letterSpacing: '0.01em',
+										fontFamily: 'inherit',
+										cursor: 'pointer',
+										opacity: tagroBusy ? 0.45 : 1,
+									}}
+								>
+									{assistAuto}
+									<svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
+										<path
+											d="M3 4.5 6 7.5 9 4.5"
+											stroke="currentColor"
+											strokeWidth="1.4"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+									</svg>
+								</button>
+								{assistMenu === 'auto' ? (
+									<ul
+										style={{
+											position: 'absolute',
+											left: 0,
+											bottom: 'calc(100% + 8px)',
+											zIndex: 4,
+											margin: 0,
+											padding: 5,
+											listStyle: 'none',
+											minWidth: 176,
+											borderRadius: 12,
+											background: light ? '#FFFFFF' : '#1A1A1E',
+											border: `1px solid ${popBorder}`,
+											boxShadow: light
+												? '0 8px 24px rgba(0,0,0,0.10)'
+												: '0 12px 36px rgba(0,0,0,0.55)',
+										}}
+									>
+										{(
+											[
+												{ id: 'Auto' as const, hint: 'Tagro wählt passend' },
+												{ id: 'Formell' as const, hint: 'Klar, geschäftlich' },
+												{ id: 'Sprachlich' as const, hint: 'Natürlich, gesprochen' },
+											] as const
+										).map((opt) => (
+											<li key={opt.id}>
+												<button
+													type="button"
+													onClick={() => {
+														setAssistAuto(opt.id)
+														setAssistMenu('none')
+													}}
+													style={{
+														width: '100%',
+														textAlign: 'left',
+														padding: '8px 10px',
+														borderRadius: 8,
+														border: 'none',
+														background:
+															assistAuto === opt.id
+																? light
+																	? 'rgba(30,30,32,0.05)'
+																	: 'rgba(255,255,255,0.06)'
+																: 'transparent',
+														color: popInk,
+														fontFamily: 'inherit',
+														cursor: 'pointer',
+													}}
+												>
+													<span style={{ display: 'block', fontSize: 13 }}>{opt.id}</span>
+													<span
+														style={{
+															display: 'block',
+															fontSize: 11.5,
+															color: popMuted,
+															marginTop: 2,
+														}}
+													>
+														{opt.hint}
+													</span>
+												</button>
+											</li>
+										))}
+									</ul>
+								) : null}
+							</div>
+							{modes.map((m) => {
+								const active = tagroMode === m.id
+								return (
+									<button
+										key={m.id}
+										type="button"
+										disabled={tagroBusy || !hasText}
+										onClick={() => runTagroMode(m.id)}
+										style={{
+											height: 28,
+											padding: '0 10px',
+											borderRadius: 8,
+											border: `1px solid ${
+												active
+													? 'rgba(91,100,125,0.55)'
+													: light
+														? 'rgba(30,30,32,0.08)'
+														: 'rgba(234,230,223,0.10)'
+											}`,
+											background: active ? 'rgba(91,100,125,0.16)' : 'transparent',
+											color:
+												!hasText || tagroBusy
+													? popMuted
+													: active
+														? popInk
+														: light
+															? 'rgba(26,25,23,0.68)'
+															: 'rgba(234,230,223,0.68)',
+											fontSize: 11.5,
+											letterSpacing: '0.02em',
+											fontFamily: 'inherit',
+											cursor: tagroBusy || !hasText ? 'default' : 'pointer',
+											whiteSpace: 'nowrap',
+										}}
+									>
+										{m.label}
+									</button>
+								)
+							})}
+							{tagroBusy ? (
+								<span
+									aria-hidden
+									className="master-tagro-spin"
+									style={{
+										marginLeft: 'auto',
+										width: 12,
+										height: 12,
+										borderRadius: '50%',
+										boxSizing: 'border-box',
+										border: `1.5px solid ${light ? 'rgba(30,30,32,0.12)' : 'rgba(234,230,223,0.14)'}`,
+										borderTopColor: light ? 'rgba(30,30,32,0.65)' : 'rgba(234,230,223,0.75)',
+									}}
+								/>
+							) : (
+								<button
+									type="button"
+									disabled={!hasText}
+									onClick={() => runTagroMode('polish')}
+									aria-label="Einsetzen"
+									style={{
+										marginLeft: 'auto',
+										width: 28,
+										height: 28,
+										borderRadius: '50%',
+										border: 'none',
+										background: hasText ? t.primary : light ? 'rgba(30,30,32,0.06)' : 'rgba(234,230,223,0.08)',
+										color: hasText ? '#F5F5F7' : popMuted,
+										display: 'inline-flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										cursor: hasText ? 'pointer' : 'default',
+										flexShrink: 0,
+									}}
+								>
+									<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+										<path
+											d="M8 12.5V3.5M8 3.5 4.5 7M8 3.5 11.5 7"
+											stroke="currentColor"
+											strokeWidth="1.6"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+									</svg>
+								</button>
+							)}
+						</div>
+					</div>
+				) : null}
+			</div>
+
+			{showTagroPanel ? (
+				<div aria-hidden style={{ height: 96, transition: 'height .32s cubic-bezier(.22,1,.36,1)' }} />
+			) : null}
+		</>
+	)
+}
+
+function ClarifyStage({
+	t,
+	value,
+	onPick,
+	blueprint,
+}: {
+	t: Theme
+	value: string
+	onPick: (v: string) => void
+	blueprint: TagroBlueprint
+}) {
+	const guess = blueprint.workspaceType !== '—' ? blueprint.workspaceType : 'deinem Workspace'
+	return (
+		<>
+			<h1
+				style={{
+					margin: 0,
+					fontSize: 26,
+					lineHeight: 1.2,
+					letterSpacing: '-0.02em',
+					fontWeight: 400,
+					fontFamily: 'Aeonik, system-ui, sans-serif',
+				}}
+			>
+				<span style={{ color: t.ink }}>
+					Tagro liest eher „{guess}“, ist aber noch unsicher.
+				</span>{' '}
+				<span style={{ color: t.muted }}>
+					Wähle kurz, was am besten passt — eine Bestätigung reicht.
+				</span>
+			</h1>
+			<div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
+				{CLARIFY_OPTIONS.map((opt) => {
+					const on = value === opt
+					return (
+						<button
+							key={opt}
+							type="button"
+							onClick={() => onPick(opt)}
+							style={{
+								textAlign: 'left',
+								padding: '14px 16px',
+								borderRadius: 8,
+								border: `2px solid ${on ? t.primary : t.cardBorder}`,
+								background: on ? t.cardBgOn : t.cardBg,
+								boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+								color: t.ink,
+								fontSize: 15,
+								fontFamily: 'inherit',
+								cursor: 'pointer',
+							}}
+						>
+							{opt}
+						</button>
+					)
+				})}
+			</div>
+		</>
+	)
+}
+
+function AuthStage({
+	t,
+	mode,
+	name,
+	email,
+	onName,
+	onEmail,
+	onSwitchMode,
+	onWeiter,
+}: {
+	t: Theme
+	mode: 'login' | 'register'
+	name: string
+	email: string
+	onName: (v: string) => void
+	onEmail: (v: string) => void
+	onSwitchMode: (m: 'login' | 'register') => void
+	onWeiter: () => void
+}) {
+	const isLogin = mode === 'login'
+	const available = name.trim().length > 1
+	const emailOk = isValidWorkEmail(email)
+	const canGo = isLogin ? emailOk : available && emailOk
+	const [nameFocused, setNameFocused] = useState(false)
+	const [emailFocused, setEmailFocused] = useState(false)
+	const [nameConfirmed, setNameConfirmed] = useState(false)
+	const handle = name.trim().replace(/\s+/g, '').toLowerCase()
+	const nameInputRef = useRef<HTMLInputElement | null>(null)
+
+	useEffect(() => {
+		/* Reset confirm when switching modes or clearing name */
+		if (!available) setNameConfirmed(false)
+	}, [available, mode])
+
+	function confirmName() {
+		if (!available) return
+		setNameConfirmed(true)
+		setNameFocused(false)
+	}
+
+	function editName() {
+		setNameConfirmed(false)
+		requestAnimationFrame(() => nameInputRef.current?.focus())
+	}
+
+	return (
+		<>
+			{/* One text block: title + name — no Hero word-clip gap */}
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+				<h1
+					style={{
+						margin: 0,
+						padding: 0,
+						fontSize: 26,
+						lineHeight: 1.15,
+						letterSpacing: '-0.02em',
+						fontWeight: 400,
+						fontFamily: 'Aeonik, system-ui, sans-serif',
+						color: t.ink,
+					}}
+				>
+					{isLogin ? 'Willkommen zurück.' : 'Erstelle dein Konto.'}
+				</h1>
+
+				{isLogin ? (
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'baseline',
+							gap: 2,
+							fontSize: 26,
+							lineHeight: 1.15,
+							letterSpacing: '-0.02em',
+							fontWeight: 400,
+							fontFamily: 'Aeonik, system-ui, sans-serif',
+						}}
+					>
+						<span style={{ color: t.muted }}>/</span>
+						<input
+							value={name}
+							onChange={(e: { target: { value: string } }) => onName(e.target.value)}
+							onFocus={() => setNameFocused(true)}
+							onBlur={() => setNameFocused(false)}
+							placeholder="Dein Name"
+							aria-label="Dein Name in Festag"
+							style={{
+								border: 'none',
+								outline: 'none',
+								background: 'transparent',
+								color: nameFocused ? t.primary : t.muted,
+								fontSize: 26,
+								lineHeight: 1.15,
+								letterSpacing: '-0.02em',
+								fontWeight: 400,
+								fontFamily: 'inherit',
+								padding: 0,
+								margin: 0,
+								minWidth: 120,
+								width: '100%',
+								caretColor: t.primary,
+								transition: 'color .18s ease',
+							}}
+						/>
+					</div>
+				) : nameConfirmed && available ? (
+					/* Confirmed — /username + check 8px to the right of the text */
+					<div
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: 8,
+							maxWidth: '100%',
+							minHeight: 30,
+							animation: 'masterShellIn .28s ease both',
+						}}
+					>
+						<button
+							type="button"
+							onClick={editName}
+							aria-label={`/${handle}, zum Bearbeiten tippen`}
+							style={{
+								border: 'none',
+								background: 'transparent',
+								padding: 0,
+								margin: 0,
+								cursor: 'pointer',
+								fontFamily: 'Aeonik, system-ui, sans-serif',
+								fontSize: 26,
+								lineHeight: 1.15,
+								letterSpacing: '-0.02em',
+								fontWeight: 400,
+								color: t.muted,
+								textAlign: 'left',
+								minWidth: 0,
+								maxWidth: '100%',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								whiteSpace: 'nowrap',
+							}}
+						>
+							/{handle}
+						</button>
+						<span
+							className="master-ok-badge"
+							title="Verfügbar"
+							role="status"
+							aria-label="Verfügbar"
+							style={{
+								width: 22,
+								height: 22,
+								borderRadius: 99,
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background:
+									t.mode === 'light' ? 'rgba(46, 155, 82, 0.10)' : 'rgba(46, 155, 82, 0.14)',
+								color: t.mode === 'light' ? '#2E9B52' : '#3dba66',
+								flexShrink: 0,
+							}}
+						>
+							<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+								<path
+									d="M3.2 8.2 6.4 11.4 12.8 4.6"
+									stroke="currentColor"
+									strokeWidth="2.2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</span>
+					</div>
+				) : (
+					<div
+						style={{
+							position: 'relative',
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: 8,
+							maxWidth: '100%',
+							minHeight: 30,
+						}}
+					>
+						<span
+							style={{
+								display: 'inline-grid',
+								alignItems: 'center',
+								maxWidth: '100%',
+								fontSize: 26,
+								lineHeight: 1.15,
+								letterSpacing: '-0.02em',
+								fontWeight: 400,
+								fontFamily: 'Aeonik, system-ui, sans-serif',
+							}}
+						>
+							{/* Mirror grows the field to the text — check sits 8px after it */}
+							<span
+								aria-hidden
+								style={{
+									visibility: 'hidden',
+									whiteSpace: 'pre',
+									gridArea: '1 / 1',
+									minWidth: 2,
+									paddingRight: 1,
+								}}
+							>
+								{name || ' '}
+							</span>
+							<input
+								ref={nameInputRef}
+								value={name}
+								onChange={(e: { target: { value: string } }) => {
+									onName(e.target.value)
+									setNameConfirmed(false)
+								}}
+								onKeyDown={(e: { key: string; preventDefault: () => void }) => {
+									if (e.key === 'Enter') {
+										e.preventDefault()
+										confirmName()
+									}
+								}}
+								onBlur={() => {
+									if (available) confirmName()
+								}}
+								placeholder=""
+								aria-label="Dein Name in Festag"
+								autoComplete="off"
+								spellCheck={false}
+								style={{
+									gridArea: '1 / 1',
+									width: '100%',
+									minWidth: 2,
+									border: 'none',
+									outline: 'none',
+									background: 'transparent',
+									color: t.ink,
+									fontSize: 26,
+									lineHeight: 1.15,
+									letterSpacing: '-0.02em',
+									fontWeight: 400,
+									fontFamily: 'Aeonik, system-ui, sans-serif',
+									padding: 0,
+									margin: 0,
+									boxSizing: 'border-box',
+									caretColor: t.primary,
+								}}
+							/>
+						</span>
+						{!name.trim() ? (
+							<span
+								aria-hidden
+								className="master-idle-caret"
+								style={{
+									position: 'absolute',
+									left: 0,
+									top: '50%',
+									marginTop: -11,
+									width: 2,
+									height: 22,
+									borderRadius: 1,
+									background: t.primary,
+									pointerEvents: 'none',
+								}}
+							/>
+						) : null}
+						{available ? (
+							<span
+								className="master-ok-badge"
+								title="Verfügbar — Enter zum Bestätigen"
+								role="status"
+								aria-label="Verfügbar"
+								style={{
+									width: 22,
+									height: 22,
+									borderRadius: 99,
+									display: 'inline-flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									background:
+										t.mode === 'light' ? 'rgba(46, 155, 82, 0.10)' : 'rgba(46, 155, 82, 0.14)',
+									color: t.mode === 'light' ? '#2E9B52' : '#3dba66',
+									flexShrink: 0,
+									pointerEvents: 'none',
+								}}
+							>
+								<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+									<path
+										d="M3.2 8.2 6.4 11.4 12.8 4.6"
+										stroke="currentColor"
+										strokeWidth="2.2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							</span>
+						) : null}
+					</div>
+				)}
+			</div>
+
+			<div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+				<div
+					style={{
+						...oauth(t),
+						background: t.primary,
+						border: '1px solid transparent',
+						color: '#F5F5F7',
+						boxShadow: 'none',
+					}}
+				>
+					<span style={{ display: 'inline-flex', opacity: 0.92, color: '#F5F5F7' }}>
+						<GoogleIcon />
+					</span>
+					<span>{isLogin ? 'Mit Google fortfahren' : 'Mit Google registrieren'}</span>
+				</div>
+				<div style={oauth(t)}>
+					<span style={{ display: 'inline-flex', opacity: 0.42, color: t.ink }}>
+						<AppleIcon />
+					</span>
+					<span>{isLogin ? 'Mit Apple fortfahren' : 'Mit Apple registrieren'}</span>
+				</div>
+				<div style={divider(t)}>
+					<span style={{ flex: 1, height: 1, background: t.divider }} />
+					<span style={{ color: t.muted, fontSize: 13 }}>oder</span>
+					<span style={{ flex: 1, height: 1, background: t.divider }} />
+				</div>
+				<input
+					value={email}
+					onChange={(e: { target: { value: string } }) => onEmail(e.target.value)}
+					onFocus={() => setEmailFocused(true)}
+					onBlur={() => setEmailFocused(false)}
+					placeholder="Arbeits-E-Mail eingeben"
+					aria-label="Arbeits-E-Mail eingeben"
+					style={field(t, { focused: emailFocused, filled: Boolean(email.trim()) })}
+				/>
+				<button
+					type="button"
+					disabled={!canGo}
+					onClick={() => {
+						if (!canGo) return
+						onWeiter()
+					}}
+					style={{
+						width: '100%',
+						minWidth: 0,
+						height: 44,
+						marginTop: 2,
+						padding: '0 18px',
+						borderRadius: 8,
+						/* Ready = white CTA (never primary blue) — matches light auth Linear lock */
+						border: canGo
+							? `1px solid ${t.mode === 'light' ? 'rgba(30, 30, 32, 0.08)' : 'rgba(255, 255, 255, 0.10)'}`
+							: `1px solid ${t.hairline}`,
+						background: canGo ? '#FFFFFF' : 'transparent',
+						color: canGo ? '#1e1e20' : t.muted,
+						fontSize: 14,
+						fontWeight: 400,
+						fontFamily: 'inherit',
+						cursor: canGo ? 'pointer' : 'default',
+						opacity: canGo ? 1 : 0.55,
+						boxShadow: canGo ? '0 1px 2px rgba(0, 0, 0, 0.04)' : 'none',
+						transition:
+							'background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease, box-shadow .18s ease',
+					}}
+				>
+					Weiter
+				</button>
+				<div style={oauthGhost(t)}>Single Sign-On (SSO)</div>
+			</div>
+
+			<button
+				type="button"
+				onClick={() => onSwitchMode(isLogin ? 'register' : 'login')}
+				style={{
+					marginTop: 28,
+					padding: 0,
+					border: 'none',
+					background: 'transparent',
+					color: t.ink,
+					fontSize: 15,
+					fontWeight: 400,
+					fontFamily: 'inherit',
+					cursor: 'pointer',
+					textAlign: 'left',
+					alignSelf: 'flex-start',
+				}}
+			>
+				{isLogin ? 'Konto erstellen' : 'Anmelden'}
+			</button>
+		</>
+	)
+}
+
+const DOCS_LINKS = [
+	{ title: 'Erste Schritte', hint: 'Konto, Workspace, Tagro' },
+	{ title: 'Workspace & Rollen', hint: 'Client und Developer in einem Graph' },
+	{ title: 'Tagro verstehen', hint: 'Status, Entscheidungen, nächste Schritte' },
+	{ title: 'Anbindungen', hint: 'GitHub, Figma und mehr' },
+] as const
+
+function AuthDocsSheet({
+	t,
+	open,
+	onClose,
+}: {
+	t: Theme
+	open: boolean
+	onClose: () => void
+}) {
+	const light = t.mode === 'light'
+	const [visible, setVisible] = useState(open)
+	const [dragY, setDragY] = useState(0)
+	const [draggingSheet, setDraggingSheet] = useState(false)
+	const startY = useRef(0)
+	const dragYRef = useRef(0)
+
+	useEffect(() => {
+		if (open) {
+			setVisible(true)
+			setDragY(0)
+			dragYRef.current = 0
+			return
+		}
+		const id = window.setTimeout(() => setVisible(false), 280)
+		return () => clearTimeout(id)
+	}, [open])
+
+	useEffect(() => {
+		if (!draggingSheet) return
+		const move = (e: MouseEvent | TouchEvent) => {
+			const clientY = 'touches' in e ? e.touches[0]?.clientY : e.clientY
+			if (clientY == null) return
+			const dy = Math.max(0, clientY - startY.current)
+			setDragY(dy)
+		}
+		const up = () => {
+			setDraggingSheet(false)
+			setDragY((y) => {
+				if (y > 88) onClose()
+				return 0
+			})
+			dragYRef.current = 0
+		}
+		window.addEventListener('mousemove', move)
+		window.addEventListener('mouseup', up)
+		window.addEventListener('touchmove', move, { passive: true })
+		window.addEventListener('touchend', up)
+		return () => {
+			window.removeEventListener('mousemove', move)
+			window.removeEventListener('mouseup', up)
+			window.removeEventListener('touchmove', move)
+			window.removeEventListener('touchend', up)
+		}
+	}, [draggingSheet, onClose])
+
+	if (!visible) return null
+
+	const sheetBg = light ? '#FFFFFF' : '#1A1A1E'
+	const sheetBorder = light ? 'rgba(30, 30, 32, 0.06)' : 'rgba(255, 255, 255, 0.08)'
+	const grip = light ? 'rgba(30, 30, 32, 0.16)' : 'rgba(255, 255, 255, 0.18)'
+	const rowBg = light ? '#FAF9F5' : 'rgba(255,255,255,0.04)'
+	const rowBorder = light ? 'rgba(30, 30, 32, 0.06)' : 'rgba(255, 255, 255, 0.06)'
+
+	function onGripDown(clientY: number) {
+		startY.current = clientY
+		dragYRef.current = 0
+		setDragY(0)
+		setDraggingSheet(true)
+	}
+
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				inset: 0,
+				zIndex: 40,
+				pointerEvents: 'auto',
+			}}
+		>
+			<button
+				type="button"
+				aria-label="Docs schließen"
+				onClick={onClose}
+				style={{
+					position: 'absolute',
+					inset: 0,
+					border: 'none',
+					padding: 0,
+					margin: 0,
+					cursor: 'pointer',
+					background: open
+						? light
+							? 'rgba(26, 25, 23, 0.22)'
+							: 'rgba(0, 0, 0, 0.48)'
+						: 'transparent',
+					transition: 'background .28s ease',
+				}}
+			/>
+			<div
+				role="dialog"
+				aria-modal="true"
+				aria-label="Dokumentation"
+				style={{
+					position: 'absolute',
+					left: 0,
+					right: 0,
+					bottom: 0,
+					maxHeight: '78%',
+					display: 'flex',
+					flexDirection: 'column',
+					borderRadius: light ? '20px 20px 0 0' : '20px 20px 0 0',
+					background: sheetBg,
+					border: `1px solid ${sheetBorder}`,
+					borderBottom: 'none',
+					boxShadow: light
+						? '0 -8px 32px rgba(26, 25, 23, 0.08), 0 -1px 0 rgba(255,255,255,0.8) inset'
+						: '0 -12px 40px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.04) inset',
+					transform: open ? `translate3d(0, ${dragY}px, 0)` : 'translate3d(0, 108%, 0)',
+					transition: draggingSheet
+						? 'none'
+						: 'transform .34s cubic-bezier(.22,1,.36,1)',
+					paddingBottom: 22,
+				}}
+			>
+				{/* Drag handle — Festag mobile sheet grip */}
+				<div
+					style={{
+						flexShrink: 0,
+						padding: '12px 0 6px',
+						display: 'flex',
+						justifyContent: 'center',
+						cursor: 'grab',
+						touchAction: 'none',
+						userSelect: 'none',
+					}}
+					onMouseDown={(e: { clientY: number; preventDefault: () => void }) => {
+						e.preventDefault()
+						onGripDown(e.clientY)
+					}}
+					onTouchStart={(e: { touches: Array<{ clientY: number }> }) => {
+						const p = e.touches[0]
+						if (p) onGripDown(p.clientY)
+					}}
+				>
+					<span
+						aria-hidden
+						style={{
+							width: 36,
+							height: 4,
+							borderRadius: 99,
+							background: grip,
+							display: 'block',
+						}}
+					/>
+				</div>
+
+				<div
+					style={{
+						padding: '4px 22px 8px',
+						overflowY: 'auto',
+						WebkitOverflowScrolling: 'touch',
+						minHeight: 0,
+					}}
+				>
+					<h2
+						style={{
+							margin: 0,
+							fontSize: 26,
+							lineHeight: 1.22,
+							letterSpacing: '-0.02em',
+							fontWeight: 400,
+							fontFamily: 'Aeonik, system-ui, sans-serif',
+							color: t.ink,
+						}}
+					>
+						Alles zu Festag — klar und kurz nachschlagen.
+					</h2>
+					<p
+						style={{
+							margin: '10px 0 0',
+							fontSize: 15.5,
+							lineHeight: 1.62,
+							color: t.muted,
+							letterSpacing: '0.01em',
+						}}
+					>
+						Workspace, Tagro und Anbindungen — ohne Umwege.
+					</p>
+
+					<div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
+						{DOCS_LINKS.map((item) => (
+							<button
+								key={item.title}
+								type="button"
+								onClick={onClose}
+								style={{
+									textAlign: 'left',
+									padding: '14px 16px',
+									borderRadius: 12,
+									border: `1px solid ${rowBorder}`,
+									background: rowBg,
+									boxShadow: light ? '0 1px 2px rgba(0,0,0,0.03)' : 'none',
+									cursor: 'pointer',
+									fontFamily: 'inherit',
+								}}
+							>
+								<span
+									style={{
+										display: 'block',
+										fontSize: 15,
+										color: t.ink,
+										letterSpacing: '-0.01em',
+									}}
+								>
+									{item.title}
+								</span>
+								<span
+									style={{
+										display: 'block',
+										marginTop: 3,
+										fontSize: 13,
+										color: t.muted,
+										lineHeight: 1.4,
+									}}
+								>
+									{item.hint}
+								</span>
+							</button>
+						))}
+					</div>
+
+					<button
+						type="button"
+						onClick={onClose}
+						style={{
+							marginTop: 16,
+							width: '100%',
+							height: 44,
+							borderRadius: 8,
+							border: light
+								? `1px solid ${t.ctaReadyBorder}`
+								: `1px solid ${t.hairline}`,
+							background: light ? '#FFFFFF' : 'transparent',
+							color: light ? '#1e1e20' : t.ink,
+							boxShadow: light ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+							fontSize: 14,
+							fontFamily: 'inherit',
+							cursor: 'pointer',
+						}}
+					>
+						Alle anzeigen
+					</button>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+function PreparingStage({
+	t,
+	onProgress,
+}: {
+	t: Theme
+	onProgress: (progress: number, ready: boolean) => void
+}) {
+	const lines = PREP_LINES
+	const [index, setIndex] = useState(0)
+	const [lit, setLit] = useState(0)
+	const raf = useRef(0)
+	const fillStart = useRef(0)
+	const stepMs = 2400
+	/* Tight slot — same height for every line (no wrap bump) */
+	const LINE_SLOT = 34
+	const gray = t.lyricsDim
+	const white = t.lyricsLit
+
+	useEffect(() => {
+		const timers: number[] = []
+		setIndex(0)
+		for (let i = 1; i < lines.length; i++) {
+			timers.push(window.setTimeout(() => setIndex(i), i * stepMs))
+		}
+		timers.push(window.setTimeout(() => setIndex(0), lines.length * stepMs + 800))
+		const loop = window.setInterval(() => {
+			setIndex(0)
+			for (let i = 1; i < lines.length; i++) {
+				window.setTimeout(() => setIndex(i), i * stepMs)
+			}
+		}, lines.length * stepMs + 1100)
+		return () => {
+			for (const id of timers) clearTimeout(id)
+			clearInterval(loop)
+		}
+	}, [lines, stepMs])
+
+	useEffect(() => {
+		const text = lines[index] || ''
+		const total = Array.from(text).length
+		if (!total) {
+			setLit(0)
+			return
+		}
+		const fillMs = Math.min(stepMs * 0.78, Math.max(900, total * 42))
+		fillStart.current = performance.now()
+		setLit(0)
+		cancelAnimationFrame(raf.current)
+		const tick = (now: number) => {
+			const p = Math.min(1, (now - fillStart.current) / fillMs)
+			const eased = 1 - (1 - p) * (1 - p)
+			setLit(Math.floor(eased * total))
+			if (p < 1) raf.current = requestAnimationFrame(tick)
+			else setLit(total)
+		}
+		raf.current = requestAnimationFrame(tick)
+		return () => cancelAnimationFrame(raf.current)
+	}, [index, lines, stepMs])
+
+	const fillProgress = Math.min(
+		1,
+		(index + lit / Math.max(1, Array.from(lines[index] || '').length)) / lines.length,
+	)
+	const ready = index >= lines.length - 1 && lit >= Array.from(lines[index] || '').length
+
+	useEffect(() => {
+		onProgress(fillProgress, ready)
+	}, [fillProgress, ready, onProgress])
+
+	return (
+		<div
+			style={{
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				minHeight: 420,
+				width: '100%',
+				gap: 28,
+			}}
+		>
+			<img
+				src={MARK}
+				alt="Festag"
+				width={56}
+				height={56}
+				style={{
+					width: 56,
+					height: 56,
+					objectFit: 'contain',
+					opacity: 0.96,
+					flexShrink: 0,
+				}}
+			/>
+			<div
+				style={{
+					position: 'relative',
+					width: '100%',
+					height: LINE_SLOT * 3,
+					overflow: 'hidden',
+					maskImage:
+						'linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%)',
+					WebkitMaskImage:
+						'linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%)',
+				}}
+			>
+				{lines.map((text, i) => {
+					const offset = i - index
+					if (offset < -2 || offset > 2) return null
+					const isCurrent = offset === 0
+					const opacity =
+						offset <= -2
+							? 0
+							: offset === -1
+								? 0.42
+								: offset === 0
+									? 1
+									: offset === 1
+										? 0.42
+										: 0
+					return (
+						<p
+							key={`prep-${i}`}
+							style={{
+								position: 'absolute',
+								left: 0,
+								right: 0,
+								top: LINE_SLOT,
+								margin: 0,
+								height: LINE_SLOT,
+								fontSize: 22,
+								lineHeight: `${LINE_SLOT}px`,
+								letterSpacing: '-0.012em',
+								fontWeight: 400,
+								color: gray,
+								fontFamily: 'Aeonik, system-ui, sans-serif',
+								/* One line only — wrapping made some steps look taller than the first */
+								whiteSpace: 'nowrap',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								transform: `translate3d(0, ${offset * LINE_SLOT}px, 0)`,
+								opacity,
+								transition:
+									'opacity .58s cubic-bezier(.22,1,.36,1), transform .58s cubic-bezier(.22,1,.36,1)',
+							}}
+						>
+							{Array.from(text).map((ch, ci) => (
+								<span
+									key={ci}
+									style={{
+										color: isCurrent && ci < lit ? white : gray,
+										transition: 'color .07s linear',
+									}}
+								>
+									{ch}
+								</span>
+							))}
+						</p>
+					)
+				})}
+			</div>
+		</div>
+	)
+}
+
+function Hero({
+	t,
+	lead,
+	rest,
+	single,
+}: {
+	t: Theme
+	lead: string
+	rest: string
+	single?: boolean
+}) {
+	const leadWords = lead.trim().split(/\s+/).filter(Boolean)
+	const restWords = rest.trim().split(/\s+/).filter(Boolean)
+	let n = 0
+	function word(text: string, color: string, key: string, last: boolean) {
+		const delay = n++
+		return (
+			<span key={key} style={{ display: 'inline' }}>
+				<span style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'baseline' }}>
+					<span
+						style={{
+							display: 'inline-block',
+							color,
+							animation: `masterWordIn .58s cubic-bezier(.16,1,.3,1) both`,
+							animationDelay: `${delay * 28}ms`,
+						}}
+					>
+						{text}
+					</span>
+				</span>
+				{last ? '' : ' '}
+			</span>
+		)
+	}
+	return (
+		<h1
+			style={{
+				margin: 0,
+				fontSize: 26,
+				lineHeight: 1.15,
+				letterSpacing: '-0.02em',
+				fontWeight: 400,
+				fontFamily: 'Aeonik, system-ui, sans-serif',
+				animation: 'masterShellIn .42s cubic-bezier(.22,1,.36,1) both',
+			}}
+		>
+			<span style={{ display: single ? 'inline' : 'block', whiteSpace: 'normal' }}>
+				{leadWords.map((w, idx) =>
+					word(w, t.ink, `l-${idx}`, idx === leadWords.length - 1 && restWords.length === 0),
+				)}
+				{restWords.length ? ' ' : null}
+				{restWords.map((w, idx) => word(w, t.muted, `r-${idx}`, idx === restWords.length - 1))}
+			</span>
+		</h1>
+	)
+}
+
+type Theme = {
+	mode: Appearance
+	canvas: string
+	frame: string
+	ink: string
+	muted: string
+	mutedSoft: string
+	primary: string
+	hairline: string
+	markFilter: string
+	markInk: string
+	cardBorder: string
+	cardBg: string
+	cardBgOn: string
+	iconTile: string
+	oauthBg: string
+	divider: string
+	panelBg: string
+	fieldBorderFilled: string
+	ctaReadyBg: string
+	ctaReadyFg: string
+	ctaReadyBorder: string
+	prepIdle: string
+	prepFg: string
+	lyricsDim: string
+	lyricsLit: string
+	available: string
+	dotActive: string
+	dotDone: string
+	dotIdle: string
+	screenWashTop: string
+	screenWashBottom: string
+	commandFade: string
+}
+
+function themeFor(mode: Appearance): Theme {
+	return mode === 'light' ? ivory() : dusk()
+}
+
+/** Night OLED — Festag Night */
+function dusk(): Theme {
+	return {
+		mode: 'dark',
+		canvas: '#070708',
+		frame: '#12141A',
+		ink: '#E6E8EE',
+		muted: '#8891a0',
+		mutedSoft: '#6B7385',
+		primary: '#5B647D',
+		hairline: 'rgba(230,232,238,0.10)',
+		markFilter: 'brightness(0) invert(1)',
+		markInk: '#FFFFFF',
+		cardBorder: 'rgba(234,230,223,0.07)',
+		cardBg: 'rgba(234,230,223,0.035)',
+		cardBgOn: 'rgba(91, 100, 125, 0.10)',
+		iconTile: 'rgba(232,230,225,0.08)',
+		oauthBg: 'rgba(255,255,255,0.04)',
+		divider: 'rgba(230,232,238,0.08)',
+		panelBg: 'rgba(230,232,238,0.03)',
+		fieldBorderFilled: 'rgba(230,232,238,0.20)',
+		ctaReadyBg: '#5B647D',
+		ctaReadyFg: '#F5F5F7',
+		ctaReadyBorder: 'transparent',
+		prepIdle: 'rgba(91, 100, 125, 0.38)',
+		prepFg: '#F5F5F7',
+		lyricsDim: 'rgba(230, 232, 238, 0.28)',
+		lyricsLit: '#E6E8EE',
+		available: '#7d8f7a',
+		dotActive: 'rgba(230,232,238,0.9)',
+		dotDone: 'rgba(230,232,238,0.4)',
+		dotIdle: 'rgba(230,232,238,0.2)',
+		screenWashTop: 'rgba(91, 100, 125, 0.10)',
+		screenWashBottom: 'rgba(91, 100, 125, 0.08)',
+		commandFade: 'linear-gradient(to top, #070708 55%, rgba(7,7,8,0))',
+	}
+}
+
+/** Anthropic ivory + soft read paper — same family as auth Lesen / #FAF9F5 */
+function ivory(): Theme {
+	return {
+		mode: 'light',
+		canvas: '#FAF9F5',
+		frame: '#E8E6DF',
+		ink: '#1A1917',
+		muted: '#8891a0',
+		mutedSoft: '#9A9388',
+		primary: '#5B647D',
+		/* Soft input stroke — buttons use even quieter btn hairline via oauth/cta */
+		hairline: 'rgba(30, 30, 32, 0.10)',
+		markFilter: 'brightness(0)',
+		markInk: '#1A1917',
+		cardBorder: 'rgba(30, 30, 32, 0.06)',
+		cardBg: '#FFFFFF',
+		cardBgOn: '#FFFFFF',
+		iconTile: 'rgba(30, 30, 32, 0.04)',
+		oauthBg: '#FFFFFF',
+		divider: 'rgba(30, 30, 32, 0.06)',
+		panelBg: 'rgba(255, 255, 255, 0.72)',
+		fieldBorderFilled: 'rgba(30, 30, 32, 0.16)',
+		/* Light CTAs: pure white + minimal hairline */
+		ctaReadyBg: '#FFFFFF',
+		ctaReadyFg: '#1e1e20',
+		ctaReadyBorder: 'rgba(30, 30, 32, 0.06)',
+		prepIdle: 'rgba(255, 255, 255, 0.92)',
+		prepFg: '#1A1917',
+		lyricsDim: 'rgba(26, 25, 23, 0.28)',
+		lyricsLit: '#1A1917',
+		available: '#5a7a58',
+		dotActive: 'rgba(26, 25, 23, 0.85)',
+		dotDone: 'rgba(26, 25, 23, 0.35)',
+		dotIdle: 'rgba(26, 25, 23, 0.15)',
+		screenWashTop: 'rgba(91, 100, 125, 0.06)',
+		screenWashBottom: 'rgba(180, 160, 130, 0.07)',
+		commandFade: 'linear-gradient(to top, #FAF9F5 55%, rgba(250,249,245,0))',
+	}
+}
+
+function phoneShell(t: Theme): CSSProperties {
+	return {
+		width: 390,
+		padding: 10,
+		borderRadius: 36,
+		border: `1px solid ${t.frame}`,
+		background: t.frame,
+		flexShrink: 0,
+	}
+}
+
+function phoneScreen(t: Theme): CSSProperties {
+	const mid = t.canvas
+	const top = t.mode === 'dark' ? '#0A0B0F' : '#FBFAF6'
+	const bottom = t.mode === 'dark' ? '#050506' : '#F3F0E8'
+	return {
+		width: 370,
+		height: 780,
+		borderRadius: 28,
+		background: `
+			radial-gradient(ellipse 100% 52% at 50% -6%, ${t.screenWashTop}, transparent 58%),
+			radial-gradient(ellipse 95% 50% at 50% 108%, ${t.screenWashBottom}, transparent 74%),
+			linear-gradient(180deg, ${top} 0%, ${mid} 46%, ${bottom} 100%)
+		`,
+		overflow: 'hidden',
+		display: 'flex',
+		flexDirection: 'column',
+		fontFamily: 'Aeonik, system-ui, sans-serif',
+		position: 'relative',
+	}
+}
+
+const headerBar: CSSProperties = {
+	padding: '18px 28px 8px',
+	display: 'flex',
+	alignItems: 'center',
+	flexShrink: 0,
+}
+
+const contentArea: CSSProperties = {
+	flex: 1,
+	padding: '8px 28px 100px',
+	minHeight: 0,
+	overflowY: 'auto',
+	overflowX: 'hidden',
+	display: 'flex',
+	flexDirection: 'column',
+	WebkitOverflowScrolling: 'touch',
+	overscrollBehavior: 'contain',
+}
+
+const contentCard: CSSProperties = {
+	width: '100%',
+	maxWidth: 320,
+	margin: 'auto 0',
+	display: 'flex',
+	flexDirection: 'column',
+}
+
+function appleDotsTrack(t: Theme): CSSProperties {
+	return {
+		position: 'absolute',
+		left: '50%',
+		transform: 'translateX(-50%)',
+		bottom: 28,
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 8,
+		padding: '10px 16px',
+		borderRadius: 999,
+		background:
+			t.mode === 'light' ? 'rgba(30, 30, 32, 0.04)' : 'rgba(232, 230, 225, 0.035)',
+		border: 'none',
+		minHeight: 32,
+		boxSizing: 'border-box',
+		zIndex: 6,
+	}
+}
+
+function appleDotBead(t: Theme, state: 'active' | 'idle' | 'done'): CSSProperties {
+	const active = state === 'active'
+	return {
+		display: 'block',
+		width: active ? 26 : 8,
+		height: 8,
+		borderRadius: 999,
+		background: active ? t.dotActive : state === 'done' ? t.dotDone : t.dotIdle,
+		flexShrink: 0,
+	}
+}
+
+function commandBar(t: Theme): CSSProperties {
+	return {
+		position: 'absolute',
+		left: 0,
+		right: 0,
+		bottom: 0,
+		padding: '12px 20px 22px',
+		display: 'flex',
+		alignItems: 'center',
+		gap: 14,
+		background: t.commandFade,
+		boxSizing: 'border-box',
+	}
+}
+
+const dotsRow: CSSProperties = {
+	display: 'flex',
+	alignItems: 'center',
+	gap: 6,
+	flex: 1,
+}
+
+function cta(t: Theme, ready: boolean): CSSProperties {
+	return {
+		height: 42,
+		minWidth: 118,
+		padding: '0 18px',
+		borderRadius: 8,
+		border: ready ? `1px solid ${t.ctaReadyBorder}` : `1px solid ${t.hairline}`,
+		background: ready ? t.ctaReadyBg : 'transparent',
+		color: ready ? t.ctaReadyFg : t.muted,
+		fontSize: 14,
+		fontWeight: 400,
+		fontFamily: 'inherit',
+		cursor: ready ? 'pointer' : 'default',
+		opacity: ready ? 1 : 0.55,
+		flexShrink: 0,
+		boxShadow: ready && t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+	}
+}
+
+function selectCard(t: Theme, on: boolean): CSSProperties {
+	return {
+		textAlign: 'left',
+		padding: '14px 16px',
+		borderRadius: 12,
+		border: `1.5px solid ${on ? t.primary : t.cardBorder}`,
+		background: on ? t.cardBgOn : t.cardBg,
+		cursor: 'pointer',
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'flex-start',
+		fontFamily: 'inherit',
+		transition: 'border-color .2s ease, background .2s ease',
+	}
+}
+
+const chipGrid: CSSProperties = {
+	marginTop: 20,
+	display: 'flex',
+	flexWrap: 'wrap',
+	gap: 8,
+}
+
+function chip(t: Theme, on: boolean): CSSProperties {
+	return {
+		padding: '10px 14px',
+		borderRadius: 8,
+		border: `1px solid ${on ? t.primary : t.hairline}`,
+		background: on ? t.cardBgOn : 'transparent',
+		color: t.ink,
+		fontSize: 13,
+		fontFamily: 'inherit',
+		cursor: 'pointer',
+	}
+}
+
+function integRow(t: Theme, on: boolean): CSSProperties {
+	return {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 12,
+		padding: '11px 14px',
+		borderRadius: 10,
+		border: `1.5px solid ${on ? t.primary : 'rgba(234,230,223,0.07)'}`,
+		background: on ? 'rgba(91,100,125,0.10)' : 'rgba(234,230,223,0.03)',
+		cursor: 'pointer',
+		fontFamily: 'inherit',
+		width: '100%',
+		boxSizing: 'border-box',
+	}
+}
+
+const integIcon: CSSProperties = {
+	width: 28,
+	height: 28,
+	borderRadius: 8,
+	display: 'inline-flex',
+	alignItems: 'center',
+	justifyContent: 'center',
+	background: 'rgba(232,230,225,0.08)',
+	color: '#E6E8EE',
+	fontSize: 12,
+	flexShrink: 0,
+}
+
+function field(
+	t: Theme,
+	opts: { focused?: boolean; filled?: boolean } = {},
+): CSSProperties {
+	const { focused = false, filled = false } = opts
+	/* Always 2px so focus doesn’t jump the layout — idle hairline, focus = primary */
+	const stroke = focused ? t.primary : filled ? t.fieldBorderFilled : t.hairline
+	return {
+		marginTop: 8,
+		width: '100%',
+		height: 46,
+		borderRadius: 8,
+		border: `2px solid ${stroke}`,
+		background: 'transparent',
+		color: t.ink,
+		padding: '0 14px',
+		fontSize: 15,
+		fontFamily: 'inherit',
+		boxSizing: 'border-box',
+		outline: 'none',
+		caretColor: t.primary,
+		transition: 'border-color .18s ease',
+	}
+}
+
+function oauth(t: Theme): CSSProperties {
+	const light = t.mode === 'light'
+	return {
+		height: 42,
+		borderRadius: 8,
+		border: light ? `1px solid ${t.ctaReadyBorder}` : `1px solid ${t.hairline}`,
+		background: t.oauthBg,
+		color: t.ink,
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 10,
+		fontSize: 14,
+		boxShadow: light ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+	}
+}
+
+/** Monochrome Google G — currentColor, muted via parent opacity. */
+function GoogleIcon() {
+	return (
+		<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden style={{ display: 'block', flexShrink: 0 }}>
+			<path
+				fill="currentColor"
+				d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+			/>
+			<path
+				fill="currentColor"
+				d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+			/>
+			<path
+				fill="currentColor"
+				d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+			/>
+			<path
+				fill="currentColor"
+				d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+			/>
+		</svg>
+	)
+}
+
+/** Official Apple mark — currentColor. */
+function AppleIcon() {
+	return (
+		<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden style={{ display: 'block', flexShrink: 0 }}>
+			<path
+				fill="currentColor"
+				d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
+			/>
+		</svg>
+	)
+}
+
+function oauthGhost(t: Theme): CSSProperties {
+	/* Light: SSO matches Google/Apple — white fill, minimal stroke */
+	if (t.mode === 'light') {
+		return {
+			...oauth(t),
+			color: t.ink,
+		}
+	}
+	return {
+		...oauth(t),
+		background: 'transparent',
+		color: t.muted,
+	}
+}
+
+function divider(t: Theme): CSSProperties {
+	return {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 12,
+		padding: '2px 0',
+	}
+}
+
+const CSS = `
+  @keyframes masterWordIn {
+    from { opacity: 0; transform: translate3d(0, 110%, 0); filter: blur(10px); }
+    to { opacity: 1; transform: none; filter: blur(0); }
+  }
+  @keyframes masterShellIn {
+    from { opacity: 0; filter: blur(12px); transform: translateY(8px); }
+    to { opacity: 1; filter: none; transform: none; }
+  }
+  @keyframes masterCaretBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  @keyframes masterOkIn {
+    from { opacity: 0; transform: scale(0.86); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .master-idle-caret {
+    animation: masterCaretBlink 1.05s steps(1, end) infinite;
+  }
+  .master-ok-badge {
+    animation: masterOkIn 0.22s ease-out both;
+  }
+  .master-ok-badge svg {
+    display: block;
+  }
+  @keyframes masterTagroFloatIn {
+    from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.985); filter: blur(4px); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+  }
+  @keyframes masterTagroChipIn {
+    from { opacity: 0; transform: translate3d(0, 4px, 0) scale(0.9); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+  @keyframes masterTagroSpin {
+    to { transform: rotate(360deg); }
+  }
+  .master-tagro-spin {
+    animation: masterTagroSpin 0.85s linear infinite;
+  }
+`

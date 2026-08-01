@@ -1801,11 +1801,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
       </div>
 
-      <footer className="al-auth-credit" aria-label="Festag">
-        <span className="al-auth-credit-name">Tagro Superintelligence</span>
-        <span className="al-auth-credit-meta">OpenAI</span>
-      </footer>
-
       {/* Dev/test — jump straight into Build onboarding */}
       <div className="al-test-jumps" aria-label="Test Onboarding">
         <a

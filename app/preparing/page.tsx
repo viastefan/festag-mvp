@@ -32,7 +32,8 @@ function PreparingInner() {
   const [userId, setUserId] = useState<string | null>(null)
 
   useLayoutEffect(() => {
-    applyAuthTheme('dark', 'dev')
+    /* Ivory light prepare — matches master auth onboarding canvas */
+    applyAuthTheme('light', 'dev')
   }, [])
 
   useEffect(() => {

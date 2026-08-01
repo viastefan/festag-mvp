@@ -223,7 +223,7 @@ html[data-theme-surface="dev"][data-theme="light"]:not([data-auth-landing]) {
 html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   color-scheme: light;
 
-  --dv-canvas: #F5F2ED;
+  --dv-canvas: #FAF9F5;
   --dv-rail: transparent;
   --dv-surface: #FFFFFF;
   --dv-surface-2: #FAF9F5;
@@ -258,7 +258,7 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --festag-content-panel-border: var(--dv-line);
   --festag-plate-bg: #FFFFFF;
   --festag-plate-border: rgba(40, 34, 28, 0.08);
-  --festag-portal-canvas: #F5F2ED;
+  --festag-portal-canvas: #FAF9F5;
   --festag-portal-canvas-desktop: #F0EEE6;
   --festag-control-radius: 8px;
   --festag-control-radius-sm: 8px;
