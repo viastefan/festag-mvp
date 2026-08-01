@@ -1,5 +1,6 @@
 'use client'
 
+import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import {
   CLARIFY_HEADER,
@@ -29,10 +30,12 @@ export default function ClarifyStage({ value, onPick, onContinue, blueprint }: P
 
   return (
     <>
-      <h1 className="mob-h1 mob-h1-inline">
-        <span className="mob-h1-ink">{header.lead}</span>{' '}
-        <span className="mob-h1-muted">{header.muted}</span>
-      </h1>
+      <AuthGlassyHero
+        animKey={picked ? `clarify-${picked}` : `clarify-idle-${guess}`}
+        lead={header.lead}
+        rest={header.muted}
+        className="mob-glassy-h1 mob-glassy-h1--inline"
+      />
       <div className="mob-chip-list">
         {CLARIFY_OPTIONS.map((opt) => (
           <button

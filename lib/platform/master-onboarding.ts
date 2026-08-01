@@ -115,7 +115,8 @@ export const MASTER_PREP_LINES = [
 ] as const
 
 export const INTENT_MIN_CHARS = 8
-export const INTENT_SETTLE_MS = 1100
+/** Pause after typing before Weiter appears / intent is “ready”. */
+export const INTENT_SETTLE_MS = 1500
 
 export function clarifyToWorkspaceType(pick: string): WorkspaceType {
   switch (pick) {

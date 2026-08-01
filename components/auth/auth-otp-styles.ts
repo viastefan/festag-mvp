@@ -25,6 +25,9 @@ export const AUTH_OTP_STYLES = `
           justify-content:space-between;
           gap:8px;
           width:100%;
+          /* Gutter so 2px focus/filled strokes never clip L/R. */
+          padding-inline:2px;
+          box-sizing:border-box;
         }
         .al-otp-cell {
           width:40px;
@@ -32,7 +35,7 @@ export const AUTH_OTP_STYLES = `
           flex:0 0 40px;
           /* Match fields — soft rect (Read keeps 6px via --festag-input-radius). */
           border-radius:var(--festag-input-radius, 8px) !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15));
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(30,30,32,0.15));
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
@@ -45,14 +48,14 @@ export const AUTH_OTP_STYLES = `
           caret-color:var(--festag-input-caret, #7E889F);
           box-shadow:none;
           box-sizing:border-box;
-          transition:border-color .2s ease, border-width .2s ease, background .15s;
+          transition:border-color .18s ease, background .15s;
         }
         .al-root:not([data-theme="dark"]) .al-otp-cell,
         .dl-root:not([data-theme="dark"]) .al-otp-cell {
           background-color:transparent !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(40,34,28,0.14)) !important;
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(40,34,28,0.14)) !important;
           border-radius:8px !important;
         }
         .al-root:not([data-theme="dark"]) .al-otp-cell:hover,
@@ -78,7 +81,7 @@ export const AUTH_OTP_STYLES = `
           background-color:transparent !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.10)) !important;
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(255,255,255,0.10)) !important;
           border-radius:8px !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});

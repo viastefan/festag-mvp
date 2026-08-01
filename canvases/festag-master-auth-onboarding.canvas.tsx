@@ -209,13 +209,13 @@ const FIELD_LINE_H = Math.round(FIELD_FONT * 1.45)
 const FIELD_GROW_STEP = FIELD_LINE_H * 2
 const FIELD_PAD_Y = Math.max(0, Math.round((FIELD_H - 2 - FIELD_LINE_H) / 2))
 
-/** Intent goal field — notebook: no stroke, +2px type, idle caret only */
+/** Intent goal field — login email stroke, taller (2 lines) + grow */
 const INTENT_FIELD_FONT = 17
 const INTENT_LINE_H = Math.round(INTENT_FIELD_FONT * 1.45) // 25
 const INTENT_GROW_STEP = INTENT_LINE_H * 2
-const INTENT_SHELL_H = 56
-const INTENT_PAD_Y = 6
-const INTENT_PAD_X = 4
+const INTENT_SHELL_H = 78
+const INTENT_PAD_Y = 14
+const INTENT_PAD_X = 14
 const INTENT_FIELD_MIN_H = INTENT_LINE_H * 2
 const INTENT_FIELD_STEP_H = INTENT_GROW_STEP
 const INTENT_LOGIN_H = FIELD_H
@@ -223,17 +223,18 @@ const INTENT_CARET_H = 20
 /** Login email placeholder gray (#8891a0) */
 const PLACEHOLDER = '#8891a0'
 
-/** Idle 1px hairline → focus 2px primary (outer ring, no layout jump). */
+/** Always 2px — idle hairline, focus/filled accent (blur with value keeps stroke). */
 function inputStroke(
 	t: Theme,
 	opts: { focused?: boolean; filled?: boolean } = {},
 ): Pick<CSSProperties, 'border' | 'boxShadow' | 'transition'> {
 	const { focused = false, filled = false } = opts
-	const stroke = focused ? CARET_PRIMARY : filled ? t.fieldBorderFilled : t.hairline
+	/* Live auth accent — filled keeps stroke after blur. */
+	const stroke = focused || filled ? '#5B647D' : t.hairline
 	return {
-		border: focused ? `2px solid ${stroke}` : `1px solid ${stroke}`,
+		border: `2px solid ${stroke}`,
 		boxShadow: 'none',
-		transition: 'border-color .18s ease, border-width .18s ease',
+		transition: 'border-color .18s ease',
 	}
 }
 
@@ -837,20 +838,41 @@ export default function FestagMasterAuthOnboarding() {
 									: null),
 							}}
 						>
-							<img
-								src={MARK}
-								alt=""
-								width={36}
-								height={36}
-								style={{
-									width: 36,
-									height: 36,
-									objectFit: 'contain',
-									/* Match Login light — fluid mark inked on ivory */
-									filter: t.mode === 'light' ? 'brightness(0) saturate(100%)' : 'none',
-									opacity: 0.9,
+							<button
+								type="button"
+								aria-label="Zur Anmeldung"
+								onClick={() => {
+									setAuthMode('login')
+									go(stepIndex('auth'))
 								}}
-							/>
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									width: 40,
+									height: 40,
+									margin: 0,
+									padding: 0,
+									border: 'none',
+									background: 'transparent',
+									cursor: 'pointer',
+								}}
+							>
+								<img
+									src={MARK}
+									alt=""
+									width={36}
+									height={36}
+									style={{
+										width: 36,
+										height: 36,
+										objectFit: 'contain',
+										/* Match Login light — fluid mark inked on ivory */
+										filter: t.mode === 'light' ? 'brightness(0) saturate(100%)' : 'none',
+										opacity: 0.9,
+									}}
+								/>
+							</button>
 							<div style={{ flex: 1 }} />
 							<button
 								type="button"
@@ -1082,47 +1104,95 @@ export default function FestagMasterAuthOnboarding() {
 								) : (
 									<div
 										style={{
-											...appleDotsTrack(t),
 											position: 'relative',
-											left: 'auto',
-											transform: 'none',
-											bottom: 'auto',
-											pointerEvents: 'auto',
-											background: 'transparent',
-											boxShadow: 'none',
-											border: 'none',
-											padding: 0,
-											minHeight: 8,
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											pointerEvents: 'none',
 										}}
-										role="tablist"
-										aria-label="Onboarding-Fortschritt"
 									>
-										{flowDots.map((s, di) => {
-											const active = di === flowActive
-											const done = di < flowActive
-											return (
-												<button
-													key={s.id}
-													type="button"
-													aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
-													aria-current={active ? 'step' : undefined}
-													onClick={() => onFlowDotClick(s.id)}
-													style={{
-														...appleDotBead(
-															t,
-															active ? 'active' : done ? 'done' : 'idle',
-														),
-														border: 'none',
-														padding: 0,
-														margin: 0,
-														cursor: 'pointer',
-														background: undefined,
-														transition:
-															'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
-													}}
-												/>
-											)
-										})}
+										{sid === 'clarify' || sid === 'connect' ? (
+											<button
+												type="button"
+												aria-label="Zurück"
+												onClick={retreat}
+												style={{
+													position: 'absolute',
+													right: 'calc(100% + 12px)',
+													top: '50%',
+													transform: 'translateY(-50%)',
+													display: 'inline-flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													width: isDesktop ? 30 : 28,
+													height: isDesktop ? 30 : 28,
+													margin: 0,
+													padding: 0,
+													border: 'none',
+													borderRadius: 8,
+													background: 'transparent',
+													color: t.mode === 'light'
+														? 'rgba(26, 25, 23, 0.38)'
+														: 'rgba(230, 230, 234, 0.38)',
+													cursor: 'pointer',
+													pointerEvents: 'auto',
+												}}
+											>
+												<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+													<path
+														d="M10 3.5 5.5 8 10 12.5"
+														stroke="currentColor"
+														strokeWidth="1.5"
+														strokeLinecap="round"
+														strokeLinejoin="round"
+													/>
+												</svg>
+											</button>
+										) : null}
+										<div
+											style={{
+												...appleDotsTrack(t),
+												position: 'relative',
+												left: 'auto',
+												transform: 'none',
+												bottom: 'auto',
+												pointerEvents: 'auto',
+												background: 'transparent',
+												boxShadow: 'none',
+												border: 'none',
+												padding: 0,
+												minHeight: 8,
+											}}
+											role="tablist"
+											aria-label="Onboarding-Fortschritt"
+										>
+											{flowDots.map((s, di) => {
+												const active = di === flowActive
+												const done = di < flowActive
+												return (
+													<button
+														key={s.id}
+														type="button"
+														aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
+														aria-current={active ? 'step' : undefined}
+														onClick={() => onFlowDotClick(s.id)}
+														style={{
+															...appleDotBead(
+																t,
+																active ? 'active' : done ? 'done' : 'idle',
+															),
+															border: 'none',
+															padding: 0,
+															margin: 0,
+															cursor: 'pointer',
+															background: undefined,
+															transition:
+																'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
+														}}
+													/>
+												)
+											})}
+										</div>
 									</div>
 								)}
 							</div>
@@ -1187,26 +1257,18 @@ function ConnectStage({
 		return () => ro.disconnect()
 	}, [sources.length, connected.length])
 
-	const topColor = t.screenSolidTop
-	const bottomColor = t.screenSolidBottom
+	const fadeHue = t.canvas
 	const header = connectHeaderFor(connected)
 
 	return (
 		<>
-			{/* Same glassy H1 as connect-workspace mobile */}
-			<h1
-				style={{
-					margin: 0,
-					fontSize: 29,
-					lineHeight: 1.08,
-					letterSpacing: '0.01em',
-					fontWeight: 400,
-					fontFamily: 'Aeonik, system-ui, sans-serif',
-				}}
-			>
-				<span style={{ display: 'block', color: t.ink }}>{header.lead}</span>
-				<span style={{ display: 'block', color: t.muted }}>{header.muted}</span>
-			</h1>
+			<MasterGlassyH1
+				key={`connect-${header.lead}`}
+				t={t}
+				lead={header.lead}
+				rest={header.muted}
+				stacked
+			/>
 
 			<div style={{ position: 'relative', width: '100%', marginTop: 16, marginBottom: 4 }}>
 				<div
@@ -1282,7 +1344,7 @@ function ConnectStage({
 						)
 					})}
 				</div>
-				{/* Top dissolve — matches phone wash top stop; alpha keeps hue true */}
+				{/* Soft dissolve in canvas mid hue — no hard wash-bottom edge */}
 				<div
 					aria-hidden
 					style={{
@@ -1293,12 +1355,11 @@ function ConnectStage({
 						top: 0,
 						height: 22,
 						opacity: fadeTop,
-						background: `linear-gradient(to bottom, ${hexAlpha(topColor, 1)} 0%, ${hexAlpha(topColor, 0)} 100%)`,
+						background: `linear-gradient(to bottom, ${hexAlpha(fadeHue, 1)} 0%, ${hexAlpha(fadeHue, 0.55)} 55%, ${hexAlpha(fadeHue, 0)} 100%)`,
 						zIndex: 2,
 						transition: 'opacity .18s ease',
 					}}
 				/>
-				{/* Bottom dissolve — warm screen bottom (#F3F0E8), not lighter flat ivory */}
 				<div
 					aria-hidden
 					style={{
@@ -1306,10 +1367,10 @@ function ConnectStage({
 						position: 'absolute',
 						left: 0,
 						right: 0,
-						bottom: 0,
-						height: 64,
+						bottom: -10,
+						height: 108,
 						opacity: fadeBottom,
-						background: `linear-gradient(to top, ${hexAlpha(bottomColor, 1)} 0%, ${hexAlpha(bottomColor, 0.92)} 22%, ${hexAlpha(bottomColor, 0)} 100%)`,
+						background: `linear-gradient(to top, ${hexAlpha(fadeHue, 1)} 0%, ${hexAlpha(fadeHue, 0.88)} 22%, ${hexAlpha(fadeHue, 0.48)} 52%, ${hexAlpha(fadeHue, 0.16)} 78%, ${hexAlpha(fadeHue, 0)} 100%)`,
 						zIndex: 2,
 						transition: 'opacity .18s ease',
 					}}
@@ -1534,6 +1595,7 @@ function IntentCanvasStage({
 	const hasText = value.trim().length > 0
 	const enough = value.trim().length >= 8
 	const showExample = !hasText
+	const showContinue = ready && enough
 	const light = t.mode === 'light'
 
 	useEffect(() => {
@@ -1568,16 +1630,14 @@ function IntentCanvasStage({
 		}
 	}, [])
 
-	/* Finished writing = pause after enough signal — not a Weiter button */
+	/* Weiter only after 1.5s idle with enough text */
 	useEffect(() => {
 		if (settleTimer.current) clearTimeout(settleTimer.current)
-		if (!enough) {
-			onReadyChange(false)
-			return
-		}
+		onReadyChange(false)
+		if (!enough) return
 		settleTimer.current = setTimeout(() => {
 			onReadyChange(true)
-		}, 1100)
+		}, 1500)
 		return () => {
 			if (settleTimer.current) clearTimeout(settleTimer.current)
 		}
@@ -1599,48 +1659,19 @@ function IntentCanvasStage({
 		}
 	}, [showExample])
 
-	/* Collapse only when the user starts typing — never when reopening Tagro */
-	const prevHasText = useRef(hasText)
-	useEffect(() => {
-		const startedTyping = hasText && !prevHasText.current
-		prevHasText.current = hasText
-		if (!hasText) {
-			setAssistExpanded(true)
-			return
-		}
-		if (assistOpen && startedTyping) {
-			setAssistExpanded(false)
-			setAssistMenu('none')
-		}
-	}, [hasText, assistOpen])
-
-	function openAssist() {
-		if (blurTimer.current) clearTimeout(blurTimer.current)
-		setFocused(true)
-		setAssistOpen(true)
-		/* Empty field → full panel. With text, leave chip/panel as the user left it. */
-		if (!hasText) setAssistExpanded(true)
-	}
-
+	/* Tagro panel only via BR orb — never auto-open on focus/type. */
 	function reopenAssistPanel() {
 		if (blurTimer.current) clearTimeout(blurTimer.current)
 		setAssistOpen(true)
 		setAssistExpanded(true)
 		setAssistMenu('none')
-		setFocused(true)
 		requestAnimationFrame(() => areaRef.current?.focus())
 	}
 
-	function scheduleCloseAssist() {
-		setFocused(false)
+	function closeAssistPanel() {
 		setAssistMenu('none')
-		if (blurTimer.current) clearTimeout(blurTimer.current)
-		blurTimer.current = setTimeout(() => {
-			setAssistOpen(false)
-			/* Keep collapsed when there is text so the Tagro chip stays for reopen */
-			if (hasText) setAssistExpanded(false)
-			else setAssistExpanded(true)
-		}, 160)
+		setAssistOpen(false)
+		setAssistExpanded(false)
 	}
 
 	function runTagroMode(mode: 'polish' | 'summary' | 'detail') {
@@ -1682,9 +1713,9 @@ function IntentCanvasStage({
 		{ id: 'summary', label: 'Zusammenfassen' },
 		{ id: 'detail', label: 'Detaillierter' },
 	]
-	/* Chip stays for reopen even after outside-click closes the panel */
-	const showTagroChip = hasText && !assistExpanded
-	const showTagroPanel = assistOpen && assistExpanded
+	/* Tagro only after settle — panel only via BR orb (matches live trigger=chip). */
+	const showTagroChip = showContinue && !assistOpen
+	const showTagroPanel = showContinue && assistOpen && assistExpanded
 
 	const popBg = light
 		? assistMenu !== 'none'
@@ -1706,24 +1737,16 @@ function IntentCanvasStage({
 
 	return (
 		<>
-			<h1
-				style={{
-					margin: 0,
-					fontSize: 29,
-					lineHeight: 1.08,
-					letterSpacing: '0.01em',
-					fontWeight: 400,
-					fontFamily: 'Aeonik, system-ui, sans-serif',
-				}}
-			>
-				<span style={{ display: 'block', color: t.ink, lineHeight: 1.08 }}>Worum geht es?</span>
-				<span style={{ display: 'block', color: t.muted, lineHeight: 1.08, marginTop: 0 }}>
-					Tagro richtet Workspace und Struktur danach aus.
-				</span>
-			</h1>
+			<MasterGlassyH1
+				key="intent"
+				t={t}
+				lead="Worum geht es?"
+				rest="Tagro richtet Workspace und Struktur danach aus."
+				stacked
+			/>
 
-			{/* Field + Tagro assist — notebook: no stroke, 17px type, idle caret */}
-			<div style={{ position: 'relative', width: '100%', marginTop: 18 }}>
+			{/* Notebook field — no stroke; Tagro + Weiter only after 1.5s settle */}
+			<div style={{ position: 'relative', width: '100%', marginTop: 18, boxSizing: 'border-box' }}>
 				<div
 					style={{
 						position: 'relative',
@@ -1731,12 +1754,13 @@ function IntentCanvasStage({
 						border: 'none',
 						boxShadow: 'none',
 						background: 'transparent',
-						padding: `${INTENT_PAD_Y}px ${INTENT_PAD_X}px 44px`,
-						minHeight: INTENT_SHELL_H,
+						padding: showContinue ? '6px 4px 44px' : '6px 4px',
+						minHeight: 56,
 						boxSizing: 'border-box',
 						display: 'flex',
 						flexDirection: 'column',
-						justifyContent: 'center',
+						justifyContent: 'flex-start',
+						animation: 'masterShellIn .34s cubic-bezier(.22,1,.36,1) both',
 					}}
 				>
 					<textarea
@@ -1749,13 +1773,12 @@ function IntentCanvasStage({
 						onChange={(e: { target: { value: string } }) =>
 							onChange(e.target.value.replace(/\r?\n/g, ' '))
 						}
-						onFocus={openAssist}
-						onClick={openAssist}
-						onBlur={scheduleCloseAssist}
+						onFocus={() => setFocused(true)}
+						onBlur={() => setFocused(false)}
 						onKeyDown={(e: { key: string; preventDefault: () => void }) => {
 							if (e.key !== 'Enter') return
 							e.preventDefault()
-							if (enough) onAdvance()
+							if (showContinue) onAdvance()
 						}}
 						style={{
 							width: '100%',
@@ -1774,6 +1797,7 @@ function IntentCanvasStage({
 							boxSizing: 'border-box',
 							overflow: 'hidden',
 							caretColor: hasText ? CARET_PRIMARY : 'transparent',
+							transition: 'height .34s cubic-bezier(.22,1,.36,1)',
 						}}
 					/>
 					{showExample ? (
@@ -1782,9 +1806,9 @@ function IntentCanvasStage({
 							key={example}
 							style={{
 								position: 'absolute',
-								left: INTENT_PAD_X,
-								top: INTENT_PAD_Y,
-								right: INTENT_PAD_X,
+								left: 4,
+								top: 6,
+								right: 4,
 								fontSize: INTENT_FIELD_FONT,
 								lineHeight: `${INTENT_LINE_H}px`,
 								fontWeight: 400,
@@ -1813,8 +1837,8 @@ function IntentCanvasStage({
 							className="master-idle-caret"
 							style={{
 								position: 'absolute',
-								left: INTENT_PAD_X,
-								top: INTENT_PAD_Y + Math.round((INTENT_LINE_H - INTENT_CARET_H) / 2),
+								left: 4,
+								top: 6 + Math.round((INTENT_LINE_H - INTENT_CARET_H) / 2),
 								width: 2,
 								height: INTENT_CARET_H,
 								borderRadius: 1,
@@ -1838,28 +1862,22 @@ function IntentCanvasStage({
 								display: 'inline-flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								gap: 6,
-								height: 32,
-								minWidth: 90,
-								padding: '0 12px 0 10px',
-								borderRadius: 999,
+								width: 28,
+								height: 28,
+								padding: 0,
+								borderRadius: 8,
 								border: `1px solid ${chipBorder}`,
-								background: chipBg,
+								background: light ? '#ffffff' : chipBg,
 								boxShadow: light
-									? '0 1px 2px rgba(0,0,0,0.06)'
+									? '0 1px 2px rgba(0,0,0,0.04)'
 									: '0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 14px rgba(0,0,0,0.28)',
 								color: chipInk,
-								fontSize: 12.5,
-								letterSpacing: '0.01em',
 								fontFamily: 'inherit',
 								cursor: 'pointer',
 								animation: 'masterTagroChipIn .32s cubic-bezier(.22,1,.36,1) both',
-								backdropFilter: 'blur(16px)',
-								WebkitBackdropFilter: 'blur(16px)',
-								whiteSpace: 'nowrap',
 							}}
 						>
-							<span aria-hidden style={{ display: 'inline-flex', color: t.primary }}>
+							<span aria-hidden style={{ display: 'inline-flex', color: '#5B647D' }}>
 								<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
 									<path
 										d="M11.4 2.6a1.45 1.45 0 0 1 2 2L5.7 12.3 2.5 13.5l1.2-3.2L11.4 2.6Z"
@@ -1869,12 +1887,11 @@ function IntentCanvasStage({
 									/>
 								</svg>
 							</span>
-							Tagro
 						</button>
 					) : null}
 				</div>
 
-				{hasText && enough ? (
+				{showContinue ? (
 					<p
 						style={{
 							margin: '10px 0 0',
@@ -1887,26 +1904,15 @@ function IntentCanvasStage({
 							alignItems: 'center',
 							gap: 8,
 							animation: 'masterShellIn .28s ease both',
+							cursor: 'pointer',
 						}}
+						onClick={() => onAdvance()}
+						role="button"
 					>
 						<span>Weiter</span>
 						<span aria-hidden style={{ display: 'inline-flex', color: 'inherit', opacity: 0.92 }}>
 							<EnterReturnIcon size={13} />
 						</span>
-					</p>
-				) : null}
-				{hasText && !enough ? (
-					<p
-						style={{
-							margin: '10px 0 0',
-							fontSize: 13,
-							lineHeight: 1.45,
-							color: t.muted,
-							opacity: 0.72,
-							letterSpacing: '0.01em',
-						}}
-					>
-						Noch ein kurzer Satz genügt.
 					</p>
 				) : null}
 
@@ -1964,13 +1970,41 @@ function IntentCanvasStage({
 										/>
 									</svg>
 								</span>
-								Workspace-Ziel
+								Ziel schärfen
 							</span>
 							{tagroBusy ? (
 								<span style={{ marginLeft: 'auto', fontSize: 11.5, color: popMuted }}>
 									Verdichtet…
 								</span>
 							) : null}
+							<button
+								type="button"
+								aria-label="Schließen"
+								onClick={closeAssistPanel}
+								style={{
+									marginLeft: tagroBusy ? 4 : 'auto',
+									width: 28,
+									height: 28,
+									display: 'inline-flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									border: 'none',
+									borderRadius: 8,
+									background: 'transparent',
+									color: popMuted,
+									cursor: 'pointer',
+									flexShrink: 0,
+								}}
+							>
+								<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+									<path
+										d="M4 4l8 8M12 4l-8 8"
+										stroke="currentColor"
+										strokeWidth="1.5"
+										strokeLinecap="round"
+									/>
+								</svg>
+							</button>
 						</div>
 						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
 							<div style={{ position: 'relative' }}>
@@ -2175,6 +2209,82 @@ function IntentCanvasStage({
 	)
 }
 
+/** Word-rise H1 — same motion as live AuthGlassyHero / onboarding cards. */
+function MasterGlassyH1({
+	t,
+	lead,
+	rest,
+	stacked = false,
+	inline = false,
+}: {
+	t: Theme
+	lead: string
+	rest: string
+	stacked?: boolean
+	inline?: boolean
+}) {
+	const leadWords = lead.trim().split(/\s+/).filter(Boolean)
+	const restWords = rest.trim().split(/\s+/).filter(Boolean)
+	let i = 0
+	function renderWords(words: string[], muted: boolean) {
+		return words.map((word, wi) => {
+			const index = i++
+			const last = wi === words.length - 1
+			return (
+				<span
+					key={`${muted ? 'm' : 'l'}-${wi}-${word}`}
+					className="master-gword"
+					style={{
+						display: 'inline-block',
+						overflow: 'hidden',
+						verticalAlign: 'baseline',
+						paddingBottom: '0.45em',
+						marginBottom: '-0.4em',
+					}}
+				>
+					<span
+						style={{
+							display: 'inline-block',
+							color: muted ? t.muted : t.ink,
+							animation: `masterWordIn .58s cubic-bezier(.16, 1, .3, 1) both`,
+							animationDelay: `${index * 32}ms`,
+						}}
+					>
+						{word}
+						{last ? '' : '\u00A0'}
+					</span>
+				</span>
+			)
+		})
+	}
+	return (
+		<h1
+			style={{
+				margin: 0,
+				fontSize: 29,
+				lineHeight: inline ? 1.12 : 1.08,
+				letterSpacing: '0.01em',
+				fontWeight: 400,
+				fontFamily: 'Aeonik, system-ui, sans-serif',
+			}}
+		>
+			{stacked ? (
+				<>
+					<span style={{ display: 'block' }}>{renderWords(leadWords, false)}</span>
+					{restWords.length ? (
+						<span style={{ display: 'block' }}>{renderWords(restWords, true)}</span>
+					) : null}
+				</>
+			) : (
+				<>
+					{renderWords(leadWords, false)}
+					{restWords.length ? <> {renderWords(restWords, true)}</> : null}
+				</>
+			)}
+		</h1>
+	)
+}
+
 function ClarifyStage({
 	t,
 	value,
@@ -2201,19 +2311,13 @@ function ClarifyStage({
 
 	return (
 		<>
-			<h1
-				style={{
-					margin: 0,
-					fontSize: 29,
-					lineHeight: 1.12,
-					letterSpacing: '0.01em',
-					fontWeight: 400,
-					fontFamily: 'Aeonik, system-ui, sans-serif',
-				}}
-			>
-				<span style={{ color: t.ink }}>{header.lead}</span>{' '}
-				<span style={{ color: t.muted }}>{header.muted}</span>
-			</h1>
+			<MasterGlassyH1
+				key={picked ? `clarify-${picked}` : `clarify-idle-${guess}`}
+				t={t}
+				lead={header.lead}
+				rest={header.muted}
+				inline
+			/>
 			<div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
 				{CLARIFY_OPTIONS.map((opt) => {
 					const on = value === opt

@@ -282,8 +282,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     !emailReady &&
     Boolean(email.trim()) &&
     (emailFormatErrorActive || emailTouched || hadValidEmail)
-  const loginMainTitle = 'Willkommen zurück.'
-
   /** Mobile under-email slot — validation error only. */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -1879,7 +1877,18 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     className={`al-signin${animating ? ' al-signin--out' : ''}`}
                     aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}
                   >
-                    <div className="al-signin-head">
+                    <div
+                      className={[
+                        'al-signin-head',
+                        (!subFlow && isSignup && !hasInvite) ||
+                        (!subFlow && !isSignup && displayWorkspaceName) ||
+                        (subFlow && subFlowWorkspaceSecondary)
+                          ? 'al-signin-head--has-user'
+                          : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
                       {!subFlow && emailTakenActive ? (
                         <div className="al-hero-copy al-hero-copy--status">
                           <AuthGlassyHero
@@ -1897,15 +1906,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               instant={softModeLocked}
                               lead={devInviteToken ? 'Einladung annehmen.' : 'Erstelle dein Konto.'}
                             />
-                          ) : displayWorkspaceName ? (
-                            <AuthGlassyHero
-                              animKey={`login-ws-${displayWorkspaceName}`}
-                              instant={softModeLocked}
-                              lead="Willkommen zurück."
-                            />
                           ) : (
                             <AuthGlassyHero
-                              animKey="login-cold"
+                              animKey={displayWorkspaceName ? `login-ws-${displayWorkspaceName}` : 'login-cold'}
                               instant={softModeLocked}
                               lead="Willkommen zurück."
                             />
@@ -1966,11 +1969,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <div className="al-hero-secondary">
                               {loginWorkspacePath}
                             </div>
-                          ) : (
-                            /* Always reserve /Benutzer height — cold login, failed
-                               recognition, and login↔register must not reflow. */
-                            <div className="al-hero-secondary al-hero-secondary--spacer" aria-hidden="true" />
-                          )}
+                          ) : null}
                         </div>
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
@@ -1979,9 +1978,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <div className="al-hero-secondary">
                               {subFlowWorkspaceSecondary}
                             </div>
-                          ) : (
-                            <div className="al-hero-secondary al-hero-secondary--spacer" aria-hidden="true" />
-                          )}
+                          ) : null}
                         </div>
                       ) : (
                         <div className="al-hero-copy">
@@ -1990,9 +1987,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <div className="al-hero-secondary">
                               {subFlowWorkspaceSecondary}
                             </div>
-                          ) : (
-                            <div className="al-hero-secondary al-hero-secondary--spacer" aria-hidden="true" />
-                          )}
+                          ) : null}
                         </div>
                       )}
                     </div>

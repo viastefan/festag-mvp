@@ -1529,7 +1529,9 @@ export const AUTH_OS_STYLES = `
     --festag-btn-dark-shadow-active: none;
     --festag-input-border: rgba(30, 30, 32, 0.14);
     --festag-input-border-hover: rgba(30, 30, 32, 0.2);
-    --festag-input-border-width: 1px;
+    --festag-input-border-width: 2px;
+    --festag-input-border-filled: #5B647D;
+    --festag-input-border-width-filled: 2px;
     --festag-input-border-focus: #5B647D;
     --festag-input-border-width-focus: 2px;
     --festag-btn-border-width-focus: 2px;

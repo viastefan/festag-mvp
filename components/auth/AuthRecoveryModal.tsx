@@ -920,6 +920,8 @@ const RECOVERY_CSS = `
     display: flex;
     flex-direction: column;
     gap: 14px;
+    padding-inline: 3px;
+    box-sizing: border-box;
   }
   .auth-rec-body p {
     margin: 0;
@@ -954,8 +956,8 @@ const RECOVERY_CSS = `
   .auth-rec-field input,
   .auth-rec-field textarea {
     width: 100%;
-    border-radius: var(--festag-auth-radius, 6px);
-    border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30, 30, 32, 0.12));
+    border-radius: var(--festag-input-radius, 8px);
+    border: 2px solid var(--festag-input-border, rgba(30, 30, 32, 0.15));
     background: transparent;
     color: #1e1e20;
     font-family: inherit;
@@ -968,7 +970,7 @@ const RECOVERY_CSS = `
     min-height: 40px;
     box-sizing: border-box;
     box-shadow: none;
-    transition: border-color 0.2s ease, border-width 0.2s ease;
+    transition: border-color 0.18s ease;
   }
   .auth-rec-field input::placeholder,
   .auth-rec-field textarea::placeholder {
@@ -977,7 +979,7 @@ const RECOVERY_CSS = `
     opacity: 1;
   }
   .auth-rec-field textarea {
-    border-radius: var(--festag-auth-radius-lg, 8px);
+    border-radius: var(--festag-input-radius, 8px);
     height: auto;
     min-height: 96px;
     max-height: 280px;
@@ -985,10 +987,12 @@ const RECOVERY_CSS = `
     line-height: 1.45;
     overflow-y: hidden;
   }
+  .auth-rec-field input:not(:placeholder-shown),
+  .auth-rec-field textarea:not(:placeholder-shown),
   .auth-rec-field input:focus,
   .auth-rec-field textarea:focus {
     background: transparent;
-    border-width: var(--festag-input-border-width-focus, 2px);
+    border-width: 2px;
     border-color: var(--festag-input-border-focus, #5B647D);
     box-shadow: none;
   }
@@ -1272,19 +1276,25 @@ const RECOVERY_CSS = `
     color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     caret-color: var(--festag-input-caret, rgba(198, 206, 222, 0.78));
-    border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 2px solid rgba(255, 255, 255, 0.15) !important;
     box-shadow: none;
-    transition: border-color 0.2s ease, border-width 0.2s ease;
+    transition: border-color 0.18s ease;
   }
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:not(:placeholder-shown),
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:not(:placeholder-shown),
   .auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:focus,
   .auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:focus,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:not(:placeholder-shown),
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:not(:placeholder-shown),
   .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:focus,
   .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:focus,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:not(:placeholder-shown),
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:not(:placeholder-shown),
   .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:focus,
   .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:focus {
     background: transparent !important;
-    border-width: var(--festag-input-border-width-focus, 2px) !important;
-    border-color: var(--festag-input-border-focus, #5B647D) !important;
+    border-width: 2px !important;
+    border-color: #5B647D !important;
     box-shadow: none;
   }
   .auth-rec-backdrop[data-theme="dark"] .auth-rec-error,

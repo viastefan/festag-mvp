@@ -1,11 +1,12 @@
 'use client'
 
 /**
- * Master Intent stage — stepped field grow + TagroFieldAssist
- * (auto-formulate loader → close to edit orb → draggable popup).
+ * Master Intent stage — notebook field (no stroke): rotating examples + caret.
+ * Weiter only after enough text and 1.5s idle. Tagro chip follows the same gate.
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
 import { GOAL_EXAMPLES, INTENT_MIN_CHARS, INTENT_SETTLE_MS } from '@/lib/platform/master-onboarding'
@@ -17,14 +18,11 @@ type Props = {
   onAdvance: () => void
 }
 
-/* Notebook field — +2px over login inputs, no chrome stroke. */
 const FIELD_FONT = 17
 const FIELD_PAD_X = 4
 const FIELD_LINE_H = Math.round(FIELD_FONT * 1.45) // 25
 const FIELD_GROW_STEP = FIELD_LINE_H * 2
 const FIELD_PAD_Y = 6
-/* Idle = 2 lines; stepped grow adds +2 lines. */
-const INTENT_FIELD_MIN_H = FIELD_LINE_H * 2
 const INTENT_FIELD_STEP_H = FIELD_GROW_STEP
 const CARET_H = 20
 const CARET_TOP = FIELD_PAD_Y + Math.round((FIELD_LINE_H - CARET_H) / 2)
@@ -32,19 +30,21 @@ const CARET_TOP = FIELD_PAD_Y + Math.round((FIELD_LINE_H - CARET_H) / 2)
 export default function IntentStage({ value, onChange, onReadyChange, onAdvance }: Props) {
   const [focused, setFocused] = useState(false)
   const [assistOpen, setAssistOpen] = useState(false)
+  const [settled, setSettled] = useState(false)
   const [exampleIdx, setExampleIdx] = useState(0)
   const [exampleIn, setExampleIn] = useState(true)
 
   const areaRef = useRef<HTMLTextAreaElement | null>(null)
   const shellRef = useRef<HTMLDivElement | null>(null)
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const fieldHRef = useRef(INTENT_FIELD_MIN_H)
-  const [fieldH, setFieldH] = useState(INTENT_FIELD_MIN_H)
+  const fieldHRef = useRef(FIELD_LINE_H * 2)
+  const [fieldH, setFieldH] = useState(FIELD_LINE_H * 2)
 
   const hasText = value.trim().length > 0
   const enough = value.trim().length >= INTENT_MIN_CHARS
   const showExample = !hasText
   const example = GOAL_EXAMPLES[exampleIdx % GOAL_EXAMPLES.length]
+  const showContinue = settled && enough
 
   useEffect(() => {
     return () => {
@@ -52,14 +52,13 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     }
   }, [])
 
-  /* Grow only when content overflows — apply in layout effect so React style
-     never paints a collapsed height between keystrokes. */
   useLayoutEffect(() => {
     const el = areaRef.current
     if (!el) return
 
+    const textMin = FIELD_LINE_H * 2
     if (!value.trim()) {
-      fieldHRef.current = INTENT_FIELD_MIN_H
+      fieldHRef.current = textMin
     } else {
       el.style.height = `${fieldHRef.current}px`
       let guard = 0
@@ -78,14 +77,14 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     setFieldH((prev) => (prev === fieldHRef.current ? prev : fieldHRef.current))
   }, [value])
 
+  /* Hide Weiter while typing; reveal only after 1.5s idle with enough text. */
   useEffect(() => {
     if (settleTimer.current) clearTimeout(settleTimer.current)
-    if (!enough) {
-      onReadyChange(false)
-      return
-    }
+    setSettled(false)
     onReadyChange(false)
+    if (!enough) return
     settleTimer.current = setTimeout(() => {
+      setSettled(true)
       onReadyChange(true)
     }, INTENT_SETTLE_MS)
     return () => {
@@ -109,23 +108,26 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     }
   }, [showExample])
 
-  function openAssist() {
-    setFocused(true)
-    setAssistOpen(true)
-  }
+  useEffect(() => {
+    if (!showContinue && assistOpen) setAssistOpen(false)
+  }, [showContinue, assistOpen])
 
   return (
     <>
-      <h1 className="mob-h1">
-        <span className="mob-h1-ink">Worum geht es?</span>
-        <span className="mob-h1-muted">Tagro richtet Workspace und Struktur danach aus.</span>
-      </h1>
+      <AuthGlassyHero
+        animKey="intent"
+        lead="Worum geht es?"
+        rest="Tagro richtet Workspace und Struktur danach aus."
+        stacked
+        className="mob-glassy-h1"
+      />
 
       <div className={`mob-intent-wrap${assistOpen ? ' has-tagro-panel' : ''}`}>
         <div
           ref={shellRef}
           className={[
             'mob-intent-shell',
+            'mob-intent-shell--notebook',
             hasText ? 'has-value' : '',
             focused ? 'is-focused' : '',
           ]
@@ -140,16 +142,15 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             placeholder=""
             aria-label={`Ziel, z. B. ${example}`}
             onChange={(e) => onChange(e.target.value.replace(/\r?\n/g, ' '))}
-            onFocus={openAssist}
-            onClick={openAssist}
+            onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onKeyDown={(e) => {
               if (e.key !== 'Enter') return
               e.preventDefault()
-              if (enough) onAdvance()
+              if (showContinue) onAdvance()
             }}
             style={{
-              minHeight: INTENT_FIELD_MIN_H,
+              minHeight: FIELD_LINE_H * 2,
               height: fieldH,
               lineHeight: `${FIELD_LINE_H}px`,
             }}
@@ -180,21 +181,25 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
         </div>
 
         <div className="mob-ready-hint-slot" aria-live="polite">
-          <ContinueHint show={hasText && enough} onContinue={onAdvance} />
+          <ContinueHint show={showContinue} onContinue={onAdvance} />
         </div>
 
-        <TagroFieldAssist
-          open={assistOpen}
-          onClose={() => setAssistOpen(false)}
-          anchorRef={shellRef}
-          fieldValue={value}
-          onFieldChange={onChange}
-          contextLabel="Ziel schärfen"
-          surface="project"
-          theme="light"
-          preferBelow
-          autoFormulate
-        />
+        {showContinue ? (
+          <TagroFieldAssist
+            open={assistOpen}
+            onOpen={() => setAssistOpen(true)}
+            onClose={() => setAssistOpen(false)}
+            anchorRef={shellRef}
+            fieldValue={value}
+            onFieldChange={onChange}
+            contextLabel="Ziel schärfen"
+            surface="project"
+            theme="light"
+            preferBelow
+            autoFormulate
+            trigger="chip"
+          />
+        ) : null}
       </div>
     </>
   )

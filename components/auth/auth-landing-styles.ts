@@ -514,22 +514,12 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:flex-start;
           text-align:left;
         }
-        /* Soft mode: hold path/field slot so Anmelden ↔ Konto erstellen doesn't reflow. */
-        .al-root.al-soft-mode .al-hero-secondary,
-        .al-root.al-soft-enter .al-hero-secondary {
+        /* Soft mode: register keeps the /Benutzer field slot; login cold has no gap. */
+        .al-root.al-soft-mode[data-auth-mode="signup"] .al-hero-secondary,
+        .al-root.al-soft-enter[data-auth-mode="signup"] .al-hero-secondary,
+        .al-root.al-soft-mode .al-signin-head--has-user .al-hero-secondary,
+        .al-root.al-soft-enter .al-signin-head--has-user .al-hero-secondary {
           min-height: var(--festag-input-height, 42px);
-        }
-        .al-hero-secondary--spacer {
-          visibility: hidden;
-          pointer-events: none;
-          /* Match /Benutzer line so cold login & Code ohne Name nicht nachrutschen. */
-          min-height: var(--al-hero-name-lh, 36px);
-          height: var(--al-hero-name-lh, 36px);
-          margin-top: 4px;
-          animation: none !important;
-          opacity: 1 !important;
-          transform: none !important;
-          filter: none !important;
         }
         .al-kicker { display:none; }
         .al-title,
@@ -1005,6 +995,8 @@ const AUTH_LANDING_STYLES_BASE = `
           overflow:visible;
           width:100%;
           max-width:100%;
+          /* Gutter so 2px strokes never clip on overflow-x parents (al-root). */
+          padding-inline:3px;
           box-sizing:border-box;
           align-items:stretch;
         }
@@ -1026,9 +1018,7 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-direction:column;
           gap:10px;
           overflow:visible;
-          /* Shadow room stays inside the panel — never bleed horizontally
-             (parent overflow:hidden was clipping the right pill edge). */
-          padding:1px 0 3px;
+          padding:0;
           margin:0;
           width:100%;
           box-sizing:border-box;
@@ -1375,8 +1365,8 @@ const AUTH_LANDING_STYLES_BASE = `
           max-height:var(--festag-input-height, 46px);
           /* Fields stay soft-rect; Read CTAs can be pills via --festag-auth-radius. */
           border-radius:var(--festag-input-radius, 8px);
-          /* Quiet 1px hairline always — focus only changes color (no outer ring). */
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
+          /* 2px hairline always — focus/filled only change color (no outer ring). */
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
@@ -1397,8 +1387,9 @@ const AUTH_LANDING_STYLES_BASE = `
           appearance:none;
           -webkit-text-size-adjust:100%;
           text-size-adjust:100%;
-          transition:border-color .2s ease, border-width .2s ease;
-          box-sizing:border-box;
+          /* Color only — width stays on tokens so L/R edges never reflow/clip. */
+          transition:border-color .18s ease;
+          box-sizing:border-box !important;
         }
         .al-input::placeholder {
           color:var(--festag-input-placeholder, var(--al-text-muted-soft, #8e95a3));
@@ -1417,6 +1408,8 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           display:block;
           font-size:var(--festag-input-font-size, 15px);
+          overflow:visible;
+          box-sizing:border-box;
         }
         .al-input-fake-ph {
           position:absolute;
@@ -1453,7 +1446,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:active {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1462,7 +1455,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input-shell.has-value .al-input {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, rgba(30,30,32,0.20)) !important;
+          border:var(--festag-input-border-width-filled, 2px) solid var(--festag-input-border-filled, #5B647D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1476,7 +1469,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input-shell.has-value .al-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none !important;
@@ -1489,7 +1482,7 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
           caret-color:var(--festag-input-caret, #7E889F);
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
         }
         /* Placeholder must beat -webkit-text-fill-color on the input (else it looks black). */
         .al-root:not([data-theme="dark"]) .al-input::placeholder {
@@ -1501,7 +1494,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:active {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width, 1px) !important;
+          border-width:var(--festag-input-border-width, 2px) !important;
           border-style:solid !important;
           border-color:var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
         }
@@ -1509,9 +1502,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input-shell.has-value .al-input {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width-filled, 1px) !important;
+          border-width:var(--festag-input-border-width-filled, 2px) !important;
           border-style:solid !important;
-          border-color:var(--festag-input-border-filled, rgba(30,30,32,0.20)) !important;
+          border-color:var(--festag-input-border-filled, #5B647D) !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:focus,
@@ -1522,7 +1515,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input-shell.has-value .al-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width-focus, 1px) !important;
+          border-width:var(--festag-input-border-width-focus, 2px) !important;
           border-style:solid !important;
           border-color:var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none !important;
@@ -1538,14 +1531,14 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, #7E889F) !important;
+          border:var(--festag-input-border-width-filled, 2px) solid var(--festag-input-border-filled, #5B647D) !important;
           outline:none !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
         }
@@ -1553,13 +1546,13 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
           background-color:transparent !important;
-          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, rgba(30,30,32,0.20)) !important;
+          border:var(--festag-input-border-width-filled, 2px) solid var(--festag-input-border-filled, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
         }
@@ -2435,7 +2428,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background-image:none !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border, rgba(255,255,255,0.16)) !important;
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(255,255,255,0.16)) !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
           border-radius:var(--festag-input-radius, 8px);
@@ -2454,7 +2447,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
           box-shadow:none;
           outline:none;
         }
@@ -2463,7 +2456,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, rgba(255,255,255,0.22)) !important;
+          border:var(--festag-input-border-width-filled, 2px) solid var(--festag-input-border-filled, #5B647D) !important;
           box-shadow:none !important;
           outline:none;
         }
@@ -2476,7 +2469,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none !important;
           outline:none !important;
         }
@@ -2496,7 +2489,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
+          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           transition:background-color 9999s ease-out 0s;
@@ -2504,14 +2497,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #7E889F) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
         }
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
-          border-width:var(--festag-input-border-width, 1px) !important;
+          border-width:var(--festag-input-border-width, 2px) !important;
           border-color:var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
@@ -2527,7 +2520,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
+            border:var(--festag-input-border-width, 2px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
             box-shadow:none;
           }
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
@@ -2535,7 +2528,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, rgba(255,255,255,0.22)) !important;
+            border:var(--festag-input-border-width-filled, 2px) solid var(--festag-input-border-filled, #5B647D) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-input:focus,
@@ -2547,7 +2540,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none !important;
           }
         }
@@ -2811,10 +2804,10 @@ const AUTH_LANDING_STYLES_BASE = `
             margin:0;
             text-align:left;
           }
-          /* Vertical rhythm — intentional silence between layers. */
+          /* Vertical rhythm — no flex gap; /Benutzer uses secondary margin-top only when mounted. */
           .al-signin-head {
             margin-bottom:var(--al-desktop-hero-gap, 18px);
-            gap:14px;
+            gap:0;
           }
           .al-root[data-auth-mode="signup"] .al-ws-status-slot:has(.al-ws-status) {
             margin-top:22px;
@@ -3420,8 +3413,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
-            /* Title + username — same metric as onboarding H1 stack. */
-            min-height:calc(var(--al-hero-display-lh, 31px) + var(--al-hero-name-lh, 31px));
+            /* Title only — no empty /Benutzer slot (cold login / Code ohne Name). */
+            min-height:var(--al-hero-display-lh, 31px);
             margin-bottom:18px !important;
             padding-top:0;
             width:100%;
@@ -3429,6 +3422,10 @@ const AUTH_LANDING_STYLES_BASE = `
             align-self:stretch;
             text-align:left;
             box-sizing:border-box;
+          }
+          .al-root[data-auth-mode="login"] .al-signin-head--has-user,
+          .al-root[data-auth-mode="signup"] .al-signin-head--has-user {
+            min-height:calc(var(--al-hero-display-lh, 31px) + var(--al-hero-name-lh, 31px));
           }
           .al-root[data-auth-mode="login"] .al-hero-copy,
           .al-root[data-auth-mode="signup"] .al-hero-copy {
@@ -3550,8 +3547,8 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-top:0;
             min-height:0;
           }
-          .al-root[data-auth-mode="signup"] .al-signin-head {
-            /* Same band as login (title + name) — do not permanently reserve status height. */
+          .al-root[data-auth-mode="signup"] .al-signin-head--has-user {
+            /* Register always has the /Benutzer line under the title. */
             min-height:calc(var(--al-hero-display-lh, 31px) + var(--al-hero-name-lh, 31px));
             margin-bottom:18px !important;
           }
@@ -4176,14 +4173,14 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+            border:var(--festag-input-border-width, 2px) solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown),
           .al-root:not([data-theme="dark"]) .al-input-shell.has-value .al-input {
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, rgba(30,30,32,0.20)) !important;
+            border:var(--festag-input-border-width-filled, 2px) solid var(--festag-input-border-filled, #5B647D) !important;
             box-shadow:none;
           }
           .al-root:not([data-theme="dark"]) .al-input:focus,
@@ -4195,13 +4192,13 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
             background-color:transparent !important;
-            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
+            border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           }
           .al-root[data-theme="dark"] .al-input,
           .al-root[data-theme="dark"] .al-input:hover,
@@ -4209,7 +4206,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border, rgba(255,255,255,0.16)) !important;
+            border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(255,255,255,0.16)) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-input:hover,
@@ -4223,7 +4220,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-filled, 1px) solid var(--festag-input-border-filled, rgba(255,255,255,0.22)) !important;
+            border:var(--festag-input-border-width-filled, 2px) solid var(--festag-input-border-filled, #5B647D) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-input:focus,
@@ -4235,7 +4232,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none !important;
           }
           .al-input:-webkit-autofill,
@@ -4263,14 +4260,14 @@ const AUTH_LANDING_STYLES_BASE = `
             caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
+            border:var(--festag-input-border-width, 2px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
             -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
             box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           }
           .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
           html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
           html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #7E889F) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none !important;
           }
           .al-code-input { font-size:16px; }
@@ -4618,13 +4615,13 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:14px;
           }
           .al-root[data-auth-step="codeEntry"] .al-otp-cell {
-            border:1px solid rgba(30, 30, 32, 0.14) !important;
+            border:2px solid rgba(30, 30, 32, 0.14) !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus-visible,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell.has-value {
-            border:1px solid #5B647D !important;
-            box-shadow:0 0 0 1px #5B647D !important;
+            border:2px solid #5B647D !important;
+            box-shadow:none !important;
           }
         }
 
@@ -4740,14 +4737,14 @@ const AUTH_LANDING_STYLES_BASE = `
             height:40px;
             font-size:17px;
             border-radius:8px !important;
-            border:1px solid rgba(30, 30, 32, 0.14) !important;
+            border:2px solid rgba(30, 30, 32, 0.14) !important;
             background:transparent !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus-visible,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell.has-value {
-            border:1px solid #5B647D !important;
-            box-shadow:0 0 0 1px #5B647D !important;
+            border:2px solid #5B647D !important;
+            box-shadow:none !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-signin-stack--code > .al-btn.al-btn-primary {
             height:var(--festag-btn-height, 46px);

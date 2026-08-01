@@ -12,6 +12,7 @@ import {
   OnbLogoSlack,
   OnbLogoVercel,
 } from '@/components/auth/OnboardingSourceLogos'
+import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import type { IntegrationId } from '@/lib/platform/integrations'
 import { INTEGRATION_CATALOG } from '@/lib/platform/integrations'
@@ -83,10 +84,13 @@ export default function ConnectStage({
 
   return (
     <>
-      <h1 className="mob-h1">
-        <span className="mob-h1-ink">{header.lead}</span>
-        <span className="mob-h1-muted">{header.muted}</span>
-      </h1>
+      <AuthGlassyHero
+        animKey={`connect-${header.lead}`}
+        lead={header.lead}
+        rest={header.muted}
+        stacked
+        className="mob-glassy-h1"
+      />
 
       <div className="mob-connect-list-wrap">
         <div

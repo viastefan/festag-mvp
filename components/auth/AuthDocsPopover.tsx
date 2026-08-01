@@ -367,14 +367,15 @@ const AUTH_DOCS_CSS = `
     height: 40px;
     min-height: 40px;
     padding: 0 12px;
-    border-radius: var(--festag-auth-radius, 6px);
-    border: 1px solid rgba(30, 30, 32, 0.12);
+    border-radius: var(--festag-input-radius, 8px);
+    /* Same 2px stroke as Login email — color only on focus. */
+    border: 2px solid rgba(30, 30, 32, 0.15);
     background: transparent;
     color: var(--al-accent, #5B647D);
     opacity: 1;
     box-sizing: border-box;
     box-shadow: none;
-    transition: border-color .15s ease;
+    transition: border-color .18s ease;
   }
   .auth-docs-search:focus-within {
     border-color: var(--al-accent, #5B647D);
@@ -747,8 +748,11 @@ const AUTH_DOCS_CSS = `
   /* Dark content chrome — keyed off auth-docs-pop--dark (desktop + mobile). */
   .auth-docs-pop--dark .auth-docs-search {
     background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border: 2px solid rgba(255, 255, 255, 0.15) !important;
     color: #8891a0;
+  }
+  .auth-docs-pop--dark .auth-docs-search:focus-within {
+    border-color: #5B647D !important;
   }
   .auth-docs-pop--dark .auth-docs-search input {
     color: rgba(232, 236, 242, 0.94);
@@ -764,7 +768,7 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop--dark .auth-docs-empty { color: #8891a0; }
   .auth-docs-pop--light .auth-docs-search {
     background: transparent;
-    border: 1px solid rgba(30, 30, 32, 0.12);
+    border: 2px solid rgba(30, 30, 32, 0.15);
     color: var(--al-accent, #5B647D);
   }
   .auth-docs-pop--light .auth-docs-search:focus-within {

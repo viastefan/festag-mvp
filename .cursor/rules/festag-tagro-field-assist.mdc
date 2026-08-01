@@ -11,19 +11,40 @@ When adding or changing a Tagro assist bubble next to an input/textarea:
 ## Contract
 
 1. **Typing lives in the real field** — never a second textarea inside the popup.
-2. **Popup opens only on field focus/click** — not on page load / autoFocus alone.
+2. **Open triggers**
+   - `trigger="focus"` (default): popup opens on field focus/click.
+   - `trigger="chip"` (Intent / Ziel): panel stays closed until the bottom-right edit orb is clicked — never overlays the field on focus.
 3. **Freely draggable** — drag handle / head; remember user position until close.
 4. **Do not steal focus** from the field; do not cover the field with a blocking backdrop.
-5. **Outside-click closes** the popup, but clicks on the anchor field keep it open.
+5. **Outside-click** collapses to the BR orb (`chip`) or closes (`focus`); clicks on the anchor field stay put.
 6. **Modes** rewrite the field text and insert back: at least **Formell** and **Sprachlich** (plus optional Tagro model). Mic writes into the same field.
 
-## Pattern
+## Pattern — chip (onboarding Intent)
 
 ```tsx
 <textarea
   ref={fieldRef}
   value={value}
   onChange={e => setValue(e.target.value)}
+  onFocus={() => setFocused(true)}
+/>
+<TagroFieldAssist
+  open={assistOpen}
+  onOpen={() => setAssistOpen(true)}
+  onClose={() => setAssistOpen(false)}
+  anchorRef={shellRef}
+  fieldValue={value}
+  onFieldChange={setValue}
+  trigger="chip"
+  preferBelow
+  theme={theme}
+/>
+```
+
+## Pattern — focus (legacy)
+
+```tsx
+<textarea
   onFocus={() => setAssistOpen(true)}
 />
 <TagroFieldAssist

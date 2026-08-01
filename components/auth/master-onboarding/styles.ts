@@ -8,7 +8,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-placeholder: #8891a0;
     --mob-hairline: rgba(30, 30, 32, 0.10);
     --mob-hairline-filled: rgba(30, 30, 32, 0.16);
-    --mob-primary: #7E889F;
+    /* Same fill accent as Login input focus/filled (#5B647D). */
+    --mob-primary: #5B647D;
     --mob-caret: #7E889F;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
     --mob-card-bg-on: #FFFFFF;
@@ -109,6 +110,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: #1e1e20;
     pointer-events: none;
     -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+    border: 0;
+    background: transparent;
+  }
+  /* Onboarding: mark is a quiet home → /login */
+  .mob-wordmark.mob-wordmark--link {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .mob-wordmark.mob-wordmark--link:hover .mob-mark {
+    opacity: 1;
+  }
+  .mob-wordmark.mob-wordmark--link:active .mob-mark {
+    opacity: 0.78;
   }
   .mob-wordmark .al-wordmark-img--fluid,
   .mob-mark {
@@ -124,32 +139,6 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .mob-header-back {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-    color: rgba(30, 30, 32, 0.55);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .mob-header-back:hover {
-    background: rgba(30, 30, 32, 0.05);
-    color: #1e1e20;
-  }
-  .mob-header-back:active {
-    background: rgba(30, 30, 32, 0.08);
-  }
-  .mob-header-back svg {
-    display: block;
   }
   .mob-header-actions .auth-docs-trigger {
     width: 36px !important;
@@ -246,6 +235,31 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-h1-inline .mob-h1-ink,
   .mob-h1-inline .mob-h1-muted { display: inline; }
 
+  /* AuthGlassyHero inside onboarding — same type + ink as .mob-h1 */
+  .mob .al-glassy-hero.mob-glassy-h1 {
+    margin: 0;
+    max-width: 100%;
+    font-size: 29px !important;
+    line-height: 1.08 !important;
+    letter-spacing: var(--auth-tracking-display) !important;
+    font-weight: 400 !important;
+    font-family: Aeonik, system-ui, sans-serif;
+    color: var(--mob-ink);
+  }
+  .mob .al-glassy-hero.mob-glassy-h1--inline {
+    line-height: 1.12 !important;
+  }
+  .mob .al-glassy-hero.mob-glassy-h1 .al-gword-lead {
+    color: var(--mob-ink);
+  }
+  .mob .al-glassy-hero.mob-glassy-h1 .al-gword-inner.al-hero-gray {
+    color: var(--mob-muted);
+  }
+  .mob .al-glassy-hero--stacked .al-glassy-hero-line {
+    display: block;
+    line-height: 1.08;
+  }
+
   .mob-error {
     margin: 0 0 12px;
     font-size: 13px;
@@ -309,18 +323,18 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Intent field — taller idle (2 lines), login placeholder gray, rotating examples */
+  /* Intent field — notebook: no stroke; examples + caret; Weiter after settle */
   .mob-intent-wrap {
     position: relative;
     width: 100%;
     margin-top: 18px;
     z-index: 2;
+    box-sizing: border-box;
   }
   .mob-intent-wrap.has-tagro-panel {
     z-index: 20;
     padding-bottom: 8px;
   }
-  /* Notebook: no stroke ever — only blinking caret + type. */
   .mob-intent-shell {
     position: relative;
     border-radius: 0;
@@ -332,15 +346,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
+    animation: mobShellIn .34s cubic-bezier(.22,1,.36,1) both;
   }
   .mob-intent-shell.has-value,
-  .mob-intent-shell.is-focused {
+  .mob-intent-shell.is-focused,
+  .mob-intent-shell--notebook {
     border: none !important;
     box-shadow: none !important;
   }
-  /* Room for TagroFieldAssist edit orb (bottom-right inside the field). */
-  .mob-intent-shell.is-tagro-chip { padding-bottom: 40px; }
+  /* Room for TagroFieldAssist edit orb once Weiter/settle is active. */
+  .mob-intent-shell.is-tagro-chip,
+  .mob-intent-shell.is-tagro-chip-idle {
+    padding-bottom: 44px;
+  }
   .mob-intent-area {
     width: 100%;
     min-height: 50px;
@@ -358,10 +377,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-sizing: border-box;
     overflow: hidden;
     caret-color: var(--mob-caret);
+    transition: height .34s cubic-bezier(.22,1,.36,1);
   }
   .mob-intent-area.is-empty { caret-color: transparent; }
 
-  /* Tagro assist lives in TagroFieldAssist (portaled edit orb + popup). */
+  /* Tagro assist: idle BR orb + panel only on orb click (TagroFieldAssist chip trigger). */
 
   .mob-intent-example {
     position: absolute;
@@ -414,6 +434,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     flex-direction: column;
     gap: 8px;
+    /* Gutter so 2px selected stroke never clips on overflow parents. */
+    padding-inline: 3px;
+    box-sizing: border-box;
   }
   .mob-chip {
     text-align: left;
@@ -423,7 +446,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: 46px;
     padding: 0 14px;
     border-radius: 8px;
-    border: 1px solid var(--mob-card-border) !important;
+    /* Always 2px — selected only changes color (no L/R clip). */
+    border: 2px solid var(--mob-card-border) !important;
     background: #FFFFFF;
     box-shadow: none;
     color: var(--mob-ink);
@@ -435,13 +459,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     font-weight: 400;
     cursor: pointer;
     box-sizing: border-box;
-    transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease, opacity .18s ease;
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, opacity .18s ease;
   }
   .mob-chip:hover:not(.is-on) {
     border-color: var(--mob-card-border-hover) !important;
   }
   .mob-chip.is-on {
-    border: 2px solid var(--mob-primary) !important;
+    border-color: var(--mob-primary) !important;
     background: var(--mob-card-bg-on);
     box-shadow: none !important;
     opacity: 1;
@@ -453,7 +477,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-chip.is-on:focus,
   .mob-chip.is-on:focus-visible {
-    border: 2px solid var(--mob-primary) !important;
+    border-color: var(--mob-primary) !important;
   }
   .mob-chip-hint {
     /* legacy class — continue CTA uses .mob-continue-btn */
@@ -475,6 +499,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     margin-top: 16px;
     margin-bottom: 4px;
+    /* Let the soft bottom fade bleed past the list edge (no hard clip). */
+    overflow: visible;
   }
   .mob-connect-list {
     max-height: 288px;
@@ -483,7 +509,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 10px 0 56px;
+    /* Gutter so 2px selected strokes never clip L/R. */
+    padding: 10px 3px 56px;
     scrollbar-width: none;
   }
   .mob-connect-list::-webkit-scrollbar { display: none; }
@@ -500,15 +527,23 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-connect-fade-top {
     top: 0;
     height: 22px;
-    background: linear-gradient(to bottom, var(--mob-wash-top), transparent);
+    background: linear-gradient(
+      to bottom,
+      var(--mob-canvas) 0%,
+      color-mix(in srgb, var(--mob-canvas) 55%, transparent) 55%,
+      transparent 100%
+    );
   }
+  /* Soft canvas fade — same hue as page mid, no hard wash-bottom edge. */
   .mob-connect-fade-bottom {
-    bottom: 0;
-    height: 64px;
+    bottom: -10px;
+    height: 108px;
     background: linear-gradient(
       to top,
-      var(--mob-wash-bottom) 0%,
-      rgba(243, 240, 232, 0.92) 22%,
+      var(--mob-canvas) 0%,
+      color-mix(in srgb, var(--mob-canvas) 88%, transparent) 22%,
+      color-mix(in srgb, var(--mob-canvas) 48%, transparent) 52%,
+      color-mix(in srgb, var(--mob-canvas) 16%, transparent) 78%,
       transparent 100%
     );
   }
@@ -521,7 +556,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: 46px;
     padding: 0 14px;
     border-radius: 8px;
-    border: 1px solid var(--mob-card-border) !important;
+    /* Always 2px — selected only changes color (no L/R clip). */
+    border: 2px solid var(--mob-card-border) !important;
     background: #FFFFFF;
     box-shadow: none;
     flex-shrink: 0;
@@ -531,13 +567,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     text-align: left;
     margin: 0;
-    transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease;
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
   }
   .mob-connect-row:hover:not(.is-on) {
     border-color: var(--mob-card-border-hover) !important;
   }
   .mob-connect-row.is-on {
-    border: 2px solid var(--mob-primary) !important;
+    border-color: var(--mob-primary) !important;
     background: #FFFFFF;
     box-shadow: none !important;
   }
@@ -548,7 +584,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-connect-row.is-on:focus,
   .mob-connect-row.is-on:focus-visible {
-    border: 2px solid var(--mob-primary) !important;
+    border-color: var(--mob-primary) !important;
   }
   .mob-connect-icon {
     width: 28px;
@@ -605,6 +641,46 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     align-items: center;
     gap: 0;
     pointer-events: none;
+  }
+  /* Dots stay centered; back chevron sits quietly just left of the beads. */
+  .mob-dots-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .mob-nav-back {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(26, 25, 23, 0.38);
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .18s ease, background .18s ease, opacity .18s ease;
+  }
+  .mob-nav-back:hover {
+    color: rgba(26, 25, 23, 0.72);
+    background: rgba(26, 25, 23, 0.04);
+  }
+  .mob-nav-back:active {
+    color: rgba(26, 25, 23, 0.88);
+    background: rgba(26, 25, 23, 0.06);
+  }
+  .mob-nav-back svg {
+    display: block;
   }
   .mob-dots {
     position: relative;
@@ -680,6 +756,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       background: transparent;
     }
     .mob-nav-inner { gap: 0; }
+    .mob-nav-back {
+      right: calc(100% + 14px);
+      width: 30px;
+      height: 30px;
+      color: rgba(26, 25, 23, 0.34);
+    }
+    .mob-nav-back:hover {
+      color: rgba(26, 25, 23, 0.68);
+    }
     .mob-dots {
       min-height: 8px;
       padding: 0;
@@ -724,6 +809,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       line-height: 1.08;
       letter-spacing: var(--auth-tracking-display);
       text-align: left;
+    }
+    .mob .al-glassy-hero.mob-glassy-h1 {
+      font-size: 31px !important;
     }
   }
 

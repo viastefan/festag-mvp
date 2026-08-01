@@ -49,6 +49,7 @@ import {
   clarifyToWorkspaceType,
   normalizeMasterStep,
 } from '@/lib/platform/master-onboarding'
+import { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import { MASTER_ONBOARDING_STYLES } from '@/components/auth/master-onboarding/styles'
 import IntentStage from '@/components/auth/master-onboarding/IntentStage'
 import ClarifyStage from '@/components/auth/master-onboarding/ClarifyStage'
@@ -530,7 +531,7 @@ function MasterBuildInner() {
   ])
 
   const goAfterIntent = useCallback(async () => {
-    if (!intentReady && intentText.trim().length < 8) return
+    if (!intentReady) return
     setError('')
     const bp = await persistIntent(intentText, clarifyPick)
     if (!bp && !isPreview) return
@@ -579,7 +580,7 @@ function MasterBuildInner() {
   )
 
   function canSwipeForward() {
-    if (current === 'intent') return intentReady || intentText.trim().length >= 8
+    if (current === 'intent') return intentReady
     if (current === 'clarify') return Boolean(clarifyPick)
     if (current === 'connect') return !submitting && connected.size > 0
     return false
@@ -622,13 +623,13 @@ function MasterBuildInner() {
       return
     }
     if (id === 'clarify') {
-      if (!intentReady && intentText.trim().length < 8) return
+      if (!intentReady) return
       setVisitedClarify(true)
       setCurrent('clarify')
       return
     }
     if (id === 'connect') {
-      if (!intentReady && intentText.trim().length < 8) return
+      if (!intentReady) return
       setCurrent('connect')
     }
   }
@@ -663,6 +664,7 @@ function MasterBuildInner() {
 
   return (
     <>
+      <style>{AUTH_GLASSY_HERO_CSS}</style>
       <style>{MASTER_ONBOARDING_STYLES}</style>
       <div
         ref={mobRootRef}
@@ -680,8 +682,17 @@ function MasterBuildInner() {
         onTouchEnd={onTouchEnd}
       >
         <header className="mob-header">
-          {/* Same fluid mark + chrome as Login/Register header. */}
-          <span className="al-wordmark mob-wordmark" aria-label="Festag" role="img">
+          {/* Mark → Login (auth chrome prep so the canvas never flashes). */}
+          <a
+            href="/login"
+            className="al-wordmark mob-wordmark mob-wordmark--link"
+            aria-label="Zur Anmeldung"
+            onClick={(e) => {
+              e.preventDefault()
+              prepareAuthRouteTransition('/login')
+              router.push('/login')
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="al-wordmark-img al-wordmark-img--fluid mob-mark"
@@ -691,26 +702,8 @@ function MasterBuildInner() {
               width={36}
               height={36}
             />
-          </span>
+          </a>
           <div className="mob-header-actions">
-            {current !== 'intent' ? (
-              <button
-                type="button"
-                className="mob-header-back"
-                aria-label="Zurück"
-                onClick={retreat}
-              >
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path
-                    d="M10 3.5 5.5 8 10 12.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            ) : null}
             <AuthDocsPopover page="/onboarding" />
           </div>
         </header>
@@ -753,23 +746,43 @@ function MasterBuildInner() {
 
         <footer className="mob-nav" aria-label="Onboarding Navigation">
           <div className="mob-nav-inner">
-            <nav className="mob-dots" aria-label="Onboarding Fortschritt">
-              {flowSteps.map((dot, idx) => {
-                const active = idx === flowActive
-                const done = idx < flowActive
-                return (
-                  <button
-                    key={dot.id}
-                    type="button"
-                    className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
-                    aria-label={dot.label}
-                    aria-current={active ? 'step' : undefined}
-                    disabled={submitting && dot.id === 'preparing'}
-                    onClick={() => onFlowDotClick(dot.id)}
-                  />
-                )
-              })}
-            </nav>
+            <div className="mob-dots-wrap">
+              {current === 'clarify' || current === 'connect' ? (
+                <button
+                  type="button"
+                  className="mob-nav-back"
+                  aria-label="Zurück"
+                  onClick={retreat}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <path
+                      d="M10 3.5 5.5 8 10 12.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              ) : null}
+              <nav className="mob-dots" aria-label="Onboarding Fortschritt">
+                {flowSteps.map((dot, idx) => {
+                  const active = idx === flowActive
+                  const done = idx < flowActive
+                  return (
+                    <button
+                      key={dot.id}
+                      type="button"
+                      className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
+                      aria-label={dot.label}
+                      aria-current={active ? 'step' : undefined}
+                      disabled={submitting && dot.id === 'preparing'}
+                      onClick={() => onFlowDotClick(dot.id)}
+                    />
+                  )
+                })}
+              </nav>
+            </div>
           </div>
         </footer>
           </div>

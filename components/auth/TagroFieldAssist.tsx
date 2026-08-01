@@ -5,10 +5,10 @@
  *
  * Contract (keep forever):
  * - User types in the anchored field, never in this popup.
- * - Popup opens only when the field is focused/clicked.
- * - After typing settles (~1.5s), Tagro auto-formulates with a visible loader.
- * - Close (X) collapses to a small edit icon inside the field (bottom-right).
- * - Edit icon reopens the draggable popup. Outside-click collapses to the icon.
+ * - trigger="focus" (default): popup opens on field focus/click.
+ * - trigger="chip": panel stays closed until the bottom-right edit orb is clicked.
+ * - After typing settles (~1.5s) while the panel is open, Tagro auto-formulates.
+ * - Close (X) / outside-click collapses to the edit orb (chip mode) or closes.
  * - Modes rewrite the field text (formell / sprachlich) and insert via Tagro.
  */
 
@@ -55,6 +55,8 @@ const FORMULATE_MIN_MS = 1500
 type Props = {
   open: boolean
   onClose: () => void
+  /** Chip-mode: open the panel when the BR orb is clicked. */
+  onOpen?: () => void
   anchorRef: React.RefObject<HTMLElement | null>
   /** Live value from the real field — popup never owns a separate draft. */
   fieldValue: string
@@ -68,6 +70,11 @@ type Props = {
   preferBelow?: boolean
   /** Auto-formulate when typing settles (default true). */
   autoFormulate?: boolean
+  /**
+   * focus — open with the field (legacy).
+   * chip — idle = BR orb only; panel only after orb click (intent / Ziel).
+   */
+  trigger?: 'focus' | 'chip'
 }
 
 type Pos = { top: number; left: number; width: number }
@@ -135,6 +142,7 @@ function placeNearAnchor(
 export default function TagroFieldAssist({
   open,
   onClose,
+  onOpen,
   anchorRef,
   fieldValue,
   onFieldChange,
@@ -143,7 +151,9 @@ export default function TagroFieldAssist({
   theme: themeProp,
   preferBelow = false,
   autoFormulate = true,
+  trigger = 'focus',
 }: Props) {
+  const chipMode = trigger === 'chip'
   const [busy, setBusy] = useState(false)
   /** True while the settle timer is counting down before auto-formulate. */
   const [awaiting, setAwaiting] = useState(false)
@@ -155,7 +165,7 @@ export default function TagroFieldAssist({
   const [chrome, setChrome] = useState<'light' | 'dark' | 'read'>('light')
   const [userMoved, setUserMoved] = useState(false)
   /** Full panel vs compact edit orb inside the field. */
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(!chipMode)
   const bubbleRef = useRef<HTMLDivElement>(null)
   const baseRef = useRef('')
   const dragRef = useRef<{ ox: number; oy: number; sx: number; sy: number } | null>(null)
@@ -164,9 +174,17 @@ export default function TagroFieldAssist({
   const busyRef = useRef(false)
   const hasText = fieldValue.trim().length > 0
   const formulating = busy || awaiting
-  /** Only appear once there is text (or while formulating) — never an empty “Tagro” button. */
-  const showAssist = open && (hasText || formulating)
-  const compact = showAssist && hasText && !expanded && !formulating
+  /**
+   * chip — BR orb always when panel closed; panel only when `open`.
+   * focus — appear with text / formulate; collapse to orb inside the field.
+   */
+  const showPanel = chipMode
+    ? open
+    : open && (hasText || formulating) && expanded
+  const compact = chipMode
+    ? !open
+    : open && hasText && !expanded && !formulating
+  const showAssist = showPanel || compact
 
   const { supported: micOk, listening, start, stop } = useSpeechRecognition({
     lang: 'de-DE',
@@ -194,9 +212,17 @@ export default function TagroFieldAssist({
       return
     }
     if (userMoved) return
-    const width = Math.min(320, Math.max(240, r.width * 0.88))
+    /* Chip / intent: match field width so the panel sits cleanly under the stroke. */
+    const width = preferBelow
+      ? Math.max(240, Math.min(r.width, window.innerWidth - EDGE * 2))
+      : Math.min(320, Math.max(240, r.width * 0.88))
     const measured = bubbleRef.current?.getBoundingClientRect().height || BUBBLE_H
-    setPos(placeNearAnchor(r, width, measured, preferBelow))
+    const next = placeNearAnchor(r, width, measured, preferBelow)
+    if (preferBelow) {
+      next.left = Math.max(EDGE, Math.min(r.left, window.innerWidth - width - EDGE))
+      next.width = width
+    }
+    setPos(next)
   }, [anchorRef, userMoved, compact, preferBelow])
 
   useEffect(() => {
@@ -204,6 +230,19 @@ export default function TagroFieldAssist({
   }, [busy])
 
   useEffect(() => {
+    if (chipMode) {
+      if (open) {
+        setExpanded(true)
+        setError('')
+        setMenu('none')
+        setUserMoved(false)
+        baseRef.current = fieldValue
+      } else {
+        setExpanded(false)
+        formulatedForRef.current = ''
+      }
+      return
+    }
     if (!open) {
       setExpanded(true)
       formulatedForRef.current = ''
@@ -213,7 +252,7 @@ export default function TagroFieldAssist({
       setExpanded(true)
       formulatedForRef.current = ''
     }
-  }, [open, hasText])
+  }, [open, hasText, chipMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Keep typing clear of the in-field edit orb. */
   useEffect(() => {
@@ -221,63 +260,71 @@ export default function TagroFieldAssist({
     if (!el) return
     if (compact) el.classList.add('is-tagro-chip')
     else el.classList.remove('is-tagro-chip')
+    /* Chip mode always reserves BR room for the idle orb. */
+    if (chipMode) el.classList.add('is-tagro-chip-idle')
+    else el.classList.remove('is-tagro-chip-idle')
     return () => {
       el.classList.remove('is-tagro-chip')
+      el.classList.remove('is-tagro-chip-idle')
     }
-  }, [compact, anchorRef])
+  }, [compact, chipMode, anchorRef])
 
   useEffect(() => {
-    if (!open) return
-    setError('')
-    setModel(readStoredModel())
-    setTone(readStoredTone())
-    setMenu('none')
-    setUserMoved(false)
+    if (!showAssist) return
     setChrome(resolveTheme(themeProp))
-    baseRef.current = fieldValue
+    if (open) {
+      setModel(readStoredModel())
+      setTone(readStoredTone())
+      baseRef.current = fieldValue
+    }
     reposition()
     const t = window.setTimeout(() => reposition(), 40)
     return () => window.clearTimeout(t)
-  }, [open, themeProp, reposition]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showAssist, open, themeProp, reposition]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!open) return
+    if (!showAssist) return
     setChrome(resolveTheme(themeProp))
-  }, [open, themeProp])
+  }, [showAssist, themeProp])
 
   useEffect(() => {
     if (!showAssist) return
     if (userMoved && !compact) return
     const id = window.requestAnimationFrame(() => reposition())
     return () => window.cancelAnimationFrame(id)
-  }, [showAssist, menu, error, userMoved, compact, expanded, formulating, reposition])
+  }, [showAssist, menu, error, userMoved, compact, expanded, formulating, open, reposition])
 
   const collapseToChip = useCallback(() => {
     setMenu('none')
     setUserMoved(false)
     if (listening) stop()
+    if (chipMode) {
+      setExpanded(false)
+      onClose()
+      return
+    }
     if (hasText) {
       setExpanded(false)
       return
     }
     onClose()
-  }, [hasText, listening, onClose, stop])
+  }, [chipMode, hasText, listening, onClose, stop])
 
   useEffect(() => {
     if (!showAssist) return
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Escape') return
       if (menu !== 'none') setMenu('none')
-      else if (expanded) collapseToChip()
-      else onClose()
+      else if (showPanel) collapseToChip()
+      else if (!chipMode) onClose()
     }
     function onPointerDown(e: PointerEvent) {
       const target = e.target as Node
       if (bubbleRef.current?.contains(target)) return
       if (anchorRef.current?.contains(target)) return
-      /* Outside → shrink to edit orb (keep session), never hard-dismiss mid-type. */
-      if (hasText && expanded) collapseToChip()
-      else if (!hasText) onClose()
+      /* Outside → back to BR orb; field clicks stay put. */
+      if (showPanel) collapseToChip()
+      else if (!chipMode && !hasText) onClose()
     }
     function onResize() {
       if (compact || !userMoved) reposition()
@@ -294,14 +341,15 @@ export default function TagroFieldAssist({
     }
   }, [
     showAssist,
+    showPanel,
     onClose,
     menu,
     userMoved,
     reposition,
     anchorRef,
-    expanded,
     hasText,
     compact,
+    chipMode,
     collapseToChip,
   ])
 
@@ -419,6 +467,8 @@ export default function TagroFieldAssist({
     setUserMoved(false)
     setExpanded(true)
     setError('')
+    setMenu('none')
+    if (chipMode) onOpen?.()
     requestAnimationFrame(() => reposition())
   }
 
@@ -440,6 +490,7 @@ export default function TagroFieldAssist({
         !compact && hasText && !formulating ? 'is-ready' : '',
         !compact && menu !== 'none' ? 'is-menu-open' : '',
         formulating ? 'is-busy' : '',
+        preferBelow && !compact ? 'tfa-bubble--anchored' : '',
       ].filter(Boolean).join(' ')}
       role="dialog"
       aria-label={compact ? 'Tagro Assist öffnen' : formulating ? 'Tagro formuliert' : 'Tagro Assist'}
@@ -460,7 +511,7 @@ export default function TagroFieldAssist({
           className="tfa-chip-orb"
           onMouseDown={(e) => e.preventDefault()}
           onClick={reopenFromChip}
-          aria-label="Tagro Assist bearbeiten"
+          aria-label="Tagro Assist öffnen"
           title="Tagro"
         >
           <PencilSimple size={14} weight="regular" aria-hidden />
@@ -646,6 +697,13 @@ const TFA_CSS = `
     height: ${CHIP_SIZE}px;
     box-sizing: border-box;
     animation: tfaChipIn .28s cubic-bezier(.22,1,.36,1) both;
+  }
+  .tfa-bubble--anchored {
+    animation: tfaPanelIn .34s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes tfaPanelIn {
+    from { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.98); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
   @keyframes tfaChipIn {
     from { opacity: 0; transform: translate3d(0, 3px, 0) scale(0.88); }

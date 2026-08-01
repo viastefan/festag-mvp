@@ -18,6 +18,8 @@ type Props = {
   lines?: string[]
   /** Skip word-rise — used for soft login ↔ register swaps. */
   instant?: boolean
+  /** Put muted `rest` on its own line under `lead` (onboarding Intent / Connect). */
+  stacked?: boolean
 }
 
 function Words({
@@ -102,8 +104,9 @@ export default function AuthGlassyHero({
   lines,
   /** Skip word-rise — used for soft login ↔ register swaps. */
   instant = false,
+  stacked = false,
 }: Props) {
-  const heroClass = `al-title al-title-display al-glassy-hero${instant ? ' al-glassy-hero--instant' : ''}${className ? ` ${className}` : ''}`
+  const heroClass = `al-title al-title-display al-glassy-hero${instant ? ' al-glassy-hero--instant' : ''}${stacked ? ' al-glassy-hero--stacked' : ''}${className ? ` ${className}` : ''}`
 
   if (lines && lines.length > 0) {
     let i = 0
@@ -125,6 +128,21 @@ export default function AuthGlassyHero({
   }
 
   const leadCount = lead.trim().split(/\s+/).filter(Boolean).length
+  if (stacked) {
+    return (
+      <h1 key={animKey} className={heroClass}>
+        <span className="al-glassy-hero-line">
+          <Words text={lead} tone="lead" startIndex={0} instant={instant} />
+        </span>
+        {rest.trim() ? (
+          <span className="al-glassy-hero-line">
+            <Words text={rest} tone="muted" startIndex={leadCount} instant={instant} />
+          </span>
+        ) : null}
+      </h1>
+    )
+  }
+
   return (
     <h1 key={animKey} className={heroClass}>
       <Words text={lead} tone="lead" startIndex={0} instant={instant} />

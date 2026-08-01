@@ -431,25 +431,27 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               padding: 0 12px;
               gap: 8px;
               border-radius: 8px;
-              border: 1px solid rgba(0, 0, 0, 0.06);
-              background: rgba(0, 0, 0, 0.03);
+              border: 2px solid rgba(30, 30, 32, 0.15);
+              background: transparent;
               box-shadow: none;
+              box-sizing: border-box;
+              transition: border-color .18s ease;
             }
             .cp-portal.cp-portal-dock .cp-search:focus-within {
-              background: rgba(0, 0, 0, 0.02);
-              border-color: rgba(0, 0, 0, 0.1);
-              box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+              background: transparent;
+              border-color: #5B647D;
+              box-shadow: none;
             }
             [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search,
             [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search {
-              background: rgba(255, 255, 255, 0.06);
-              border-color: rgba(255, 255, 255, 0.08);
+              background: transparent;
+              border-color: rgba(255, 255, 255, 0.15);
             }
             [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search:focus-within,
             [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search:focus-within {
-              background: rgba(255, 255, 255, 0.08);
-              border-color: rgba(255, 255, 255, 0.12);
-              box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+              background: transparent;
+              border-color: #5B647D;
+              box-shadow: none;
             }
             .cp-portal.cp-portal-dock .cp-search input {
               font-size: 13.5px;
@@ -544,28 +546,30 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; letter-spacing: 0.01em; }
             .cp-portal .cp-search-wrap { padding: 0 20px 16px; }
             .cp-portal .cp-search {
-              border-radius: 12px;
-              border: 1px solid rgba(15, 23, 42, 0.08);
-              background-color: var(--festag-input-fill, #F5F5F7);
+              border-radius: 8px;
+              border: 2px solid rgba(30, 30, 32, 0.15);
+              background-color: transparent;
               background-image: none;
               box-shadow: none;
+              box-sizing: border-box;
+              transition: border-color .18s ease;
             }
             .cp-portal .cp-search:focus-within {
-              background: #fff;
-              border-color: rgba(15, 23, 42, 0.12);
-              box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.04);
+              background: transparent;
+              border-color: #5B647D;
+              box-shadow: none;
             }
             [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search,
             [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search {
-              background: rgba(255, 255, 255, 0.06);
-              border-color: rgba(255, 255, 255, 0.08);
+              background: transparent;
+              border-color: rgba(255, 255, 255, 0.15);
               box-shadow: none;
             }
             [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within,
             [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within {
-              background: rgba(255, 255, 255, 0.08);
-              border-color: rgba(255, 255, 255, 0.12);
-              box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+              background: transparent;
+              border-color: #5B647D;
+              box-shadow: none;
             }
             .cp-portal .cp-row {
               margin: 0 10px;

@@ -164,11 +164,13 @@ export const AUTH_CHROME_VARS_LIGHT = `
   /* Quiet ink hairline — stroke stays in idle / filled / focus (color only). */
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
-  --festag-input-border-width:1px;
-  --festag-input-border-filled:rgba(30,30,32,0.20);
-  --festag-input-border-width-filled:1px;
+  /* Always 2px — color only on focus/filled (no L/R reflow / clip). */
+  --festag-input-border-width:2px;
+  /* Filled keeps the same accent stroke as focus (blur with value ≠ idle). */
+  --festag-input-border-filled:#5B647D;
+  --festag-input-border-width-filled:2px;
   --festag-input-border-focus:#5B647D;
-  --festag-input-border-width-focus:1px;
+  --festag-input-border-width-focus:2px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -227,11 +229,13 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-placeholder:${AUTH_MUTED_READ};
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
-  --festag-input-border-width:1px;
-  --festag-input-border-filled:rgba(30,30,32,0.20);
-  --festag-input-border-width-filled:1px;
+  /* Always 2px — color only on focus/filled (no L/R reflow / clip). */
+  --festag-input-border-width:2px;
+  /* Filled keeps the same accent stroke as focus (blur with value ≠ idle). */
+  --festag-input-border-filled:#5B647D;
+  --festag-input-border-width-filled:2px;
   --festag-input-border-focus:#5B647D;
-  --festag-input-border-width-focus:1px;
+  --festag-input-border-width-focus:2px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -303,12 +307,13 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
   --festag-input-border:rgba(255,255,255,0.15);
   --festag-input-border-hover:rgba(255,255,255,0.20);
-  --festag-input-border-width:1px;
-  /* Stroke stays when typing — focus only changes color to primary. */
-  --festag-input-border-filled:rgba(255,255,255,0.22);
-  --festag-input-border-width-filled:1px;
+  /* Always 2px — color only on focus/filled (no L/R reflow / clip). */
+  --festag-input-border-width:2px;
+  /* Filled keeps the same accent stroke as focus (blur with value ≠ idle). */
+  --festag-input-border-filled:#5B647D;
+  --festag-input-border-width-filled:2px;
   --festag-input-border-focus:#5B647D;
-  --festag-input-border-width-focus:1px;
+  --festag-input-border-width-focus:2px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-input-focus-glow:none;
