@@ -660,10 +660,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     }
     .mob-header {
       width: 100%;
-      max-width: calc(var(--mob-content-max) + var(--mob-gutter) * 2);
-      margin: 0 auto;
-      padding: 18px var(--mob-gutter) 8px;
+      max-width: none;
+      margin: 0;
+      padding: 18px 36px 8px;
       box-sizing: border-box;
+      justify-content: space-between;
     }
     .mob-mark {
       width: 36px;

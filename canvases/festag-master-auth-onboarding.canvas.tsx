@@ -710,11 +710,12 @@ export default function FestagMasterAuthOnboarding() {
 								...headerBar,
 								...(isDesktop
 									? {
-											maxWidth: 300,
 											width: '100%',
-											margin: '0 auto',
-											paddingLeft: 0,
-											paddingRight: 0,
+											maxWidth: 'none',
+											margin: 0,
+											paddingLeft: 36,
+											paddingRight: 36,
+											justifyContent: 'space-between',
 											boxSizing: 'border-box' as const,
 										}
 									: null),
