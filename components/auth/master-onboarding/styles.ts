@@ -474,6 +474,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     background: #FFFFFF;
     box-shadow: none;
     color: var(--mob-ink);
+    opacity: 0.88;
     font-size: 15px;
     letter-spacing: var(--auth-tracking);
     line-height: 1.25;
@@ -481,7 +482,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     font-weight: 400;
     cursor: pointer;
     box-sizing: border-box;
-    transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease;
+    transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease, opacity .18s ease;
   }
   .mob-chip:hover:not(.is-on) {
     border-color: var(--mob-card-border-hover);
@@ -490,6 +491,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border: 2px solid var(--mob-primary);
     background: var(--mob-card-bg-on);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    opacity: 1;
   }
   .mob-chip-hint {
     margin: 14px 0 0;
