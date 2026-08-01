@@ -1959,9 +1959,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
       </div>
 
-      {/* Dev/test — jump straight into Build onboarding */}
+      {/* Dev/test — footer jump into Build onboarding (also on mobile). */}
       <div className="al-test-jumps" aria-label="Test Onboarding">
         <a
+          className="al-test-jumps-btn"
           href="/onboarding?preview=1"
           onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
           onClick={e => {
@@ -1969,7 +1970,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             navigateWithFade('/onboarding?preview=1', { enter: 'client', delayMs: 200 })
           }}
         >
-          Onboarding
+          Onboarding mobil
         </a>
       </div>
 
