@@ -2,8 +2,7 @@
  * Festag outbound email templates.
  *
  * All chrome lives in `lib/email/system.ts`. This file only composes copy +
- * structure. Transactional mails stay calm (no feature art). Onboarding /
- * assignment mails may use the optional feature panel.
+ * structure. Open letter layout — no cards, no feature panels.
  */
 
 import {
@@ -16,6 +15,7 @@ import {
   emailMuted,
   emailPinCode,
   emailSecurityNote,
+  emailTextLink,
 } from './system'
 
 function roleLabel(role: 'dev' | 'client' | 'collaborator' | 'admin'): string {
@@ -119,7 +119,7 @@ export function tplPasswordReset(opts: {
       body: `
         ${emailMuted('Du hast angefordert, dein Festag-Passwort zurückzusetzen.')}
         ${emailMuted('Klicke auf den Button, bestätige die Anmeldung und lege anschließend ein neues Passwort fest.')}
-        <p style="margin:0 0 20px;">${emailButton(opts.resetUrl, 'Neues Passwort festlegen')}</p>
+        <p style="margin:0 0 20px;">${emailTextLink(opts.resetUrl, 'Neues Passwort festlegen')}</p>
         ${emailSecurityNote('Wenn du diese Anfrage nicht gestellt hast, ignoriere die Mail. Dein Passwort bleibt unverändert.')}
       `,
     }),
@@ -148,8 +148,8 @@ export function tplAuthOtp(opts: {
       subtitle: lead,
       body: `
         ${emailPinCode(opts.code)}
-        <p style="margin:0 0 28px;">${emailButton(opts.actionUrl, 'Anmeldung öffnen')}</p>
-        <p style="margin:0 0 8px;color:${EMAIL.text};">Viele Grüße,</p>
+        <p style="margin:0 0 32px;">${emailTextLink(opts.actionUrl, 'Anmeldung öffnen')}</p>
+        <p style="margin:0 0 4px;color:${EMAIL.text};">Viele Grüße,</p>
         <p style="margin:0 0 8px;color:${EMAIL.text};">Festag</p>
         ${emailSecurityNote(note)}
       `,
@@ -196,9 +196,9 @@ export function tplSupportAck(opts: {
       body: `
         ${emailMuted('Danke für deine Nachricht. Sie wurde an unser Team weitergeleitet.')}
         ${emailCard(`
-          <p style="margin:0 0 8px;font-size:12px;font-weight:400;color:${EMAIL.muted};">Deine Nachricht</p>
-          <p style="margin:0;white-space:pre-wrap;font-size:14px;color:${EMAIL.text};line-height:1.55;">${emailEscape(opts.message)}</p>
-          ${opts.page ? `<p style="margin:12px 0 0;font-size:12px;color:${EMAIL.muted};">Seite: ${emailEscape(opts.page)}</p>` : ''}
+          <p style="margin:0 0 8px;font-size:13px;font-weight:400;color:${EMAIL.muted};">Deine Nachricht</p>
+          <p style="margin:0;white-space:pre-wrap;font-size:15px;color:${EMAIL.text};line-height:1.65;">${emailEscape(opts.message)}</p>
+          ${opts.page ? `<p style="margin:14px 0 0;font-size:13px;color:${EMAIL.muted};">Seite: ${emailEscape(opts.page)}</p>` : ''}
         `)}
         ${emailMuted('Du kannst auf diese Mail direkt antworten — die Antwort landet automatisch im richtigen Thread.', '0')}
       `,
@@ -219,7 +219,7 @@ export function tplSupportNotify(opts: {
       subtitle: opts.fromEmail ?? 'Anonymer Nutzer',
       body: `
         ${emailCard(`
-          <p style="margin:0;white-space:pre-wrap;font-size:14px;color:${EMAIL.text};line-height:1.55;">${emailEscape(opts.message)}</p>
+          <p style="margin:0;white-space:pre-wrap;font-size:15px;color:${EMAIL.text};line-height:1.65;">${emailEscape(opts.message)}</p>
         `)}
         ${emailMetaRow([
           ...(opts.fromEmail ? [{ label: 'Email', value: opts.fromEmail }] : []),
@@ -251,18 +251,12 @@ export function tplPaymentReceipt(opts: {
       body: `
         <p style="margin:0 0 16px;">${greeting(opts.customerName)}</p>
         ${emailMuted('Wir haben deine Zahlung erhalten. Hier die Details:')}
-        ${emailCard(`
-          <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
-            <tr><td style="padding:0 0 10px;font-size:12px;color:${EMAIL.muted};">Beschreibung</td>
-                <td style="padding:0 0 10px;font-size:13px;color:${EMAIL.text};text-align:right;">${emailEscape(opts.description)}</td></tr>
-            <tr><td style="padding:0 0 10px;font-size:12px;color:${EMAIL.muted};">Betrag</td>
-                <td style="padding:0 0 10px;font-size:14px;color:${EMAIL.text};text-align:right;font-variant-numeric:tabular-nums;">${amount}</td></tr>
-            <tr><td style="padding:0 0 10px;font-size:12px;color:${EMAIL.muted};">Datum</td>
-                <td style="padding:0 0 10px;font-size:13px;color:${EMAIL.text};text-align:right;">${emailEscape(date)}</td></tr>
-            <tr><td style="padding:0;font-size:12px;color:${EMAIL.muted};">Referenz</td>
-                <td style="padding:0;font-size:12px;color:${EMAIL.text};text-align:right;font-family:ui-monospace,Menlo,monospace;">${emailEscape(opts.reference)}</td></tr>
-          </table>
-        `)}
+        ${emailMetaRow([
+          { label: 'Beschreibung', value: opts.description },
+          { label: 'Betrag', value: amount },
+          { label: 'Datum', value: date },
+          { label: 'Referenz', value: opts.reference },
+        ])}
         ${emailMuted(`Bezahlt über ${emailEscape(opts.provider)}. Die Rechnung findest du in deinem Festag-Account unter Abrechnung.`, '0')}
       `,
     }),
@@ -409,9 +403,9 @@ export function tplDevAssignment(opts: {
         <p style="margin:0 0 16px;">${greeting(opts.devName)}</p>
         ${emailMuted('Du wurdest als Entwickler für ein neues Projekt ausgewählt. Tagro hat das Briefing bereits in klare Schritte zerlegt — du findest alles in deinem Execution Panel.')}
         ${emailCard(`
-          <p style="margin:0 0 6px;font-size:12px;color:${EMAIL.muted};">Projekt</p>
-          <p style="margin:0 0 ${opts.scope ? '10px' : '0'};font-size:16px;font-weight:500;letter-spacing:-0.02em;color:${EMAIL.text};">${emailEscape(opts.projectTitle)}</p>
-          ${opts.scope ? `<p style="margin:0;font-size:14px;color:${EMAIL.muted};line-height:1.55;">${emailEscape(opts.scope)}</p>` : ''}
+          <p style="margin:0 0 4px;font-size:13px;color:${EMAIL.muted};">Projekt</p>
+          <p style="margin:0 0 ${opts.scope ? '10px' : '0'};font-size:17px;font-weight:400;letter-spacing:-0.02em;color:${EMAIL.text};">${emailEscape(opts.projectTitle)}</p>
+          ${opts.scope ? `<p style="margin:0;font-size:15px;color:${EMAIL.muted};line-height:1.65;">${emailEscape(opts.scope)}</p>` : ''}
         `)}
         <p style="margin:0 0 8px;">${emailButton(opts.devPanelUrl, 'Auftrag im Portal ansehen')}</p>
       `,
@@ -448,11 +442,9 @@ export function tplProjectNextSteps(opts: {
   projectUrl: string
 }): { subject: string; html: string } {
   const step = (n: string, title: string, text: string) =>
-    `<tr><td style="padding:0 0 16px;vertical-align:top;width:32px;">
-       <span style="display:inline-block;width:24px;height:24px;border-radius:50%;background:${EMAIL.btnBg};color:#fff;text-align:center;line-height:24px;font-size:12px;font-weight:500;">${n}</span>
-     </td><td style="padding:0 0 16px;">
-       <p style="margin:0 0 2px;font-size:15px;font-weight:500;letter-spacing:-0.02em;color:${EMAIL.text};">${emailEscape(title)}</p>
-       <p style="margin:0;font-size:13.5px;color:${EMAIL.muted};line-height:1.5;">${emailEscape(text)}</p>
+    `<tr><td style="padding:0 0 22px;">
+       <p style="margin:0 0 4px;font-size:15px;font-weight:400;letter-spacing:-0.02em;color:${EMAIL.text};">${n}. ${emailEscape(title)}</p>
+       <p style="margin:0;font-size:14px;color:${EMAIL.muted};line-height:1.6;">${emailEscape(text)}</p>
      </td></tr>`
   return {
     subject: `So geht es weiter: ${opts.projectTitle}`,
@@ -460,7 +452,6 @@ export function tplProjectNextSteps(opts: {
       preheader: 'Die nächsten Schritte für dein Projekt.',
       title: 'So geht es jetzt weiter',
       subtitle: `Dein Projekt „${opts.projectTitle}".`,
-      feature: { variant: 'olive', mock: 'decision' },
       body: `
         <p style="margin:0 0 20px;">${greeting(opts.clientName)}</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -530,7 +521,7 @@ export function tplDeveloperInvite(opts: {
     : null
 
   const personal = opts.message?.trim()
-    ? emailCard(`<p style="margin:0;font-size:14.5px;line-height:1.6;color:${EMAIL.text};">„${emailEscape(opts.message.trim())}“</p>`)
+    ? emailCard(`<p style="margin:0;font-size:15px;line-height:1.65;color:${EMAIL.text};">„${emailEscape(opts.message.trim())}“</p>`)
     : ''
 
   return {

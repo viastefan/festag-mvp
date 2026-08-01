@@ -2,24 +2,19 @@
 
 Pushes to `main` that touch this folder are auto-synced to the live Supabase project via `.github/workflows/supabase-email-sync.yml` (uses the `SUPABASE_ACCESS_TOKEN` repo secret).
 
-## Design system (2026)
+## Design system
 
-Canonical chrome lives in `lib/email/system.ts`. Templates compose in `lib/email/templates.ts`.
+Canonical chrome: `lib/email/system.ts`. Copy composition: `lib/email/templates.ts`.
 
-- Soft canvas `#F7F8F8` + white rounded content card
-- Wordmark `festag` only (no mark/logo)
-- Large title + calm lead (`#8891a0`)
-- Optional artistic feature panel (`olive` / `dusk` / `stone`) for onboarding / assignment
-- Transactional mails (OTP, reset, payment, support) stay calm — no feature art
-- Black pill CTA with `→`
-- Security note block where relevant
-- Quiet footer: wordmark, Docs | Datenschutz | Impressum | Hilfe
+**Open letter — no card shell, no nested boxes.**
 
-Art assets (must be live on festag.app for Gmail):
-
-- `/email/art-olive.svg`
-- `/email/art-dusk.svg`
-- `/email/art-stone.svg`
+- Ivory canvas `#FAF9F5` (continuous page)
+- Quiet wordmark `festag`
+- Title + calm lead (`#8891a0`)
+- Large spaced OTP / PIN as typography only
+- Primary action as slate text link (`#5B647D` … →) or soft white 6px CTA
+- Security as muted one-liner (no tinted panel)
+- Footer: Docs, Datenschutz, Impressum, Hilfe (spacing only)
 
 ## Magic Link
 

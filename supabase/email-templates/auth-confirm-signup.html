@@ -2,7 +2,7 @@
 Supabase Auth > Email Templates > Confirm signup
 Subject: Dein Bestätigungscode
 
-Aligned with lib/email/templates.ts tplAuthOtp (2026 email system).
+Aligned with lib/email/templates.ts tplAuthOtp (open letter system).
 -->
 <!doctype html>
 <html lang="de">
@@ -20,53 +20,46 @@ Aligned with lib/email/templates.ts tplAuthOtp (2026 email system).
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background:#F7F8F8;color:#1e1e20;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background:#FAF9F5;color:#1A1917;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Code: {{ .Token }}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F8F8;border-collapse:collapse;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F5;border-collapse:collapse;">
     <tr>
-      <td align="center" style="padding:40px 16px 56px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:24px;border:1px solid rgba(30,30,32,0.08);overflow:hidden;">
+      <td align="center" style="padding:48px 24px 64px;">
+        <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;border-collapse:collapse;">
           <tr>
-            <td style="padding:40px 40px 0;">
-              <p style="margin:0 0 36px;font-size:18px;letter-spacing:-0.03em;color:#1e1e20;">festag</p>
-              <h1 style="margin:0 0 14px;font-size:28px;font-weight:500;letter-spacing:-0.03em;line-height:1.22;color:#1e1e20;">Dein Bestätigungscode</h1>
-              <p style="margin:0 0 28px;font-size:15.5px;line-height:1.65;color:#8891a0;">Nutze diesen Code, um deine E-Mail-Adresse bei Festag zu bestätigen.</p>
-            </td>
+            <td style="padding:0 0 40px;font-size:15px;letter-spacing:-0.04em;color:#1A1917;">festag</td>
           </tr>
           <tr>
-            <td style="padding:0 40px 8px;font-size:15px;color:#1e1e20;line-height:1.6;">
-              <div style="margin:28px 0;">
-                <p style="margin:0;font-size:32px;font-weight:400;letter-spacing:0.32em;line-height:1.15;color:#1e1e20;">{{ .Token }}</p>
+            <td style="padding:0 0 12px;font-size:26px;font-weight:400;letter-spacing:-0.03em;line-height:1.25;color:#1A1917;">Dein Bestätigungscode</td>
+          </tr>
+          <tr>
+            <td style="padding:0 0 32px;font-size:15.5px;line-height:1.65;color:#8891a0;">Nutze diesen Code, um deine E-Mail-Adresse bei Festag zu bestätigen.</td>
+          </tr>
+          <tr>
+            <td style="padding:0;font-size:15px;color:#1A1917;line-height:1.65;">
+              <div style="margin:0 0 28px;">
+                <p style="margin:0;font-size:34px;font-weight:400;letter-spacing:0.28em;line-height:1.1;color:#1A1917;">{{ .Token }}</p>
               </div>
-              <p style="margin:0 0 28px;">
-                <a href="{{ .SiteURL }}/register" style="display:inline-block;padding:14px 22px;background:#1e1e20;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:400;font-size:14px;letter-spacing:0.01em;line-height:1;">Anmeldung öffnen&nbsp;→</a>
+              <p style="margin:0 0 32px;">
+                <a href="{{ .SiteURL }}/register" style="color:#5B647D;text-decoration:none;font-size:15px;letter-spacing:0.01em;">Anmeldung öffnen&nbsp;→</a>
               </p>
-              <p style="margin:0 0 8px;color:#1e1e20;">Viele Grüße,</p>
-              <p style="margin:0 0 8px;color:#1e1e20;">Festag</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;border-collapse:collapse;">
-                <tr>
-                  <td style="padding:14px 16px;background:rgba(91,138,107,0.08);border:1px solid rgba(91,138,107,0.18);border-radius:12px;font-size:12.5px;line-height:1.55;color:#8891a0;">
-                    <span style="color:#5B8A6B;font-weight:500;">Sicherheit</span>
-                    <span style="padding:0 6px;color:#a0a6b0;">—</span>
-                    Der Code ist 60 Minuten gültig. Hast du keinen Account erstellt, ignoriere diese E-Mail.
-                  </td>
-                </tr>
-              </table>
+              <p style="margin:0 0 4px;color:#1A1917;">Viele Grüße,</p>
+              <p style="margin:0 0 8px;color:#1A1917;">Festag</p>
+              <p style="margin:32px 0 0;font-size:13px;line-height:1.6;color:#8891a0;">Der Code ist 60 Minuten gültig. Hast du keinen Account erstellt, ignoriere diese E-Mail.</p>
             </td>
           </tr>
           <tr>
-            <td style="padding:28px 40px 36px;border-top:1px solid rgba(30,30,32,0.08);">
-              <p style="margin:0 0 14px;font-size:18px;letter-spacing:-0.03em;color:#1e1e20;">festag</p>
-              <p style="margin:0 0 16px;font-size:12px;line-height:1.6;color:#a0a6b0;">
-                <a href="https://festag.app/docs" style="color:#a0a6b0;text-decoration:none;">Docs</a>
-                <span style="padding:0 8px;color:rgba(30,30,32,0.08);">|</span>
-                <a href="https://festag.app/datenschutz" style="color:#a0a6b0;text-decoration:none;">Datenschutz</a>
-                <span style="padding:0 8px;color:rgba(30,30,32,0.08);">|</span>
-                <a href="https://festag.app/impressum" style="color:#a0a6b0;text-decoration:none;">Impressum</a>
-                <span style="padding:0 8px;color:rgba(30,30,32,0.08);">|</span>
-                <a href="mailto:hello@festag.app" style="color:#a0a6b0;text-decoration:none;">Hilfe</a>
+            <td style="padding:48px 0 0;">
+              <p style="margin:0 0 18px;font-size:12px;line-height:1.7;color:#a8aeb8;">
+                <a href="https://festag.app/docs" style="color:#a8aeb8;text-decoration:none;">Docs</a>
+                <span style="padding:0 10px;"></span>
+                <a href="https://festag.app/datenschutz" style="color:#a8aeb8;text-decoration:none;">Datenschutz</a>
+                <span style="padding:0 10px;"></span>
+                <a href="https://festag.app/impressum" style="color:#a8aeb8;text-decoration:none;">Impressum</a>
+                <span style="padding:0 10px;"></span>
+                <a href="mailto:hello@festag.app" style="color:#a8aeb8;text-decoration:none;">Hilfe</a>
               </p>
-              <p style="margin:0;font-size:11px;line-height:1.55;color:#a0a6b0;">Festag, München, <a href="https://festag.app" style="color:#a0a6b0;text-decoration:none;">festag.app</a></p>
+              <p style="margin:0;font-size:11px;line-height:1.55;color:#a8aeb8;">Festag, München, <a href="https://festag.app" style="color:#a8aeb8;text-decoration:none;">festag.app</a></p>
             </td>
           </tr>
         </table>
