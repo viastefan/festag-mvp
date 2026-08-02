@@ -298,6 +298,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     flex-direction: column;
     gap: 10px;
     width: 100%;
+    flex: none;
   }
   .mob-profile-name-row {
     display: flex;
@@ -387,7 +388,6 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   /* Field shell — same 2px stroke behavior as Login .al-input */
   .mob-profile-field {
     position: relative;
-    flex: 1;
     min-width: 0;
     width: 100%;
     height: 46px;
@@ -400,6 +400,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transition: border-color .18s ease;
     animation: mobShellIn .34s cubic-bezier(.22,1,.36,1) both;
   }
+  .mob-profile-name-row .mob-profile-field {
+    flex: 1;
+  }
   .mob-profile-field:hover {
     border-color: rgba(30, 30, 32, 0.20);
   }
@@ -411,11 +414,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-field.has-value.is-focused {
     border-color: #7E889F;
   }
-  /* Context field — grows with text; empty shows multi-line examples */
+  /* Context field — grows with text only, never fills leftover stage height */
   .mob-profile-field--grow {
+    flex: none;
     height: auto;
     max-height: none;
     min-height: 46px;
+    width: 100%;
     align-self: stretch;
   }
   .mob-profile-field--grow.has-example {
@@ -551,28 +556,38 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-example--grow.is-out {
     transform: translate3d(0, 4px, 0);
   }
-  /* Footer: legal sits close under fields; Weiter expands above and pushes legal down */
+  /* Legal sits tight under the last field; Weiter inserts above and pushes it down */
   .mob-profile-footer {
     display: flex;
     flex-direction: column;
+    flex: none;
     margin-top: 2px;
     gap: 0;
+    width: 100%;
   }
   .mob-ready-hint-slot--profile {
+    display: grid;
+    grid-template-rows: 0fr;
     margin: 0;
     min-height: 0;
     overflow: hidden;
     transition:
-      min-height .32s cubic-bezier(.22, 1, .36, 1),
+      grid-template-rows .32s cubic-bezier(.22, 1, .36, 1),
       margin .32s cubic-bezier(.22, 1, .36, 1);
   }
+  .mob-ready-hint-slot--profile > * {
+    min-height: 0;
+    overflow: hidden;
+  }
   .mob-profile-footer.has-continue .mob-ready-hint-slot--profile {
-    margin-top: 8px;
-    margin-bottom: 14px;
-    min-height: 46px;
+    grid-template-rows: 1fr;
+    margin: 0 0 14px;
+  }
+  .mob-profile-footer.has-continue .mob-ready-hint-slot--profile > * {
+    overflow: visible;
   }
   .mob-profile-legal {
-    margin: 10px 0 0;
+    margin: 0;
     padding: 0;
     font-size: 11.5px;
     font-weight: 400;
@@ -580,10 +595,6 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     letter-spacing: var(--festag-tracking-small, 0.015em);
     color: var(--mob-muted);
     text-align: left;
-    transition: margin-top .32s cubic-bezier(.22, 1, .36, 1);
-  }
-  .mob-profile-footer.has-continue .mob-profile-legal {
-    margin-top: 0;
   }
   .mob-profile-legal a {
     color: inherit;
