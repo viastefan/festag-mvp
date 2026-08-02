@@ -51,13 +51,14 @@ export const POSITION_EXAMPLES = PROFILE_POSITION_EXAMPLES
 /** Max chars for optional profile context (facts / Tagro seed). */
 export const PROFILE_CONTEXT_MAX_CHARS = 280
 
-/** Calm light silhouette presets — serious, optional, no photo theater. */
+/** Calm light silhouette presets — serious, optional, no photo theater.
+ *  Served from `/brand/…` so auth middleware never redirects the assets. */
 export const PROFILE_AVATAR_PRESETS = [
-  { id: 'bone', src: '/onboarding/avatars/soft-bone.svg', label: 'Hell' },
-  { id: 'slate', src: '/onboarding/avatars/soft-slate.svg', label: 'Slate' },
-  { id: 'warm', src: '/onboarding/avatars/soft-warm.svg', label: 'Warm' },
-  { id: 'sage', src: '/onboarding/avatars/soft-sage.svg', label: 'Sage' },
-  { id: 'mauve', src: '/onboarding/avatars/soft-mauve.svg', label: 'Mauve' },
+  { id: 'bone', src: '/brand/avatars/soft-bone.svg', label: 'Hell' },
+  { id: 'slate', src: '/brand/avatars/soft-slate.svg', label: 'Slate' },
+  { id: 'warm', src: '/brand/avatars/soft-warm.svg', label: 'Warm' },
+  { id: 'sage', src: '/brand/avatars/soft-sage.svg', label: 'Sage' },
+  { id: 'mauve', src: '/brand/avatars/soft-mauve.svg', label: 'Mauve' },
 ] as const
 
 export type ProfileAvatarPresetId = (typeof PROFILE_AVATAR_PRESETS)[number]['id']

@@ -1467,8 +1467,8 @@ input[type="reset"],
 .voice-icon-btn,
 .voice-field,
 .voice-text-btn,
-:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic):not(.pj2-menu-item):not(.pjm-add-btn):not(.pjm-ctl):not(.festag-tagro-compose-btn):not(.festag-content-fab),
-:is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic):not(.pj2-menu-item):not(.pjm-add-btn):not(.pjm-ctl):not(.festag-tagro-compose-btn):not(.festag-content-fab):not(.ft-toggle),
+:is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.ft-toggle),
 :is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.pjm-chip):not(.pjm-ctl):not([class*="tov-"]),
 :is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill):not(.dec-detail-back):not(.st-scope-pill) {
   border-radius: var(--button-radius) !important;
@@ -1482,8 +1482,35 @@ input[type="reset"],
   [class*="sidebar"],
   [class^="sb-"],
   .festag-popup-surface
-) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item) {
+) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item):not(.ft-toggle) {
   border-radius: 6px !important;
+}
+
+/* Festag mini switch — pill + compact sizes (beat global control geometry). */
+button.ft-toggle,
+.ft-toggle {
+  border-radius: 999px !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+button.ft-toggle.ft-toggle--sm,
+.ft-toggle.ft-toggle--sm {
+  width: 28px !important;
+  height: 17px !important;
+  min-width: 28px !important;
+  min-height: 17px !important;
+  max-width: 28px !important;
+  max-height: 17px !important;
+}
+button.ft-toggle.ft-toggle--md,
+.ft-toggle.ft-toggle--md {
+  width: 34px !important;
+  height: 20px !important;
+  min-width: 34px !important;
+  min-height: 20px !important;
+  max-width: 34px !important;
+  max-height: 20px !important;
 }
 
 /* Menu list rows — 6px corners (must not match global [class*="btn"] 32px rule). */

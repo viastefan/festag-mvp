@@ -54,8 +54,8 @@ export const FESTAG_TOGGLE_CSS = `
   .ft-toggle {
     position: relative;
     flex-shrink: 0;
-    border: 0;
-    border-radius: 999px;
+    border: 0 !important;
+    border-radius: 999px !important;
     background: rgba(30, 30, 32, 0.12);
     cursor: pointer;
     padding: 0;
@@ -64,19 +64,24 @@ export const FESTAG_TOGGLE_CSS = `
     appearance: none;
     outline: none;
     box-shadow: none;
+    overflow: visible;
     transition: background 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .ft-toggle--sm {
-    width: 36px;
-    height: 22px;
-    min-width: 36px;
-    min-height: 22px;
+    width: 28px !important;
+    height: 17px !important;
+    min-width: 28px !important;
+    min-height: 17px !important;
+    max-width: 28px !important;
+    max-height: 17px !important;
   }
   .ft-toggle--md {
-    width: 42px;
-    height: 26px;
-    min-width: 42px;
-    min-height: 26px;
+    width: 34px !important;
+    height: 20px !important;
+    min-width: 34px !important;
+    min-height: 20px !important;
+    max-width: 34px !important;
+    max-height: 20px !important;
   }
   .ft-toggle.is-on {
     background: #1e1e20;
@@ -92,18 +97,18 @@ export const FESTAG_TOGGLE_CSS = `
     transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .ft-toggle--sm::after {
-    width: 18px;
-    height: 18px;
+    width: 13px;
+    height: 13px;
   }
   .ft-toggle--md::after {
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
   }
   .ft-toggle--sm.is-on::after {
-    transform: translateX(14px);
+    transform: translateX(11px);
   }
   .ft-toggle--md.is-on::after {
-    transform: translateX(16px);
+    transform: translateX(14px);
   }
   .ft-toggle:focus-visible {
     box-shadow: 0 0 0 2px rgba(126, 136, 159, 0.35);
@@ -112,10 +117,10 @@ export const FESTAG_TOGGLE_CSS = `
     transform: scale(0.94);
   }
   .ft-toggle--sm.is-on:active::after {
-    transform: translateX(14px) scale(0.94);
+    transform: translateX(11px) scale(0.94);
   }
   .ft-toggle--md.is-on:active::after {
-    transform: translateX(16px) scale(0.94);
+    transform: translateX(14px) scale(0.94);
   }
 
   html[data-theme="dark"] .ft-toggle,

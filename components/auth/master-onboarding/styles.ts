@@ -475,8 +475,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     align-self: stretch;
   }
+  /* Empty + example: stay near one/two lines — no tall empty shell above Weiter */
   .mob-profile-field--grow.has-example {
-    min-height: 88px;
+    min-height: 46px;
   }
   .mob-profile-input {
     position: relative;
@@ -515,7 +516,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     field-sizing: content;
   }
   .mob-profile-field--grow.has-example .mob-profile-input--grow {
-    min-height: 88px;
+    min-height: 46px;
   }
   .mob-profile-input.is-empty {
     caret-color: transparent;
@@ -588,15 +589,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       filter .72s cubic-bezier(.25, .1, .25, 1);
   }
   .mob-profile-example--grow {
-    top: 12px;
-    transform: none;
-    white-space: normal;
-    text-overflow: unset;
-    line-height: 1.45;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
+    top: 50%;
+    transform: translate3d(0, -50%, 0);
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+  .mob-profile-example--grow.is-out {
+    transform: translate3d(0, calc(-50% + 3px), 0);
   }
   .mob-profile-example.is-focused {
     opacity: 0.55;
@@ -606,38 +607,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transform: translate3d(0, calc(-50% + 3px), 0);
     filter: blur(2px);
   }
-  .mob-profile-example--grow.is-out {
-    transform: translate3d(0, 4px, 0);
-  }
-  /* Legal sits tight under the last field; Weiter inserts above and pushes it down */
+  /* Legal always under Weiter; button stays mounted (idle → ready like Login) */
   .mob-profile-footer {
     display: flex;
     flex-direction: column;
     flex: none;
-    margin-top: 2px;
-    gap: 0;
+    margin-top: 10px;
+    gap: 12px;
     width: 100%;
   }
-  .mob-ready-hint-slot--profile {
-    display: grid;
-    grid-template-rows: 0fr;
+  /* Beat generic .mob-ready-hint-slot { margin-top: 16px } — Login-tight under field */
+  .mob-profile-footer .mob-ready-hint-slot--profile {
     margin: 0;
-    min-height: 0;
-    overflow: hidden;
-    transition:
-      grid-template-rows .32s cubic-bezier(.22, 1, .36, 1),
-      margin .32s cubic-bezier(.22, 1, .36, 1);
-  }
-  .mob-ready-hint-slot--profile > * {
-    min-height: 0;
-    overflow: hidden;
-  }
-  .mob-profile-footer.has-continue .mob-ready-hint-slot--profile {
-    grid-template-rows: 1fr;
-    margin: 0 0 14px;
-  }
-  .mob-profile-footer.has-continue .mob-ready-hint-slot--profile > * {
-    overflow: visible;
+    min-height: 46px;
   }
   .mob-profile-legal {
     margin: 0;
@@ -765,20 +747,59 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     white-space: nowrap;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    animation: mobFadeIn 0.22s ease both;
-    transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease,
+      opacity 0.2s ease;
   }
-  .mob-continue-btn:hover {
+  /* Idle — Login email Weiter: quiet transparent, muted ink */
+  .mob-continue-btn.is-idle,
+  .mob-continue-btn.is-idle:disabled {
+    background: transparent !important;
+    color: var(--mob-muted, #8891a0) !important;
+    border: 1px solid rgba(30, 30, 32, 0.04) !important;
+    box-shadow: none !important;
+    cursor: default;
+    opacity: 1;
+  }
+  .mob-continue-btn.is-idle .mob-enter-ico {
+    color: var(--mob-muted, #8891a0);
+    opacity: 0.45;
+  }
+  .mob-continue-btn.is-idle:hover,
+  .mob-continue-btn.is-idle:active,
+  .mob-continue-btn.is-idle:focus,
+  .mob-continue-btn.is-idle:focus-visible {
+    background: transparent !important;
+    color: var(--mob-muted, #8891a0) !important;
+    border: 1px solid rgba(30, 30, 32, 0.04) !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  /* Ready — white Login plate */
+  .mob-continue-btn.is-ready {
+    background: #ffffff;
+    color: #1e1e20;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+  }
+  .mob-continue-btn.is-ready:hover:not(:disabled) {
     background: #fafafa;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  .mob-continue-btn:active {
+  .mob-continue-btn.is-ready:active:not(:disabled) {
     background: #f5f5f6;
     box-shadow: none;
   }
   .mob-continue-btn:focus,
   .mob-continue-btn:focus-visible {
     outline: none;
+  }
+  .mob-continue-btn.is-ready:focus-visible {
+    border-color: #7E889F;
   }
   .mob-continue-btn-label {
     flex: 1;
@@ -787,6 +808,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-continue-btn .mob-enter-ico {
     color: #1e1e20;
     opacity: 0.72;
+    transition: opacity 0.2s ease, color 0.2s ease;
+  }
+  .mob-continue-btn.is-ready .mob-enter-ico {
+    opacity: 0.72;
+    color: #1e1e20;
   }
   @keyframes mobShellIn {
     from {

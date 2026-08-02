@@ -342,9 +342,9 @@ export default function ProfileStage({
           ) : null}
         </div>
 
-        <div className={`mob-profile-footer${showContinue ? ' has-continue' : ''}`}>
+        <div className="mob-profile-footer">
           <div className="mob-ready-hint-slot mob-ready-hint-slot--profile" aria-live="polite">
-            <ContinueHint show={showContinue} onContinue={onAdvance} />
+            <ContinueHint ready={showContinue} onContinue={onAdvance} />
           </div>
 
           <p className="mob-profile-legal">

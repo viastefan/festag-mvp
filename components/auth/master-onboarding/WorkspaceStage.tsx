@@ -68,7 +68,7 @@ export default function WorkspaceStage({ value, onPick, onContinue }: Props) {
         })}
       </div>
       <div className="mob-continue-slot">
-        <ContinueHint show={picked} onContinue={onContinue} />
+        <ContinueHint ready={picked} onContinue={onContinue} />
       </div>
     </>
   )
