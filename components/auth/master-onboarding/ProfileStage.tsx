@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { Hexagon, X } from '@phosphor-icons/react'
+import { User, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
@@ -16,6 +16,7 @@ import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import {
   FIELD_SETTLE_MS,
   NAME_MIN_CHARS,
+  PROFILE_AVATAR_PRESETS,
   PROFILE_CONTEXT_MAX_CHARS,
   PROFILE_HEADER,
   PROFILE_POSITION_EXAMPLES,
@@ -150,6 +151,18 @@ export default function ProfileStage({
     }
   }
 
+  async function applyPreset(src: string) {
+    if (avatarUploading) return
+    if (blobRef.current) {
+      URL.revokeObjectURL(blobRef.current)
+      blobRef.current = null
+    }
+    onAvatarChange(src)
+    if (!isPreview && userId) {
+      await supabase.from('profiles').update({ avatar_url: src }).eq('id', userId)
+    }
+  }
+
   async function removeAvatar() {
     if (blobRef.current) {
       URL.revokeObjectURL(blobRef.current)
@@ -188,7 +201,7 @@ export default function ProfileStage({
               ]
                 .filter(Boolean)
                 .join(' ')}
-              aria-label={avatarUrl ? 'Profilbild ändern' : 'Profilbild hinzufügen'}
+              aria-label={avatarUrl ? 'Eigenes Bild hochladen' : 'Profilbild hochladen'}
               disabled={avatarUploading}
               onClick={() => fileRef.current?.click()}
             >
@@ -196,7 +209,7 @@ export default function ProfileStage({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt="" className="mob-profile-avatar-img" />
               ) : (
-                <Hexagon size={18} weight="regular" className="mob-profile-avatar-icon" />
+                <User size={20} weight="regular" className="mob-profile-avatar-icon" />
               )}
             </button>
             {avatarUrl ? (
@@ -257,6 +270,27 @@ export default function ProfileStage({
               }}
             />
           </div>
+        </div>
+
+        <div className="mob-profile-presets" role="listbox" aria-label="Profilbild wählen">
+          {PROFILE_AVATAR_PRESETS.map((preset) => {
+            const on = avatarUrl === preset.src || (avatarUrl?.endsWith(preset.src) ?? false)
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                role="option"
+                aria-selected={on}
+                aria-label={`Profilbild ${preset.label}`}
+                className={`mob-profile-preset${on ? ' is-on' : ''}`}
+                disabled={avatarUploading}
+                onClick={() => void applyPreset(preset.src)}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={preset.src} alt="" />
+              </button>
+            )
+          })}
         </div>
 
         <div

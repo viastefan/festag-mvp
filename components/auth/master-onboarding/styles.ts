@@ -316,11 +316,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 46px;
     height: 46px;
     border-radius: 8px;
-    /* Same 2px language as Login fields — transparent on ivory */
-    border: 2px solid rgba(30, 30, 32, 0.15);
-    background: transparent;
-    box-shadow: none;
-    color: rgba(30, 30, 32, 0.32);
+    /* Light plate — serious soft white on sand canvas */
+    border: 2px solid rgba(30, 30, 32, 0.10);
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    color: rgba(30, 30, 32, 0.38);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -328,27 +328,29 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     cursor: pointer;
     overflow: hidden;
     box-sizing: border-box;
-    transition: border-color .18s ease, color .15s ease;
+    transition: border-color .18s ease, color .15s ease, box-shadow .18s ease;
   }
   .mob-profile-avatar:hover {
-    border-color: rgba(30, 30, 32, 0.20);
-    background: transparent;
-    color: rgba(30, 30, 32, 0.48);
+    border-color: rgba(30, 30, 32, 0.16);
+    background: #FFFFFF;
+    color: rgba(30, 30, 32, 0.55);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .mob-profile-avatar:focus,
   .mob-profile-avatar:focus-visible {
     outline: none;
-    border-width: 3px;
     border-color: #7E889F;
+    box-shadow: 0 0 0 1px #7E889F;
   }
-  /* Filled avatar — same primary stroke as Login filled/focus, until removed */
+  /* Filled avatar — primary stroke stays until removed (no width jump) */
   .mob-profile-avatar.has-image,
   .mob-profile-avatar.has-image:hover,
   .mob-profile-avatar.has-image:focus,
   .mob-profile-avatar.has-image:focus-visible {
-    border-width: 3px;
     border-color: #7E889F;
+    box-shadow: 0 0 0 1px #7E889F;
     color: transparent;
+    background: #FFFFFF;
   }
   .mob-profile-avatar.is-busy {
     opacity: 0.65;
@@ -365,19 +367,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-profile-avatar-clear {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: -5px;
+    right: -5px;
     width: 18px;
     height: 18px;
     border-radius: 999px;
-    border: 1px solid rgba(30, 30, 32, 0.12);
+    border: 1px solid rgba(30, 30, 32, 0.10);
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: var(--mob-canvas, #FBF7EE);
-    color: rgba(30, 30, 32, 0.5);
-    box-shadow: none;
+    background: #FFFFFF;
+    color: rgba(30, 30, 32, 0.48);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     cursor: pointer;
   }
   .mob-profile-avatar-input {
@@ -386,6 +388,52 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     height: 1px;
     opacity: 0;
     pointer-events: none;
+  }
+  /* Light silhouette presets under name row */
+  .mob-profile-presets {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 1px;
+    box-sizing: border-box;
+  }
+  .mob-profile-preset {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1.5px solid rgba(30, 30, 32, 0.08);
+    background: #FFFFFF;
+    overflow: hidden;
+    cursor: pointer;
+    box-sizing: border-box;
+    box-shadow: none;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .08s ease;
+  }
+  .mob-profile-preset img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .mob-profile-preset:hover {
+    border-color: rgba(30, 30, 32, 0.16);
+  }
+  .mob-profile-preset.is-on {
+    border-color: #7E889F;
+    box-shadow: 0 0 0 1px #7E889F;
+  }
+  .mob-profile-preset:focus,
+  .mob-profile-preset:focus-visible {
+    outline: none;
+    border-color: #7E889F;
+    box-shadow: 0 0 0 1px #7E889F;
+  }
+  .mob-profile-preset:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
   /* Field shell — same 2px stroke behavior as Login .al-input */
   .mob-profile-field {

@@ -51,6 +51,22 @@ export const POSITION_EXAMPLES = PROFILE_POSITION_EXAMPLES
 /** Max chars for optional profile context (facts / Tagro seed). */
 export const PROFILE_CONTEXT_MAX_CHARS = 280
 
+/** Calm light silhouette presets — serious, optional, no photo theater. */
+export const PROFILE_AVATAR_PRESETS = [
+  { id: 'bone', src: '/onboarding/avatars/soft-bone.svg', label: 'Hell' },
+  { id: 'slate', src: '/onboarding/avatars/soft-slate.svg', label: 'Slate' },
+  { id: 'warm', src: '/onboarding/avatars/soft-warm.svg', label: 'Warm' },
+  { id: 'sage', src: '/onboarding/avatars/soft-sage.svg', label: 'Sage' },
+  { id: 'mauve', src: '/onboarding/avatars/soft-mauve.svg', label: 'Mauve' },
+] as const
+
+export type ProfileAvatarPresetId = (typeof PROFILE_AVATAR_PRESETS)[number]['id']
+
+export function isProfileAvatarPreset(url: string | null | undefined): boolean {
+  if (!url) return false
+  return PROFILE_AVATAR_PRESETS.some((p) => url === p.src || url.endsWith(p.src))
+}
+
 export const WORKSPACE_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 export type WorkspaceOption = (typeof WORKSPACE_OPTIONS)[number]
 
