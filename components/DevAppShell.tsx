@@ -74,6 +74,7 @@ export default function DevAppShell({
   const isPublicDevAuth = isDevOnboarding || isDevJoin || isDevPending
 
   const [loaderDone, setLoaderDone] = useState(false)
+  const onLoaderDone = useCallback(() => setLoaderDone(true), [])
   const [playEnter, setPlayEnter] = useState(true)
   const [checking, setChecking] = useState(true)
   const [identity, setIdentity] = useState<DevIdentity | null>(null)
@@ -219,7 +220,7 @@ export default function DevAppShell({
 
   if (isPublicDevAuth) return <>{children}</>
   if (isDevPending && identity) return <>{children}</>
-  if (!loaderDone) return <FestagLoadingScreen surface="dev" onDone={() => setLoaderDone(true)} />
+  if (!loaderDone) return <FestagLoadingScreen surface="dev" onDone={onLoaderDone} />
   if (checking || !identity) return null
 
   return (

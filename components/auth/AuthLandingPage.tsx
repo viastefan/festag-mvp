@@ -127,10 +127,26 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
   ) {
     return IDENTITY_MISMATCH_ERROR
   }
-  if (msg.includes('expired') || msg.includes('token has expired'))
+  // Digit OTP: GoTrue often returns "Token has expired or is invalid" for a wrong
+  // or stale code — not a magic-link click. Prefer code copy; never "Anmeldelink".
+  if (
+    msg.includes('token has expired or is invalid') ||
+    msg.includes('invalid token') ||
+    msg.includes('invalid otp') ||
+    msg.includes('invalid code') ||
+    msg.includes('token_hash') ||
+    msg.includes('otp_expired') ||
+    (msg.includes('expired') && msg.includes('invalid'))
+  ) {
+    return 'Ungültiger oder abgelaufener Code. Prüfe die Ziffern oder fordere einen neuen an.'
+  }
+  if (
+    msg.includes('link has expired') ||
+    msg.includes('email link is invalid') ||
+    (msg.includes('magic link') && msg.includes('expired'))
+  ) {
     return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
-  if (msg.includes('invalid token') || msg.includes('invalid otp') || msg.includes('invalid code') || msg.includes('token_hash') || msg.includes('otp_expired'))
-    return 'Ungültiger oder abgelaufener Code. Fordere einen neuen an.'
+  }
   // Format / domain rejects only — never "already used" (handled above).
   if (
     msg.includes('invalid_email') ||
@@ -248,6 +264,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const ssoRef = useRef<HTMLInputElement>(null)
   const wsNameRef = useRef<HTMLInputElement>(null)
   const mainAutoFocused = useRef(false)
+  /** Guards double verify from onComplete + Bestätigen in the same tick. */
+  const verifyingCodeRef = useRef(false)
   const [workspaceName, setWorkspaceName] = useState('')
   /** Locked when entering Code/SSO so the /Benutzer line cannot vanish mid-flow. */
   const [subflowWorkspaceName, setSubflowWorkspaceName] = useState('')
@@ -1315,15 +1333,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   async function handleVerifyCode(nextCode?: string) {
+    if (loading || verifyingCodeRef.current) return
     setError('')
     const trimmed = String(nextCode ?? code).trim()
     if (!trimmed || trimmed.length < 6) { setError('Bitte vollständigen Code eingeben.'); return }
+    verifyingCodeRef.current = true
     setLoading(true)
-    // Login OTP uses Magic Link (`email`). Confirm-signup mails use `signup`.
-    // Try both on register so the same 6-digit UI works either way.
+    // Match /api/auth/otp/request generateLink order — wrong type first can burn
+    // a one-time token on some GoTrue versions ("ungültig" within seconds).
     const otpTypes = isSignup
-      ? (['email', 'signup', 'magiclink'] as const)
-      : (['email', 'magiclink'] as const)
+      ? (['signup', 'magiclink', 'email'] as const)
+      : (['magiclink', 'email'] as const)
     let verifyError: { message: string } | null = null
     for (const otpType of otpTypes) {
       const { error } = await supabase.auth.verifyOtp({
@@ -1350,6 +1370,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
     }
     if (verifyError) {
+      verifyingCodeRef.current = false
       setLoading(false)
       setError(mapAuthError(verifyError.message, mode))
       // Login uses e-mail codes today — gate recovery after 2 wrong attempts.
@@ -1726,18 +1747,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </button>
         .
       </p>
-      <button className="al-back" type="button" onClick={switchBack} disabled={loading}>
-        E-Mail ändern
-      </button>
-      {showForgotPassword ? (
-        <button
-          type="button"
-          className="al-login-aux-secondary"
-          onClick={openSupportModal}
-        >
-          Passwort vergessen
+      <div className="al-login-aux al-code-nav">
+        <button className="al-back" type="button" onClick={switchBack} disabled={loading}>
+          Zurück
         </button>
-      ) : null}
+        {showForgotPassword ? (
+          <button
+            type="button"
+            className="al-login-aux-secondary"
+            onClick={openSupportModal}
+          >
+            Passwort vergessen
+          </button>
+        ) : null}
+      </div>
     </div>
   )
 

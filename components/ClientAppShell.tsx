@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
 import BrowserTabTitle from '@/components/BrowserTabTitle'
@@ -38,6 +38,7 @@ export default function ClientAppShell({
   const pathname = usePathname()
   const router = useRouter()
   const [loaderDone, setLoaderDone] = useState(false)
+  const onLoaderDone = useCallback(() => setLoaderDone(true), [])
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -158,7 +159,7 @@ export default function ClientAppShell({
     setThemeMenuOpen(false)
   }
 
-  if (!loaderDone) return <FestagLoadingScreen surface="portal" onDone={() => setLoaderDone(true)} />
+  if (!loaderDone) return <FestagLoadingScreen surface="portal" onDone={onLoaderDone} />
   if (checking) return null
 
   return (

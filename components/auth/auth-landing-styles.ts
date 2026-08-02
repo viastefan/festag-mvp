@@ -1670,9 +1670,20 @@ const AUTH_LANDING_STYLES_BASE = `
           line-height:1.4;
           letter-spacing:var(--festag-tracking-small, 0.015em);
           color:var(--al-text-muted);
+          text-align:left;
           cursor:pointer;
           -webkit-tap-highlight-color:transparent;
           transition:color .18s ease;
+        }
+        /* Code entry: Zurück + Passwort — left stack under help. */
+        .al-signin-stack--code > .al-login-aux.al-code-nav {
+          margin:4px 0 0;
+          gap:4px;
+          align-items:flex-start;
+        }
+        .al-signin-stack--code > .al-login-aux.al-code-nav .al-back {
+          margin:0;
+          padding:8px 0;
         }
         .al-login-aux-secondary:hover,
         .al-login-aux-secondary:active {
@@ -3182,7 +3193,8 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:0;
             flex-shrink:0;
           }
-          .al-root[data-auth-mode="login"] .al-signin-stack > .al-login-aux {
+          /* Main login help docks elsewhere — keep code-entry Zurück/Passwort visible. */
+          .al-root[data-auth-mode="login"] .al-signin-stack > .al-login-aux:not(.al-code-nav) {
             display:none !important;
           }
           /* Mode switch lives under content in .al-auth-switch — never hide it. */
@@ -4729,8 +4741,12 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:0.015em;
             text-align:left;
           }
-          .al-root[data-auth-step="codeEntry"] .al-back {
+          .al-root[data-auth-step="codeEntry"] .al-code-nav {
             margin-top:2px;
+            align-items:flex-start;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-code-nav .al-back,
+          .al-root[data-auth-step="codeEntry"] .al-code-nav .al-login-aux-secondary {
             font-size:14px;
             text-align:left;
           }

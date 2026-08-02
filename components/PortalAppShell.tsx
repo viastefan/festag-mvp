@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import PortalSidebar from '@/components/PortalSidebar'
 import CommandPalette from '@/components/CommandPalette'
@@ -366,6 +366,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   const [tagroFullscreen, setTagroFullscreen] = useState(false)
   const [loaderDone, setLoaderDone] = useState(false)
   const [playEnter, setPlayEnter] = useState(true)
+  const onLoaderDone = useCallback(() => setLoaderDone(true), [])
   const router = useRouter()
   const pathname = usePathname() || ''
   const isSettings = pathname.startsWith('/settings')
@@ -439,7 +440,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }
 
   if (!loaderDone) {
-    return <FestagLoadingScreen surface="portal" onDone={() => setLoaderDone(true)} />
+    return <FestagLoadingScreen surface="portal" onDone={onLoaderDone} />
   }
 
   return (
