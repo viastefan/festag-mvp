@@ -14,6 +14,7 @@ import {
 } from '@/components/auth/OnboardingSourceLogos'
 import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
+import FestagToggle, { FESTAG_TOGGLE_CSS } from '@/components/ui/FestagToggle'
 import type { IntegrationId } from '@/lib/platform/integrations'
 import { INTEGRATION_CATALOG } from '@/lib/platform/integrations'
 import { connectHeaderFor } from '@/lib/platform/master-onboarding'
@@ -80,17 +81,16 @@ export default function ConnectStage({
     return () => ro.disconnect()
   }, [sources.length, connected.size, syncFades])
 
-  const header = connectHeaderFor(connected, sources)
+  const header = connectHeaderFor()
 
   return (
     <>
+      <style>{FESTAG_TOGGLE_CSS}</style>
       <AuthGlassyHero
         animKey="connect"
         lead={header.lead}
         rest={header.muted}
         stacked
-        /* Connecting sources only updates copy — no rise / line snap. */
-        instant={connected.size > 0}
         className="mob-glassy-h1"
       />
 
@@ -108,15 +108,19 @@ export default function ConnectStage({
           {sources.map((src, i) => {
             const on = connected.has(src.id)
             const Logo = LOGOS[src.id]
-            const stateLabel = on ? 'Verbunden' : 'Bald'
             return (
-              <button
+              <div
                 key={src.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 className={`mob-connect-row${on ? ' is-on' : ''}`}
                 style={{ ['--i' as string]: i }}
-                onClick={() => {
-                  onToggle(src.id)
+                onClick={() => onToggle(src.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    onToggle(src.id)
+                  }
                 }}
               >
                 <span className="mob-connect-icon" aria-hidden>
@@ -129,8 +133,13 @@ export default function ConnectStage({
                   )}
                 </span>
                 <span className="mob-connect-name">{src.name}</span>
-                <span className="mob-connect-state">{stateLabel}</span>
-              </button>
+                <FestagToggle
+                  on={on}
+                  label={`${src.name} ${on ? 'trennen' : 'verbinden'}`}
+                  stopPropagation
+                  onChange={() => onToggle(src.id)}
+                />
+              </div>
             )
           })}
         </div>

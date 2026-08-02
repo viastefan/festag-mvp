@@ -1,9 +1,14 @@
 'use client'
 
+/**
+ * Workspace choice — stable H1 + cards with Festag mini toggles.
+ */
+
 import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
+import FestagToggle, { FESTAG_TOGGLE_CSS } from '@/components/ui/FestagToggle'
 import {
-  WORKSPACE_HEADER,
+  WORKSPACE_CARD,
   WORKSPACE_HEADER_IDLE,
   WORKSPACE_OPTIONS,
   type WorkspaceOption,
@@ -17,34 +22,53 @@ type Props = {
 
 export default function WorkspaceStage({ value, onPick, onContinue }: Props) {
   const picked = WORKSPACE_OPTIONS.includes(value as WorkspaceOption)
-    ? (value as WorkspaceOption)
-    : null
-  const header = picked ? WORKSPACE_HEADER[picked] : WORKSPACE_HEADER_IDLE
 
   return (
     <>
+      <style>{FESTAG_TOGGLE_CSS}</style>
       <AuthGlassyHero
         animKey="workspace"
-        lead={header.lead}
-        rest={header.muted}
-        instant={Boolean(picked)}
-        className="mob-glassy-h1 mob-glassy-h1--inline"
+        lead={WORKSPACE_HEADER_IDLE.lead}
+        rest={WORKSPACE_HEADER_IDLE.muted}
+        stacked
+        className="mob-glassy-h1"
       />
-      <div className="mob-chip-list">
-        {WORKSPACE_OPTIONS.map((opt, i) => (
-          <button
-            key={opt}
-            type="button"
-            className={`mob-chip${value === opt ? ' is-on' : ''}`}
-            style={{ ['--i' as string]: i }}
-            onClick={() => onPick(opt)}
-          >
-            {opt}
-          </button>
-        ))}
+      <div className="mob-ws-list" role="listbox" aria-label="Workspace wählen">
+        {WORKSPACE_OPTIONS.map((opt, i) => {
+          const card = WORKSPACE_CARD[opt]
+          const on = value === opt
+          return (
+            <div
+              key={opt}
+              role="option"
+              aria-selected={on}
+              tabIndex={0}
+              className={`mob-ws-card${on ? ' is-on' : ''}`}
+              style={{ ['--i' as string]: i }}
+              onClick={() => onPick(opt)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onPick(opt)
+                }
+              }}
+            >
+              <span className="mob-ws-card-copy">
+                <span className="mob-ws-card-title">{card.title}</span>
+                <span className="mob-ws-card-support">{card.support}</span>
+              </span>
+              <FestagToggle
+                on={on}
+                label={`${card.title} wählen`}
+                stopPropagation
+                onChange={() => onPick(opt)}
+              />
+            </div>
+          )
+        })}
       </div>
       <div className="mob-continue-slot">
-        <ContinueHint show={Boolean(picked)} onContinue={onContinue} />
+        <ContinueHint show={picked} onContinue={onContinue} />
       </div>
     </>
   )

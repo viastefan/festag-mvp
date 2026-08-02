@@ -1,31 +1,22 @@
 /**
  * Master Auth → Onboarding flow (canvas SSOT).
- * Identity (login/register) → Name → Position? → Workspace → Connect → Done → Preparing → Dashboard
+ * Identity → Profile (name + optional context) → Workspace → Connect → Preparing → Dashboard
  */
 
 import type { WorkspaceType } from '@/lib/platform/workspace'
 import type { IntegrationId } from '@/lib/platform/integrations'
 import { INTEGRATION_CATALOG } from '@/lib/platform/integrations'
 
-export const MASTER_BUILD_STEPS = [
-  'name',
-  'position',
-  'workspace',
-  'connect',
-  'done',
-] as const
+export const MASTER_BUILD_STEPS = ['profile', 'workspace', 'connect'] as const
 export type MasterBuildStep = (typeof MASTER_BUILD_STEPS)[number]
 
-/** Progress beads — auth is separate; preparing is /preparing after Done. */
+/** Progress beads — preparing is /preparing after Connect. */
 export const MASTER_FLOW_DOTS = [
-  { id: 'name' as const, label: 'Name' },
-  { id: 'position' as const, label: 'Position' },
+  { id: 'profile' as const, label: 'Profil' },
   { id: 'workspace' as const, label: 'Workspace' },
   { id: 'connect' as const, label: 'Quellen' },
-  { id: 'done' as const, label: 'Bereit' },
 ]
 
-/** Soft rotating examples for the name field. */
 export const NAME_EXAMPLES = [
   'Stefan Dirnberger',
   'Alex Müller',
@@ -33,15 +24,33 @@ export const NAME_EXAMPLES = [
   'Jordan Lee',
 ] as const
 
-/** Soft rotating examples for optional position. */
-export const POSITION_EXAMPLES = [
-  'Gründer',
+/** Profile card H1 — calm, fits --mob-content-max on mobile + desktop. */
+export const PROFILE_HEADER = {
+  lead: 'Schön, dass du da bist.',
+  muted: 'Name genügt. Bild und Position optional.',
+} as const
+
+/** Single-line rotating examples for optional Position. */
+export const PROFILE_POSITION_EXAMPLES = [
+  'Gründer bei Aerobay',
   'Product Lead',
-  'Client',
   'Developer',
   'Designer',
   'Agentur-Inhaber',
+  'Client Partner',
 ] as const
+
+/** Optional context field — Position, Unternehmen, Ziel. */
+export const CONTEXT_EXAMPLES = [
+  'Gründer bei Aerobay — baue unser Produkt.',
+  'Client — suche einen Entwickler für mein Startup.',
+  'Developer — liefere Websites für Kunden.',
+  'Product Lead — organisiere mehrere Streams.',
+  'Agentur-Inhaber — acht Leute, klare Delivery.',
+] as const
+
+/** @deprecated Prefer PROFILE_POSITION_EXAMPLES on the profile card. */
+export const POSITION_EXAMPLES = PROFILE_POSITION_EXAMPLES
 
 export const WORKSPACE_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 export type WorkspaceOption = (typeof WORKSPACE_OPTIONS)[number]
@@ -51,34 +60,49 @@ export const CLARIFY_OPTIONS = WORKSPACE_OPTIONS
 /** @deprecated Use WorkspaceOption */
 export type ClarifyOption = WorkspaceOption
 
-export const WORKSPACE_HEADER: Record<WorkspaceOption, { lead: string; muted: string }> = {
+/** Stable H1 for workspace step — never swaps on pick (avoids glassy jank). */
+export const WORKSPACE_HEADER_IDLE = {
+  lead: 'Welchen Workspace?',
+  muted: 'So startet dein Betriebssystem.',
+} as const
+
+/** Per-option title + calm support — lives on the card, not the H1. */
+export const WORKSPACE_CARD: Record<
+  WorkspaceOption,
+  { title: string; support: string }
+> = {
   Developer: {
-    lead: 'Selbst entwickeln.',
-    muted: 'Execution Panel zuerst — nah am Code.',
+    title: 'Developer',
+    support: 'Selbst entwickeln — nah am Code und Execution.',
   },
   Agentur: {
-    lead: 'Für Kunden liefern.',
-    muted: 'Delivery zuerst — ruhige Statusberichte.',
+    title: 'Agentur',
+    support: 'Für Kunden liefern — ruhige Statusberichte.',
   },
   Startup: {
-    lead: 'Produkt-Team führen.',
-    muted: 'Tempo mit Klarheit — ohne PM-Overhead.',
+    title: 'Startup',
+    support: 'Produkt-Team führen — Tempo mit Klarheit.',
   },
   Unternehmen: {
-    lead: 'Mehrere Streams steuern.',
-    muted: 'Überblick zuerst — ein Workspace-Graph.',
+    title: 'Unternehmen',
+    support: 'Mehrere Streams steuern — ein Workspace-Graph.',
+  },
+}
+
+/** @deprecated Prefer WORKSPACE_CARD + WORKSPACE_HEADER_IDLE */
+export const WORKSPACE_HEADER: Record<WorkspaceOption, { lead: string; muted: string }> = {
+  Developer: { lead: WORKSPACE_CARD.Developer.title + '.', muted: WORKSPACE_CARD.Developer.support },
+  Agentur: { lead: WORKSPACE_CARD.Agentur.title + '.', muted: WORKSPACE_CARD.Agentur.support },
+  Startup: { lead: WORKSPACE_CARD.Startup.title + '.', muted: WORKSPACE_CARD.Startup.support },
+  Unternehmen: {
+    lead: WORKSPACE_CARD.Unternehmen.title + '.',
+    muted: WORKSPACE_CARD.Unternehmen.support,
   },
 }
 
 /** @deprecated Use WORKSPACE_HEADER */
 export const CLARIFY_HEADER = WORKSPACE_HEADER
 
-export const WORKSPACE_HEADER_IDLE = {
-  lead: 'Welchen Workspace?',
-  muted: 'Wähle die Einordnung — du kannst sie später ändern.',
-} as const
-
-/** Connect step — idle + per-source headers (short, like Workspace). */
 export const CONNECT_HEADER_IDLE = {
   lead: 'Quellen verbinden.',
   muted: 'Was nutzt du schon? Alles optional.',
@@ -101,33 +125,12 @@ export const CONNECT_HEADERS: Partial<Record<IntegrationId, { lead: string; mute
   microsoft_teams: { lead: 'Teams anbinden.', muted: 'Meetings und Chat im Workspace.' },
 }
 
+/** Prefer idle H1 — dynamic headers caused glassy settle jank on every toggle. */
 export function connectHeaderFor(
-  connected: Iterable<string>,
-  sources: Array<{ id: string; name: string }>,
+  _connected?: Iterable<string>,
+  _sources?: Array<{ id: string; name: string }>,
 ): { lead: string; muted: string } {
-  const ids = [...connected]
-  if (ids.length === 0) return { ...CONNECT_HEADER_IDLE }
-
-  const byId = new Map(sources.map((s) => [s.id, s.name]))
-  if (ids.length === 1) {
-    const id = ids[0] as IntegrationId
-    const known = CONNECT_HEADERS[id]
-    if (known) return known
-    const name = byId.get(id) || id
-    return { lead: `${name} anbinden.`, muted: 'Im Workspace verfügbar.' }
-  }
-
-  const names = ids.map((id) => byId.get(id) || id)
-  if (names.length === 2) {
-    return {
-      lead: `${names[0]} und ${names[1]}.`,
-      muted: 'Weitere ergänzt du später.',
-    }
-  }
-  return {
-    lead: `${names.length} Quellen verbunden.`,
-    muted: 'Weitere ergänzt du später.',
-  }
+  return { ...CONNECT_HEADER_IDLE }
 }
 
 export const DONE_HEADER = {
@@ -145,12 +148,11 @@ export const MASTER_PREP_LINES = [
 ] as const
 
 export const NAME_MIN_CHARS = 2
-export const POSITION_MIN_CHARS = 2
-/** Pause after typing before Weiter appears. */
-export const FIELD_SETTLE_MS = 600
+export const FIELD_SETTLE_MS = 320
 
-/** @deprecated Intent step removed — kept for resume aliases */
-export const GOAL_EXAMPLES = POSITION_EXAMPLES
+/** @deprecated */
+export const POSITION_MIN_CHARS = 2
+export const GOAL_EXAMPLES = CONTEXT_EXAMPLES
 export const INTENT_MIN_CHARS = NAME_MIN_CHARS
 export const INTENT_SETTLE_MS = FIELD_SETTLE_MS
 
@@ -186,7 +188,6 @@ const NAME_TO_ID = new Map<string, IntegrationId>(
   INTEGRATION_CATALOG.map((d) => [d.name.toLowerCase(), d.id as IntegrationId]),
 )
 
-/** Map Tagro blueprint display names → catalog ids (best-effort). */
 export function integrationNameToId(name: string): IntegrationId | null {
   const key = name.trim().toLowerCase()
   if (NAME_TO_ID.has(key)) return NAME_TO_ID.get(key)!
@@ -198,8 +199,19 @@ export function integrationNameToId(name: string): IntegrationId | null {
 
 export function normalizeMasterStep(raw: string | null): MasterBuildStep | null {
   if (!raw) return null
-  if (raw === 'name' || raw === 'profil' || raw === 'profile' || raw === 'about') return 'name'
-  if (raw === 'position' || raw === 'rolle' || raw === 'role' || raw === 'titel') return 'position'
+  if (
+    raw === 'profile' ||
+    raw === 'name' ||
+    raw === 'profil' ||
+    raw === 'about' ||
+    raw === 'position' ||
+    raw === 'intent' ||
+    raw === 'ziel' ||
+    raw === 'kontext' ||
+    raw === 'context'
+  ) {
+    return 'profile'
+  }
   if (
     raw === 'workspace' ||
     raw === 'passt' ||
@@ -216,13 +228,14 @@ export function normalizeMasterStep(raw: string | null): MasterBuildStep | null 
     raw === 'connect' ||
     raw === 'integrations' ||
     raw === 'fokus' ||
-    raw === 'focus'
+    raw === 'focus' ||
+    raw === 'done' ||
+    raw === 'abschluss' ||
+    raw === 'ready' ||
+    raw === 'bereit'
   ) {
     return 'connect'
   }
-  if (raw === 'done' || raw === 'abschluss' || raw === 'ready' || raw === 'bereit') return 'done'
-  /* Legacy intent → start at name */
-  if (raw === 'ziel' || raw === 'kontext' || raw === 'context' || raw === 'intent') return 'name'
   if ((MASTER_BUILD_STEPS as readonly string[]).includes(raw)) return raw as MasterBuildStep
   return null
 }

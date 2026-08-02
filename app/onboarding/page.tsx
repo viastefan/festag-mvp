@@ -2,7 +2,7 @@
 
 /**
  * /onboarding — Build flow
- * Name → Position? → Workspace → Connect → Done → /preparing
+ * Profile → Workspace → Connect → /preparing
  * Auth identity stays on /login|/register. Invitees use /join.
  */
 
@@ -28,7 +28,6 @@ import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import { providerProfileFields } from '@/lib/auth-provider-profile'
 import {
   inferWorkspaceUnderstanding,
-  readWorkspaceProfile,
   workspaceProfilePatch,
 } from '@/lib/platform/identity'
 import {
@@ -43,6 +42,7 @@ import {
 import type { IntegrationId } from '@/lib/platform/integrations'
 import {
   MASTER_FLOW_DOTS,
+  NAME_MIN_CHARS,
   type MasterBuildStep,
   type WorkspaceOption,
   clarifyToWorkspaceType,
@@ -50,13 +50,11 @@ import {
 } from '@/lib/platform/master-onboarding'
 import { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import { MASTER_ONBOARDING_STYLES } from '@/components/auth/master-onboarding/styles'
-import NameStage from '@/components/auth/master-onboarding/NameStage'
-import PositionStage from '@/components/auth/master-onboarding/PositionStage'
+import ProfileStage from '@/components/auth/master-onboarding/ProfileStage'
 import WorkspaceStage from '@/components/auth/master-onboarding/WorkspaceStage'
 import ConnectStage, {
   rankConnectSources,
 } from '@/components/auth/master-onboarding/ConnectStage'
-import DoneStage from '@/components/auth/master-onboarding/DoneStage'
 
 export default function MasterBuildOnboardingPage() {
   return (
@@ -86,9 +84,10 @@ function MasterBuildInner() {
   const [booting, setBooting] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [workspaceId, setWorkspaceId] = useState<string | null>(null)
-  const [current, setCurrent] = useState<MasterBuildStep>('name')
+  const [current, setCurrent] = useState<MasterBuildStep>('profile')
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [workspacePick, setWorkspacePick] = useState('')
   const [connected, setConnected] = useState<Set<string>>(() => new Set())
   const [error, setError] = useState('')
@@ -105,8 +104,8 @@ function MasterBuildInner() {
   }, [position, workspacePick])
 
   const blueprint: TagroBlueprint = useMemo(
-    () => analyzeIntent(contextSeed, workspacePick),
-    [contextSeed, workspacePick],
+    () => analyzeIntent(contextSeed || position, workspacePick),
+    [contextSeed, position, workspacePick],
   )
 
   const sources = useMemo(
@@ -131,7 +130,6 @@ function MasterBuildInner() {
     return () => window.clearTimeout(t)
   }, [booting, panelEnter])
 
-  /* Mobile: keep focused field above the keyboard (iOS fixed + visualViewport). */
   useEffect(() => {
     if (typeof window === 'undefined') return
     const mq = window.matchMedia('(max-width: 768px)')
@@ -158,8 +156,11 @@ function MasterBuildInner() {
       const isField =
         active instanceof HTMLElement &&
         el.contains(active) &&
-        (active.classList.contains('mob-intent-area') ||
-          active.classList.contains('mob-intent-input'))
+        (active.classList.contains('mob-profile-input') ||
+          active.classList.contains('mob-login-input') ||
+          active.classList.contains('mob-login-textarea') ||
+          active.classList.contains('mob-intent-input') ||
+          active.classList.contains('mob-intent-area'))
       if (!isField) {
         clearShift()
         return
@@ -198,8 +199,9 @@ function MasterBuildInner() {
         const still =
           active instanceof HTMLElement &&
           root()?.contains(active) &&
-          (active.classList.contains('mob-intent-area') ||
-            active.classList.contains('mob-intent-input'))
+          (active.classList.contains('mob-profile-input') ||
+            active.classList.contains('mob-login-input') ||
+            active.classList.contains('mob-login-textarea'))
         if (!still) clearShift()
       }, 60)
     }
@@ -255,7 +257,7 @@ function MasterBuildInner() {
           await Promise.all([
             supabase
               .from('profiles')
-              .select('full_name, position, dev_profile_facts, dev_github_linked, github_username')
+              .select('full_name, position, avatar_url, dev_profile_facts, dev_github_linked, github_username')
               .eq('id', user.id)
               .maybeSingle(),
             supabase
@@ -328,10 +330,15 @@ function MasterBuildInner() {
           )
         }
 
-        const existingPos = String(prof?.position || '').trim()
-        if (existingPos) setPosition(existingPos)
+        const existingAvatar =
+          String(prof?.avatar_url || '').trim() || fromProvider.avatarUrl || ''
+        if (existingAvatar) setAvatarUrl(existingAvatar)
 
-        const existingProfile = readWorkspaceProfile(ownedWs?.metadata)
+        const facts = String(prof?.dev_profile_facts || '').trim()
+        const pos = String(prof?.position || '').trim()
+        if (pos) setPosition(pos)
+        else if (facts) setPosition(facts.slice(0, 64))
+
         const metaType = (ownedWs?.metadata as { workspace_type?: { value?: string } } | null)
           ?.workspace_type?.value
         if (metaType === 'agency') setWorkspacePick('Agentur')
@@ -339,14 +346,7 @@ function MasterBuildInner() {
         else if (metaType === 'company') setWorkspacePick('Unternehmen')
         else if (metaType === 'personal') setWorkspacePick('Developer')
 
-        if (isResuming && resumeStep) {
-          setCurrent(resumeStep)
-        } else if (resolvedName && !existingPos) {
-          /* Soft start: known name → Position */
-          setCurrent('position')
-        }
-
-        void existingProfile
+        if (isResuming && resumeStep) setCurrent(resumeStep)
 
         if (cancelled) return
         setBooting(false)
@@ -362,12 +362,16 @@ function MasterBuildInner() {
 
   const persistProfileAndWorkspace = useCallback(
     async (opts?: { markStep?: string }): Promise<TagroBlueprint | null> => {
-      if (isPreview) return analyzeIntent(contextSeed, workspacePick)
+      if (isPreview) return analyzeIntent(contextSeed || position, workspacePick)
       if (!userId) return null
+      if (fullName.trim().length < NAME_MIN_CHARS) {
+        setError('Bitte gib deinen Namen ein.')
+        return null
+      }
 
-      const bp = analyzeIntent(contextSeed, workspacePick)
+      const bp = analyzeIntent(contextSeed || position, workspacePick)
       const ctx =
-        contextSeed.trim() ||
+        position.trim() ||
         (workspacePick ? `Workspace: ${workspacePick}` : '')
       const inferred = ctx ? inferWorkspaceUnderstanding(ctx) : null
       const shortPosition = position.trim().slice(0, 64)
@@ -375,8 +379,9 @@ function MasterBuildInner() {
       const { error: upsertError } = await supabase.from('profiles').upsert(
         {
           id: userId,
-          ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
+          full_name: fullName.trim(),
           ...(shortPosition ? { position: shortPosition } : {}),
+          ...(avatarUrl && !avatarUrl.startsWith('blob:') ? { avatar_url: avatarUrl } : {}),
           ...(ctx ? { dev_profile_facts: ctx } : {}),
           ...(bp.intentSummary
             ? {
@@ -426,7 +431,7 @@ function MasterBuildInner() {
         nextMeta = blueprintMetadataPatch(nextMeta, bp)
         const type = clarifyToWorkspaceType(workspacePick)
         nextMeta = workspaceTypePatch(nextMeta, type, {
-          suggestedByTagro: false,
+          suggestedByTagro: Boolean(position.trim()),
           confirmed: true,
         })
         const { error: wsErr } = await supabase
@@ -464,6 +469,7 @@ function MasterBuildInner() {
       return bp
     },
     [
+      avatarUrl,
       contextSeed,
       current,
       fullName,
@@ -481,7 +487,7 @@ function MasterBuildInner() {
     setSubmitting(true)
     setError('')
     try {
-      const bp = await persistProfileAndWorkspace({ markStep: 'done' })
+      const bp = await persistProfileAndWorkspace({ markStep: 'connect' })
       if (!bp && !isPreview) {
         setSubmitting(false)
         return
@@ -491,7 +497,7 @@ function MasterBuildInner() {
         await supabase.from('onboarding_state').upsert(
           {
             user_id: userId,
-            current_step: 'done',
+            current_step: 'connect',
             workspace_done: true,
             completed_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -514,36 +520,35 @@ function MasterBuildInner() {
     }
   }, [isPreview, persistProfileAndWorkspace, submitting, supabase, userId])
 
-  const goNameNext = useCallback(async () => {
+  const goProfileNext = useCallback(async () => {
+    if (fullName.trim().length < NAME_MIN_CHARS) {
+      setError('Bitte gib deinen Namen ein.')
+      return
+    }
     setError('')
-    if (!isPreview && userId && fullName.trim()) {
+    if (!isPreview && userId) {
+      const shortPosition = position.trim().slice(0, 64)
       await supabase.from('profiles').upsert(
         {
           id: userId,
           full_name: fullName.trim(),
+          ...(shortPosition ? { position: shortPosition } : {}),
+          ...(avatarUrl && !avatarUrl.startsWith('blob:') ? { avatar_url: avatarUrl } : {}),
+          ...(shortPosition ? { dev_profile_facts: shortPosition } : {}),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'id' },
       )
-    }
-    setCurrent('position')
-  }, [fullName, isPreview, supabase, userId])
-
-  const goPositionNext = useCallback(async () => {
-    setError('')
-    if (!isPreview && userId && position.trim()) {
-      await supabase.from('profiles').upsert(
-        {
-          id: userId,
-          ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
-          position: position.trim().slice(0, 64),
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'id' },
-      )
+      if (shortPosition) {
+        void fetch('/api/onboarding/analyze-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: shortPosition, persist: true }),
+        }).catch(() => null)
+      }
     }
     setCurrent('workspace')
-  }, [fullName, isPreview, position, supabase, userId])
+  }, [avatarUrl, fullName, isPreview, position, supabase, userId])
 
   const goWorkspaceNext = useCallback(async () => {
     if (!workspacePick) return
@@ -565,11 +570,6 @@ function MasterBuildInner() {
         return
       }
       if (current === 'connect' && !submitting) {
-        e.preventDefault()
-        setCurrent('done')
-        return
-      }
-      if (current === 'done' && !submitting) {
         e.preventDefault()
         void finishToPreparing()
       }
@@ -609,35 +609,25 @@ function MasterBuildInner() {
     [connected, isPreview, supabase.auth],
   )
 
-  const stepOrder: MasterBuildStep[] = ['name', 'position', 'workspace', 'connect', 'done']
+  const stepOrder: MasterBuildStep[] = ['profile', 'workspace', 'connect']
 
   function canSwipeForward() {
-    if (current === 'name') return true
-    if (current === 'position') return true
+    if (current === 'profile') return fullName.trim().length >= NAME_MIN_CHARS
     if (current === 'workspace') return Boolean(workspacePick)
     if (current === 'connect') return !submitting
-    if (current === 'done') return !submitting
     return false
   }
 
   function advance() {
-    if (current === 'name') {
-      void goNameNext()
-      return
-    }
-    if (current === 'position') {
-      void goPositionNext()
+    if (current === 'profile') {
+      void goProfileNext()
       return
     }
     if (current === 'workspace') {
       void goWorkspaceNext()
       return
     }
-    if (current === 'connect') {
-      setCurrent('done')
-      return
-    }
-    if (current === 'done') void finishToPreparing()
+    if (current === 'connect') void finishToPreparing()
   }
 
   function retreat() {
@@ -646,19 +636,12 @@ function MasterBuildInner() {
   }
 
   function onFlowDotClick(id: (typeof MASTER_FLOW_DOTS)[number]['id']) {
-    if (id === 'done') {
-      if (current === 'connect' || current === 'done') setCurrent('done')
-      return
-    }
-    if (id === 'name') {
-      setCurrent('name')
-      return
-    }
-    if (id === 'position') {
-      setCurrent('position')
+    if (id === 'profile') {
+      setCurrent('profile')
       return
     }
     if (id === 'workspace') {
+      if (fullName.trim().length < NAME_MIN_CHARS) return
       setCurrent('workspace')
       return
     }
@@ -693,10 +676,10 @@ function MasterBuildInner() {
     if (!start || !t || start.locked !== true) return
     const dx = t.clientX - start.x
     if (dx < -56 && canSwipeForward()) advance()
-    else if (dx > 56 && current !== 'name') retreat()
+    else if (dx > 56 && current !== 'profile') retreat()
   }
 
-  const showBack = current !== 'name'
+  const showBack = current !== 'profile'
 
   return (
     <>
@@ -747,27 +730,20 @@ function MasterBuildInner() {
           <div className="mob-stage" key={current}>
             {error ? <p className="mob-error">{error}</p> : null}
 
-            {current === 'name' ? (
-              <NameStage
-                value={fullName}
-                onChange={(v) => {
+            {current === 'profile' ? (
+              <ProfileStage
+                fullName={fullName}
+                onNameChange={(v) => {
                   setFullName(v)
                   if (error) setError('')
                 }}
-                onAdvance={() => void goNameNext()}
-                onSkip={() => setCurrent('position')}
-              />
-            ) : null}
-
-            {current === 'position' ? (
-              <PositionStage
-                value={position}
-                onChange={(v) => {
-                  setPosition(v)
-                  if (error) setError('')
-                }}
-                onAdvance={() => void goPositionNext()}
-                onSkip={() => setCurrent('workspace')}
+                position={position}
+                onPositionChange={setPosition}
+                avatarUrl={avatarUrl}
+                onAvatarChange={setAvatarUrl}
+                userId={userId}
+                isPreview={isPreview}
+                onAdvance={() => void goProfileNext()}
               />
             ) : null}
 
@@ -784,13 +760,6 @@ function MasterBuildInner() {
                 sources={sources}
                 connected={connected}
                 onToggle={(id) => void toggleSource(id)}
-                onContinue={() => setCurrent('done')}
-              />
-            ) : null}
-
-            {current === 'done' ? (
-              <DoneStage
-                submitting={submitting}
                 onContinue={() => void finishToPreparing()}
               />
             ) : null}
@@ -831,7 +800,7 @@ function MasterBuildInner() {
                       className={`mob-dot no-min-tap${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
                       aria-label={dot.label}
                       aria-current={active ? 'step' : undefined}
-                      disabled={submitting && dot.id === 'done'}
+                      disabled={submitting}
                       onClick={() => onFlowDotClick(dot.id)}
                     />
                   )

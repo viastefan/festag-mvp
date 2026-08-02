@@ -30,7 +30,7 @@ Never Client vs Developer onboarding.
 
 **Full flow law:** `docs/festag-authentication-onboarding-constitution.md`
 
-Order: Workspace Name → Auth → Name (optional) → Position (optional) → Workspace wählen → Connect (optional) → Abschluss → `/preparing` → Adaptive Dashboard.
+Order: Workspace Name → Auth → Profile (name + optional context) → Workspace wählen → Connect (optional) → `/preparing` → Adaptive Dashboard.
 
 Join Project remains invitee-only (name + avatar). No extra branches unless necessary.
 

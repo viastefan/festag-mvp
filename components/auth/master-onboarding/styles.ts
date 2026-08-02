@@ -213,9 +213,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
 
   .mob-h1 {
     margin: 0;
-    /* Mobile: +3px vs prior 26 — matches perceived canvas weight */
+    /* Same H1 metrics as Login/Register --al-hero-display-size / -lh */
     font-size: 29px;
-    line-height: 1.08;
+    line-height: 36px;
     letter-spacing: var(--auth-tracking-display);
     font-weight: 400;
     font-family: Aeonik, system-ui, sans-serif;
@@ -223,31 +223,33 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-h1-ink {
     color: var(--mob-ink);
     display: block;
-    line-height: 1.08;
+    line-height: 36px;
   }
   .mob-h1-muted {
     color: var(--mob-muted);
     display: block;
-    line-height: 1.08;
+    line-height: 36px;
     margin-top: 0;
   }
-  .mob-h1-inline { line-height: 1.12; }
+  .mob-h1-inline { line-height: 36px; }
   .mob-h1-inline .mob-h1-ink,
   .mob-h1-inline .mob-h1-muted { display: inline; }
 
-  /* AuthGlassyHero inside onboarding — same type + ink as .mob-h1 */
+  /* AuthGlassyHero — identical to Login H1 (29 / 36), mobile + desktop */
   .mob .al-glassy-hero.mob-glassy-h1 {
+    --al-hero-display-size: 29px;
+    --al-hero-display-lh: 36px;
     margin: 0;
     max-width: 100%;
     font-size: 29px !important;
-    line-height: 1.22 !important;
+    line-height: 36px !important;
     letter-spacing: var(--auth-tracking-display) !important;
     font-weight: 400 !important;
     font-family: Aeonik, system-ui, sans-serif;
     color: var(--mob-ink);
   }
   .mob .al-glassy-hero.mob-glassy-h1--inline {
-    line-height: 1.22 !important;
+    line-height: 36px !important;
   }
   .mob .al-glassy-hero.mob-glassy-h1 .al-gword-lead {
     color: var(--mob-ink);
@@ -257,21 +259,369 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob .al-glassy-hero--stacked .al-glassy-hero-line {
     display: block;
-    line-height: 1.22;
-    /* Stable line box so settle (clip padding off) doesn’t snap layout. */
-    min-height: 1.22em;
+    line-height: 36px;
+    min-height: 36px;
   }
-  /* Full glassy word rise + blur — same language as login AuthGlassyHero. */
+  /* Flat baseline — identical clip height per word, top-aligned. */
+  .mob .al-glassy-hero.mob-glassy-h1 .al-gword {
+    height: 36px;
+    line-height: 36px;
+    vertical-align: top;
+    padding: 0;
+    margin: 0;
+  }
   .mob .al-glassy-hero.mob-glassy-h1 .al-gword-inner {
+    height: 36px;
+    line-height: 36px;
     animation: alGwordIn 0.58s cubic-bezier(0.16, 1, 0.3, 1) both !important;
     animation-delay: calc(var(--i, 0) * 32ms) !important;
-    will-change: transform, filter, opacity;
+    will-change: transform, opacity;
+  }
+  .mob .al-glassy-hero.mob-glassy-h1 .al-gword.al-gword--settled .al-gword-inner {
+    will-change: auto;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translate3d(0, 0, 0) !important;
+    filter: none !important;
   }
   .mob .al-glassy-hero.mob-glassy-h1.al-glassy-hero--instant .al-gword-inner {
     animation: none !important;
     opacity: 1 !important;
-    transform: none !important;
+    transform: translate3d(0, 0, 0) !important;
     filter: none !important;
+  }
+
+  /* Profile — avatar + name row, position below (Join pattern, light canvas) */
+  .mob-profile-stack {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .mob-profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  .mob-profile-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+  }
+  .mob-profile-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    /* Same 2px language as Login fields — transparent on ivory */
+    border: 2px solid rgba(30, 30, 32, 0.15);
+    background: transparent;
+    box-shadow: none;
+    color: rgba(30, 30, 32, 0.32);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: border-color .18s ease, color .15s ease;
+  }
+  .mob-profile-avatar:hover {
+    border-color: rgba(30, 30, 32, 0.20);
+    background: transparent;
+    color: rgba(30, 30, 32, 0.48);
+  }
+  .mob-profile-avatar:focus,
+  .mob-profile-avatar:focus-visible {
+    outline: none;
+    border-color: #7E889F;
+  }
+  /* Filled avatar — same primary stroke as Login filled/focus, until removed */
+  .mob-profile-avatar.has-image,
+  .mob-profile-avatar.has-image:hover,
+  .mob-profile-avatar.has-image:focus,
+  .mob-profile-avatar.has-image:focus-visible {
+    border-color: #7E889F;
+    color: transparent;
+  }
+  .mob-profile-avatar.is-busy {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+  .mob-profile-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .mob-profile-avatar-icon {
+    display: block;
+  }
+  .mob-profile-avatar-clear {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(30, 30, 32, 0.12);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mob-canvas, #FBF7EE);
+    color: rgba(30, 30, 32, 0.5);
+    box-shadow: none;
+    cursor: pointer;
+  }
+  .mob-profile-avatar-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* Field shell — same 2px stroke behavior as Login .al-input */
+  .mob-profile-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    border-radius: 8px;
+    border: 2px solid rgba(30, 30, 32, 0.15);
+    background: transparent;
+    box-sizing: border-box;
+    transition: border-color .18s ease;
+    animation: mobShellIn .34s cubic-bezier(.22,1,.36,1) both;
+  }
+  .mob-profile-field:hover {
+    border-color: rgba(30, 30, 32, 0.20);
+  }
+  .mob-profile-field.has-value {
+    border-color: #7E889F;
+  }
+  .mob-profile-field.is-focused,
+  .mob-profile-field.is-focused:hover,
+  .mob-profile-field.has-value.is-focused {
+    border-color: #7E889F;
+  }
+  .mob-profile-input {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    padding: 0 14px;
+    border: none !important;
+    border-radius: 6px;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: var(--mob-ink);
+    font-size: 15px;
+    line-height: 1.3;
+    letter-spacing: var(--auth-tracking);
+    font-family: inherit;
+    font-weight: 400;
+    outline: none !important;
+    box-shadow: none !important;
+    box-sizing: border-box;
+    caret-color: var(--mob-caret);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .mob-profile-input.is-empty {
+    caret-color: transparent;
+  }
+  .mob-profile-field.is-focused .mob-profile-input.is-empty {
+    caret-color: var(--mob-caret);
+  }
+  .mob-profile-input::placeholder {
+    color: var(--mob-placeholder);
+    opacity: 1;
+  }
+  .mob-profile-input::selection {
+    background: rgba(126, 136, 159, 0.22);
+    color: #1e1e20;
+  }
+  .mob-profile-input:focus,
+  .mob-profile-input:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+  /* Kill Chrome autofill “himmelblau” — paint canvas ivory inset instead */
+  .mob-profile-input:-webkit-autofill,
+  .mob-profile-input:-webkit-autofill:hover,
+  .mob-profile-input:-webkit-autofill:focus,
+  .mob-profile-input:-webkit-autofill:active {
+    -webkit-text-fill-color: #1e1e20 !important;
+    caret-color: var(--mob-caret) !important;
+    font-family: inherit !important;
+    font-weight: 400 !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    outline: none !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--mob-canvas, #FBF7EE) inset !important;
+    box-shadow: 0 0 0 1000px var(--mob-canvas, #FBF7EE) inset !important;
+    transition: background-color 9999s ease-out 0s;
+  }
+  .mob-profile-field:has(.mob-profile-input:-webkit-autofill) {
+    border-color: #7E889F;
+  }
+  /* Rotating Position examples — slow crossfade, no remount flash */
+  .mob-profile-example {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 50%;
+    z-index: 1;
+    transform: translate3d(0, -50%, 0);
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+    font-size: 15px;
+    line-height: 1.3;
+    letter-spacing: var(--auth-tracking);
+    font-family: inherit;
+    font-weight: 400;
+    color: var(--mob-placeholder);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 1;
+    filter: blur(0);
+    will-change: opacity, transform, filter;
+    transition:
+      opacity .72s cubic-bezier(.25, .1, .25, 1),
+      transform .72s cubic-bezier(.25, .1, .25, 1),
+      filter .72s cubic-bezier(.25, .1, .25, 1);
+  }
+  .mob-profile-example.is-focused {
+    opacity: 0.55;
+  }
+  .mob-profile-example.is-out {
+    opacity: 0;
+    transform: translate3d(0, calc(-50% + 3px), 0);
+    filter: blur(2px);
+  }
+  /* Footer: legal sits close under fields; Weiter expands above and pushes legal down */
+  .mob-profile-footer {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2px;
+    gap: 0;
+  }
+  .mob-ready-hint-slot--profile {
+    margin: 0;
+    min-height: 0;
+    overflow: hidden;
+    transition:
+      min-height .32s cubic-bezier(.22, 1, .36, 1),
+      margin .32s cubic-bezier(.22, 1, .36, 1);
+  }
+  .mob-profile-footer.has-continue .mob-ready-hint-slot--profile {
+    margin-top: 8px;
+    margin-bottom: 14px;
+    min-height: 46px;
+  }
+  .mob-profile-legal {
+    margin: 10px 0 0;
+    padding: 0;
+    font-size: 11.5px;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
+    color: var(--mob-muted);
+    text-align: left;
+    transition: margin-top .32s cubic-bezier(.22, 1, .36, 1);
+  }
+  .mob-profile-footer.has-continue .mob-profile-legal {
+    margin-top: 0;
+  }
+  .mob-profile-legal a {
+    color: inherit;
+    font-weight: 400;
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 42%, transparent);
+  }
+  .mob-profile-legal a:hover {
+    border-bottom-color: color-mix(in srgb, currentColor 72%, transparent);
+  }
+
+  /* Workspace option cards — title + support, soft select */
+  .mob-ws-list {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-inline: 3px;
+    box-sizing: border-box;
+  }
+  .mob-ws-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    min-height: 68px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--mob-card-border) !important;
+    background: #FFFFFF;
+    box-shadow: none;
+    color: var(--mob-ink);
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+      border-color .2s ease,
+      background .2s ease,
+      opacity .2s ease;
+    animation: mobCardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
+    animation-delay: calc(0.1s + var(--i, 0) * 48ms);
+    opacity: 0.92;
+  }
+  .mob-ws-card:hover:not(.is-on) {
+    border-color: var(--mob-card-border-hover) !important;
+    opacity: 1;
+  }
+  .mob-ws-card.is-on {
+    border-color: rgba(30, 30, 32, 0.18) !important;
+    background: var(--mob-card-bg-on);
+    opacity: 1;
+  }
+  .mob-ws-card:focus,
+  .mob-ws-card:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .mob-ws-card-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .mob-ws-card-title {
+    font-size: 15px;
+    line-height: 1.25;
+    letter-spacing: var(--auth-tracking);
+    color: var(--mob-ink);
+  }
+  .mob-ws-card-support {
+    font-size: 13px;
+    line-height: 1.35;
+    letter-spacing: var(--auth-tracking);
+    color: var(--mob-muted);
   }
 
   .mob-error {
@@ -668,13 +1018,12 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 46px;
-    min-height: 46px;
-    max-height: 46px;
-    padding: 0 14px;
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    padding: 0 12px 0 12px;
     border-radius: 8px;
-    /* Always 2px — selected only changes color (no L/R clip). */
-    border: 2px solid var(--mob-card-border) !important;
+    border: 1px solid var(--mob-card-border) !important;
     background: #FFFFFF;
     box-shadow: none;
     flex-shrink: 0;
@@ -684,15 +1033,16 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     text-align: left;
     margin: 0;
-    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
-    animation: mobCardIn 0.48s cubic-bezier(.22, 1, .36, 1) both;
-    animation-delay: calc(0.12s + var(--i, 0) * 42ms);
+    color: var(--mob-ink);
+    transition: border-color .22s ease, background .22s ease, opacity .22s ease;
+    animation: mobCardIn 0.56s cubic-bezier(.22, 1, .36, 1) both;
+    animation-delay: calc(0.08s + var(--i, 0) * 38ms);
   }
   .mob-connect-row:hover:not(.is-on) {
     border-color: var(--mob-card-border-hover) !important;
   }
   .mob-connect-row.is-on {
-    border-color: var(--mob-primary) !important;
+    border-color: rgba(30, 30, 32, 0.16) !important;
     background: #FFFFFF;
     box-shadow: none !important;
   }
@@ -955,8 +1305,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       justify-content: center;
     }
     .mob-h1 {
-      font-size: 31px;
-      line-height: 1.08;
+      /* Keep Login parity — never bump past 29 / 36 on desktop */
+      font-size: 29px;
+      line-height: 36px;
       letter-spacing: var(--auth-tracking-display);
       text-align: left;
     }
@@ -978,14 +1329,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     }
 
     .mob .al-glassy-hero.mob-glassy-h1 {
-      font-size: 31px !important;
-      line-height: 1.22 !important;
+      font-size: 29px !important;
+      line-height: 36px !important;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .mob-intent-caret { animation: none !important; opacity: 0.7; }
     .mob-intent-example { transition: none !important; filter: none !important; }
+    .mob-profile-example { transition: none !important; filter: none !important; }
     .mob-continue-btn { animation: none !important; }
     .mob-intent-shell,
     .mob-chip,

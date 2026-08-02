@@ -99,7 +99,7 @@ export const AUTH_OS_STYLES = `
     background: var(--modal-backdrop, rgba(12, 13, 18, 0.72)) !important;
   }
 
-  /* Ivory Read lock on auth landing — beats any leftover html Night */
+  /* Auth popups — button-white on light/read auth (never ivory sand) */
   html[data-auth-landing] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
   html[data-auth-landing] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel,
   html[data-auth-landing] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
@@ -112,9 +112,25 @@ export const AUTH_OS_STYLES = `
   .al-root .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
   .al-root .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
   .al-root .onb-wx-backdrop[data-theme="read"] .onb-wx-panel {
-    background: #FBF7EE !important;
-    border-color: rgba(30, 30, 32, 0.10) !important;
-    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
+    background: #FFFFFF !important;
+    border-color: rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(15, 23, 42, 0.08) !important;
+    border-radius: 6px !important;
+  }
+  @media (max-width: 768px) {
+    html[data-auth-landing] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+    html[data-auth-landing] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel,
+    html[data-auth-landing] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+    html[data-auth-landing] .auth-sec-backdrop[data-theme="light"] .auth-sec-panel,
+    html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+    html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+    .al-root .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+    .al-root .auth-sec-backdrop[data-theme="read"] .auth-sec-panel {
+      border-radius: 14px 14px 0 0 !important;
+      box-shadow:
+        0 -1px 2px rgba(0, 0, 0, 0.06),
+        0 -12px 32px -16px rgba(15, 23, 42, 0.16) !important;
+    }
   }
   html[data-auth-landing] .auth-rec-backdrop[data-theme="read"],
   html[data-auth-landing] .auth-rec-backdrop[data-theme="light"],
@@ -130,12 +146,17 @@ export const AUTH_OS_STYLES = `
   .al-root .onb-wx-backdrop[data-theme="read"] {
     background: rgba(26, 25, 23, 0.34) !important;
   }
+  /* Auth Docs pop — always button-white, even on dusk canvas. */
+  html[data-auth-landing][data-theme="dark"] .auth-docs-pop,
   html[data-auth-landing][data-theme="dark"] .auth-docs-pop.auth-docs-pop--dark,
-  html:has(.al-root.onb-sand-dark) .auth-docs-pop.auth-docs-pop--dark,
-  .al-root.onb-sand-dark .auth-docs-pop.auth-docs-pop--dark {
-    background: var(--festag-black-popup, #171A24) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+  html[data-auth-landing][data-theme="dark"] .auth-docs-pop.auth-docs-pop--light,
+  html:has(.al-root.onb-sand-dark) .auth-docs-pop,
+  .al-root.onb-sand-dark .auth-docs-pop {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+    color: #1e1e20 !important;
   }
   html[data-auth-landing][data-theme="dark"] .auth-docs-mobile-host .festag-popup-backdrop,
   html:has(.al-root.onb-sand-dark) .auth-docs-mobile-host .festag-popup-backdrop {

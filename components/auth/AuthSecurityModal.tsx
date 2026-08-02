@@ -136,12 +136,12 @@ const SECURITY_CSS = `
     white-space: nowrap;
   }
   .auth-sec-panel {
-    width: min(100%, 520px);
-    border-radius: 12px;
-    border: 1px solid rgba(30, 30, 32, 0.10);
-    background: #FBF7EE;
-    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
-    padding: 30px 28px 24px;
+    width: min(100%, 480px);
+    border-radius: 6px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(15, 23, 42, 0.08);
+    padding: 28px 24px 22px;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -173,7 +173,7 @@ const SECURITY_CSS = `
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 26px;
     font-weight: 400;
-    line-height: 1.08;
+    line-height: 1.28;
     letter-spacing: var(--auth-tracking-display, 0.006em);
     color: #1e1e20;
   }
@@ -203,19 +203,19 @@ const SECURITY_CSS = `
   .auth-sec-cta {
     margin-top: 18px;
     width: 100%;
-    height: var(--festag-btn-height, 40px);
-    min-height: var(--festag-btn-height, 40px);
-    max-height: var(--festag-btn-height, 40px);
-    border-radius: var(--festag-auth-radius, 6px);
-    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    border-radius: 6px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #ffffff;
+    color: #1e1e20;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 400;
     letter-spacing: var(--auth-tracking, 0.01em);
     cursor: pointer;
@@ -227,17 +227,17 @@ const SECURITY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-sec-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
+    background: #fafafa;
+    border-color: rgba(30, 30, 32, 0.08);
+    color: #1e1e20;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .auth-sec-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: #f5f5f6;
+    border-color: rgba(30, 30, 32, 0.08);
+    color: #1e1e20;
+    box-shadow: none;
   }
 
   @media (max-width: 768px) {
@@ -250,14 +250,15 @@ const SECURITY_CSS = `
       width: 100%;
       max-width: 100%;
       max-height: min(92dvh, 820px);
-      border-radius: var(--festag-sheet-radius, 14px) var(--festag-sheet-radius, 14px) 0 0;
+      border-radius: 14px 14px 0 0;
       border-bottom: none;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
       isolation: isolate;
+      background: #FFFFFF;
       background-clip: padding-box;
       box-shadow:
-        0 -1px 2px rgba(0, 0, 0, 0.09),
-        0 -24px 56px -20px rgba(15, 23, 42, 0.28);
+        0 -1px 2px rgba(0, 0, 0, 0.06),
+        0 -12px 32px -16px rgba(15, 23, 42, 0.16);
       opacity: 0;
       transform: translate3d(0, 100%, 0);
       transition:
@@ -284,22 +285,22 @@ const SECURITY_CSS = `
     #auth-security-title {
       margin: 4px 0 18px;
       font-size: 26px;
-      line-height: 1.08;
+      line-height: 1.22;
     }
     .auth-sec-body {
       gap: 16px;
     }
     .auth-sec-body p {
       font-size: 16px;
-      line-height: 1.62;
+      line-height: 1.55;
     }
     .auth-sec-cta {
       margin-top: 18px;
-      height: var(--festag-btn-height, 44px);
-      min-height: var(--festag-btn-height, 44px);
-      max-height: var(--festag-btn-height, 44px);
-      border-radius: var(--festag-auth-radius, 6px);
-      font-size: 14px;
+      height: 46px;
+      min-height: 46px;
+      max-height: 46px;
+      border-radius: 6px;
+      font-size: 14.5px;
       letter-spacing: var(--auth-tracking, 0.01em);
       flex-shrink: 0;
     }
@@ -407,10 +408,22 @@ const SECURITY_CSS = `
   .auth-sec-backdrop[data-theme="light"] .auth-sec-panel,
   html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
   html[data-theme="dark"] .auth-sec-backdrop[data-theme="light"] .auth-sec-panel {
-    background: #FBF7EE !important;
-    border: 1px solid rgba(30, 30, 32, 0.10) !important;
-    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(15, 23, 42, 0.08) !important;
+    border-radius: 6px !important;
     color-scheme: light;
+  }
+  @media (max-width: 768px) {
+    .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+    .auth-sec-backdrop[data-theme="light"] .auth-sec-panel,
+    html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+    html[data-theme="dark"] .auth-sec-backdrop[data-theme="light"] .auth-sec-panel {
+      border-radius: 14px 14px 0 0 !important;
+      box-shadow:
+        0 -1px 2px rgba(0, 0, 0, 0.06),
+        0 -12px 32px -16px rgba(15, 23, 42, 0.16) !important;
+    }
   }
   .auth-sec-backdrop[data-theme="read"] .auth-sec-panel h2,
   .auth-sec-backdrop[data-theme="light"] .auth-sec-panel h2,

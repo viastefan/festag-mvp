@@ -81,18 +81,21 @@ function GWord({
     return () => window.clearTimeout(t)
   }, [instant, settled, index])
   return (
-    <span
-      className={`al-gword${settled || instant ? ' al-gword--settled' : ''}`}
-      style={{ ['--i' as string]: index }}
-    >
+    <>
       <span
-        className={`al-gword-inner${tone === 'muted' ? ' al-hero-gray' : ' al-gword-lead'}`}
-        onAnimationEnd={() => setSettled(true)}
+        className={`al-gword${settled || instant ? ' al-gword--settled' : ''}`}
+        style={{ ['--i' as string]: index }}
       >
-        {word}
-        {trailingSpace ? '\u00A0' : ''}
+        <span
+          className={`al-gword-inner${tone === 'muted' ? ' al-hero-gray' : ' al-gword-lead'}`}
+          onAnimationEnd={() => setSettled(true)}
+        >
+          {word}
+        </span>
       </span>
-    </span>
+      {/* Space lives outside the clip box — keeps every word metric identical. */}
+      {trailingSpace ? ' ' : null}
+    </>
   )
 }
 
@@ -159,46 +162,60 @@ export const AUTH_GLASSY_HERO_CSS = `
     font-weight: 400;
     letter-spacing: var(--auth-tracking-display, 0.006em);
     text-align: left;
+    /* Same line box as .al-title-display — words must not invent a second height. */
+    line-height: var(--al-hero-display-lh, 1.15) !important;
   }
   .al-glassy-hero-line {
     display: block;
+    line-height: inherit;
   }
+  /*
+   * Word rise clip — optically flat baseline.
+   * No asymmetric padding / negative margins (those made words sit unevenly).
+   * vertical-align: top → every word shares the same top edge of the line.
+   * Height = parent line-height so “dein” can’t sit lower than “Erstelle”.
+   */
   .al-gword {
     display: inline-block;
-    /* Clip mask for word-rise — room for Aeonik descenders (g/y/p/q). */
     overflow: hidden;
-    vertical-align: baseline;
-    padding-top: 0.08em;
-    padding-bottom: 0.52em;
-    margin-top: -0.08em;
-    margin-bottom: -0.44em;
+    vertical-align: top;
+    height: var(--al-hero-display-lh, 1.15em);
+    line-height: var(--al-hero-display-lh, 1.15em);
+    padding: 0;
+    margin: 0;
   }
-  /* After the rise settles, never keep a clip mask on descenders. */
+  /* Keep metrics forever. Unclip only enough for Aeonik descenders without shifting the box. */
   .al-gword.al-gword--settled {
     overflow: visible;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-top: 0;
-    margin-bottom: 0;
+  }
+  .al-gword.al-gword--settled .al-gword-inner {
+    will-change: auto;
+    animation: none;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: none;
   }
   .al-gword-inner {
     display: inline-block;
-    will-change: transform, filter, opacity;
+    height: var(--al-hero-display-lh, 1.15em);
+    line-height: var(--al-hero-display-lh, 1.15em);
+    vertical-align: top;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
     animation: alGwordIn .58s cubic-bezier(.16, 1, .3, 1) both;
     animation-delay: calc(var(--i, 0) * 32ms);
   }
-  /* Instant / soft handoff — no rise mask, so never clip descenders. */
+  /* Instant / soft handoff — same metrics, no rise. */
   .al-glassy-hero--instant .al-gword,
   .al-root.al-soft-mode .al-gword,
   .al-root.al-soft-enter .al-gword {
     overflow: visible;
-    padding-bottom: 0;
-    margin-bottom: 0;
   }
   .al-glassy-hero--instant .al-gword-inner {
     animation: none !important;
     opacity: 1 !important;
-    transform: none !important;
+    transform: translate3d(0, 0, 0) !important;
     filter: none !important;
   }
   /* Soft login ↔ register: panel stays; never re-run glassy / assemble / fade.
@@ -238,16 +255,15 @@ export const AUTH_GLASSY_HERO_CSS = `
   .al-root.onb-sand-dark .al-gword-inner.al-hero-gray {
     color: #8B909A;
   }
+  /* Rise only — no blur (blur caused subpixel “schief” settle on some GPUs). */
   @keyframes alGwordIn {
     from {
       opacity: 0;
-      transform: translate3d(0, 118%, 0);
-      filter: blur(10px);
+      transform: translate3d(0, 110%, 0);
     }
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
-      filter: blur(0);
     }
   }
 
@@ -263,12 +279,10 @@ export const AUTH_GLASSY_HERO_CSS = `
     from {
       opacity: 0;
       transform: translate3d(0, 10px, 0);
-      filter: blur(6px);
     }
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
-      filter: blur(0);
     }
   }
 
@@ -281,12 +295,10 @@ export const AUTH_GLASSY_HERO_CSS = `
     from {
       opacity: 0;
       transform: translate3d(0, 14px, 0);
-      filter: blur(8px);
     }
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
-      filter: blur(0);
     }
   }
 

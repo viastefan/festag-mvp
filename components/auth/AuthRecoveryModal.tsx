@@ -585,9 +585,7 @@ export default function AuthRecoveryModal({
     title = 'Wir senden dir einen sicheren Link, mit dem du dein Passwort zurücksetzen kannst.'
     body = (
       <div className="auth-rec-body">
-        <p>Gib die Adresse ein, mit der du dich bei Festag anmeldest.</p>
         <label className="auth-rec-field">
-          <span>E-Mail</span>
           <input
             type="email"
             autoComplete="email"
@@ -597,6 +595,7 @@ export default function AuthRecoveryModal({
               void refreshOptionsFromEmail(e.target.value)
             }}
             placeholder="name@firma.de"
+            aria-label="E-Mail"
             disabled={busy}
           />
         </label>
@@ -625,11 +624,7 @@ export default function AuthRecoveryModal({
     )
   } else if (view === 'resetDone') {
     title = 'Der sichere Link zum Zurücksetzen deines Passworts ist unterwegs.'
-    body = (
-      <div className="auth-rec-body">
-        <p>Prüfe dein Postfach — der Link ist zeitlich begrenzt.</p>
-      </div>
-    )
+    body = null
     actions = (
       <div className="auth-rec-actions">
         <button className="auth-rec-cta" type="button" onClick={onClose}>
@@ -641,26 +636,25 @@ export default function AuthRecoveryModal({
     title = 'Wir senden dir einen neuen PIN an die hinterlegte E-Mail-Adresse.'
     body = (
       <div className="auth-rec-body">
-        <p>Benutzername und Konto-E-Mail müssen zum Dev-Zugang passen.</p>
         <label className="auth-rec-field">
-          <span>Benutzername</span>
           <input
             type="text"
             autoComplete="username"
             value={username}
             onChange={e => setUsername(e.target.value)}
-            placeholder="dein.benutzername"
+            placeholder="Benutzername"
+            aria-label="Benutzername"
             disabled={busy}
           />
         </label>
         <label className="auth-rec-field">
-          <span>E-Mail am Konto</span>
           <input
             type="email"
             autoComplete="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="name@firma.de"
+            aria-label="E-Mail am Konto"
             disabled={busy}
           />
         </label>
@@ -688,18 +682,13 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'pinDone') {
-    title = 'Dein neuer PIN ist unterwegs.'
-    body = (
-      <div className="auth-rec-body">
-        <p>
-          {pinKind === 'invite'
-            ? 'Neuer Einladungs-PIN folgt per E-Mail — danach Workspace einrichten.'
-            : pinKind === 'personal'
-              ? 'Neuer persönlicher PIN folgt per E-Mail — der bisherige wird ungültig.'
-              : 'Neuer PIN folgt per E-Mail, wenn ein Konto existiert.'}
-        </p>
-      </div>
-    )
+    title =
+      pinKind === 'invite'
+        ? 'Neuer Einladungs-PIN folgt per E-Mail — danach Workspace einrichten.'
+        : pinKind === 'personal'
+          ? 'Neuer persönlicher PIN folgt per E-Mail — der bisherige wird ungültig.'
+          : 'Neuer PIN folgt per E-Mail, wenn ein Konto existiert.'
+    body = null
     actions = (
       <div className="auth-rec-actions">
         <button className="auth-rec-cta" type="button" onClick={onClose}>
@@ -711,7 +700,6 @@ export default function AuthRecoveryModal({
     title = 'Beschreibe kurz dein Anliegen, damit wir dir beim Zugang helfen können.'
     body = (
       <div className="auth-rec-body">
-        <p>Schreib kurz, woran es scheitert — wir melden uns schnellstmöglich.</p>
         {supportAlreadySent ? (
           <p className="auth-rec-note">
             Anfrage gesendet. {formatRetryLabel(supportRetryAfterSec)} Passwort- oder PIN-Reset bleibt weiterhin möglich.
@@ -719,18 +707,17 @@ export default function AuthRecoveryModal({
         ) : (
           <>
             <label className="auth-rec-field">
-              <span>Kontakt-E-Mail</span>
               <input
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="name@firma.de"
+                aria-label="Kontakt-E-Mail"
                 disabled={busy || supportAlreadySent}
               />
             </label>
             <label className="auth-rec-field">
-              <span>Nachricht</span>
               <textarea
                 ref={messageRef}
                 value={message}
@@ -740,6 +727,7 @@ export default function AuthRecoveryModal({
                 }}
                 rows={3}
                 placeholder="Ich brauche Hilfe beim Login…"
+                aria-label="Nachricht"
                 disabled={busy || supportAlreadySent}
               />
             </label>
@@ -775,14 +763,8 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else {
-    title = 'Deine Anfrage ist bei uns eingegangen.'
-    body = (
-      <div className="auth-rec-body">
-        <p>
-          Wir prüfen den Zugang und melden uns bei dir. Support ist für 10 Minuten gesperrt — Reset bleibt offen.
-        </p>
-      </div>
-    )
+    title = 'Deine Anfrage ist bei uns eingegangen. Wir melden uns — Reset bleibt offen.'
+    body = null
     actions = (
       <div className="auth-rec-actions">
         <button className="auth-rec-cta" type="button" onClick={onClose}>
@@ -854,13 +836,13 @@ const RECOVERY_CSS = `
     opacity: 1;
   }
   .auth-rec-panel {
-    width: min(100%, 480px);
+    width: min(100%, 440px);
     max-height: min(92dvh, 720px);
-    border-radius: 12px;
-    border: 1px solid rgba(30, 30, 32, 0.10);
-    background: #FBF7EE;
-    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
-    padding: 30px 28px 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(15, 23, 42, 0.08);
+    padding: 28px 24px 22px;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -889,11 +871,11 @@ const RECOVERY_CSS = `
   .auth-rec-title,
   #auth-recovery-title,
   .auth-rec-panel h2.auth-rec-title {
-    margin: 0 0 18px;
+    margin: 0 0 20px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 26px !important;
     font-weight: 400 !important;
-    line-height: 1.08 !important;
+    line-height: 1.28 !important;
     letter-spacing: var(--auth-tracking-display, 0.006em);
     color: #1e1e20;
   }
@@ -919,8 +901,8 @@ const RECOVERY_CSS = `
   .auth-rec-body {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding-inline: 3px;
+    gap: 12px;
+    padding-inline: 0;
     box-sizing: border-box;
   }
   .auth-rec-body p {
@@ -928,64 +910,66 @@ const RECOVERY_CSS = `
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 15.5px;
     font-weight: 400;
-    line-height: 1.65;
+    line-height: 1.55;
     letter-spacing: var(--ls-body, 0.021em);
     color: var(--al-text-muted, #8891a0) !important;
   }
   .auth-rec-note {
-    padding: 10px 12px;
-    border-radius: var(--festag-auth-radius, 6px);
-    background: rgba(30, 30, 32, 0.05);
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: rgba(30, 30, 32, 0.04);
     color: var(--al-text-muted, #8891a0) !important;
-    font-size: 12.5px !important;
+    font-size: 14px !important;
     line-height: 1.45 !important;
-    letter-spacing: var(--festag-tracking-small, 0.015em) !important;
+    letter-spacing: 0.01em !important;
     text-align: left;
   }
   .auth-rec-field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0;
   }
+  /* No tiny field labels — placeholders + aria-label only */
   .auth-rec-field span {
-    font-size: 13px;
-    font-weight:400;
-    letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: var(--al-text-muted, #8891a0) !important;
+    display: none !important;
   }
   .auth-rec-field input,
   .auth-rec-field textarea {
     width: 100%;
-    border-radius: var(--festag-input-radius, 8px);
-    border: 2px solid var(--festag-input-border, rgba(30, 30, 32, 0.15));
+    border-radius: 8px;
+    border: 2px solid rgba(30, 30, 32, 0.15);
     background: transparent;
     color: #1e1e20;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 400;
     outline: none;
-    padding: 0 16px;
+    padding: 0 14px;
     resize: none;
-    height: 40px;
-    min-height: 40px;
+    height: 46px;
+    min-height: 46px;
     box-sizing: border-box;
     box-shadow: none;
     transition: border-color 0.18s ease;
   }
   .auth-rec-field input::placeholder,
   .auth-rec-field textarea::placeholder {
-    color: var(--festag-input-placeholder, #8891a0);
-    -webkit-text-fill-color: var(--festag-input-placeholder, #8891a0);
+    color: #8891a0;
+    -webkit-text-fill-color: #8891a0;
     opacity: 1;
   }
   .auth-rec-field textarea {
-    border-radius: var(--festag-input-radius, 8px);
+    border-radius: 8px;
     height: auto;
     min-height: 96px;
     max-height: 280px;
-    padding: 12px 16px;
+    padding: 12px 14px;
     line-height: 1.45;
     overflow-y: hidden;
+  }
+  .auth-rec-field input:hover,
+  .auth-rec-field textarea:hover {
+    border-color: rgba(30, 30, 32, 0.20);
   }
   .auth-rec-field input:not(:placeholder-shown),
   .auth-rec-field textarea:not(:placeholder-shown),
@@ -993,22 +977,22 @@ const RECOVERY_CSS = `
   .auth-rec-field textarea:focus {
     background: transparent;
     border-width: 2px;
-    border-color: var(--festag-input-border-focus, #7E889F);
+    border-color: #7E889F;
     box-shadow: none;
   }
   .auth-rec-error {
     margin: 0;
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.4;
     color: #c62828;
   }
   .auth-rec-disabled-hint {
     margin: -2px 0 0;
     text-align: left;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
-    letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: #8a8a90;
+    letter-spacing: 0.01em;
+    color: #8891a0;
   }
   .auth-rec-actions {
     margin-top: 8px;
@@ -1031,19 +1015,19 @@ const RECOVERY_CSS = `
   }
   .auth-rec-cta {
     width: 100%;
-    height: var(--festag-btn-height, 40px);
-    min-height: var(--festag-btn-height, 40px);
-    max-height: var(--festag-btn-height, 40px);
-    border-radius: var(--festag-auth-radius, 6px);
-    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    border-radius: 6px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #ffffff;
+    color: #1e1e20;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight:400;
     letter-spacing: var(--auth-tracking, 0.01em);
     cursor: pointer;
@@ -1055,17 +1039,17 @@ const RECOVERY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
+    background: #fafafa;
+    border-color: rgba(30, 30, 32, 0.08);
+    color: #1e1e20;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: #f5f5f6;
+    border-color: rgba(30, 30, 32, 0.08);
+    color: #1e1e20;
+    box-shadow: none;
   }
   .auth-rec-cta:disabled,
   .auth-rec-cta--disabled {
@@ -1079,20 +1063,20 @@ const RECOVERY_CSS = `
   }
   /* Ghost = same soft white CTA as Login SSO / Weiter idle. */
   .auth-rec-cta--ghost {
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    border-color: var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
-    box-shadow: var(--festag-btn-dark-shadow, none);
+    background: #ffffff;
+    color: #1e1e20;
+    border-color: rgba(30, 30, 32, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.10));
-    color: var(--festag-btn-dark-fg-hover, #1e1e20);
+    background: #fafafa;
+    border-color: rgba(30, 30, 32, 0.08);
+    color: #1e1e20;
   }
   .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-active, #1e1e20);
+    background: #f5f5f6;
+    border-color: rgba(30, 30, 32, 0.08);
+    color: #1e1e20;
   }
   .auth-rec-cta--ghost.auth-rec-cta--disabled,
   .auth-rec-cta--ghost:disabled {
@@ -1129,14 +1113,15 @@ const RECOVERY_CSS = `
       width: 100%;
       max-width: 100%;
       max-height: min(92dvh, 820px);
-      border-radius: var(--festag-sheet-radius, 14px) var(--festag-sheet-radius, 14px) 0 0;
+      border-radius: 14px 14px 0 0;
       border-bottom: none;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
       isolation: isolate;
+      background: #FFFFFF;
       background-clip: padding-box;
       box-shadow:
-        0 -1px 2px rgba(0, 0, 0, 0.09),
-        0 -24px 56px -20px rgba(15, 23, 42, 0.28);
+        0 -1px 2px rgba(0, 0, 0, 0.06),
+        0 -12px 32px -16px rgba(15, 23, 42, 0.16);
       opacity: 0;
       transform: translate3d(0, 100%, 0);
       transition:
@@ -1164,23 +1149,23 @@ const RECOVERY_CSS = `
     .auth-rec-panel h2.auth-rec-title {
       margin: 4px 0 18px;
       font-size: 26px !important;
-      line-height: 1.08 !important;
+      line-height: 1.22 !important;
     }
     .auth-rec-body p {
       font-size: 16px;
-      line-height: 1.62;
+      line-height: 1.55;
     }
     .auth-rec-field input {
-      height: 42px;
-      min-height: 42px;
-      font-size: 14px;
+      height: 46px;
+      min-height: 46px;
+      font-size: 15px;
     }
     .auth-rec-cta {
-      height: var(--festag-btn-height, 44px);
-      min-height: var(--festag-btn-height, 44px);
-      max-height: var(--festag-btn-height, 44px);
-      border-radius: var(--festag-auth-radius, 6px);
-      font-size: 14px;
+      height: 46px;
+      min-height: 46px;
+      max-height: 46px;
+      border-radius: 6px;
+      font-size: 14.5px;
       letter-spacing: var(--auth-tracking, 0.01em);
     }
     .auth-rec-outside-hint {
@@ -1368,16 +1353,29 @@ const RECOVERY_CSS = `
     }
   }
 
-  /* Read / ivory lock — never inherit html Night while auth canvas is sand */
+  /* Read / light lock — button-white panels on auth (never ivory sand) */
   html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
   html[data-theme="classic-dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
   html[data-theme="dark"] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel,
   .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
   .auth-rec-backdrop[data-theme="light"] .auth-rec-panel {
-    background: #FBF7EE !important;
-    border: 1px solid rgba(30, 30, 32, 0.10) !important;
-    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(15, 23, 42, 0.08) !important;
+    border-radius: 6px !important;
     color-scheme: light;
+  }
+  @media (max-width: 768px) {
+    html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+    html[data-theme="classic-dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+    html[data-theme="dark"] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel,
+    .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+    .auth-rec-backdrop[data-theme="light"] .auth-rec-panel {
+      border-radius: 14px 14px 0 0 !important;
+      box-shadow:
+        0 -1px 2px rgba(0, 0, 0, 0.06),
+        0 -12px 32px -16px rgba(15, 23, 42, 0.16) !important;
+    }
   }
   html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel h2.auth-rec-title,
   html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] #auth-recovery-title,

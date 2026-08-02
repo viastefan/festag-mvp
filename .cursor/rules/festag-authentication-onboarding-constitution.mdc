@@ -1,5 +1,5 @@
 ---
-description: Festag Authentication & Onboarding Constitution — one auth flow; Workspace Name → Auth → Name → Position → Workspace → Connect → Done → Preparing → Dashboard
+description: Festag Authentication & Onboarding Constitution — one auth flow; Workspace Name → Auth → Profile → Workspace → Connect → Preparing → Dashboard
 alwaysApply: true
 ---
 
@@ -27,45 +27,43 @@ No dead ends. No confusing decisions. No unnecessary questions.
 
 ```
 Launch → Workspace Name → Auth → Email verify (if needed)
-  → Name (optional) → Position (optional) → Workspace wählen
-  → Quellen (optional) → Abschluss → /preparing → Adaptive Dashboard
+  → Profile (name required + optional Position/Unternehmen/Ziel)
+  → Workspace wählen → Quellen (optional) → /preparing → Adaptive Dashboard
 ```
 
 Invitees: Invite → Auth → Name → Avatar → Preparing → invited Project (`/join`).  
 Returning: Auth → Preparing → Dashboard (skip Build onboarding).
 
-Team invites are **not** a Build step — invite later from the workspace / project.
+No Abschluss card — Connect continues into `/preparing` lyrics.  
+Team invites are **not** a Build step.
 
 ## Screens (law)
 
-1. **Workspace Name** — live availability, never block typing; Continue + Google/Apple/Email  
-2. **Auth** — Google · Apple · Email · SSO (Business+); only required fields  
-3. **Name** — skippable; useful for invites / email; editable in Settings  
-4. **Position** — optional free text; soft signal, never Client|Dev product fork  
-5. **Workspace wählen** — Developer · Agentur · Startup · Unternehmen (editable later)  
-6. **Quellen** — all optional; recommend first; no OAuth theater  
-7. **Abschluss** — calm ready → `/preparing`  
+1. **Workspace Name** — live availability; Continue + Google/Apple/Email  
+2. **Auth** — Google · Apple · Email · SSO (Business+)  
+3. **Profile** — Name required (login-style field). Optional taller field: Position, Unternehmen, Ziel. No Tagro UI; backend still classifies. Weiter after name.  
+4. **Workspace wählen** — Developer · Agentur · Startup · Unternehmen (cards with support line; H1 stays stable)  
+5. **Quellen** — optional; stable H1; then `/preparing`  
 
 ## Background Tagro
 
-Infer modules, integrations ranking, dashboard from position + workspace choice + sources.  
-Never lock Workspace Type without user agency (user picks; Settings can change).
+Silent classify from profile context + workspace choice + sources. Never lock type without user agency.
 
 ## Settings SSOT
 
-Name · Position · Sources · Type · Modules must exist in Settings — never re-ask.
+Name · Position/context · Sources · Type · Modules — never re-ask.
 
 ## Design
 
-One continuous auth experience (Primary Dusk foundation). Same layout language, spacing, interactions. Improve details — never redesign the foundation.
+One continuous auth experience. Login-identical inputs on Profile. Glassy H1 must not change box metrics on settle (no line-height jank).
 
 ## Gate
 
 1. Dual Client|Dev|Admin auth? → stop  
 2. Dead end or unnecessary question? → remove  
 3. Creating Workspace — or registration theater?  
-4. Position as soft signal — never a product fork?  
+4. Position/context as soft signal — never a product fork?  
 5. Settings already hold this data?  
-6. Continuous dusk chrome?
+6. Continuous dusk chrome? Glassy settle stable?
 
 If registration theater or split auth — redesign toward this constitution.

@@ -39,20 +39,18 @@ Launch App
   → Workspace Name
   → Authentication
   → Email Verification (if required)
-  → Name (optional — Settings later; useful for invites / email)
-  → Position (optional)
-  → Workspace wählen (Developer · Agentur · Startup · Unternehmen)
+  → Profile (Name required + optional Position/Unternehmen/Ziel)
+  → Workspace wählen
   → Quellen verbinden (optional)
-  → Abschluss
   → Workspace Initialization (/preparing)
   → Adaptive Dashboard
 ```
 
-This order must remain consistent.
+This order must remain consistent. No separate Abschluss card — Connect continues into `/preparing`.
 
-**Code:** `lib/platform/onboarding.ts` (`AUTH_ONBOARDING_FLOW`, `BUILD_PROJECTS_STEPS`) · `lib/platform/master-onboarding.ts`
+**Code:** `lib/platform/onboarding.ts` · `lib/platform/master-onboarding.ts`
 
-Team invites are **not** part of Build onboarding — invite from the workspace / first project when there is something to share.
+Team invites are **not** part of Build onboarding.
 
 ---
 
