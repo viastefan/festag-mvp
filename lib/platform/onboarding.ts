@@ -64,7 +64,7 @@ export const ONBOARDING_ROUTES = {
 
 export const WORKSPACE_INIT_LINES = MASTER_PREP_LINES
 
-export const WORKSPACE_INIT_DURATION_MS = { min: 800, max: 1500 } as const
+export const WORKSPACE_INIT_DURATION_MS = { min: 1600, max: 2800 } as const
 
 export function isInviteOnboarding(path: OnboardingPath): boolean {
   return path === 'join_project'

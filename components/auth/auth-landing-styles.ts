@@ -1875,70 +1875,6 @@ const AUTH_LANDING_STYLES_BASE = `
           white-space:nowrap;
           flex-shrink:0;
         }
-        /* Test footer CTA — Build onboarding preview (login + register, also mobile). */
-        .al-test-jumps {
-          position:fixed;
-          left:50%;
-          transform:translateX(-50%);
-          right:auto;
-          bottom:max(14px, env(safe-area-inset-bottom, 0px));
-          z-index:40;
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          gap:8px;
-          margin:0;
-          padding:0;
-          pointer-events:none;
-        }
-        .al-test-jumps a,
-        .al-test-jumps .al-test-jumps-btn {
-          pointer-events:auto;
-          font-family:'Aeonik', var(--font-aeonik-face, Inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:12.5px;
-          font-weight:400;
-          letter-spacing:0.01em;
-          line-height:1;
-          color:rgba(245, 245, 247, 0.88);
-          text-decoration:none;
-          white-space:nowrap;
-          height:36px;
-          padding:0 14px;
-          border-radius:8px;
-          border:1px solid rgba(255, 255, 255, 0.10);
-          background:rgba(186, 194, 210, 0.10);
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          transition:color .15s ease, background .15s ease, border-color .15s ease;
-        }
-        .al-test-jumps a:hover,
-        .al-test-jumps .al-test-jumps-btn:hover {
-          color:#F5F5F7;
-          background:rgba(186, 194, 210, 0.14);
-          border-color:rgba(255, 255, 255, 0.14);
-        }
-        .al-root:not([data-theme="dark"]) .al-test-jumps a,
-        .al-root:not([data-theme="dark"]) .al-test-jumps .al-test-jumps-btn {
-          color:#1e1e20;
-          background:#ffffff;
-          border:1px solid rgba(30, 30, 32, 0.08);
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-        }
-        .al-root:not([data-theme="dark"]) .al-test-jumps a:hover,
-        .al-root:not([data-theme="dark"]) .al-test-jumps .al-test-jumps-btn:hover {
-          background:#fafafa;
-          border-color:rgba(30, 30, 32, 0.08);
-        }
-        @media (max-width: 768px) {
-          .al-test-jumps {
-            left:50%;
-            right:auto;
-            transform:translateX(-50%);
-            bottom:max(12px, env(safe-area-inset-bottom, 0px));
-          }
-        }
         .al-footer-logo {
           display:none;
         }
@@ -3226,10 +3162,6 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-links--desktop,
           .al-footer-center--desktop {
             display:none !important;
-          }
-          /* Keep test Onboarding CTA visible in the mobile footer. */
-          .al-test-jumps {
-            display:inline-flex !important;
           }
           .al-footer-mobile-bar {
             display:flex !important;

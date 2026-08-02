@@ -246,7 +246,12 @@ function MasterBuildInner() {
         setUserId(user.id)
 
         const fromProvider = providerProfileFields(user)
-        const providerName = fromProvider.fullName || ''
+        const providerName = (fromProvider.fullName || '').trim()
+        const emailLocal = (user.email || '').split('@')[0]?.trim().toLowerCase() || ''
+        const looksLikeEmailLocal = (name: string) => {
+          const n = name.trim().toLowerCase()
+          return Boolean(n && emailLocal && n === emailLocal)
+        }
 
         const resumeStep = normalizeMasterStep(
           new URLSearchParams(window.location.search).get('step'),
@@ -314,20 +319,31 @@ function MasterBuildInner() {
           return
         }
 
+        /* Never seed Name from email local-part — leave empty for the user to type. */
+        const profileName = String(prof?.full_name || '').trim()
         const resolvedName =
-          String(prof?.full_name || '').trim() || providerName.trim()
+          (profileName && !looksLikeEmailLocal(profileName) ? profileName : '') ||
+          (providerName && !looksLikeEmailLocal(providerName) ? providerName : '')
         if (resolvedName) {
           setFullName(resolvedName)
           void supabase.from('profiles').upsert(
             {
               id: user.id,
               full_name: resolvedName,
-              ...(fromProvider.firstName ? { first_name: fromProvider.firstName } : {}),
+              ...(fromProvider.firstName && !looksLikeEmailLocal(fromProvider.firstName)
+                ? { first_name: fromProvider.firstName }
+                : {}),
               ...(fromProvider.avatarUrl ? { avatar_url: fromProvider.avatarUrl } : {}),
               updated_at: new Date().toISOString(),
             },
             { onConflict: 'id' },
           )
+        } else if (profileName && looksLikeEmailLocal(profileName)) {
+          setFullName('')
+          void supabase
+            .from('profiles')
+            .update({ full_name: null, updated_at: new Date().toISOString() })
+            .eq('id', user.id)
         }
 
         const existingAvatar =

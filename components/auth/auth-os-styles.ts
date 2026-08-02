@@ -1291,9 +1291,6 @@ export const AUTH_OS_STYLES = `
   .al-root.al-root--gate .al-auth-switch {
     margin-top: 12px !important;
   }
-  .al-root.al-root--gate .al-test-jumps {
-    z-index: 5;
-  }
 
   @media (min-width: 769px) {
     .al-root.al-root--gate,
@@ -1506,11 +1503,6 @@ export const AUTH_OS_STYLES = `
     .al-root.al-root--gate .al-account-hint {
       font-size: 13px !important;
       text-align: center;
-    }
-    .al-root.al-root--gate .al-test-jumps {
-      bottom: max(12px, env(safe-area-inset-bottom, 0px));
-      left: 14px;
-      z-index: 6;
     }
   }
 

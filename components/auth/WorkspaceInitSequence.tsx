@@ -6,16 +6,16 @@ import { WORKSPACE_INIT_DURATION_MS } from '@/lib/platform/onboarding'
 
 export const WORKSPACE_INIT_LINES = MASTER_PREP_LINES
 
-/** Canvas PreparingStage dwell per lyric line. */
-export const WORKSPACE_INIT_STEP_MS = 1050
-export const WORKSPACE_INIT_HOLD_MS = 420
+/** Canvas PreparingStage dwell per lyric line — calm, a touch slower. */
+export const WORKSPACE_INIT_STEP_MS = 480
+export const WORKSPACE_INIT_HOLD_MS = 600
 
 export function workspaceInitDuration(lineCount: number = MASTER_PREP_LINES.length) {
-  /* Cap total toward constitution 800–1500ms when lines are short; otherwise canvas tempo. */
   const canvasTotal = lineCount * WORKSPACE_INIT_STEP_MS + WORKSPACE_INIT_HOLD_MS
-  const target =
-    (WORKSPACE_INIT_DURATION_MS.min + WORKSPACE_INIT_DURATION_MS.max) / 2
-  return Math.min(canvasTotal, Math.max(target, lineCount * 320 + WORKSPACE_INIT_HOLD_MS))
+  return Math.min(
+    Math.max(canvasTotal, WORKSPACE_INIT_DURATION_MS.min),
+    WORKSPACE_INIT_DURATION_MS.max,
+  )
 }
 
 type Props = {
@@ -25,7 +25,7 @@ type Props = {
 }
 
 /**
- * Prepare screen — left-aligned lyrics (Festag mark); footer navi = loading bar.
+ * Prepare screen — centered lyrics; footer navi = loading bar.
  */
 export default function WorkspaceInitSequence({ active, onComplete, className = '' }: Props) {
   const lines = useMemo(() => [...MASTER_PREP_LINES], [])
@@ -77,7 +77,7 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
       setLit(0)
       return
     }
-    const fillMs = Math.min(stepMs * 0.72, Math.max(320, total * 20))
+    const fillMs = Math.min(stepMs * 0.88, Math.max(420, total * 28))
     fillStart.current = performance.now()
     setLit(0)
     cancelAnimationFrame(raf.current)
@@ -210,13 +210,13 @@ const INIT_CSS = /* css */ `
     max-width: 340px;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
     padding: 56px 28px 120px;
     box-sizing: border-box;
     min-height: 0;
-    margin: 0;
-    align-self: flex-start;
+    margin: 0 auto;
+    align-self: center;
   }
   .ws-init-lyrics {
     position: relative;
@@ -241,10 +241,10 @@ const INIT_CSS = /* css */ `
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: left;
-    transition: opacity .58s cubic-bezier(.22,1,.36,1), transform .58s cubic-bezier(.22,1,.36,1);
+    text-align: center;
+    transition: opacity .72s cubic-bezier(.22,1,.36,1), transform .72s cubic-bezier(.22,1,.36,1);
   }
-  .ws-init-line span { color: inherit; transition: color .07s linear; }
+  .ws-init-line span { color: inherit; transition: color .1s linear; }
   .ws-init-line span.is-lit { color: rgba(26, 25, 23, 0.92); }
 
   .ws-init-footer {

@@ -268,10 +268,16 @@ export default function ProfileStage({
               ref={nameRef}
               className="mob-profile-input"
               type="text"
+              name="festag-profile-display-name"
               value={fullName}
               onChange={(e) => onNameChange(e.target.value)}
               placeholder="Dein Name"
-              autoComplete="name"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="words"
+              spellCheck={false}
+              data-1p-ignore
+              data-lpignore="true"
               maxLength={80}
               aria-label="Dein Name"
               onFocus={() => setNameFocused(true)}

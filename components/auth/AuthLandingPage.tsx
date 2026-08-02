@@ -1960,21 +1960,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
       </div>
 
-      {/* Dev/test — footer jump into Build onboarding (also on mobile). */}
-      <div className="al-test-jumps" aria-label="Test Onboarding">
-        <a
-          className="al-test-jumps-btn"
-          href="/onboarding?preview=1"
-          onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
-          onClick={e => {
-            e.preventDefault()
-            navigateWithFade('/onboarding?preview=1', { enter: 'client', delayMs: 200 })
-          }}
-        >
-          Onboarding mobil
-        </a>
-      </div>
-
       <AuthRecoveryModal
         open={supportOpen}
         onClose={() => setSupportOpen(false)}
