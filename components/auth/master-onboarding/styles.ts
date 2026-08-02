@@ -634,14 +634,16 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     height: auto;
     padding: 12px 14px;
     border-radius: 10px;
-    border: 1px solid var(--mob-card-border) !important;
+    /* Idle matches Name field soft stroke; selected = Name focus stroke */
+    border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15) !important;
     background: #FFFFFF;
     box-shadow: none;
     color: var(--mob-ink);
     cursor: pointer;
     box-sizing: border-box;
     transition:
-      border-color .2s ease,
+      border-color .18s ease,
+      border-width .18s ease,
       background .2s ease,
       opacity .2s ease;
     animation: mobCardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
@@ -649,11 +651,12 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     opacity: 0.92;
   }
   .mob-ws-card:hover:not(.is-on) {
-    border-color: var(--mob-card-border-hover) !important;
+    border-color: rgba(30, 30, 32, 0.20) !important;
     opacity: 1;
   }
   .mob-ws-card.is-on {
-    border-color: rgba(30, 30, 32, 0.18) !important;
+    border-width: var(--mob-stroke-focus, 2.5px) !important;
+    border-color: var(--mob-primary, #7E889F) !important;
     background: var(--mob-card-bg-on);
     opacity: 1;
   }
@@ -661,6 +664,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-ws-card:focus-visible {
     outline: none !important;
     box-shadow: none !important;
+  }
+  .mob-ws-card.is-on:focus,
+  .mob-ws-card.is-on:focus-visible {
+    border-width: var(--mob-stroke-focus, 2.5px) !important;
+    border-color: var(--mob-primary, #7E889F) !important;
   }
   .mob-ws-card-copy {
     flex: 1;
@@ -788,21 +796,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-continue-btn.is-ready:hover:not(:disabled) {
     background: #fafafa;
+    border: 1px solid rgba(30, 30, 32, 0.08);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
+  /* White CTAs — never Name-field focus stroke (no blue thick ring) */
   .mob-continue-btn.is-ready:focus,
   .mob-continue-btn.is-ready:focus-visible {
-    outline: none;
-    border-width: var(--mob-stroke-focus, 2.5px);
-    border-style: solid;
-    border-color: var(--mob-primary, #7E889F);
-    box-shadow: none;
+    outline: none !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
   }
   .mob-continue-btn.is-ready:active:not(:disabled) {
     background: #f5f5f6;
-    box-shadow: none;
-    border-width: var(--mob-stroke-focus, 2.5px);
-    border-color: var(--mob-primary, #7E889F);
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: none !important;
   }
   .mob-continue-btn-label {
     flex: 1;
@@ -1154,7 +1161,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: var(--mob-control-h, 46px);
     padding: 0 12px 0 12px;
     border-radius: 8px;
-    border: 1px solid var(--mob-card-border) !important;
+    /* Same idle/selected strokes as Name field + Workspace cards */
+    border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15) !important;
     background: #FFFFFF;
     box-shadow: none;
     flex-shrink: 0;
@@ -1165,15 +1173,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     text-align: left;
     margin: 0;
     color: var(--mob-ink);
-    transition: border-color .22s ease, background .22s ease, opacity .22s ease;
+    transition:
+      border-color .18s ease,
+      border-width .18s ease,
+      background .22s ease,
+      opacity .22s ease;
     animation: mobCardIn 0.56s cubic-bezier(.22, 1, .36, 1) both;
     animation-delay: calc(0.08s + var(--i, 0) * 38ms);
   }
   .mob-connect-row:hover:not(.is-on) {
-    border-color: var(--mob-card-border-hover) !important;
+    border-color: rgba(30, 30, 32, 0.20) !important;
   }
   .mob-connect-row.is-on {
-    border-color: rgba(30, 30, 32, 0.16) !important;
+    border-width: var(--mob-stroke-focus, 2.5px) !important;
+    border-color: var(--mob-primary, #7E889F) !important;
     background: #FFFFFF;
     box-shadow: none !important;
   }
@@ -1184,7 +1197,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-connect-row.is-on:focus,
   .mob-connect-row.is-on:focus-visible {
-    border-color: var(--mob-primary) !important;
+    border-width: var(--mob-stroke-focus, 2.5px) !important;
+    border-color: var(--mob-primary, #7E889F) !important;
   }
   .mob-connect-icon {
     width: 28px;
