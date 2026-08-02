@@ -13,6 +13,14 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '3.1',
+    title: 'Build Onboarding v2',
+    summary:
+      'Name → Position? → Workspace wählen → Quellen? → Abschluss. Invites later. Workspace Context NL no longer the Build spine.',
+    date: '2026-08-02',
+    memoryIds: ['build-onboarding-v2'],
+  },
+  {
     version: '3.0',
     title: 'Festag OS Constitution v1.0',
     summary:

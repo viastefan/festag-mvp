@@ -145,7 +145,11 @@ export default function ConnectStage({
         Weitere Quellen ergänzt du später im Execution Panel.
       </p>
       <div className="mob-continue-slot">
-        <ContinueHint show={connected.size > 0} onContinue={onContinue} />
+        <ContinueHint
+          show
+          label={connected.size > 0 ? 'Weiter' : 'Überspringen'}
+          onContinue={onContinue}
+        />
       </div>
     </>
   )

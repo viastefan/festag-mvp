@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * /onboarding — Master Build flow (canvas 1:1 mobile).
- * Intent → Clarify? → Connect → /preparing
+ * /onboarding — Build flow
+ * Name → Position? → Workspace → Connect → Done → /preparing
  * Auth identity stays on /login|/register. Invitees use /join.
  */
 
@@ -44,18 +44,19 @@ import type { IntegrationId } from '@/lib/platform/integrations'
 import {
   MASTER_FLOW_DOTS,
   type MasterBuildStep,
-  type ClarifyOption,
-  blueprintTypeToWorkspaceType,
+  type WorkspaceOption,
   clarifyToWorkspaceType,
   normalizeMasterStep,
 } from '@/lib/platform/master-onboarding'
 import { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import { MASTER_ONBOARDING_STYLES } from '@/components/auth/master-onboarding/styles'
-import IntentStage from '@/components/auth/master-onboarding/IntentStage'
-import ClarifyStage from '@/components/auth/master-onboarding/ClarifyStage'
+import NameStage from '@/components/auth/master-onboarding/NameStage'
+import PositionStage from '@/components/auth/master-onboarding/PositionStage'
+import WorkspaceStage from '@/components/auth/master-onboarding/WorkspaceStage'
 import ConnectStage, {
   rankConnectSources,
 } from '@/components/auth/master-onboarding/ConnectStage'
+import DoneStage from '@/components/auth/master-onboarding/DoneStage'
 
 export default function MasterBuildOnboardingPage() {
   return (
@@ -85,13 +86,11 @@ function MasterBuildInner() {
   const [booting, setBooting] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [workspaceId, setWorkspaceId] = useState<string | null>(null)
-  const [current, setCurrent] = useState<MasterBuildStep>('intent')
-  const [visitedClarify, setVisitedClarify] = useState(false)
-  const [intentText, setIntentText] = useState('')
-  const [intentReady, setIntentReady] = useState(false)
-  const [clarifyPick, setClarifyPick] = useState('')
-  const [connected, setConnected] = useState<Set<string>>(() => new Set())
+  const [current, setCurrent] = useState<MasterBuildStep>('name')
   const [fullName, setFullName] = useState('')
+  const [position, setPosition] = useState('')
+  const [workspacePick, setWorkspacePick] = useState('')
+  const [connected, setConnected] = useState<Set<string>>(() => new Set())
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
@@ -100,9 +99,14 @@ function MasterBuildInner() {
   const swipeRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
   const mobRootRef = useRef<HTMLDivElement | null>(null)
 
+  const contextSeed = useMemo(() => {
+    const bits = [position.trim(), workspacePick.trim()].filter(Boolean)
+    return bits.join(' — ')
+  }, [position, workspacePick])
+
   const blueprint: TagroBlueprint = useMemo(
-    () => analyzeIntent(intentText, clarifyPick),
-    [intentText, clarifyPick],
+    () => analyzeIntent(contextSeed, workspacePick),
+    [contextSeed, workspacePick],
   )
 
   const sources = useMemo(
@@ -111,10 +115,9 @@ function MasterBuildInner() {
   )
 
   const flowSteps = MASTER_FLOW_DOTS
-
   const flowActive = Math.max(
     0,
-    flowSteps.findIndex((d) => d.id === (current === 'clarify' ? 'clarify' : current)),
+    flowSteps.findIndex((d) => d.id === current),
   )
 
   useLayoutEffect(() => {
@@ -122,14 +125,13 @@ function MasterBuildInner() {
     if (consumePanelEnter() === 'client') setPanelEnter(true)
   }, [])
 
-  /* Soft enter after register — wait until boot opacity unlocks, then clear the class. */
   useEffect(() => {
     if (booting || !panelEnter) return
     const t = window.setTimeout(() => setPanelEnter(false), 360)
     return () => window.clearTimeout(t)
   }, [booting, panelEnter])
 
-  /* Mobile: keep intent field above the keyboard (iOS fixed + visualViewport). */
+  /* Mobile: keep focused field above the keyboard (iOS fixed + visualViewport). */
   useEffect(() => {
     if (typeof window === 'undefined') return
     const mq = window.matchMedia('(max-width: 768px)')
@@ -153,26 +155,26 @@ function MasterBuildInner() {
         return
       }
       const active = document.activeElement
-      const isIntentField =
+      const isField =
         active instanceof HTMLElement &&
         el.contains(active) &&
-        active.classList.contains('mob-intent-area')
-      if (!isIntentField) {
+        (active.classList.contains('mob-intent-area') ||
+          active.classList.contains('mob-intent-input'))
+      if (!isField) {
         clearShift()
         return
       }
 
-      const current = parseFloat(el.style.getPropertyValue('--mob-kb-shift') || '0') || 0
+      const currentShift = parseFloat(el.style.getPropertyValue('--mob-kb-shift') || '0') || 0
       const rect = active.getBoundingClientRect()
       const visibleBottom = vv.offsetTop + vv.height
-      const naturalBottom = rect.bottom + current
+      const naturalBottom = rect.bottom + currentShift
       const overlap = naturalBottom + 20 - visibleBottom
       const shift = Math.max(0, Math.ceil(Math.max(vv.offsetTop, overlap)))
       const keyboardBand = Math.max(0, window.innerHeight - vv.height)
       const capped = Math.min(shift, Math.max(keyboardBand + vv.offsetTop, keyboardBand) + 56)
 
-      /* Ignore 1–2px jitter from visualViewport / layout feedback. */
-      if (Math.abs(capped - current) < 3) return
+      if (Math.abs(capped - currentShift) < 3) return
 
       el.style.setProperty('--mob-kb-shift', `${capped}px`)
       if (capped > 0) el.setAttribute('data-kb-open', '')
@@ -196,7 +198,8 @@ function MasterBuildInner() {
         const still =
           active instanceof HTMLElement &&
           root()?.contains(active) &&
-          active.classList.contains('mob-intent-area')
+          (active.classList.contains('mob-intent-area') ||
+            active.classList.contains('mob-intent-input'))
         if (!still) clearShift()
       }, 60)
     }
@@ -225,7 +228,6 @@ function MasterBuildInner() {
     ;(async () => {
       try {
         if (isPreview) {
-          /* Empty Ziel — only rotating gray examples + caret (no demo sentence). */
           setBooting(false)
           return
         }
@@ -238,7 +240,7 @@ function MasterBuildInner() {
           router.replace('/login')
           return
         }
-      if (cancelled) return
+        if (cancelled) return
         setUserId(user.id)
 
         const fromProvider = providerProfileFields(user)
@@ -286,10 +288,6 @@ function MasterBuildInner() {
         if (ownedWs?.id) setWorkspaceId(ownedWs.id)
         else if (memberWs?.workspace_id) setWorkspaceId(memberWs.workspace_id)
 
-        const existingProfile = readWorkspaceProfile(ownedWs?.metadata)
-        if (existingProfile?.context) setIntentText(existingProfile.context)
-        else if (prof?.dev_profile_facts) setIntentText(String(prof.dev_profile_facts))
-
         if (
           !ownedWs?.id &&
           (projectMember?.project_id || memberWs?.workspace_id) &&
@@ -330,13 +328,28 @@ function MasterBuildInner() {
           )
         }
 
+        const existingPos = String(prof?.position || '').trim()
+        if (existingPos) setPosition(existingPos)
+
+        const existingProfile = readWorkspaceProfile(ownedWs?.metadata)
+        const metaType = (ownedWs?.metadata as { workspace_type?: { value?: string } } | null)
+          ?.workspace_type?.value
+        if (metaType === 'agency') setWorkspacePick('Agentur')
+        else if (metaType === 'startup') setWorkspacePick('Startup')
+        else if (metaType === 'company') setWorkspacePick('Unternehmen')
+        else if (metaType === 'personal') setWorkspacePick('Developer')
+
         if (isResuming && resumeStep) {
           setCurrent(resumeStep)
-          if (resumeStep === 'clarify') setVisitedClarify(true)
+        } else if (resolvedName && !existingPos) {
+          /* Soft start: known name → Position */
+          setCurrent('position')
         }
 
+        void existingProfile
+
         if (cancelled) return
-      setBooting(false)
+        setBooting(false)
       } catch {
         if (!cancelled) setBooting(false)
       }
@@ -347,26 +360,24 @@ function MasterBuildInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const persistIntent = useCallback(
-    async (text: string, clarify: string): Promise<TagroBlueprint | null> => {
-      if (isPreview) return analyzeIntent(text, clarify)
+  const persistProfileAndWorkspace = useCallback(
+    async (opts?: { markStep?: string }): Promise<TagroBlueprint | null> => {
+      if (isPreview) return analyzeIntent(contextSeed, workspacePick)
       if (!userId) return null
-      const ctx = text.trim()
-      if (!ctx) {
-        setError('Bitte kurz beschreiben, woran du arbeitest.')
-        return null
-      }
-      const bp = analyzeIntent(ctx, clarify)
-      const inferred = inferWorkspaceUnderstanding(ctx)
-      const shortPosition =
-        inferred.role?.slice(0, 64) || inferred.companyType?.slice(0, 64) || ''
+
+      const bp = analyzeIntent(contextSeed, workspacePick)
+      const ctx =
+        contextSeed.trim() ||
+        (workspacePick ? `Workspace: ${workspacePick}` : '')
+      const inferred = ctx ? inferWorkspaceUnderstanding(ctx) : null
+      const shortPosition = position.trim().slice(0, 64)
 
       const { error: upsertError } = await supabase.from('profiles').upsert(
         {
           id: userId,
           ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
           ...(shortPosition ? { position: shortPosition } : {}),
-          dev_profile_facts: ctx,
+          ...(ctx ? { dev_profile_facts: ctx } : {}),
           ...(bp.intentSummary
             ? {
                 dev_profile_summary: `${bp.workspaceType}: ${bp.intentSummary}`.slice(0, 400),
@@ -403,19 +414,20 @@ function MasterBuildInner() {
         meta = (ws?.metadata as Record<string, unknown>) ?? {}
       }
 
-      if (wsId) {
-        let nextMeta = workspaceProfilePatch(meta, {
-          context: ctx,
-          inferred,
-          source: 'onboarding',
-        })
+      if (wsId && workspacePick) {
+        let nextMeta = meta
+        if (ctx && inferred) {
+          nextMeta = workspaceProfilePatch(nextMeta, {
+            context: ctx,
+            inferred,
+            source: 'onboarding',
+          })
+        }
         nextMeta = blueprintMetadataPatch(nextMeta, bp)
-        const type = clarify
-          ? clarifyToWorkspaceType(clarify)
-          : blueprintTypeToWorkspaceType(bp.workspaceType)
+        const type = clarifyToWorkspaceType(workspacePick)
         nextMeta = workspaceTypePatch(nextMeta, type, {
-          suggestedByTagro: true,
-          confirmed: Boolean(clarify) || bp.confidence >= 72,
+          suggestedByTagro: false,
+          confirmed: true,
         })
         const { error: wsErr } = await supabase
           .from('workspaces')
@@ -434,23 +446,34 @@ function MasterBuildInner() {
       await supabase.from('onboarding_state').upsert(
         {
           user_id: userId,
-          current_step: clarify ? 'clarify' : 'intent',
-          workspace_done: true,
+          current_step: opts?.markStep || current,
+          workspace_done: Boolean(workspacePick),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'user_id' },
       )
 
-      /* Also hit API for OKM seed consistency when persist=true */
-      void fetch('/api/onboarding/analyze-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: ctx, clarify, persist: true }),
-      }).catch(() => null)
+      if (ctx) {
+        void fetch('/api/onboarding/analyze-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: ctx, clarify: workspacePick, persist: true }),
+        }).catch(() => null)
+      }
 
       return bp
     },
-    [fullName, isPreview, supabase, userId, workspaceId],
+    [
+      contextSeed,
+      current,
+      fullName,
+      isPreview,
+      position,
+      supabase,
+      userId,
+      workspaceId,
+      workspacePick,
+    ],
   )
 
   const finishToPreparing = useCallback(async () => {
@@ -458,7 +481,7 @@ function MasterBuildInner() {
     setSubmitting(true)
     setError('')
     try {
-      const bp = await persistIntent(intentText, clarifyPick)
+      const bp = await persistProfileAndWorkspace({ markStep: 'done' })
       if (!bp && !isPreview) {
         setSubmitting(false)
         return
@@ -467,11 +490,11 @@ function MasterBuildInner() {
       if (!isPreview && userId) {
         await supabase.from('onboarding_state').upsert(
           {
-          user_id: userId,
-            current_step: 'connect',
-          workspace_done: true,
+            user_id: userId,
+            current_step: 'done',
+            workspace_done: true,
             completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           },
           { onConflict: 'user_id' },
         )
@@ -489,64 +512,71 @@ function MasterBuildInner() {
       setError('Etwas ist schiefgelaufen. Bitte erneut versuchen.')
       setSubmitting(false)
     }
-  }, [
-    clarifyPick,
-    intentText,
-    isPreview,
-    persistIntent,
-    submitting,
-    supabase,
-    userId,
-  ])
+  }, [isPreview, persistProfileAndWorkspace, submitting, supabase, userId])
+
+  const goNameNext = useCallback(async () => {
+    setError('')
+    if (!isPreview && userId && fullName.trim()) {
+      await supabase.from('profiles').upsert(
+        {
+          id: userId,
+          full_name: fullName.trim(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' },
+      )
+    }
+    setCurrent('position')
+  }, [fullName, isPreview, supabase, userId])
+
+  const goPositionNext = useCallback(async () => {
+    setError('')
+    if (!isPreview && userId && position.trim()) {
+      await supabase.from('profiles').upsert(
+        {
+          id: userId,
+          ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
+          position: position.trim().slice(0, 64),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' },
+      )
+    }
+    setCurrent('workspace')
+  }, [fullName, isPreview, position, supabase, userId])
+
+  const goWorkspaceNext = useCallback(async () => {
+    if (!workspacePick) return
+    setError('')
+    const ok = await persistProfileAndWorkspace({ markStep: 'workspace' })
+    if (!ok && !isPreview) return
+    setCurrent('connect')
+  }, [isPreview, persistProfileAndWorkspace, workspacePick])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Enter' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
       const el = e.target as HTMLElement | null
-      if (el && (el.tagName === 'TEXTAREA' || el.isContentEditable)) return
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return
 
-      const canClarify = current === 'clarify' && Boolean(clarifyPick)
-      const canConnect = current === 'connect' && !submitting && connected.size > 0
-      if (!canClarify && !canConnect) return
-
-      e.preventDefault()
-      if (canClarify) {
-        void (async () => {
-          setError('')
-          const ok = await persistIntent(intentText, clarifyPick)
-          if (!ok && !isPreview) return
-          setCurrent('connect')
-        })()
+      if (current === 'workspace' && workspacePick) {
+        e.preventDefault()
+        void goWorkspaceNext()
         return
       }
-      void finishToPreparing()
+      if (current === 'connect' && !submitting) {
+        e.preventDefault()
+        setCurrent('done')
+        return
+      }
+      if (current === 'done' && !submitting) {
+        e.preventDefault()
+        void finishToPreparing()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [
-    current,
-    submitting,
-    clarifyPick,
-    connected.size,
-    finishToPreparing,
-    intentText,
-    isPreview,
-    persistIntent,
-  ])
-
-  const goAfterIntent = useCallback(async () => {
-    if (!intentReady) return
-    setError('')
-    const bp = await persistIntent(intentText, clarifyPick)
-    if (!bp && !isPreview) return
-    /* Always land on Developer / Agentur / … — never skip to Quellen. */
-    setVisitedClarify(true)
-    setCurrent('clarify')
-  }, [clarifyPick, intentReady, intentText, isPreview, persistIntent])
-
-  const onClarifyPick = useCallback((opt: ClarifyOption) => {
-    setClarifyPick(opt)
-  }, [])
+  }, [current, finishToPreparing, goWorkspaceNext, submitting, workspacePick])
 
   const toggleSource = useCallback(
     async (id: IntegrationId) => {
@@ -570,8 +600,8 @@ function MasterBuildInner() {
           })
           if (linkError) {
             console.warn('[onboarding] github link', linkError.message)
-            }
-          } catch {
+          }
+        } catch {
           /* noop */
         }
       }
@@ -579,58 +609,61 @@ function MasterBuildInner() {
     [connected, isPreview, supabase.auth],
   )
 
+  const stepOrder: MasterBuildStep[] = ['name', 'position', 'workspace', 'connect', 'done']
+
   function canSwipeForward() {
-    if (current === 'intent') return intentReady
-    if (current === 'clarify') return Boolean(clarifyPick)
-    if (current === 'connect') return !submitting && connected.size > 0
+    if (current === 'name') return true
+    if (current === 'position') return true
+    if (current === 'workspace') return Boolean(workspacePick)
+    if (current === 'connect') return !submitting
+    if (current === 'done') return !submitting
     return false
   }
 
   function advance() {
-    if (current === 'intent') {
-      void goAfterIntent()
+    if (current === 'name') {
+      void goNameNext()
       return
     }
-    if (current === 'clarify' && clarifyPick) {
-      void (async () => {
-        const ok = await persistIntent(intentText, clarifyPick)
-        if (!ok && !isPreview) return
-        setCurrent('connect')
-      })()
+    if (current === 'position') {
+      void goPositionNext()
       return
     }
-    if (current === 'connect') void finishToPreparing()
+    if (current === 'workspace') {
+      void goWorkspaceNext()
+      return
+    }
+    if (current === 'connect') {
+      setCurrent('done')
+      return
+    }
+    if (current === 'done') void finishToPreparing()
   }
 
   function retreat() {
-    if (current === 'connect') {
-      setCurrent('clarify')
-      return
-    }
-    if (current === 'clarify') setCurrent('intent')
+    const idx = stepOrder.indexOf(current)
+    if (idx > 0) setCurrent(stepOrder[idx - 1])
   }
 
   function onFlowDotClick(id: (typeof MASTER_FLOW_DOTS)[number]['id']) {
-    if (id === 'preparing') {
-      if (submitting) return
-      /* Only finish from Connect with at least one source — never skip settle. */
-      if (current === 'connect' && connected.size > 0) {
-        void finishToPreparing()
-      }
+    if (id === 'done') {
+      if (current === 'connect' || current === 'done') setCurrent('done')
       return
     }
-    if (id === 'intent') {
-      setCurrent('intent')
+    if (id === 'name') {
+      setCurrent('name')
       return
     }
-    if (id === 'clarify') {
-      if (!intentReady) return
-      setVisitedClarify(true)
-      setCurrent('clarify')
+    if (id === 'position') {
+      setCurrent('position')
+      return
+    }
+    if (id === 'workspace') {
+      setCurrent('workspace')
       return
     }
     if (id === 'connect') {
-      if (!intentReady || !clarifyPick) return
+      if (!workspacePick) return
       setCurrent('connect')
     }
   }
@@ -660,8 +693,10 @@ function MasterBuildInner() {
     if (!start || !t || start.locked !== true) return
     const dx = t.clientX - start.x
     if (dx < -56 && canSwipeForward()) advance()
-    else if (dx > 56 && current !== 'intent') retreat()
+    else if (dx > 56 && current !== 'name') retreat()
   }
+
+  const showBack = current !== 'name'
 
   return (
     <>
@@ -683,7 +718,6 @@ function MasterBuildInner() {
         onTouchEnd={onTouchEnd}
       >
         <header className="mob-header">
-          {/* Mark → Login (auth chrome prep so the canvas never flashes). */}
           <a
             href="/login"
             className="al-wordmark mob-wordmark mob-wordmark--link"
@@ -713,24 +747,35 @@ function MasterBuildInner() {
           <div className="mob-stage" key={current}>
             {error ? <p className="mob-error">{error}</p> : null}
 
-            {current === 'intent' ? (
-              <IntentStage
-                value={intentText}
+            {current === 'name' ? (
+              <NameStage
+                value={fullName}
                 onChange={(v) => {
-                  setIntentText(v)
+                  setFullName(v)
                   if (error) setError('')
                 }}
-                onReadyChange={setIntentReady}
-                onAdvance={() => void goAfterIntent()}
+                onAdvance={() => void goNameNext()}
+                onSkip={() => setCurrent('position')}
               />
             ) : null}
 
-            {current === 'clarify' ? (
-              <ClarifyStage
-                value={clarifyPick}
-                onPick={onClarifyPick}
-                onContinue={advance}
-                blueprint={blueprint}
+            {current === 'position' ? (
+              <PositionStage
+                value={position}
+                onChange={(v) => {
+                  setPosition(v)
+                  if (error) setError('')
+                }}
+                onAdvance={() => void goPositionNext()}
+                onSkip={() => setCurrent('workspace')}
+              />
+            ) : null}
+
+            {current === 'workspace' ? (
+              <WorkspaceStage
+                value={workspacePick}
+                onPick={(opt: WorkspaceOption) => setWorkspacePick(opt)}
+                onContinue={() => void goWorkspaceNext()}
               />
             ) : null}
 
@@ -739,16 +784,23 @@ function MasterBuildInner() {
                 sources={sources}
                 connected={connected}
                 onToggle={(id) => void toggleSource(id)}
-                onContinue={advance}
+                onContinue={() => setCurrent('done')}
               />
             ) : null}
-                              </div>
-                      </div>
+
+            {current === 'done' ? (
+              <DoneStage
+                submitting={submitting}
+                onContinue={() => void finishToPreparing()}
+              />
+            ) : null}
+          </div>
+        </div>
 
         <footer className="mob-nav" aria-label="Onboarding Navigation">
           <div className="mob-nav-inner">
             <div className="mob-dots-wrap">
-              {current === 'clarify' || current === 'connect' ? (
+              {showBack ? (
                 <button
                   type="button"
                   className="mob-nav-back"
@@ -779,7 +831,7 @@ function MasterBuildInner() {
                       className={`mob-dot no-min-tap${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
                       aria-label={dot.label}
                       aria-current={active ? 'step' : undefined}
-                      disabled={submitting && dot.id === 'preparing'}
+                      disabled={submitting && dot.id === 'done'}
                       onClick={() => onFlowDotClick(dot.id)}
                     />
                   )
@@ -789,7 +841,7 @@ function MasterBuildInner() {
             </div>
           </div>
         </footer>
-          </div>
+      </div>
     </>
   )
 }

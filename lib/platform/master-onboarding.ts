@@ -1,40 +1,57 @@
 /**
  * Master Auth → Onboarding flow (canvas SSOT).
- * Identity (login/register) → Intent → Clarify? → Connect → Preparing → Dashboard
+ * Identity (login/register) → Name → Position? → Workspace → Connect → Done → Preparing → Dashboard
  */
 
 import type { WorkspaceType } from '@/lib/platform/workspace'
 import type { IntegrationId } from '@/lib/platform/integrations'
 import { INTEGRATION_CATALOG } from '@/lib/platform/integrations'
 
-export const MASTER_BUILD_STEPS = ['intent', 'clarify', 'connect'] as const
+export const MASTER_BUILD_STEPS = [
+  'name',
+  'position',
+  'workspace',
+  'connect',
+  'done',
+] as const
 export type MasterBuildStep = (typeof MASTER_BUILD_STEPS)[number]
 
-/** Progress beads — auth is separate; preparing is /preparing. */
+/** Progress beads — auth is separate; preparing is /preparing after Done. */
 export const MASTER_FLOW_DOTS = [
-  { id: 'intent' as const, label: 'Ziel' },
-  { id: 'clarify' as const, label: 'Passt das?' },
+  { id: 'name' as const, label: 'Name' },
+  { id: 'position' as const, label: 'Position' },
+  { id: 'workspace' as const, label: 'Workspace' },
   { id: 'connect' as const, label: 'Quellen' },
-  { id: 'preparing' as const, label: 'Prepare' },
+  { id: 'done' as const, label: 'Bereit' },
 ]
 
-export const GOAL_EXAMPLES = [
-  'Ich entwickle Websites für Kunden.',
-  'Ich suche einen Freelancer für mein Startup.',
-  'Ich organisiere Kundenprojekte zentral.',
-  'Ich arbeite allein an einer SaaS.',
-  'Wir sind eine Agentur mit acht Mitarbeitern.',
-  'Ich suche einen Entwickler für mein Projekt.',
-  'Ich möchte GitHub und Supabase anbinden.',
-  'Ich leite ein Produktteam.',
-  'Ich brauche klare Statusberichte für Kunden.',
-  'Ich baue meine erste App.',
+/** Soft rotating examples for the name field. */
+export const NAME_EXAMPLES = [
+  'Stefan Dirnberger',
+  'Alex Müller',
+  'Sam Rivera',
+  'Jordan Lee',
 ] as const
 
-export const CLARIFY_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
-export type ClarifyOption = (typeof CLARIFY_OPTIONS)[number]
+/** Soft rotating examples for optional position. */
+export const POSITION_EXAMPLES = [
+  'Gründer',
+  'Product Lead',
+  'Client',
+  'Developer',
+  'Designer',
+  'Agentur-Inhaber',
+] as const
 
-export const CLARIFY_HEADER: Record<ClarifyOption, { lead: string; muted: string }> = {
+export const WORKSPACE_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
+export type WorkspaceOption = (typeof WORKSPACE_OPTIONS)[number]
+
+/** @deprecated Use WORKSPACE_OPTIONS */
+export const CLARIFY_OPTIONS = WORKSPACE_OPTIONS
+/** @deprecated Use WorkspaceOption */
+export type ClarifyOption = WorkspaceOption
+
+export const WORKSPACE_HEADER: Record<WorkspaceOption, { lead: string; muted: string }> = {
   Developer: {
     lead: 'Selbst entwickeln.',
     muted: 'Execution Panel zuerst — nah am Code.',
@@ -53,10 +70,18 @@ export const CLARIFY_HEADER: Record<ClarifyOption, { lead: string; muted: string
   },
 }
 
-/** Connect step — idle + per-source headers (short, like Clarify). */
+/** @deprecated Use WORKSPACE_HEADER */
+export const CLARIFY_HEADER = WORKSPACE_HEADER
+
+export const WORKSPACE_HEADER_IDLE = {
+  lead: 'Welchen Workspace?',
+  muted: 'Wähle die Einordnung — du kannst sie später ändern.',
+} as const
+
+/** Connect step — idle + per-source headers (short, like Workspace). */
 export const CONNECT_HEADER_IDLE = {
   lead: 'Quellen verbinden.',
-  muted: 'Was nutzt du schon?',
+  muted: 'Was nutzt du schon? Alles optional.',
 } as const
 
 export const CONNECT_HEADERS: Partial<Record<IntegrationId, { lead: string; muted: string }>> = {
@@ -105,6 +130,11 @@ export function connectHeaderFor(
   }
 }
 
+export const DONE_HEADER = {
+  lead: 'Alles bereit.',
+  muted: 'Tagro richtet deinen Workspace ein.',
+} as const
+
 /** Preparing lyrics — matches master canvas PreparingStage. */
 export const MASTER_PREP_LINES = [
   'Blueprint anwenden…',
@@ -114,9 +144,15 @@ export const MASTER_PREP_LINES = [
   'Gleich soweit…',
 ] as const
 
-export const INTENT_MIN_CHARS = 8
-/** Pause after typing before Weiter appears / intent is “ready”. */
-export const INTENT_SETTLE_MS = 3000
+export const NAME_MIN_CHARS = 2
+export const POSITION_MIN_CHARS = 2
+/** Pause after typing before Weiter appears. */
+export const FIELD_SETTLE_MS = 600
+
+/** @deprecated Intent step removed — kept for resume aliases */
+export const GOAL_EXAMPLES = POSITION_EXAMPLES
+export const INTENT_MIN_CHARS = NAME_MIN_CHARS
+export const INTENT_SETTLE_MS = FIELD_SETTLE_MS
 
 export function clarifyToWorkspaceType(pick: string): WorkspaceType {
   switch (pick) {
@@ -162,9 +198,17 @@ export function integrationNameToId(name: string): IntegrationId | null {
 
 export function normalizeMasterStep(raw: string | null): MasterBuildStep | null {
   if (!raw) return null
-  if (raw === 'ziel' || raw === 'kontext' || raw === 'context' || raw === 'intent') return 'intent'
-  if (raw === 'passt' || raw === 'clarify' || raw === 'typ' || raw === 'type' || raw === 'workspace_type') {
-    return 'clarify'
+  if (raw === 'name' || raw === 'profil' || raw === 'profile' || raw === 'about') return 'name'
+  if (raw === 'position' || raw === 'rolle' || raw === 'role' || raw === 'titel') return 'position'
+  if (
+    raw === 'workspace' ||
+    raw === 'passt' ||
+    raw === 'clarify' ||
+    raw === 'typ' ||
+    raw === 'type' ||
+    raw === 'workspace_type'
+  ) {
+    return 'workspace'
   }
   if (
     raw === 'quellen' ||
@@ -176,8 +220,9 @@ export function normalizeMasterStep(raw: string | null): MasterBuildStep | null 
   ) {
     return 'connect'
   }
+  if (raw === 'done' || raw === 'abschluss' || raw === 'ready' || raw === 'bereit') return 'done'
+  /* Legacy intent → start at name */
+  if (raw === 'ziel' || raw === 'kontext' || raw === 'context' || raw === 'intent') return 'name'
   if ((MASTER_BUILD_STEPS as readonly string[]).includes(raw)) return raw as MasterBuildStep
-  /* Legacy name step → start at intent */
-  if (raw === 'name' || raw === 'profil' || raw === 'profile' || raw === 'about') return 'intent'
   return null
 }

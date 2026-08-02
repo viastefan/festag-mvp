@@ -43,7 +43,7 @@ Code anchor: `lib/platform/roles.ts`.
 
 ## Two onboarding paths only
 
-1. **Build Projects** — name → Workspace Context (one NL question) → optional integrations. Tagro infers the rest.
+1. **Build Projects** — Name → Position? → Workspace wählen → Quellen? → Abschluss. Tagro personalizes from those signals.
 2. **Join Project** — invitees: name, avatar, done → open invited project immediately.
 
 No Client vs Developer onboarding. No forced setup for invitees. Code: `lib/platform/onboarding.ts`.

@@ -27,10 +27,11 @@ export const AUTH_ONBOARDING_FLOW = [
   'workspace_name',
   'authentication',
   'email_verification', // only when required
-  'intent',
-  'clarify', // only when Tagro confidence is low
-  'integrations',
-  'tagro_analysis', // background / silent
+  'name',
+  'position', // optional
+  'workspace',
+  'connect', // optional
+  'done',
   'preparing',
   'dashboard',
 ] as const
@@ -39,12 +40,14 @@ export type AuthOnboardingFlowStep = (typeof AUTH_ONBOARDING_FLOW)[number]
 
 /**
  * In-app Build steps after Workspace Name + Auth.
- * Matches master canvas: Ziel → Passt das? → Quellen.
+ * Name → Position? → Workspace → Quellen → Abschluss
  */
 export const BUILD_PROJECTS_STEPS = [
-  'intent',
-  'clarify',
+  'name',
+  'position',
+  'workspace',
   'connect',
+  'done',
 ] as const
 
 export type BuildProjectsStep = (typeof BUILD_PROJECTS_STEPS)[number]

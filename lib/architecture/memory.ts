@@ -65,8 +65,24 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     decision: 'Workspace Context als einziges Kontextfeld · Focus Areas optional',
     date: '2026-07-15',
     version: '2.1',
-    status: 'locked',
+    status: 'superseded',
     related: ['docs/festag-identity-constitution.md', 'lib/platform/identity.ts'],
+  },
+  {
+    id: 'build-onboarding-v2',
+    question: 'Warum Name → Position → Workspace → Quellen → Abschluss statt Workspace Context?',
+    answer:
+      'Build soll schnell und menschlich sein: Name (für E-Mails/Einladungen, skippable), optionale Position als soft signal, Workspace-Wahl, optionale Quellen, ruhiger Abschluss. Kein Invite-Gate im Onboarding. Kein Client|Dev-Fork über Position.',
+    decision:
+      'AUTH_ONBOARDING_FLOW: name → position? → workspace → connect? → done → preparing · invites later',
+    date: '2026-08-02',
+    version: '3.1',
+    status: 'locked',
+    related: [
+      'docs/festag-authentication-onboarding-constitution.md',
+      'lib/platform/master-onboarding.ts',
+      'lib/platform/onboarding.ts',
+    ],
   },
   {
     id: 'workspace-intelligence',

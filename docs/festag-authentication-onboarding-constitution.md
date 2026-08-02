@@ -39,18 +39,20 @@ Launch App
   → Workspace Name
   → Authentication
   → Email Verification (if required)
-  → Workspace Context
-  → Focus Areas (optional)
-  → Connect Workspace (optional)
-  → Tagro Analysis
-  → Workspace Type Suggestion
-  → Workspace Initialization
+  → Name (optional — Settings later; useful for invites / email)
+  → Position (optional)
+  → Workspace wählen (Developer · Agentur · Startup · Unternehmen)
+  → Quellen verbinden (optional)
+  → Abschluss
+  → Workspace Initialization (/preparing)
   → Adaptive Dashboard
 ```
 
 This order must remain consistent.
 
-**Code:** `lib/platform/onboarding.ts` (`AUTH_ONBOARDING_FLOW`, `BUILD_PROJECTS_STEPS`)
+**Code:** `lib/platform/onboarding.ts` (`AUTH_ONBOARDING_FLOW`, `BUILD_PROJECTS_STEPS`) · `lib/platform/master-onboarding.ts`
+
+Team invites are **not** part of Build onboarding — invite from the workspace / first project when there is something to share.
 
 ---
 
@@ -80,44 +82,49 @@ Never ask unnecessary questions. Only collect what is required.
 
 ---
 
-## Screen 3 — Workspace Context
+## Screen 3 — Name
 
-Replace traditional profile setup.
+Account profile — calm, skippable.
 
-**Headline:** Tell Tagro about your work.
-
-**Support:** Describe what you work on. Tagro will personalize your Workspace automatically.
-
-- Single multiline input  
-- Animated rotating placeholders (calm fade — no typing flash)  
-- Everything entered becomes **Workspace Profile**  
-- Never ask users to repeat this later  
-
-Canonical examples live in `lib/platform/identity.ts` (`WORKSPACE_CONTEXT_EXAMPLES`).
+| | |
+|---|---|
+| Field | Full name |
+| Required | No — Skip always; editable in Settings |
+| Why | Invites, welcome emails, team clarity |
+| CTA | Weiter when typed · Überspringen when empty |
 
 ---
 
-## Screen 4 — Focus Areas
+## Screen 4 — Position
 
-**Optional. Multiple selection. Never required. Skip always possible.**
+Soft signal — not a Client|Developer product fork.
 
-Suggested areas:
-
-Development · Design · Product · Marketing · Operations · Finance · Sales · Strategy · Legal · Support · Research
-
-**Purpose:** Help Tagro personalize the first dashboard — soft preferences, not role classification.
-
-**Code:** `FOCUS_AREA_IDS` in `lib/platform/workspace.ts`
+| | |
+|---|---|
+| Field | Free-text position |
+| Required | No — Skip always |
+| Examples | Gründer · Product Lead · Client · Developer |
+| Purpose | Soft personalization for Tagro — never locks roles or apps |
 
 ---
 
-## Screen 5 — Connect your Workspace
+## Screen 5 — Workspace wählen
 
-Everything optional.
+User picks the workspace orientation. Always editable later in Settings.
 
-**Headline:** Connect your Workspace.
+Options: Developer · Agentur · Startup · Unternehmen
 
-**Support:** Connect the tools you already use. Tagro becomes smarter automatically.
+Maps to workspace type (`personal` · `agency` · `startup` · `company`). Belongs to the **Workspace** — never the Account.
+
+---
+
+## Screen 6 — Quellen verbinden
+
+Everything optional. Skip always available.
+
+**Headline:** Quellen verbinden.
+
+**Support:** Was nutzt du schon?
 
 Never explain OAuth. Never expose technical language.
 
@@ -127,25 +134,29 @@ Categories (catalog): Development · Design · Business · Calendar · Finance �
 
 ---
 
+## Screen 7 — Abschluss
+
+Calm ready screen. Primary CTA enters `/preparing` then the adaptive dashboard.
+
+No invite gate. No extra forms.
+
+---
+
 ## Background process
 
-While the user completes onboarding, Tagro continuously builds understanding.
+While the user completes onboarding, Tagro builds understanding from name, position, workspace choice, and sources.
 
-**Infer:** Industry · Team · Responsibilities · Workspace Type · Project Types · Suggested Modules · Suggested Integrations · Suggested Dashboard
+**Infer:** Modules · Suggested Integrations ranking · Dashboard priorities
 
-Never ask if AI confidence is high. Ask only when confidence is low.
-
-**Infer first. Ask second.**
+Never lock Workspace Type without user agency — the user picks; Settings can change it.
 
 ---
 
 ## Workspace Type
 
-Tagro suggests. Never automatically locks.
+User picks during Build (Developer · Agentur · Startup · Unternehmen). Always editable later.
 
-Examples: Agency · Startup · Company · Studio · Personal · Enterprise
-
-User confirms or changes. Always editable later.
+Maps to: Personal · Agency · Startup · Company (+ Studio · Enterprise later).
 
 **Belongs to the Workspace — never to the Account.**
 
@@ -169,7 +180,7 @@ Do not fake loading. Animate only real initialization work.
 
 Tagro generates the first experience. Never one fixed dashboard.
 
-Modules depend on: Workspace Context · Focus Areas · Connected Sources · Workspace Type · Permissions · Project Role.
+Modules depend on: Position · Connected Sources · Workspace Type · Permissions · Project Role.
 
 Possible modules: Projects · Tagro · Calendar · Reports · Tasks · Clients · Files · Analytics · Billing · Integrations · Recommendations
 
@@ -204,7 +215,7 @@ Authentication → Workspace Initialization → Adaptive Dashboard
 
 Everything collected during onboarding must already exist in Settings:
 
-Workspace Name · Workspace Profile · Focus Areas · Connected Sources · Workspace Type · Modules
+Workspace Name · Name · Position · Connected Sources · Workspace Type · Modules
 
 Users never enter the same information twice.
 
@@ -238,7 +249,7 @@ The Workspace should already feel alive before the first project.
 1. Is this still **one** auth flow — no Client|Developer|Admin fork?  
 2. Does every screen lead naturally into the next (no dead ends)?  
 3. Is the user creating a **Workspace**, not filling a registration form?  
-4. Does Tagro infer before asking?  
+4. Is Position a soft signal — never a product fork?  
 5. Does Settings already hold anything collected here?  
 6. Does visual language stay continuous with the dusk onboarding foundation?
 

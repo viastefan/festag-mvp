@@ -6,10 +6,12 @@ import EnterReturnIcon from '@/components/auth/master-onboarding/EnterReturnIcon
 export default function ContinueHint({
   className = 'mob-continue-btn',
   show = true,
+  label = 'Weiter',
   onContinue,
 }: {
   className?: string
   show?: boolean
+  label?: string
   onContinue?: () => void
 }) {
   if (!show) return null
@@ -19,7 +21,7 @@ export default function ContinueHint({
       className={className}
       onClick={() => onContinue?.()}
     >
-      <span className="mob-continue-btn-label">Weiter</span>
+      <span className="mob-continue-btn-label">{label}</span>
       <span className="mob-enter-ico" aria-hidden>
         <EnterReturnIcon size={14} />
       </span>

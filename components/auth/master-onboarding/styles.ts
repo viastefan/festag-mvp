@@ -474,6 +474,70 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     pointer-events: none;
     animation: mobCaretBlink 1.05s steps(1, end) infinite;
   }
+  /* Name / Position — single-line field */
+  .mob-intent-shell--single {
+    min-height: 46px;
+    padding: 0 16px;
+    justify-content: center;
+  }
+  .mob-intent-input {
+    width: 100%;
+    height: 46px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--mob-ink);
+    font-size: 17px;
+    line-height: 25px;
+    font-family: inherit;
+    font-weight: 400;
+    letter-spacing: var(--auth-tracking);
+    outline: none;
+    box-sizing: border-box;
+    caret-color: var(--mob-caret);
+  }
+  .mob-intent-input.is-empty { caret-color: transparent; }
+  .mob-intent-example--single {
+    top: 50%;
+    transform: translate3d(0, -50%, 0);
+    -webkit-line-clamp: 1;
+    white-space: nowrap;
+    right: 16px;
+  }
+  .mob-intent-example--single.is-out {
+    transform: translate3d(0, calc(-50% + 6px), 0);
+  }
+  .mob-intent-caret--single {
+    top: 50%;
+    margin-top: -10px;
+  }
+  .mob-skip-link {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--mob-muted, rgba(26, 25, 23, 0.48));
+    font-size: 14px;
+    letter-spacing: var(--auth-tracking);
+    font-family: inherit;
+    font-weight: 400;
+    cursor: pointer;
+    text-align: center;
+  }
+  .mob-skip-link:hover {
+    color: var(--mob-ink);
+  }
+  .mob-continue-slot--done {
+    margin-top: 28px;
+  }
+  .mob-done-wait {
+    margin: 12px 0 0;
+    text-align: center;
+    color: var(--mob-muted, rgba(26, 25, 23, 0.48));
+    font-size: 14px;
+  }
   @keyframes mobCaretBlink {
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0; }
