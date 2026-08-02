@@ -680,8 +680,6 @@ function MasterBuildInner() {
     else if (dx > 56 && current !== 'profile') retreat()
   }
 
-  const showBack = current !== 'profile'
-
   return (
     <>
       <style>{AUTH_GLASSY_HERO_CSS}</style>
@@ -770,26 +768,6 @@ function MasterBuildInner() {
         <footer className="mob-nav" aria-label="Onboarding Navigation">
           <div className="mob-nav-inner">
             <div className="mob-dots-wrap">
-              {showBack ? (
-                <button
-                  type="button"
-                  className="mob-nav-back"
-                  aria-label="Zurück"
-                  onClick={retreat}
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                    <path
-                      d="M10 3.5 5.5 8 10 12.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              ) : (
-                <span className="mob-nav-spacer" aria-hidden />
-              )}
               <nav className="mob-dots" aria-label="Onboarding Fortschritt">
                 {flowSteps.map((dot, idx) => {
                   const active = idx === flowActive
@@ -807,7 +785,6 @@ function MasterBuildInner() {
                   )
                 })}
               </nav>
-              <span className="mob-nav-spacer" aria-hidden />
             </div>
           </div>
         </footer>

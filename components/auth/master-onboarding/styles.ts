@@ -11,6 +11,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     /* Soft primary stroke — same as AUTH_STROKE / caret (not fill #5B647D). */
     --mob-primary: #7E889F;
     --mob-caret: #7E889F;
+    --mob-stroke-idle: 2px;
+    --mob-stroke-focus: 2.5px;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
     --mob-card-bg-on: #FFFFFF;
     --mob-card-border: rgba(30, 30, 32, 0.04);
@@ -24,6 +26,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-gutter: 28px;
     /* Same content column as Login/Register --al-panel-width. */
     --mob-content-max: 380px;
+    /* Canonical control height — Login email / Register / onboarding fields + Weiter. */
+    --mob-control-h: 46px;
     --mob-radius: 6px;
     --mob-field-radius: 8px;
     --mob-dot-idle: rgba(26, 25, 23, 0.15);
@@ -309,18 +313,18 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-avatar-wrap {
     position: relative;
     flex-shrink: 0;
-    width: 46px;
-    height: 46px;
+    width: var(--mob-control-h, 46px);
+    height: var(--mob-control-h, 46px);
   }
   .mob-profile-avatar {
-    width: 46px;
-    height: 46px;
+    width: var(--mob-control-h, 46px);
+    height: var(--mob-control-h, 46px);
     border-radius: 8px;
-    /* Light plate — serious soft white on sand canvas */
-    border: 2px solid rgba(30, 30, 32, 0.10);
-    background: #FFFFFF;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    color: rgba(30, 30, 32, 0.38);
+    /* Same language as .mob-profile-field — stroke only, no fill plate */
+    border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15);
+    background: transparent;
+    box-shadow: none;
+    color: rgba(30, 30, 32, 0.42);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -328,29 +332,31 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     cursor: pointer;
     overflow: hidden;
     box-sizing: border-box;
-    transition: border-color .18s ease, color .15s ease, box-shadow .18s ease;
+    transition: border-color .18s ease, border-width .18s ease, color .15s ease;
   }
   .mob-profile-avatar:hover {
-    border-color: rgba(30, 30, 32, 0.16);
-    background: #FFFFFF;
-    color: rgba(30, 30, 32, 0.55);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    border-color: rgba(30, 30, 32, 0.20);
+    background: transparent;
+    color: rgba(30, 30, 32, 0.58);
+    box-shadow: none;
   }
   .mob-profile-avatar:focus,
   .mob-profile-avatar:focus-visible {
     outline: none;
-    border-color: #7E889F;
-    box-shadow: 0 0 0 1px #7E889F;
+    border-width: var(--mob-stroke-focus, 2.5px);
+    border-color: var(--mob-primary, #7E889F);
+    box-shadow: none;
   }
-  /* Filled avatar — primary stroke stays until removed (no width jump) */
+  /* Filled avatar — image fills; stroke matches focused fields */
   .mob-profile-avatar.has-image,
   .mob-profile-avatar.has-image:hover,
   .mob-profile-avatar.has-image:focus,
   .mob-profile-avatar.has-image:focus-visible {
-    border-color: #7E889F;
-    box-shadow: 0 0 0 1px #7E889F;
+    border-width: var(--mob-stroke-focus, 2.5px);
+    border-color: var(--mob-primary, #7E889F);
+    box-shadow: none;
     color: transparent;
-    background: #FFFFFF;
+    background: transparent;
   }
   .mob-profile-avatar.is-busy {
     opacity: 0.65;
@@ -389,65 +395,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     opacity: 0;
     pointer-events: none;
   }
-  /* Light silhouette presets under name row */
-  .mob-profile-presets {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 0 1px;
-    box-sizing: border-box;
-  }
-  .mob-profile-preset {
-    flex: 0 0 auto;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border-radius: 6px;
-    border: 1.5px solid rgba(30, 30, 32, 0.08);
-    background: #FFFFFF;
-    overflow: hidden;
-    cursor: pointer;
-    box-sizing: border-box;
-    box-shadow: none;
-    transition: border-color .15s ease, box-shadow .15s ease, transform .08s ease;
-  }
-  .mob-profile-preset img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .mob-profile-preset:hover {
-    border-color: rgba(30, 30, 32, 0.16);
-  }
-  .mob-profile-preset.is-on {
-    border-color: #7E889F;
-    box-shadow: 0 0 0 1px #7E889F;
-  }
-  .mob-profile-preset:focus,
-  .mob-profile-preset:focus-visible {
-    outline: none;
-    border-color: #7E889F;
-    box-shadow: 0 0 0 1px #7E889F;
-  }
-  .mob-profile-preset:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-  /* Field shell — same 2px stroke behavior as Login .al-input */
+  /* Field shell — idle 2px; focus / filled 2.5px primary (Login/Register SSOT) */
   .mob-profile-field {
     position: relative;
     min-width: 0;
     width: 100%;
-    height: 46px;
-    min-height: 46px;
-    max-height: 46px;
+    height: var(--mob-control-h, 46px);
+    min-height: var(--mob-control-h, 46px);
+    max-height: var(--mob-control-h, 46px);
     border-radius: 8px;
-    border: 2px solid rgba(30, 30, 32, 0.15);
+    border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15);
     background: transparent;
     box-sizing: border-box;
-    transition: border-color .18s ease;
+    transition: border-color .18s ease, border-width .18s ease;
     animation: mobShellIn .34s cubic-bezier(.22,1,.36,1) both;
   }
   .mob-profile-name-row .mob-profile-field {
@@ -457,27 +417,32 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border-color: rgba(30, 30, 32, 0.20);
   }
   .mob-profile-field.has-value {
-    border-width: 3px;
-    border-color: #7E889F;
+    border-width: var(--mob-stroke-focus, 2.5px);
+    border-color: var(--mob-primary, #7E889F);
   }
   .mob-profile-field.is-focused,
   .mob-profile-field.is-focused:hover,
   .mob-profile-field.has-value.is-focused {
-    border-width: 3px;
-    border-color: #7E889F;
+    border-width: var(--mob-stroke-focus, 2.5px);
+    border-color: var(--mob-primary, #7E889F);
   }
-  /* Context field — grows with text only, never fills leftover stage height */
+  /* Context field — same 46px as Name; caret centered like <input> until text wraps */
   .mob-profile-field--grow {
     flex: none;
-    height: auto;
-    max-height: none;
-    min-height: 46px;
     width: 100%;
     align-self: stretch;
+    height: var(--mob-control-h, 46px) !important;
+    min-height: var(--mob-control-h, 46px) !important;
+    max-height: var(--mob-control-h, 46px) !important;
+    overflow: hidden;
   }
-  /* Empty + example: stay near one/two lines — no tall empty shell above Weiter */
+  .mob-profile-field--grow.has-value {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible;
+  }
   .mob-profile-field--grow.has-example {
-    min-height: 46px;
+    min-height: var(--mob-control-h, 46px) !important;
   }
   .mob-profile-input {
     position: relative;
@@ -505,18 +470,27 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     -webkit-appearance: none;
     appearance: none;
   }
+  /*
+   * Textarea paints the caret at the content top — use equal vertical padding
+   * so one line sits optically like Name <input>. Multi-line keeps the same pad.
+   */
   .mob-profile-input--grow {
-    height: auto;
-    min-height: 46px;
-    max-height: 160px;
-    padding: 12px 14px;
-    line-height: 1.45;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none;
+    padding: 11px 14px !important;
+    line-height: 1.3;
     resize: none !important;
     overflow-y: hidden;
-    field-sizing: content;
+    field-sizing: fixed;
   }
-  .mob-profile-field--grow.has-example .mob-profile-input--grow {
-    min-height: 46px;
+  .mob-profile-field--grow.has-value .mob-profile-input--grow {
+    height: auto !important;
+    min-height: var(--mob-control-h, 46px) !important;
+    max-height: 160px;
+    padding: 11px 14px !important;
+    line-height: 1.45;
+    field-sizing: content;
   }
   .mob-profile-input.is-empty {
     caret-color: transparent;
@@ -557,8 +531,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transition: background-color 9999s ease-out 0s;
   }
   .mob-profile-field:has(.mob-profile-input:-webkit-autofill) {
-    border-width: 3px;
-    border-color: #7E889F;
+    border-width: var(--mob-stroke-focus, 2.5px);
+    border-color: var(--mob-primary, #7E889F);
   }
   /* Rotating Position examples — slow crossfade, no remount flash */
   .mob-profile-example {
@@ -619,7 +593,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   /* Beat generic .mob-ready-hint-slot { margin-top: 16px } — Login-tight under field */
   .mob-profile-footer .mob-ready-hint-slot--profile {
     margin: 0;
-    min-height: 46px;
+    min-height: var(--mob-control-h, 46px);
   }
   .mob-profile-legal {
     margin: 0;
@@ -656,7 +630,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     gap: 12px;
     width: 100%;
     text-align: left;
-    min-height: 68px;
+    min-height: var(--mob-control-h, 46px);
+    height: auto;
     padding: 12px 14px;
     border-radius: 10px;
     border: 1px solid var(--mob-card-border) !important;
@@ -691,8 +666,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     flex: 1;
     min-width: 0;
     display: flex;
-    flex-direction: column;
-    gap: 3px;
+    align-items: center;
   }
   .mob-ws-card-title {
     font-size: 15px;
@@ -700,11 +674,37 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     letter-spacing: var(--auth-tracking);
     color: var(--mob-ink);
   }
-  .mob-ws-card-support {
-    font-size: 13px;
+  /* Full pill — beat global 6px button radius inside onboarding */
+  .mob .ft-toggle,
+  .mob button.ft-toggle,
+  .mob .mob-ws-card .ft-toggle,
+  .mob .mob-connect-row .ft-toggle {
+    border-radius: 9999px !important;
+    overflow: hidden !important;
+  }
+  .mob .ft-toggle::after,
+  .mob button.ft-toggle::after {
+    border-radius: 9999px !important;
+  }
+  .mob-ws-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .mob-continue-slot--ws {
+    margin-top: 12px;
+  }
+  .mob-ws-foot {
+    margin: 0;
+    padding: 0;
+    font-size: 11.5px;
+    font-weight: 400;
     line-height: 1.35;
-    letter-spacing: var(--auth-tracking);
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     color: var(--mob-muted);
+    text-align: left;
   }
 
   .mob-error {
@@ -716,18 +716,18 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
 
   .mob-ready-hint-slot,
   .mob-continue-slot {
-    min-height: 46px;
+    min-height: var(--mob-control-h, 46px);
     margin-top: 16px;
     width: 100%;
   }
   /* Intent: Weiter sits further below Tagro / field. */
   .mob-ready-hint-slot--intent {
     margin-top: 48px;
-    min-height: 46px;
+    min-height: var(--mob-control-h, 46px);
   }
   .mob-continue-btn {
     width: 100%;
-    height: 46px;
+    height: var(--mob-control-h, 46px);
     margin: 0;
     padding: 0 16px;
     display: inline-flex;
@@ -790,16 +790,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     background: #fafafa;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
+  .mob-continue-btn.is-ready:focus,
+  .mob-continue-btn.is-ready:focus-visible {
+    outline: none;
+    border-width: var(--mob-stroke-focus, 2.5px);
+    border-style: solid;
+    border-color: var(--mob-primary, #7E889F);
+    box-shadow: none;
+  }
   .mob-continue-btn.is-ready:active:not(:disabled) {
     background: #f5f5f6;
     box-shadow: none;
-  }
-  .mob-continue-btn:focus,
-  .mob-continue-btn:focus-visible {
-    outline: none;
-  }
-  .mob-continue-btn.is-ready:focus-visible {
-    border-color: #7E889F;
+    border-width: var(--mob-stroke-focus, 2.5px);
+    border-color: var(--mob-primary, #7E889F);
   }
   .mob-continue-btn-label {
     flex: 1;
@@ -862,8 +865,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-intent-shell {
     position: relative;
     border-radius: var(--mob-field-radius, 8px);
-    /* Same idle/focus strokes as Login email field. */
-    border: 2px solid rgba(30, 30, 32, 0.15) !important;
+    /* Same idle/focus strokes as Login email / Position field. */
+    border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15) !important;
     box-shadow: none !important;
     background: transparent;
     padding: 14px 16px;
@@ -873,13 +876,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     flex-direction: column;
     justify-content: flex-start;
     animation: mobShellIn .34s cubic-bezier(.22,1,.36,1) both;
-    transition: border-color .18s ease;
+    transition: border-color .18s ease, border-width .18s ease;
   }
   .mob-intent-shell:hover {
     border-color: rgba(30, 30, 32, 0.20) !important;
   }
   .mob-intent-shell.has-value,
   .mob-intent-shell.is-focused {
+    border-width: var(--mob-stroke-focus, 2.5px) !important;
     border-color: var(--mob-primary, #7E889F) !important;
     box-shadow: none !important;
   }
@@ -1145,9 +1149,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 48px;
-    min-height: 48px;
-    max-height: 48px;
+    height: var(--mob-control-h, 46px);
+    min-height: var(--mob-control-h, 46px);
+    max-height: var(--mob-control-h, 46px);
     padding: 0 12px 0 12px;
     border-radius: 8px;
     border: 1px solid var(--mob-card-border) !important;
@@ -1239,60 +1243,17 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     pointer-events: none;
   }
   /*
-   * 3-col grid keeps beads optically centered; back is a real flex hit target
-   * (not absolutely parked outside the wrap — that broke clicks).
+   * Progress beads only — back via swipe or tapping a previous dot.
    */
   .mob-dots-wrap {
     position: relative;
-    display: grid;
-    grid-template-columns: 44px auto 44px;
-    align-items: center;
-    justify-items: center;
-    column-gap: 10px;
-    pointer-events: none;
-  }
-  .mob-nav-back {
-    justify-self: end;
-    position: static;
-    transform: none;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent !important;
-    box-shadow: none !important;
-    color: rgba(26, 25, 23, 0.36);
-    cursor: pointer;
-    pointer-events: auto;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.14s ease;
-  }
-  .mob-nav-back:hover {
-    color: rgba(26, 25, 23, 0.72);
-    background: transparent !important;
-  }
-  .mob-nav-back:active {
-    color: rgba(26, 25, 23, 0.92);
-    background: transparent !important;
-  }
-  .mob-nav-back svg {
-    display: block;
-  }
-  .mob-nav-spacer {
-    width: 44px;
-    height: 44px;
     pointer-events: none;
   }
   .mob-dots {
     position: relative;
-    left: auto;
-    transform: none;
-    bottom: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1372,17 +1333,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     }
     .mob-nav-inner { gap: 0; }
     .mob-dots-wrap {
-      grid-template-columns: 44px auto 44px;
-      column-gap: 12px;
-    }
-    .mob-nav-back {
-      width: 44px;
-      height: 44px;
-      color: rgba(26, 25, 23, 0.34);
-    }
-    .mob-nav-back:hover {
-      color: rgba(26, 25, 23, 0.68);
-      background: transparent !important;
+      justify-content: center;
     }
     .mob-dots {
       min-height: 8px;
@@ -1473,6 +1424,5 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob.is-exiting { transition: none !important; }
     .mob.is-panel-enter { animation: none !important; }
     .mob-dot { transition: none !important; }
-    .mob-nav-back { transition: none !important; }
   }
 `

@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Workspace choice — stable H1 + cards with Festag mini toggles.
+ * Workspace choice — cards with title + toggle; H1 reflects the pick.
  */
 
 import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
@@ -9,7 +9,9 @@ import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import FestagToggle, { FESTAG_TOGGLE_CSS } from '@/components/ui/FestagToggle'
 import {
   WORKSPACE_CARD,
+  WORKSPACE_FOOT,
   WORKSPACE_HEADER_IDLE,
+  WORKSPACE_HEADER_PICKED,
   WORKSPACE_OPTIONS,
   type WorkspaceOption,
 } from '@/lib/platform/master-onboarding'
@@ -22,14 +24,18 @@ type Props = {
 
 export default function WorkspaceStage({ value, onPick, onContinue }: Props) {
   const picked = WORKSPACE_OPTIONS.includes(value as WorkspaceOption)
+  const header =
+    picked && value in WORKSPACE_HEADER_PICKED
+      ? WORKSPACE_HEADER_PICKED[value as WorkspaceOption]
+      : WORKSPACE_HEADER_IDLE
 
   return (
     <>
       <style>{FESTAG_TOGGLE_CSS}</style>
       <AuthGlassyHero
-        animKey="workspace"
-        lead={WORKSPACE_HEADER_IDLE.lead}
-        rest={WORKSPACE_HEADER_IDLE.muted}
+        animKey={picked ? `workspace-${value}` : 'workspace'}
+        lead={header.lead}
+        rest={header.muted}
         stacked
         className="mob-glassy-h1"
       />
@@ -55,7 +61,6 @@ export default function WorkspaceStage({ value, onPick, onContinue }: Props) {
             >
               <span className="mob-ws-card-copy">
                 <span className="mob-ws-card-title">{card.title}</span>
-                <span className="mob-ws-card-support">{card.support}</span>
               </span>
               <FestagToggle
                 on={on}
@@ -67,8 +72,11 @@ export default function WorkspaceStage({ value, onPick, onContinue }: Props) {
           )
         })}
       </div>
-      <div className="mob-continue-slot">
-        <ContinueHint ready={picked} onContinue={onContinue} />
+      <div className="mob-ws-footer">
+        <div className="mob-continue-slot mob-continue-slot--ws">
+          <ContinueHint ready={picked} onContinue={onContinue} />
+        </div>
+        <p className="mob-ws-foot">{WORKSPACE_FOOT}</p>
       </div>
     </>
   )

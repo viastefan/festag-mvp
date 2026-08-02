@@ -270,30 +270,31 @@ html[data-theme="classic-dark"] .set-main {
 }
 
 .set-toggle {
-  width: 40px;
-  height: 24px;
-  border-radius: 999px;
+  width: 36px;
+  height: 20px;
+  border-radius: 9999px;
   border: 0;
   background: color-mix(in srgb, var(--set-text) 18%, transparent);
   position: relative;
   cursor: pointer;
   flex-shrink: 0;
+  overflow: hidden;
   transition: background 0.15s;
 }
 .set-toggle::after {
   content: '';
   position: absolute;
   top: 50%;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
   background: var(--set-bg);
   transform: translateY(-50%);
   transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .set-toggle.on { background: var(--set-text); }
-.set-toggle.on::after { left: 19px; background: var(--set-bg); }
+.set-toggle.on::after { left: 18px; background: var(--set-bg); }
 
 .set-btn {
   font-family: inherit;

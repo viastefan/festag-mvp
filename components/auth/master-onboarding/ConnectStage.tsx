@@ -57,6 +57,7 @@ export default function ConnectStage({
   const listRef = useRef<HTMLDivElement | null>(null)
   const [fadeTop, setFadeTop] = useState(0)
   const [fadeBottom, setFadeBottom] = useState(1)
+  const [lastTouchedId, setLastTouchedId] = useState<string | null>(null)
 
   const syncFades = useCallback(() => {
     const el = listRef.current
@@ -81,13 +82,19 @@ export default function ConnectStage({
     return () => ro.disconnect()
   }, [sources.length, connected.size, syncFades])
 
-  const header = connectHeaderFor()
+  const header = connectHeaderFor(connected, sources, lastTouchedId)
+  const headerKey = `${header.lead}|${[...connected].sort().join(',')}`
+
+  function touch(id: IntegrationId) {
+    setLastTouchedId(id)
+    onToggle(id)
+  }
 
   return (
     <>
       <style>{FESTAG_TOGGLE_CSS}</style>
       <AuthGlassyHero
-        animKey="connect"
+        animKey={`connect-${headerKey}`}
         lead={header.lead}
         rest={header.muted}
         stacked
@@ -115,11 +122,11 @@ export default function ConnectStage({
                 tabIndex={0}
                 className={`mob-connect-row${on ? ' is-on' : ''}`}
                 style={{ ['--i' as string]: i }}
-                onClick={() => onToggle(src.id)}
+                onClick={() => touch(src.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
-                    onToggle(src.id)
+                    touch(src.id)
                   }
                 }}
               >
@@ -137,7 +144,7 @@ export default function ConnectStage({
                   on={on}
                   label={`${src.name} ${on ? 'trennen' : 'verbinden'}`}
                   stopPropagation
-                  onChange={() => onToggle(src.id)}
+                  onChange={() => touch(src.id)}
                 />
               </div>
             )

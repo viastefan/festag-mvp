@@ -163,17 +163,16 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
-  /* Quiet ink hairline — stroke stays in idle / filled / focus (color only). */
+  /* Quiet ink hairline — idle 2px; focus/filled thicken to Position-field stroke. */
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
-  /* Always 2px — color only on focus/filled (no L/R reflow / clip). */
   --festag-input-border-width:2px;
-  /* Filled keeps the same soft stroke as focus (blur with value ≠ idle). */
+  /* Filled keeps the same soft stroke as focus. */
   --festag-input-border-filled:${AUTH_STROKE};
-  --festag-input-border-width-filled:2px;
+  --festag-input-border-width-filled:2.5px;
   --festag-input-border-focus:${AUTH_STROKE};
-  --festag-input-border-width-focus:2px;
-  --festag-btn-border-width-focus:2px;
+  --festag-input-border-width-focus:2.5px;
+  --festag-btn-border-width-focus:2.5px;
   --festag-btn-border-focus:${AUTH_STROKE};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
@@ -231,14 +230,13 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-placeholder:${AUTH_MUTED_READ};
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
-  /* Always 2px — color only on focus/filled (no L/R reflow / clip). */
+  /* Idle 2px; focus/filled 2.5px — same as onboarding Position field. */
   --festag-input-border-width:2px;
-  /* Filled keeps the same soft stroke as focus (blur with value ≠ idle). */
   --festag-input-border-filled:${AUTH_STROKE};
-  --festag-input-border-width-filled:2px;
+  --festag-input-border-width-filled:2.5px;
   --festag-input-border-focus:${AUTH_STROKE};
-  --festag-input-border-width-focus:2px;
-  --festag-btn-border-width-focus:2px;
+  --festag-input-border-width-focus:2.5px;
+  --festag-btn-border-width-focus:2.5px;
   --festag-btn-border-focus:${AUTH_STROKE};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
@@ -309,14 +307,13 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
   --festag-input-border:rgba(255,255,255,0.15);
   --festag-input-border-hover:rgba(255,255,255,0.20);
-  /* Always 2px — color only on focus/filled (no L/R reflow / clip). */
+  /* Idle 2px; focus/filled 2.5px — same as onboarding Position field. */
   --festag-input-border-width:2px;
-  /* Filled keeps the same soft stroke as focus (blur with value ≠ idle). */
   --festag-input-border-filled:${AUTH_STROKE};
-  --festag-input-border-width-filled:2px;
+  --festag-input-border-width-filled:2.5px;
   --festag-input-border-focus:${AUTH_STROKE};
-  --festag-input-border-width-focus:2px;
-  --festag-btn-border-width-focus:2px;
+  --festag-input-border-width-focus:2.5px;
+  --festag-btn-border-width-focus:2.5px;
   --festag-btn-border-focus:${AUTH_STROKE};
   --festag-input-focus-glow:none;
   /* OAuth icons/labels must read as active — not disabled ghosts. */

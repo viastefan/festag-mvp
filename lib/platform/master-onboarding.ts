@@ -51,23 +51,6 @@ export const POSITION_EXAMPLES = PROFILE_POSITION_EXAMPLES
 /** Max chars for optional profile context (facts / Tagro seed). */
 export const PROFILE_CONTEXT_MAX_CHARS = 280
 
-/** Calm light silhouette presets — serious, optional, no photo theater.
- *  Served from `/brand/…` so auth middleware never redirects the assets. */
-export const PROFILE_AVATAR_PRESETS = [
-  { id: 'bone', src: '/brand/avatars/soft-bone.svg', label: 'Hell' },
-  { id: 'slate', src: '/brand/avatars/soft-slate.svg', label: 'Slate' },
-  { id: 'warm', src: '/brand/avatars/soft-warm.svg', label: 'Warm' },
-  { id: 'sage', src: '/brand/avatars/soft-sage.svg', label: 'Sage' },
-  { id: 'mauve', src: '/brand/avatars/soft-mauve.svg', label: 'Mauve' },
-] as const
-
-export type ProfileAvatarPresetId = (typeof PROFILE_AVATAR_PRESETS)[number]['id']
-
-export function isProfileAvatarPreset(url: string | null | undefined): boolean {
-  if (!url) return false
-  return PROFILE_AVATAR_PRESETS.some((p) => url === p.src || url.endsWith(p.src))
-}
-
 export const WORKSPACE_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 export type WorkspaceOption = (typeof WORKSPACE_OPTIONS)[number]
 
@@ -76,45 +59,49 @@ export const CLARIFY_OPTIONS = WORKSPACE_OPTIONS
 /** @deprecated Use WorkspaceOption */
 export type ClarifyOption = WorkspaceOption
 
-/** Stable H1 for workspace step — never swaps on pick (avoids glassy jank). */
+/** Idle H1 — before a workspace type is chosen. */
 export const WORKSPACE_HEADER_IDLE = {
   lead: 'Welchen Workspace?',
   muted: 'So startet dein Betriebssystem.',
 } as const
 
-/** Per-option title + calm support — lives on the card, not the H1. */
-export const WORKSPACE_CARD: Record<
+/** Card labels only — no gray support lines in the boxes. */
+export const WORKSPACE_CARD: Record<WorkspaceOption, { title: string }> = {
+  Developer: { title: 'Developer' },
+  Agentur: { title: 'Agentur' },
+  Startup: { title: 'Startup' },
+  Unternehmen: { title: 'Unternehmen' },
+}
+
+/** H1 after pick — calm sentence in the hero, not inside the card. */
+export const WORKSPACE_HEADER_PICKED: Record<
   WorkspaceOption,
-  { title: string; support: string }
+  { lead: string; muted: string }
 > = {
   Developer: {
-    title: 'Developer',
-    support: 'Selbst entwickeln — nah am Code und Execution.',
+    lead: 'Developer Workspace.',
+    muted: 'Selbst entwickeln — nah am Code und Execution.',
   },
   Agentur: {
-    title: 'Agentur',
-    support: 'Für Kunden liefern — ruhige Statusberichte.',
+    lead: 'Agentur Workspace.',
+    muted: 'Für Kunden liefern — ruhige Statusberichte.',
   },
   Startup: {
-    title: 'Startup',
-    support: 'Produkt-Team führen — Tempo mit Klarheit.',
+    lead: 'Startup Workspace.',
+    muted: 'Produkt-Team führen — Tempo mit Klarheit.',
   },
   Unternehmen: {
-    title: 'Unternehmen',
-    support: 'Mehrere Streams steuern — ein Workspace-Graph.',
+    lead: 'Unternehmen Workspace.',
+    muted: 'Mehrere Streams steuern — ein Workspace-Graph.',
   },
 }
 
-/** @deprecated Prefer WORKSPACE_CARD + WORKSPACE_HEADER_IDLE */
-export const WORKSPACE_HEADER: Record<WorkspaceOption, { lead: string; muted: string }> = {
-  Developer: { lead: WORKSPACE_CARD.Developer.title + '.', muted: WORKSPACE_CARD.Developer.support },
-  Agentur: { lead: WORKSPACE_CARD.Agentur.title + '.', muted: WORKSPACE_CARD.Agentur.support },
-  Startup: { lead: WORKSPACE_CARD.Startup.title + '.', muted: WORKSPACE_CARD.Startup.support },
-  Unternehmen: {
-    lead: WORKSPACE_CARD.Unternehmen.title + '.',
-    muted: WORKSPACE_CARD.Unternehmen.support,
-  },
-}
+export const WORKSPACE_FOOT =
+  'Den Workspace-Typ kannst du später in den Einstellungen ändern.' as const
+
+/** @deprecated Prefer WORKSPACE_HEADER_PICKED */
+export const WORKSPACE_HEADER: Record<WorkspaceOption, { lead: string; muted: string }> =
+  WORKSPACE_HEADER_PICKED
 
 /** @deprecated Use WORKSPACE_HEADER */
 export const CLARIFY_HEADER = WORKSPACE_HEADER
@@ -141,12 +128,39 @@ export const CONNECT_HEADERS: Partial<Record<IntegrationId, { lead: string; mute
   microsoft_teams: { lead: 'Teams anbinden.', muted: 'Meetings und Chat im Workspace.' },
 }
 
-/** Prefer idle H1 — dynamic headers caused glassy settle jank on every toggle. */
+/** Idle when nothing connected; otherwise reflects the latest toggle. */
 export function connectHeaderFor(
-  _connected?: Iterable<string>,
-  _sources?: Array<{ id: string; name: string }>,
+  connected?: Iterable<string>,
+  sources?: Array<{ id: string; name: string }>,
+  lastTouchedId?: string | null,
 ): { lead: string; muted: string } {
-  return { ...CONNECT_HEADER_IDLE }
+  const ids = [...(connected ?? [])]
+  if (ids.length === 0) return { ...CONNECT_HEADER_IDLE }
+
+  const nameById = new Map((sources ?? []).map((s) => [s.id, s.name]))
+  const headerFor = (id: string) => {
+    const known = CONNECT_HEADERS[id as IntegrationId]
+    if (known) return { ...known }
+    const name = nameById.get(id) ?? id
+    return { lead: `${name} anbinden.`, muted: 'Im Workspace verfügbar.' }
+  }
+
+  if (lastTouchedId && ids.includes(lastTouchedId)) {
+    return headerFor(lastTouchedId)
+  }
+  if (ids.length === 1) return headerFor(ids[0])
+  if (ids.length === 2) {
+    const a = nameById.get(ids[0]) ?? ids[0]
+    const b = nameById.get(ids[1]) ?? ids[1]
+    return {
+      lead: `${a} und ${b}.`,
+      muted: 'Weitere ergänzt du später.',
+    }
+  }
+  return {
+    lead: `${ids.length} Quellen verbunden.`,
+    muted: 'Weitere ergänzt du später.',
+  }
 }
 
 export const DONE_HEADER = {

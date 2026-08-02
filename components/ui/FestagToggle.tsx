@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Festag mini toggle — calm iOS-style switch.
+ * Festag mini toggle — calm iOS-style pill switch.
  * Off: soft gray. On: near-black ink (never colored fills).
  */
 
@@ -55,33 +55,34 @@ export const FESTAG_TOGGLE_CSS = `
     position: relative;
     flex-shrink: 0;
     border: 0 !important;
-    border-radius: 999px !important;
-    background: rgba(30, 30, 32, 0.12);
+    border-radius: 9999px !important;
+    background: rgba(30, 30, 32, 0.11);
     cursor: pointer;
-    padding: 0;
+    padding: 0 !important;
     margin: 0;
     -webkit-appearance: none;
     appearance: none;
     outline: none;
-    box-shadow: none;
-    overflow: visible;
+    box-shadow: none !important;
+    overflow: hidden !important;
     transition: background 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
+  /* Quiet mini pill */
   .ft-toggle--sm {
-    width: 28px !important;
-    height: 17px !important;
-    min-width: 28px !important;
-    min-height: 17px !important;
-    max-width: 28px !important;
-    max-height: 17px !important;
+    width: 24px !important;
+    height: 14px !important;
+    min-width: 24px !important;
+    min-height: 14px !important;
+    max-width: 24px !important;
+    max-height: 14px !important;
   }
   .ft-toggle--md {
-    width: 34px !important;
-    height: 20px !important;
-    min-width: 34px !important;
-    min-height: 20px !important;
-    max-width: 34px !important;
-    max-height: 20px !important;
+    width: 30px !important;
+    height: 17px !important;
+    min-width: 30px !important;
+    min-height: 17px !important;
+    max-width: 30px !important;
+    max-height: 17px !important;
   }
   .ft-toggle.is-on {
     background: #1e1e20;
@@ -91,36 +92,36 @@ export const FESTAG_TOGGLE_CSS = `
     position: absolute;
     top: 2px;
     left: 2px;
-    border-radius: 50%;
+    border-radius: 9999px !important;
     background: #ffffff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
     transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .ft-toggle--sm::after {
-    width: 13px;
-    height: 13px;
+    width: 10px !important;
+    height: 10px !important;
   }
   .ft-toggle--md::after {
-    width: 16px;
-    height: 16px;
+    width: 13px !important;
+    height: 13px !important;
   }
   .ft-toggle--sm.is-on::after {
-    transform: translateX(11px);
+    transform: translateX(10px);
   }
   .ft-toggle--md.is-on::after {
-    transform: translateX(14px);
+    transform: translateX(13px);
   }
   .ft-toggle:focus-visible {
-    box-shadow: 0 0 0 2px rgba(126, 136, 159, 0.35);
+    box-shadow: 0 0 0 2px rgba(126, 136, 159, 0.32) !important;
   }
   .ft-toggle:active::after {
     transform: scale(0.94);
   }
   .ft-toggle--sm.is-on:active::after {
-    transform: translateX(11px) scale(0.94);
+    transform: translateX(10px) scale(0.94);
   }
   .ft-toggle--md.is-on:active::after {
-    transform: translateX(14px) scale(0.94);
+    transform: translateX(13px) scale(0.94);
   }
 
   html[data-theme="dark"] .ft-toggle,

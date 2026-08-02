@@ -1,13 +1,12 @@
 'use client'
 
 /**
- * Profile card — Join-style row: avatar + name, then position below.
- * Name required. Position optional with calm rotating examples.
- * Focus stroke matches Login email (2px AUTH_STROKE).
+ * Profile card — Join-style row: avatar upload + name, then optional context.
+ * Focus stroke: 2.5px (between Login 2px and the prior 3px).
  */
 
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { User, X } from '@phosphor-icons/react'
+import { X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
@@ -16,7 +15,6 @@ import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import {
   FIELD_SETTLE_MS,
   NAME_MIN_CHARS,
-  PROFILE_AVATAR_PRESETS,
   PROFILE_CONTEXT_MAX_CHARS,
   PROFILE_HEADER,
   PROFILE_POSITION_EXAMPLES,
@@ -36,6 +34,27 @@ type Props = {
 
 const POS_MIN_PX = 46
 const POS_MAX_PX = 160
+
+/** Simple hex box — quiet upload mark, same family as early onboarding. */
+function ProfileBoxIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="mob-profile-avatar-icon"
+    >
+      <path
+        d="M12 3.2 19.2 7.4v9.2L12 20.8 4.8 16.6V7.4L12 3.2Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
 export default function ProfileStage({
   fullName,
@@ -117,7 +136,14 @@ export default function ProfileStage({
   }, [showPosExample])
 
   useEffect(() => {
-    syncAutoGrowTextarea(posRef.current, { minPx: POS_MIN_PX, maxPx: POS_MAX_PX })
+    const el = posRef.current
+    if (!el) return
+    if (!position.trim()) {
+      el.style.height = ''
+      el.style.overflowY = 'hidden'
+      return
+    }
+    syncAutoGrowTextarea(el, { minPx: POS_MIN_PX, maxPx: POS_MAX_PX })
   }, [position, example, exampleIn, showPosExample])
 
   async function handleAvatarPick(file?: File | null) {
@@ -148,18 +174,6 @@ export default function ProfileStage({
       /* keep local preview if upload failed */
     } finally {
       setAvatarUploading(false)
-    }
-  }
-
-  async function applyPreset(src: string) {
-    if (avatarUploading) return
-    if (blobRef.current) {
-      URL.revokeObjectURL(blobRef.current)
-      blobRef.current = null
-    }
-    onAvatarChange(src)
-    if (!isPreview && userId) {
-      await supabase.from('profiles').update({ avatar_url: src }).eq('id', userId)
     }
   }
 
@@ -209,7 +223,7 @@ export default function ProfileStage({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt="" className="mob-profile-avatar-img" />
               ) : (
-                <User size={20} weight="regular" className="mob-profile-avatar-icon" />
+                <ProfileBoxIcon size={17} />
               )}
             </button>
             {avatarUrl ? (
@@ -272,27 +286,6 @@ export default function ProfileStage({
           </div>
         </div>
 
-        <div className="mob-profile-presets" role="listbox" aria-label="Profilbild wählen">
-          {PROFILE_AVATAR_PRESETS.map((preset) => {
-            const on = avatarUrl === preset.src || (avatarUrl?.endsWith(preset.src) ?? false)
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                role="option"
-                aria-selected={on}
-                aria-label={`Profilbild ${preset.label}`}
-                className={`mob-profile-preset${on ? ' is-on' : ''}`}
-                disabled={avatarUploading}
-                onClick={() => void applyPreset(preset.src)}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={preset.src} alt="" />
-              </button>
-            )
-          })}
-        </div>
-
         <div
           className={[
             'mob-profile-field',
@@ -310,7 +303,11 @@ export default function ProfileStage({
             value={position}
             onChange={(e) => {
               onPositionChange(e.target.value)
-              syncAutoGrowTextarea(e.currentTarget, { minPx: POS_MIN_PX, maxPx: POS_MAX_PX })
+              if (e.currentTarget.value.trim()) {
+                syncAutoGrowTextarea(e.currentTarget, { minPx: POS_MIN_PX, maxPx: POS_MAX_PX })
+              } else {
+                e.currentTarget.style.height = ''
+              }
             }}
             placeholder=""
             rows={1}

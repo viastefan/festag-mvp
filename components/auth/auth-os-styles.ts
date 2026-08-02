@@ -1554,8 +1554,8 @@ export const AUTH_OS_STYLES = `
     --festag-input-border-filled: #7E889F;
     --festag-input-border-width-filled: 2px;
     --festag-input-border-focus: #7E889F;
-    --festag-input-border-width-focus: 2px;
-    --festag-btn-border-width-focus: 2px;
+    --festag-input-border-width-focus: 2.5px;
+    --festag-btn-border-width-focus: 2.5px;
     background: #F5F5F7 !important;
     color: #1d1d1f;
   }
@@ -1715,7 +1715,7 @@ export const AUTH_OS_STYLES = `
   }
   .al-root.al-root--gate[data-theme="light"] .al-input:focus,
   .al-root.al-root--gate[data-theme="light"] .al-input:focus-visible {
-    border-width: var(--festag-input-border-width-focus, 2px) !important;
+    border-width: var(--festag-input-border-width-focus, 2.5px) !important;
     border-color: var(--festag-input-border-focus, #7E889F) !important;
     background: transparent !important;
     box-shadow: none !important;
