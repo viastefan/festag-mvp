@@ -371,7 +371,7 @@ function MasterBuildInner() {
 
       const bp = analyzeIntent(contextSeed || position, workspacePick)
       const ctx =
-        position.trim() ||
+        position.trim().slice(0, 280) ||
         (workspacePick ? `Workspace: ${workspacePick}` : '')
       const inferred = ctx ? inferWorkspaceUnderstanding(ctx) : null
       const shortPosition = position.trim().slice(0, 64)
@@ -527,23 +527,24 @@ function MasterBuildInner() {
     }
     setError('')
     if (!isPreview && userId) {
-      const shortPosition = position.trim().slice(0, 64)
+      const facts = position.trim().slice(0, 280)
+      const shortPosition = facts.slice(0, 64)
       await supabase.from('profiles').upsert(
         {
           id: userId,
           full_name: fullName.trim(),
           ...(shortPosition ? { position: shortPosition } : {}),
           ...(avatarUrl && !avatarUrl.startsWith('blob:') ? { avatar_url: avatarUrl } : {}),
-          ...(shortPosition ? { dev_profile_facts: shortPosition } : {}),
+          ...(facts ? { dev_profile_facts: facts } : {}),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'id' },
       )
-      if (shortPosition) {
+      if (facts) {
         void fetch('/api/onboarding/analyze-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: shortPosition, persist: true }),
+          body: JSON.stringify({ text: facts, persist: true }),
         }).catch(() => null)
       }
     }

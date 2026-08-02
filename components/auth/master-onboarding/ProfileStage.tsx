@@ -12,9 +12,11 @@ import { createClient } from '@/lib/supabase/client'
 import AuthGlassyHero from '@/components/auth/AuthGlassyHero'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import {
   FIELD_SETTLE_MS,
   NAME_MIN_CHARS,
+  PROFILE_CONTEXT_MAX_CHARS,
   PROFILE_HEADER,
   PROFILE_POSITION_EXAMPLES,
 } from '@/lib/platform/master-onboarding'
@@ -30,6 +32,9 @@ type Props = {
   isPreview?: boolean
   onAdvance: () => void
 }
+
+const POS_MIN_PX = 46
+const POS_MAX_PX = 160
 
 export default function ProfileStage({
   fullName,
@@ -49,7 +54,7 @@ export default function ProfileStage({
   const [exampleIdx, setExampleIdx] = useState(0)
   const [exampleIn, setExampleIn] = useState(true)
   const nameRef = useRef<HTMLInputElement | null>(null)
-  const posRef = useRef<HTMLInputElement | null>(null)
+  const posRef = useRef<HTMLTextAreaElement | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
   const blobRef = useRef<string | null>(null)
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -103,12 +108,16 @@ export default function ProfileStage({
         setExampleIdx((i) => (i + 1) % PROFILE_POSITION_EXAMPLES.length)
         setExampleIn(true)
       }, 720)
-    }, 4600)
+    }, 5200)
     return () => {
       window.clearInterval(tick)
       if (fade) clearTimeout(fade)
     }
   }, [showPosExample])
+
+  useEffect(() => {
+    syncAutoGrowTextarea(posRef.current, { minPx: POS_MIN_PX, maxPx: POS_MAX_PX })
+  }, [position, example, exampleIn, showPosExample])
 
   async function handleAvatarPick(file?: File | null) {
     if (!file || avatarUploading) return
@@ -253,26 +262,31 @@ export default function ProfileStage({
         <div
           className={[
             'mob-profile-field',
+            'mob-profile-field--grow',
             posFocused ? 'is-focused' : '',
             posFilled ? 'has-value' : '',
+            showPosExample ? 'has-example' : '',
           ]
             .filter(Boolean)
             .join(' ')}
         >
-          <input
+          <textarea
             ref={posRef}
-            className={`mob-profile-input${posFilled ? '' : ' is-empty'}`}
-            type="text"
+            className={`mob-profile-input mob-profile-input--grow${posFilled ? '' : ' is-empty'}`}
             value={position}
-            onChange={(e) => onPositionChange(e.target.value)}
+            onChange={(e) => {
+              onPositionChange(e.target.value)
+              syncAutoGrowTextarea(e.currentTarget, { minPx: POS_MIN_PX, maxPx: POS_MAX_PX })
+            }}
             placeholder=""
+            rows={1}
             autoComplete="organization-title"
-            maxLength={64}
-            aria-label={`Position — optional, z. B. ${example}`}
+            maxLength={PROFILE_CONTEXT_MAX_CHARS}
+            aria-label={`Kurz zu dir — optional, z. B. ${example}`}
             onFocus={() => setPosFocused(true)}
             onBlur={() => setPosFocused(false)}
             onKeyDown={(e) => {
-              if (e.key !== 'Enter') return
+              if (e.key !== 'Enter' || e.shiftKey) return
               e.preventDefault()
               if (showContinue) onAdvance()
             }}
@@ -282,6 +296,7 @@ export default function ProfileStage({
               aria-hidden
               className={[
                 'mob-profile-example',
+                'mob-profile-example--grow',
                 exampleIn ? '' : 'is-out',
                 posFocused ? 'is-focused' : '',
               ]
@@ -299,7 +314,7 @@ export default function ProfileStage({
           </div>
 
           <p className="mob-profile-legal">
-            Name und Bild gehören zu deinem Account. Die Position hilft Tagro bei der Einrichtung —
+            Name und Bild gehören zu deinem Account. Ein kurzer Satz hilft Tagro bei der Einrichtung —
             optional und jederzeit in den Einstellungen änderbar. Details in der{' '}
             <a href="/datenschutz" onClick={(e) => goLegal('/datenschutz', e)}>
               Datenschutzerklärung

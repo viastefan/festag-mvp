@@ -27,30 +27,29 @@ export const NAME_EXAMPLES = [
 /** Profile card H1 — calm, fits --mob-content-max on mobile + desktop. */
 export const PROFILE_HEADER = {
   lead: 'Schön, dass du da bist.',
-  muted: 'Name genügt. Bild und Position optional.',
+  muted: 'Name genügt. Bild und ein kurzer Satz optional.',
 } as const
 
-/** Single-line rotating examples for optional Position. */
+/**
+ * Rotating context examples — Festag top customers (founders, agencies, startups).
+ * Calm sentences Tagro can learn from; field auto-grows as you write.
+ */
 export const PROFILE_POSITION_EXAMPLES = [
-  'Gründer bei Aerobay',
-  'Product Lead',
-  'Developer',
-  'Designer',
-  'Agentur-Inhaber',
-  'Client Partner',
+  'Ich bin Gründer und will meine Developer hier anbinden — AI-Verbrauch und Effizienz sichtbar machen.',
+  'Wir sind eine Agentur und brauchen einen ruhigen Überblick über alle Kundenprojekte.',
+  'Als Startup-Founder will ich Delivery, Budget und Entscheidungen an einem Ort halten.',
+  'Ich leite Product und will, dass Client und Developer dieselbe Lage sehen — ohne Status-Theater.',
+  'Wir bauen Software für Kunden und wollen, dass nichts Wichtiges untergeht.',
 ] as const
 
-/** Optional context field — Position, Unternehmen, Ziel. */
-export const CONTEXT_EXAMPLES = [
-  'Gründer bei Aerobay — baue unser Produkt.',
-  'Client — suche einen Entwickler für mein Startup.',
-  'Developer — liefere Websites für Kunden.',
-  'Product Lead — organisiere mehrere Streams.',
-  'Agentur-Inhaber — acht Leute, klare Delivery.',
-] as const
+/** Optional longer context — same spine as profile examples. */
+export const CONTEXT_EXAMPLES = PROFILE_POSITION_EXAMPLES
 
 /** @deprecated Prefer PROFILE_POSITION_EXAMPLES on the profile card. */
 export const POSITION_EXAMPLES = PROFILE_POSITION_EXAMPLES
+
+/** Max chars for optional profile context (facts / Tagro seed). */
+export const PROFILE_CONTEXT_MAX_CHARS = 280
 
 export const WORKSPACE_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 export type WorkspaceOption = (typeof WORKSPACE_OPTIONS)[number]

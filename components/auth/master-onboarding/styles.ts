@@ -411,6 +411,16 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-field.has-value.is-focused {
     border-color: #7E889F;
   }
+  /* Context field — grows with text; empty shows multi-line examples */
+  .mob-profile-field--grow {
+    height: auto;
+    max-height: none;
+    min-height: 46px;
+    align-self: stretch;
+  }
+  .mob-profile-field--grow.has-example {
+    min-height: 88px;
+  }
   .mob-profile-input {
     position: relative;
     z-index: 2;
@@ -436,6 +446,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     caret-color: var(--mob-caret);
     -webkit-appearance: none;
     appearance: none;
+  }
+  .mob-profile-input--grow {
+    height: auto;
+    min-height: 46px;
+    max-height: 160px;
+    padding: 12px 14px;
+    line-height: 1.45;
+    resize: none !important;
+    overflow-y: hidden;
+    field-sizing: content;
+  }
+  .mob-profile-field--grow.has-example .mob-profile-input--grow {
+    min-height: 88px;
   }
   .mob-profile-input.is-empty {
     caret-color: transparent;
@@ -506,6 +529,17 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       transform .72s cubic-bezier(.25, .1, .25, 1),
       filter .72s cubic-bezier(.25, .1, .25, 1);
   }
+  .mob-profile-example--grow {
+    top: 12px;
+    transform: none;
+    white-space: normal;
+    text-overflow: unset;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
   .mob-profile-example.is-focused {
     opacity: 0.55;
   }
@@ -513,6 +547,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     opacity: 0;
     transform: translate3d(0, calc(-50% + 3px), 0);
     filter: blur(2px);
+  }
+  .mob-profile-example--grow.is-out {
+    transform: translate3d(0, 4px, 0);
   }
   /* Footer: legal sits close under fields; Weiter expands above and pushes legal down */
   .mob-profile-footer {
