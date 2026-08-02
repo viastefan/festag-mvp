@@ -2,7 +2,7 @@
 
 /**
  * Profile card — Join-style row: avatar upload + name, then optional context.
- * Focus stroke: 2.5px (between Login 2px and the prior 3px).
+ * Focus stroke: 2px (between Login 2px and the prior 3px).
  */
 
 import { useEffect, useRef, useState, type MouseEvent } from 'react'

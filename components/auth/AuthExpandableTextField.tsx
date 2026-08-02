@@ -432,7 +432,7 @@ const AUTH_EXPAND_CSS = `
     min-height: var(--al-hero-caret-h, var(--al-hero-name-size, var(--al-hero-display-size, 32px))) !important;
     margin-left: 1px;
     border-radius: 0;
-    background: #7E889F;
+    background: #5B647D;
     animation: authExpandCaretBlink 1.05s steps(1, end) infinite;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: var(--al-hero-name-size, var(--al-hero-display-size, 32px)) !important;

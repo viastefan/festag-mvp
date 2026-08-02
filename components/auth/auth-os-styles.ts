@@ -223,7 +223,7 @@ export const AUTH_OS_STYLES = `
     color: #E6E8EE !important;
     border-width: 2px !important;
     border-color: rgba(232, 230, 225, 0.12) !important;
-    caret-color: var(--festag-input-caret, #7E889F);
+    caret-color: var(--festag-input-caret, #5B647D);
     background: transparent !important;
     transition: border-color .22s ease !important;
     box-shadow: none !important;
@@ -239,7 +239,7 @@ export const AUTH_OS_STYLES = `
   .al-root.onb-sand-dark textarea.al-input:focus,
   .al-root.onb-sand-dark textarea.al-input:focus-visible {
     border-width: 2px !important;
-    border-color: var(--festag-input-border-focus, #7E889F) !important;
+    border-color: var(--festag-input-border-focus, #5B647D) !important;
     background: transparent !important;
     box-shadow: none !important;
     outline: none !important;
@@ -1551,11 +1551,11 @@ export const AUTH_OS_STYLES = `
     --festag-input-border: rgba(30, 30, 32, 0.14);
     --festag-input-border-hover: rgba(30, 30, 32, 0.2);
     --festag-input-border-width: 2px;
-    --festag-input-border-filled: #7E889F;
+    --festag-input-border-filled: #5B647D;
     --festag-input-border-width-filled: 2px;
-    --festag-input-border-focus: #7E889F;
-    --festag-input-border-width-focus: 2.5px;
-    --festag-btn-border-width-focus: 2.5px;
+    --festag-input-border-focus: #5B647D;
+    --festag-input-border-width-focus: 2px;
+    --festag-btn-border-width-focus: 2px;
     background: #F5F5F7 !important;
     color: #1d1d1f;
   }
@@ -1700,7 +1700,7 @@ export const AUTH_OS_STYLES = `
   }
   .al-root.al-root--gate[data-theme="light"] .al-btn-primary--ready .al-enter-glyph.is-ready {
     opacity: 0.88;
-    color: var(--festag-caret, #7E889F) !important;
+    color: var(--festag-caret, #5B647D) !important;
   }
   .al-root.al-root--gate[data-theme="light"] .al-input,
   .al-root.al-root--gate[data-theme="light"] .al-input-shell .al-input {
@@ -1715,8 +1715,8 @@ export const AUTH_OS_STYLES = `
   }
   .al-root.al-root--gate[data-theme="light"] .al-input:focus,
   .al-root.al-root--gate[data-theme="light"] .al-input:focus-visible {
-    border-width: var(--festag-input-border-width-focus, 2.5px) !important;
-    border-color: var(--festag-input-border-focus, #7E889F) !important;
+    border-width: var(--festag-input-border-width-focus, 2px) !important;
+    border-color: var(--festag-input-border-focus, #5B647D) !important;
     background: transparent !important;
     box-shadow: none !important;
   }

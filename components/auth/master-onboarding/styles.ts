@@ -8,11 +8,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-placeholder: #8891a0;
     --mob-hairline: rgba(30, 30, 32, 0.10);
     --mob-hairline-filled: rgba(30, 30, 32, 0.16);
-    /* Soft primary stroke — same as AUTH_STROKE / caret (not fill #5B647D). */
-    --mob-primary: #7E889F;
-    --mob-caret: #7E889F;
+    /* Primary blue stroke — same as AUTH_STROKE / Login fields. */
+    --mob-primary: #5B647D;
+    --mob-caret: #5B647D;
     --mob-stroke-idle: 2px;
-    --mob-stroke-focus: 2.5px;
+    --mob-stroke-focus: 2px;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
     --mob-card-bg-on: #FFFFFF;
     --mob-card-border: rgba(30, 30, 32, 0.04);
@@ -343,8 +343,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-avatar:focus,
   .mob-profile-avatar:focus-visible {
     outline: none;
-    border-width: var(--mob-stroke-focus, 2.5px);
-    border-color: var(--mob-primary, #7E889F);
+    border-width: var(--mob-stroke-focus, 2px);
+    border-color: var(--mob-primary, #5B647D);
     box-shadow: none;
   }
   /* Filled avatar — image fills; stroke matches focused fields */
@@ -352,8 +352,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-avatar.has-image:hover,
   .mob-profile-avatar.has-image:focus,
   .mob-profile-avatar.has-image:focus-visible {
-    border-width: var(--mob-stroke-focus, 2.5px);
-    border-color: var(--mob-primary, #7E889F);
+    border-width: var(--mob-stroke-focus, 2px);
+    border-color: var(--mob-primary, #5B647D);
     box-shadow: none;
     color: transparent;
     background: transparent;
@@ -395,7 +395,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     opacity: 0;
     pointer-events: none;
   }
-  /* Field shell — idle 2px; focus / filled 2.5px primary (Login/Register SSOT) */
+  /* Field shell — idle/focus 2px primary (Login/Register SSOT) */
   .mob-profile-field {
     position: relative;
     min-width: 0;
@@ -417,14 +417,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border-color: rgba(30, 30, 32, 0.20);
   }
   .mob-profile-field.has-value {
-    border-width: var(--mob-stroke-focus, 2.5px);
-    border-color: var(--mob-primary, #7E889F);
+    border-width: var(--mob-stroke-focus, 2px);
+    border-color: var(--mob-primary, #5B647D);
   }
   .mob-profile-field.is-focused,
   .mob-profile-field.is-focused:hover,
   .mob-profile-field.has-value.is-focused {
-    border-width: var(--mob-stroke-focus, 2.5px);
-    border-color: var(--mob-primary, #7E889F);
+    border-width: var(--mob-stroke-focus, 2px);
+    border-color: var(--mob-primary, #5B647D);
   }
   /* Context field — same 46px as Name; caret centered like <input> until text wraps */
   .mob-profile-field--grow {
@@ -531,8 +531,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transition: background-color 9999s ease-out 0s;
   }
   .mob-profile-field:has(.mob-profile-input:-webkit-autofill) {
-    border-width: var(--mob-stroke-focus, 2.5px);
-    border-color: var(--mob-primary, #7E889F);
+    border-width: var(--mob-stroke-focus, 2px);
+    border-color: var(--mob-primary, #5B647D);
   }
   /* Rotating Position examples — slow crossfade, no remount flash */
   .mob-profile-example {
@@ -655,8 +655,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     opacity: 1;
   }
   .mob-ws-card.is-on {
-    border-width: var(--mob-stroke-focus, 2.5px) !important;
-    border-color: var(--mob-primary, #7E889F) !important;
+    border-width: var(--mob-stroke-focus, 2px) !important;
+    border-color: var(--mob-primary, #5B647D) !important;
     background: var(--mob-card-bg-on);
     opacity: 1;
   }
@@ -667,8 +667,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-ws-card.is-on:focus,
   .mob-ws-card.is-on:focus-visible {
-    border-width: var(--mob-stroke-focus, 2.5px) !important;
-    border-color: var(--mob-primary, #7E889F) !important;
+    border-width: var(--mob-stroke-focus, 2px) !important;
+    border-color: var(--mob-primary, #5B647D) !important;
   }
   .mob-ws-card-copy {
     flex: 1;
@@ -890,8 +890,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-intent-shell.has-value,
   .mob-intent-shell.is-focused {
-    border-width: var(--mob-stroke-focus, 2.5px) !important;
-    border-color: var(--mob-primary, #7E889F) !important;
+    border-width: var(--mob-stroke-focus, 2px) !important;
+    border-color: var(--mob-primary, #5B647D) !important;
     box-shadow: none !important;
   }
   /* Non-bare Tagro orb reserves BR room; bareChip is portaled and needs none. */
@@ -1185,8 +1185,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border-color: rgba(30, 30, 32, 0.20) !important;
   }
   .mob-connect-row.is-on {
-    border-width: var(--mob-stroke-focus, 2.5px) !important;
-    border-color: var(--mob-primary, #7E889F) !important;
+    border-width: var(--mob-stroke-focus, 2px) !important;
+    border-color: var(--mob-primary, #5B647D) !important;
     background: #FFFFFF;
     box-shadow: none !important;
   }
@@ -1197,8 +1197,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-connect-row.is-on:focus,
   .mob-connect-row.is-on:focus-visible {
-    border-width: var(--mob-stroke-focus, 2.5px) !important;
-    border-color: var(--mob-primary, #7E889F) !important;
+    border-width: var(--mob-stroke-focus, 2px) !important;
+    border-color: var(--mob-primary, #5B647D) !important;
   }
   .mob-connect-icon {
     width: 28px;

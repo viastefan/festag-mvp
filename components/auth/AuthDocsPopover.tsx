@@ -391,16 +391,16 @@ const AUTH_DOCS_CSS = `
     border-radius: 8px;
     border: 2px solid rgba(30, 30, 32, 0.15);
     background: transparent;
-    color: #7E889F;
+    color: #5B647D;
     box-sizing: border-box;
     box-shadow: none;
     transition: border-color .18s ease;
   }
   .auth-docs-search:focus-within {
-    border-color: #7E889F;
+    border-color: #5B647D;
   }
   .auth-docs-search svg {
-    color: #7E889F;
+    color: #5B647D;
     opacity: 0.55;
     flex-shrink: 0;
   }
@@ -424,7 +424,7 @@ const AUTH_DOCS_CSS = `
     background: transparent !important;
     color: #1e1e20 !important;
     -webkit-text-fill-color: #1e1e20;
-    caret-color: #7E889F;
+    caret-color: #5B647D;
     font-family: inherit;
     font-size: 15px;
     font-weight: 400;

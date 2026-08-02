@@ -18,13 +18,16 @@ import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
  */
 export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
 /**
- * Soft primary for thin strokes / caret — lighter than fill `#5B647D`
- * so 2px focus lines read blue-slate, not near-black. Fills (Google CTA) stay Night primary.
+ * Focus / filled field + select-card stroke — Festag primary blue.
+ * Slightly soft read on ivory; fills (Google CTA) use the same Night primary.
  */
-export const AUTH_CARET = '#7E889F'
+export const AUTH_CARET = '#5B647D'
 /** Alias — use for every focus/filled field stroke. */
 export const AUTH_STROKE = AUTH_CARET
-export const AUTH_CARET_SELECTION = 'rgba(126, 136, 159, 0.28)'
+export const AUTH_CARET_SELECTION = 'rgba(91, 100, 125, 0.28)'
+/** Idle hairline width; focus/filled stay the same weight (color carries the state). */
+export const AUTH_STROKE_WIDTH_IDLE = '2px'
+export const AUTH_STROKE_WIDTH_FOCUS = '2px'
 /**
  * Auth dark canvas — Primary Dusk (same OS foundation as mobile onboarding).
  * Deeper than flat Night OLED so auth feels cinematic, not like a login card.
@@ -163,16 +166,16 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
-  /* Quiet ink hairline — idle 2px; focus/filled thicken to Position-field stroke. */
+  /* Quiet ink hairline — idle/focus same weight; focus uses primary blue. */
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
-  --festag-input-border-width:2px;
-  /* Filled keeps the same soft stroke as focus. */
+  --festag-input-border-width:${AUTH_STROKE_WIDTH_IDLE};
+  /* Filled keeps the same weight as focus — primary blue. */
   --festag-input-border-filled:${AUTH_STROKE};
-  --festag-input-border-width-filled:2.5px;
+  --festag-input-border-width-filled:${AUTH_STROKE_WIDTH_FOCUS};
   --festag-input-border-focus:${AUTH_STROKE};
-  --festag-input-border-width-focus:2.5px;
-  --festag-btn-border-width-focus:2.5px;
+  --festag-input-border-width-focus:${AUTH_STROKE_WIDTH_FOCUS};
+  --festag-btn-border-width-focus:${AUTH_STROKE_WIDTH_FOCUS};
   --festag-btn-border-focus:${AUTH_STROKE};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
@@ -230,13 +233,13 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-placeholder:${AUTH_MUTED_READ};
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
-  /* Idle 2px; focus/filled 2.5px — same as onboarding Position field. */
-  --festag-input-border-width:2px;
+  /* Idle/focus same weight — primary blue carries focus. */
+  --festag-input-border-width:${AUTH_STROKE_WIDTH_IDLE};
   --festag-input-border-filled:${AUTH_STROKE};
-  --festag-input-border-width-filled:2.5px;
+  --festag-input-border-width-filled:${AUTH_STROKE_WIDTH_FOCUS};
   --festag-input-border-focus:${AUTH_STROKE};
-  --festag-input-border-width-focus:2.5px;
-  --festag-btn-border-width-focus:2.5px;
+  --festag-input-border-width-focus:${AUTH_STROKE_WIDTH_FOCUS};
+  --festag-btn-border-width-focus:${AUTH_STROKE_WIDTH_FOCUS};
   --festag-btn-border-focus:${AUTH_STROKE};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
@@ -307,13 +310,13 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
   --festag-input-border:rgba(255,255,255,0.15);
   --festag-input-border-hover:rgba(255,255,255,0.20);
-  /* Idle 2px; focus/filled 2.5px — same as onboarding Position field. */
-  --festag-input-border-width:2px;
+  /* Idle/focus same weight — primary blue carries focus. */
+  --festag-input-border-width:${AUTH_STROKE_WIDTH_IDLE};
   --festag-input-border-filled:${AUTH_STROKE};
-  --festag-input-border-width-filled:2.5px;
+  --festag-input-border-width-filled:${AUTH_STROKE_WIDTH_FOCUS};
   --festag-input-border-focus:${AUTH_STROKE};
-  --festag-input-border-width-focus:2.5px;
-  --festag-btn-border-width-focus:2.5px;
+  --festag-input-border-width-focus:${AUTH_STROKE_WIDTH_FOCUS};
+  --festag-btn-border-width-focus:${AUTH_STROKE_WIDTH_FOCUS};
   --festag-btn-border-focus:${AUTH_STROKE};
   --festag-input-focus-glow:none;
   /* OAuth icons/labels must read as active — not disabled ghosts. */
