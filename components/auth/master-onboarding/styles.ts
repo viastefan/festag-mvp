@@ -338,6 +338,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-avatar:focus,
   .mob-profile-avatar:focus-visible {
     outline: none;
+    border-width: 3px;
     border-color: #7E889F;
   }
   /* Filled avatar — same primary stroke as Login filled/focus, until removed */
@@ -345,6 +346,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-avatar.has-image:hover,
   .mob-profile-avatar.has-image:focus,
   .mob-profile-avatar.has-image:focus-visible {
+    border-width: 3px;
     border-color: #7E889F;
     color: transparent;
   }
@@ -407,11 +409,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border-color: rgba(30, 30, 32, 0.20);
   }
   .mob-profile-field.has-value {
+    border-width: 3px;
     border-color: #7E889F;
   }
   .mob-profile-field.is-focused,
   .mob-profile-field.is-focused:hover,
   .mob-profile-field.has-value.is-focused {
+    border-width: 3px;
     border-color: #7E889F;
   }
   /* Context field — grows with text only, never fills leftover stage height */
@@ -504,6 +508,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transition: background-color 9999s ease-out 0s;
   }
   .mob-profile-field:has(.mob-profile-input:-webkit-autofill) {
+    border-width: 3px;
     border-color: #7E889F;
   }
   /* Rotating Position examples — slow crossfade, no remount flash */
