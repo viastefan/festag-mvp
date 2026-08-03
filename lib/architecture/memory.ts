@@ -19,6 +19,23 @@ export type ArchitectureMemoryEntry = {
 
 export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
   {
+    id: 'workspace-creation-as-os',
+    question: 'Warum ist Workspace-Erstellung kein Name→Template→Module-Wizard?',
+    answer:
+      'Der erste Workspace muss sich wie ein digitales Betriebssystem anfühlen, nicht wie ein Ordner. Name + Subdomain machen ihn real; Use-Case-Karten wählen eine Aufgabe (Build for Clients / Run an Agency / Build a Product / Internal Team), keine Kategorie. Module und €19 gehören nicht in den ersten Moment — Templates setzen Defaults, Settings ändern später. Erster Workspace gratis; Zusatz-Workspaces → Workspace Plan.',
+    decision:
+      'Phase 2 locked: Name → Use-case → Creating → Welcome → Overview. No module picker. First WS free. SSOT lib/platform/workspace-creation.ts',
+    date: '2026-08-03',
+    version: '3.3',
+    status: 'locked',
+    related: [
+      'docs/festag-os-workspace-phases.md',
+      '.cursor/rules/festag-os-workspace-phases.mdc',
+      'lib/platform/workspace-creation.ts',
+      'components/auth/WorkspaceCreatePage.tsx',
+    ],
+  },
+  {
     id: 'festag-os-vs-workspace',
     question: 'Warum gibt es Festag OS und Festag Workspace als getrennte Modi?',
     answer:

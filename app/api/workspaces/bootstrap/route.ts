@@ -14,6 +14,16 @@ import {
   rateLimitResponse,
 } from '@/lib/auth-request'
 import { getSupabaseUrl } from '@/lib/supabase/env'
+import {
+  WORKSPACE_TYPES,
+  workspaceTypePatch,
+  workspaceTypeToLegacyMode,
+  type WorkspaceType,
+} from '@/lib/platform/workspace'
+import {
+  getWorkspaceUseCase,
+  type WorkspaceUseCaseId,
+} from '@/lib/platform/workspace-creation'
 
 export const runtime = 'nodejs'
 
@@ -24,12 +34,20 @@ const BOOTSTRAP_LIMIT = { max: 20, windowMs: 15 * 60 * 1000 }
 
 type Region = 'eu' | 'us' | 'global'
 
+function parseWorkspaceType(raw: unknown): WorkspaceType | null {
+  if (typeof raw !== 'string') return null
+  if ((WORKSPACE_TYPES as readonly string[]).includes(raw)) return raw as WorkspaceType
+  const fromUse = getWorkspaceUseCase(raw as WorkspaceUseCaseId)
+  return fromUse?.workspaceType ?? null
+}
+
 /**
  * POST /api/workspaces/bootstrap
  *
  * Creates or renames the signed-in user's personal workspace from the name
  * captured on /register or /create-workspace. Name/slug must be globally unique
  * (no auto-suffix). Idempotent when the personal workspace already exists.
+ * First personal workspace is free; useCase/type seeds metadata only.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -58,7 +76,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, reason: 'service_key_missing' }, { status: 500 })
     }
 
-    let body: { name?: string; region?: Region } = {}
+    let body: {
+      name?: string
+      region?: Region
+      workspaceType?: string
+      useCase?: string
+    } = {}
     try { body = await req.json() } catch { /* empty */ }
 
     const metaName = typeof user.user_metadata?.pending_workspace_name === 'string'
@@ -77,9 +100,19 @@ export async function POST(req: NextRequest) {
         ? body.region
         : 'eu'
 
+    const workspaceType =
+      parseWorkspaceType(body.workspaceType) ||
+      parseWorkspaceType(body.useCase) ||
+      'personal'
+    const legacyMode = workspaceTypeToLegacyMode(workspaceType)
+    const useCaseId =
+      typeof body.useCase === 'string' && getWorkspaceUseCase(body.useCase as WorkspaceUseCaseId)
+        ? body.useCase
+        : null
+
     const { data: existing } = await sb
       .from('workspaces')
-      .select('id, slug, name')
+      .select('id, slug, name, metadata')
       .eq('primary_owner_id', user.id)
       .eq('is_personal', true)
       .maybeSingle()
@@ -100,6 +133,22 @@ export async function POST(req: NextRequest) {
 
     const { name, slug } = availability
 
+    const buildMetadata = (prev: unknown) => {
+      const base =
+        prev && typeof prev === 'object' && !Array.isArray(prev)
+          ? { ...(prev as Record<string, unknown>) }
+          : {}
+      const withType = workspaceTypePatch(base, workspaceType, {
+        suggestedByTagro: false,
+        confirmed: true,
+      })
+      return {
+        ...withType,
+        sourced_from: 'create-workspace',
+        ...(useCaseId ? { workspace_use_case: useCaseId } : {}),
+      }
+    }
+
     const finishSideEffects = async (wsId: string) => {
       await Promise.all([
         sb.from('workspace_members').upsert(
@@ -108,10 +157,9 @@ export async function POST(req: NextRequest) {
         ),
         sb.from('onboarding_state').upsert({
           user_id: user.id,
-          current_step: 'name',
+          current_step: 'done',
           workspace_done: true,
-          // Build Projects continues on /onboarding (name → focus → integrations).
-          // Do not set completed_at here.
+          completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' }),
         sb.auth.admin.updateUserById(user.id, {
@@ -127,7 +175,13 @@ export async function POST(req: NextRequest) {
     if (workspaceId) {
       const { error } = await sb
         .from('workspaces')
-        .update({ name, slug, region })
+        .update({
+          name,
+          slug,
+          region,
+          mode: legacyMode,
+          metadata: buildMetadata(existing?.metadata),
+        })
         .eq('id', workspaceId)
       if (error) {
         const taken = /duplicate|unique|workspaces_slug/i.test(error.message)
@@ -141,7 +195,7 @@ export async function POST(req: NextRequest) {
       await finishSideEffects(workspaceId)
       return NextResponse.json({
         ok: true,
-        workspace: { id: workspaceId, name, slug, region },
+        workspace: { id: workspaceId, name, slug, region, workspaceType },
       })
     }
 
@@ -153,8 +207,8 @@ export async function POST(req: NextRequest) {
         region,
         primary_owner_id: user.id,
         is_personal: true,
-        mode: 'team',
-        metadata: { sourced_from: 'register' },
+        mode: legacyMode,
+        metadata: buildMetadata({ sourced_from: 'create-workspace' }),
       })
       .select('id, slug')
       .single()
@@ -162,14 +216,20 @@ export async function POST(req: NextRequest) {
       // Concurrent bootstrap for the same owner: treat existing personal ws as success.
       const { data: raced } = await sb
         .from('workspaces')
-        .select('id, slug, name')
+        .select('id, slug, name, metadata')
         .eq('primary_owner_id', user.id)
         .eq('is_personal', true)
         .maybeSingle()
       if (raced?.id) {
         const { error: updErr } = await sb
           .from('workspaces')
-          .update({ name, slug, region })
+          .update({
+            name,
+            slug,
+            region,
+            mode: legacyMode,
+            metadata: buildMetadata(raced.metadata),
+          })
           .eq('id', raced.id)
         if (updErr) {
           const taken = /duplicate|unique|workspaces_slug/i.test(updErr.message)
@@ -183,7 +243,7 @@ export async function POST(req: NextRequest) {
         await finishSideEffects(raced.id)
         return NextResponse.json({
           ok: true,
-          workspace: { id: raced.id, name, slug, region },
+          workspace: { id: raced.id, name, slug, region, workspaceType },
         })
       }
       const taken = /duplicate|unique|workspaces_slug/i.test(error.message)
@@ -202,9 +262,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      workspace: { id: created.id, name, slug: created.slug, region },
+      workspace: { id: created.id, name, slug: created.slug, region, workspaceType },
     })
   } catch (e: any) {
     return NextResponse.json({ ok: false, reason: e?.message || 'bootstrap_failed' }, { status: 500 })
   }
 }
+

@@ -117,6 +117,16 @@ export {
 } from '@/lib/platform/workspace'
 
 export {
+  WORKSPACE_USE_CASES,
+  WORKSPACE_CREATION_COPY,
+  WORKSPACE_PLAN,
+  getWorkspaceUseCase,
+  workspaceSubdomainPreview,
+  type WorkspaceUseCaseId,
+  type WorkspaceUseCase,
+} from '@/lib/platform/workspace-creation'
+
+export {
   joinProjectHref,
   isJoinMidFlowNext,
   inviteKindToMembership,

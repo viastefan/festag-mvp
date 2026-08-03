@@ -15,7 +15,11 @@ export type BootstrapWorkspaceResult =
 
 export async function bootstrapPersonalWorkspace(
   rawName: string,
-  opts: { region?: 'eu' | 'us' | 'global' } = {},
+  opts: {
+    region?: 'eu' | 'us' | 'global'
+    useCase?: string
+    workspaceType?: string
+  } = {},
 ): Promise<BootstrapWorkspaceResult> {
   const name = normalizeWorkspaceName(rawName)
   if (!name) {
@@ -33,7 +37,12 @@ export async function bootstrapPersonalWorkspace(
     const res = await fetch('/api/workspaces/bootstrap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, ...(opts.region ? { region: opts.region } : {}) }),
+      body: JSON.stringify({
+        name,
+        ...(opts.region ? { region: opts.region } : {}),
+        ...(opts.useCase ? { useCase: opts.useCase } : {}),
+        ...(opts.workspaceType ? { workspaceType: opts.workspaceType } : {}),
+      }),
       credentials: 'include',
     })
     const data = await res.json().catch(() => null)
