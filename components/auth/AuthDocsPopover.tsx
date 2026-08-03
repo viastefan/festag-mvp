@@ -56,10 +56,10 @@ const AUTH_DOCS_LEGAL_ITEMS: DocsListItem[] = [
   },
 ]
 
-/** Auth canvas theme — never inherit portal html[data-theme=dark] on a light login. */
+/** Auth / onboarding / workspace-create canvas theme — never inherit portal html alone. */
 function readAuthCanvasTheme(): string {
   if (typeof document === 'undefined') return 'light'
-  const root = document.querySelector('.al-root, .dl-root, .mob')
+  const root = document.querySelector('.al-root, .dl-root, .mob, .wc-os')
   const theme = root?.getAttribute('data-theme')
   return theme === 'dark' || theme === 'classic-dark' || theme === 'read' ? theme : 'light'
 }
@@ -99,7 +99,7 @@ export default function AuthDocsPopover({
   useEffect(() => {
     const sync = () => setCanvasTheme(readAuthCanvasTheme())
     sync()
-    const root = document.querySelector('.al-root, .dl-root, .mob')
+    const root = document.querySelector('.al-root, .dl-root, .mob, .wc-os')
     if (!root) return
     const mo = new MutationObserver(sync)
     mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
@@ -656,7 +656,8 @@ const AUTH_DOCS_CSS = `
   .al-root[data-theme="classic-dark"] .auth-docs-trigger,
   .auth-docs[data-theme="dark"] .auth-docs-trigger,
   .auth-docs[data-theme="classic-dark"] .auth-docs-trigger,
-  .dl-root[data-theme="dark"] .auth-docs-trigger {
+  .dl-root[data-theme="dark"] .auth-docs-trigger,
+  .wc-os[data-theme="dark"] .auth-docs-trigger {
     color: rgba(245, 245, 247, 0.55) !important;
   }
   .al-root[data-theme="dark"] .auth-docs-trigger:hover,
@@ -670,7 +671,10 @@ const AUTH_DOCS_CSS = `
   .auth-docs[data-theme="dark"] .auth-docs-trigger[aria-expanded="true"],
   .auth-docs[data-theme="classic-dark"] .auth-docs-trigger:hover,
   .auth-docs[data-theme="classic-dark"] .auth-docs-trigger:focus-visible,
-  .auth-docs[data-theme="classic-dark"] .auth-docs-trigger[aria-expanded="true"] {
+  .auth-docs[data-theme="classic-dark"] .auth-docs-trigger[aria-expanded="true"],
+  .wc-os[data-theme="dark"] .auth-docs-trigger:hover,
+  .wc-os[data-theme="dark"] .auth-docs-trigger:focus-visible,
+  .wc-os[data-theme="dark"] .auth-docs-trigger[aria-expanded="true"] {
     color: rgba(245, 245, 247, 0.92) !important;
   }
 `

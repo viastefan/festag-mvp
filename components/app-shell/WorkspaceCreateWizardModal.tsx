@@ -2,12 +2,13 @@
 
 /**
  * Phase 2 — Workspace creation as a sequential popup slider.
- * Name → Use case → Creating… → Welcome.
- * First workspace free. No module picker. No €19 on first path.
+ * Onboarding-style header (mark + Docs). Theme follows the signed-in
+ * user's settings (light / read / dark) — never forced dusk.
  */
 
 import { useEffect, useRef, useState } from 'react'
-import Modal, { ModalButton } from '@/components/Modal'
+import { createPortal } from 'react-dom'
+import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 import {
@@ -20,6 +21,11 @@ import {
   OPEN_WORKSPACE_CREATE_EVENT,
   emitWorkspaceCreated,
 } from '@/lib/workspace-create-open'
+import {
+  getTheme,
+  parseThemeEventDetail,
+  type PanelThemeMode,
+} from '@/lib/theme'
 import {
   WORKSPACE_CREATION_COPY as COPY,
   WORKSPACE_USE_CASES,
@@ -37,14 +43,23 @@ function slideIndex(step: Step): number {
   return Math.max(0, SLIDE_ORDER.indexOf(step))
 }
 
+function resolveWizardTheme(mode: PanelThemeMode): 'light' | 'read' | 'dark' {
+  if (mode === 'dark') return 'dark'
+  if (mode === 'read') return 'read'
+  return 'light'
+}
+
 export default function WorkspaceCreateWizardModal() {
   const [open, setOpen] = useState(false)
+  const [visible, setVisible] = useState(false)
   const [step, setStep] = useState<Step>('name')
   const [useCase, setUseCase] = useState<WorkspaceUseCaseId | null>(null)
   const [error, setError] = useState('')
   const [creatingVisible, setCreatingVisible] = useState(0)
   const [checkingOwned, setCheckingOwned] = useState(false)
+  const [themeMode, setThemeMode] = useState<PanelThemeMode>(() => getTheme('client'))
   const createStarted = useRef(false)
+  const rootRef = useRef<HTMLDivElement>(null)
 
   const {
     workspaceName,
@@ -61,17 +76,7 @@ export default function WorkspaceCreateWizardModal() {
   const subdomain = workspaceSubdomainPreview(displayName || workspaceName)
   const useReady = Boolean(useCase)
   const busy = step === 'creating' || step === 'welcome'
-  const title =
-    step === 'plan' ? COPY.additionalTitle
-    : step === 'name' ? COPY.nameTitle
-    : step === 'use' ? COPY.useTitle
-    : step === 'creating' ? COPY.creatingTitle
-    : `${COPY.welcomePrefix} ${displayName || 'your workspace'}.`
-  const subtitle =
-    step === 'plan' ? COPY.additionalBody
-    : step === 'name' ? COPY.nameSupport
-    : step === 'use' ? COPY.useFootnote
-    : undefined
+  const dataTheme = resolveWizardTheme(themeMode)
 
   useEffect(() => {
     function onOpen() {
@@ -79,6 +84,19 @@ export default function WorkspaceCreateWizardModal() {
     }
     window.addEventListener(OPEN_WORKSPACE_CREATE_EVENT, onOpen)
     return () => window.removeEventListener(OPEN_WORKSPACE_CREATE_EVENT, onOpen)
+  }, [])
+
+  useEffect(() => {
+    setThemeMode(getTheme('client'))
+    const onTheme = (e: Event) => {
+      const parsed = parseThemeEventDetail((e as CustomEvent).detail)
+      if (!parsed) return
+      if (parsed.mode === 'light' || parsed.mode === 'dark' || parsed.mode === 'read') {
+        setThemeMode(parsed.mode)
+      }
+    }
+    window.addEventListener('festag-theme', onTheme)
+    return () => window.removeEventListener('festag-theme', onTheme)
   }, [])
 
   useEffect(() => {
@@ -93,12 +111,36 @@ export default function WorkspaceCreateWizardModal() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!open) {
+      setVisible(false)
+      return
+    }
+    const id = requestAnimationFrame(() => setVisible(true))
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      cancelAnimationFrame(id)
+      document.body.style.overflow = prev
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !busy) closeWizard()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, busy])
+
   async function openWizard() {
     setError('')
     setUseCase(null)
     setCreatingVisible(0)
     createStarted.current = false
     setCheckingOwned(true)
+    setThemeMode(getTheme('client'))
     setOpen(true)
     setStep('name')
 
@@ -120,7 +162,7 @@ export default function WorkspaceCreateWizardModal() {
         setStep('plan')
       } else {
         setStep('name')
-        window.setTimeout(() => inputRef.current?.focus(), 80)
+        window.setTimeout(() => inputRef.current?.focus(), 120)
       }
     } catch {
       setStep('name')
@@ -131,8 +173,11 @@ export default function WorkspaceCreateWizardModal() {
 
   function closeWizard() {
     if (busy) return
-    setOpen(false)
-    setError('')
+    setVisible(false)
+    window.setTimeout(() => {
+      setOpen(false)
+      setError('')
+    }, 220)
   }
 
   async function goToUse() {
@@ -204,8 +249,11 @@ export default function WorkspaceCreateWizardModal() {
       emitWorkspaceCreated(result.workspace.name)
 
       window.setTimeout(() => {
-        setOpen(false)
-        createStarted.current = false
+        setVisible(false)
+        window.setTimeout(() => {
+          setOpen(false)
+          createStarted.current = false
+        }, 220)
       }, 1400)
     } catch {
       lineTimers.forEach(clearTimeout)
@@ -215,150 +263,365 @@ export default function WorkspaceCreateWizardModal() {
     }
   }
 
-  const footer =
-    step === 'plan' ? (
-      <ModalButton variant="primary" onClick={closeWizard}>
-        {COPY.additionalBack}
-      </ModalButton>
-    ) : step === 'name' ? (
-      <ModalButton variant="primary" onClick={() => void goToUse()} disabled={!ready || checkingOwned}>
-        {COPY.continue}
-      </ModalButton>
-    ) : step === 'use' ? (
-      <ModalButton
-        variant="primary"
-        onClick={() => void startCreate()}
-        disabled={!useReady}
-      >
-        {COPY.continue}
-      </ModalButton>
-    ) : null
+  if (!open || typeof document === 'undefined') return null
 
-  return (
-    <Modal
-      open={open}
-      onClose={closeWizard}
-      size="md"
-      title={busy && step === 'welcome' ? title : title}
-      subtitle={busy && step === 'welcome' ? undefined : subtitle}
-      footer={footer}
-      noBackdropClose={busy}
-      autoFocus={step === 'name'}
-      dragHandle
-      surfaceClassName={`wc-wizard-modal${busy ? ' wc-wizard-modal--locked' : ''}`}
+  const title =
+    step === 'plan' ? COPY.additionalTitle
+    : step === 'name' ? COPY.nameTitle
+    : step === 'use' ? COPY.useTitle
+    : step === 'creating' ? COPY.creatingTitle
+    : `${COPY.welcomePrefix} ${displayName || 'your workspace'}.`
+
+  const support =
+    step === 'plan' ? COPY.additionalBody
+    : step === 'name' ? COPY.nameSupport
+    : step === 'use' ? COPY.useFootnote
+    : step === 'welcome' ? 'Your workspace is ready.'
+    : null
+
+  return createPortal(
+    <div
+      ref={rootRef}
+      className={`wc-os${visible ? ' is-visible' : ''}${busy ? ' is-busy' : ''}`}
+      data-theme={dataTheme}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="wc-os-title"
     >
       <style>{WIZARD_CSS}</style>
-      {step === 'plan' ? (
-        <p className="wc-modal-note">Your first workspace stays free. This plan unlocks more environments when you need them.</p>
-      ) : null}
 
-      {step !== 'plan' ? (
-        <div className="wc-slider" data-step={step}>
-          <div
-            className="wc-slider-track"
-            style={{ transform: `translateX(-${slideIndex(step) * 100}%)` }}
-          >
-            <div className="wc-slide" aria-hidden={step !== 'name'}>
-              <label className="wc-field-label" htmlFor="wc-modal-name">
-                {COPY.nameLabel}
-              </label>
-              <div className={`wc-input-row${workspaceName ? ' has-value' : ''}`}>
-                <input
-                  ref={inputRef}
-                  id="wc-modal-name"
-                  className="wc-input"
-                  type="text"
-                  value={workspaceName}
-                  onChange={(e) => {
-                    setError('')
-                    setWorkspaceName(e.target.value)
-                  }}
-                  placeholder={COPY.namePlaceholder}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="words"
-                  spellCheck={false}
-                  maxLength={64}
-                  aria-invalid={availability === 'taken' || availability === 'invalid'}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && ready) {
-                      e.preventDefault()
-                      void goToUse()
-                    }
-                  }}
-                />
-                {availability === 'checking' && displayName ? (
-                  <span className="wc-badge">…</span>
-                ) : availability === 'available' && displayName ? (
-                  <span className="wc-badge wc-badge--ok" title="Available">✓</span>
-                ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
-                  <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Taken'}>✕</span>
-                ) : null}
-              </div>
-              <span className={`wc-subdomain${displayName ? ' is-ready' : ''}`}>
-                {subdomain}
-              </span>
-            </div>
-
-            <div className="wc-slide" aria-hidden={step !== 'use'}>
-              <div className="wc-use-grid" role="radiogroup" aria-label={COPY.useTitle}>
-                {WORKSPACE_USE_CASES.map((card) => {
-                  const selected = useCase === card.id
-                  return (
-                    <button
-                      key={card.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      className={`wc-use-card${selected ? ' is-selected' : ''}`}
-                      onClick={() => {
-                        setError('')
-                        setUseCase(card.id)
-                      }}
-                    >
-                      <span className="wc-use-card-title">{card.title}</span>
-                      <span className="wc-use-card-body">{card.description}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="wc-slide wc-slide--status" aria-hidden={step !== 'creating'}>
-              <ul className="wc-creating-lines">
-                {COPY.creatingLines.map((line, i) => (
-                  <li
-                    key={line}
-                    className={`wc-creating-line${creatingVisible > i ? ' is-on' : ''}`}
-                  >
-                    <span className="wc-creating-dot" aria-hidden="true" />
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="wc-slide wc-slide--status" aria-hidden={step !== 'welcome'}>
-              <p className="wc-welcome-note">Your workspace is ready.</p>
-            </div>
-          </div>
+      <header className="wc-os-header">
+        <button
+          type="button"
+          className="wc-os-wordmark"
+          aria-label={busy ? 'Festag' : 'Close'}
+          onClick={() => {
+            if (!busy) closeWizard()
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="wc-os-mark"
+            src="/brand/festag-mark-fluid.png?v=20260731"
+            alt=""
+            aria-hidden="true"
+            width={36}
+            height={36}
+          />
+        </button>
+        <div className="wc-os-header-actions">
+          <AuthDocsPopover page="/overview" />
         </div>
-      ) : null}
+      </header>
 
-      {error ? <p className="wc-error">{error}</p> : null}
-    </Modal>
+      <div className="wc-os-body">
+        <div className="wc-os-stage">
+          <div className="wc-os-copy">
+            <h1 id="wc-os-title" className="wc-os-title">{title}</h1>
+            {support ? <p className="wc-os-support">{support}</p> : null}
+          </div>
+
+          {step === 'plan' ? (
+            <div className="wc-os-actions">
+              <button type="button" className="wc-os-btn is-ready" onClick={closeWizard}>
+                {COPY.additionalBack}
+              </button>
+            </div>
+          ) : (
+            <div className="wc-slider" data-step={step}>
+              <div
+                className="wc-slider-track"
+                style={{ transform: `translateX(-${slideIndex(step) * 100}%)` }}
+              >
+                <div className="wc-slide" aria-hidden={step !== 'name'}>
+                  <label className="wc-field-label" htmlFor="wc-os-name">
+                    {COPY.nameLabel}
+                  </label>
+                  <div className="wc-input-row">
+                    <input
+                      ref={inputRef}
+                      id="wc-os-name"
+                      className="wc-input"
+                      type="text"
+                      value={workspaceName}
+                      onChange={(e) => {
+                        setError('')
+                        setWorkspaceName(e.target.value)
+                      }}
+                      placeholder={COPY.namePlaceholder}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="words"
+                      spellCheck={false}
+                      maxLength={64}
+                      aria-invalid={availability === 'taken' || availability === 'invalid'}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && ready) {
+                          e.preventDefault()
+                          void goToUse()
+                        }
+                      }}
+                    />
+                    {availability === 'checking' && displayName ? (
+                      <span className="wc-badge">…</span>
+                    ) : availability === 'available' && displayName ? (
+                      <span className="wc-badge wc-badge--ok" title="Available">✓</span>
+                    ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
+                      <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Taken'}>✕</span>
+                    ) : null}
+                  </div>
+                  <span className={`wc-subdomain${displayName ? ' is-ready' : ''}`}>
+                    {subdomain}
+                  </span>
+                  {error && step === 'name' ? <p className="wc-error">{error}</p> : null}
+                  <div className="wc-os-actions">
+                    <button
+                      type="button"
+                      className={`wc-os-btn${ready && !checkingOwned ? ' is-ready' : ''}`}
+                      onClick={() => void goToUse()}
+                      disabled={!ready || checkingOwned}
+                    >
+                      {COPY.continue}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="wc-slide" aria-hidden={step !== 'use'}>
+                  <div className="wc-use-grid" role="radiogroup" aria-label={COPY.useTitle}>
+                    {WORKSPACE_USE_CASES.map((card) => {
+                      const selected = useCase === card.id
+                      return (
+                        <button
+                          key={card.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          className={`wc-use-card${selected ? ' is-selected' : ''}`}
+                          onClick={() => {
+                            setError('')
+                            setUseCase(card.id)
+                          }}
+                        >
+                          <span className="wc-use-card-title">{card.title}</span>
+                          <span className="wc-use-card-body">{card.description}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {error && step === 'use' ? <p className="wc-error">{error}</p> : null}
+                  <div className="wc-os-actions">
+                    <button
+                      type="button"
+                      className={`wc-os-btn${useReady ? ' is-ready' : ''}`}
+                      onClick={() => void startCreate()}
+                      disabled={!useReady}
+                    >
+                      {COPY.continue}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="wc-slide wc-slide--status" aria-hidden={step !== 'creating'}>
+                  <ul className="wc-creating-lines">
+                    {COPY.creatingLines.map((line, i) => (
+                      <li
+                        key={line}
+                        className={`wc-creating-line${creatingVisible > i ? ' is-on' : ''}`}
+                      >
+                        <span className="wc-creating-dot" aria-hidden="true" />
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="wc-slide wc-slide--status" aria-hidden={step !== 'welcome'} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
 
 const WIZARD_CSS = `
-.wc-wizard-modal.wc-wizard-modal--locked .festag-modal-close {
+.wc-os {
+  --wc-ink: #1A1917;
+  --wc-muted: #8891a0;
+  --wc-canvas: #FBF7EE;
+  --wc-wash-top: #FCFAF3;
+  --wc-wash-bottom: #F3EFE4;
+  --wc-card: rgba(255, 255, 255, 0.72);
+  --wc-card-on: #FFFFFF;
+  --wc-border: rgba(30, 30, 32, 0.08);
+  --wc-border-hover: rgba(30, 30, 32, 0.14);
+  --wc-input-border: rgba(30, 30, 32, 0.15);
+  --wc-input-focus: #5B647D;
+  --wc-btn-bg: #ffffff;
+  --wc-btn-fg: #1e1e20;
+  --wc-btn-border: rgba(30, 30, 32, 0.08);
+  --wc-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --wc-btn-ready-bg: #ffffff;
+  --wc-btn-ready-fg: #1e1e20;
+  --wc-mark-filter: brightness(0) saturate(100%);
+  --wc-mark-opacity: 0.9;
+  --wc-gutter: 28px;
+  --wc-content-max: 380px;
+  --wc-control-h: 46px;
+  --wc-radius: 8px;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse 90% 48% at 40% -8%, rgba(91, 100, 125, 0.04), transparent 55%),
+    linear-gradient(180deg, var(--wc-wash-top) 0%, var(--wc-canvas) 48%, var(--wc-wash-bottom) 100%);
+  color: var(--wc-ink);
+  font-family: 'Aeonik', system-ui, sans-serif;
   opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
+}
+
+.wc-os.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.wc-os[data-theme="read"] {
+  --wc-canvas: #F7F4EC;
+  --wc-wash-top: #FAF7F0;
+  --wc-wash-bottom: #F0EBE0;
+}
+
+.wc-os[data-theme="dark"] {
+  --wc-ink: rgba(245, 245, 247, 0.96);
+  --wc-muted: rgba(245, 245, 247, 0.55);
+  --wc-canvas: #0C0D12;
+  --wc-wash-top: #10121A;
+  --wc-wash-bottom: #0A0B10;
+  --wc-card: rgba(186, 194, 210, 0.06);
+  --wc-card-on: rgba(186, 194, 210, 0.1);
+  --wc-border: rgba(255, 255, 255, 0.06);
+  --wc-border-hover: rgba(255, 255, 255, 0.1);
+  --wc-input-border: rgba(255, 255, 255, 0.15);
+  --wc-input-focus: #5B647D;
+  --wc-btn-bg: rgba(186, 194, 210, 0.08);
+  --wc-btn-fg: rgba(245, 245, 247, 0.88);
+  --wc-btn-border: rgba(255, 255, 255, 0.06);
+  --wc-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --wc-btn-ready-bg: #EBE8E3;
+  --wc-btn-ready-fg: #1A1917;
+  --wc-mark-filter: none;
+  --wc-mark-opacity: 0.92;
+  background:
+    radial-gradient(ellipse 80% 50% at 30% -10%, rgba(91, 100, 125, 0.16), transparent 55%),
+    radial-gradient(ellipse 70% 40% at 90% 110%, rgba(235, 232, 227, 0.04), transparent 50%),
+    linear-gradient(180deg, var(--wc-wash-top) 0%, var(--wc-canvas) 45%, var(--wc-wash-bottom) 100%);
+}
+
+.wc-os-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) 16px 10px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.wc-os-wordmark {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wc-os-mark {
+  display: block;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: var(--wc-mark-filter);
+  opacity: var(--wc-mark-opacity);
+}
+
+.wc-os-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wc-os-header-actions .auth-docs-trigger {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+}
+
+.wc-os-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: calc(var(--wc-content-max) + var(--wc-gutter) * 2);
+  margin: 0 auto;
+  padding: 28px var(--wc-gutter) 40px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.wc-os-stage {
+  width: 100%;
+  max-width: var(--wc-content-max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.wc-os-copy {
+  margin-bottom: 28px;
+}
+
+.wc-os-title {
+  margin: 0;
+  font-size: clamp(28px, 4.2vw, 34px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.18;
+  color: var(--wc-ink);
+}
+
+.wc-os-support {
+  margin: 14px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--wc-muted);
+  max-width: 36ch;
 }
 
 .wc-slider {
   overflow: hidden;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .wc-slider-track {
@@ -373,20 +636,20 @@ const WIZARD_CSS = `
   width: 100%;
   min-width: 100%;
   box-sizing: border-box;
-  padding-bottom: 4px;
 }
 
 .wc-slide--status {
-  min-height: 120px;
+  min-height: 140px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 8px;
 }
 
 .wc-field-label {
   display: block;
   margin: 0 0 10px;
   font-size: 13px;
-  color: var(--fp-muted);
+  color: var(--wc-muted);
 }
 
 .wc-input-row {
@@ -397,43 +660,46 @@ const WIZARD_CSS = `
 
 .wc-input {
   width: 100%;
-  height: 44px;
-  border-radius: 10px;
-  border: 1px solid var(--fp-border, rgba(15, 23, 42, 0.12));
+  height: var(--wc-control-h);
+  border-radius: var(--wc-radius);
+  border: 1px solid var(--wc-input-border);
   background: transparent;
-  color: var(--fp-text);
+  color: var(--wc-ink);
   padding: 0 40px 0 14px;
   font-size: 16px;
   letter-spacing: -0.01em;
   outline: none;
   font-family: inherit;
+  box-sizing: border-box;
+}
+
+.wc-input::placeholder {
+  color: var(--wc-muted);
 }
 
 .wc-input:focus {
-  border-color: var(--festag-primary, #5B647D);
+  border-color: var(--wc-input-focus);
 }
 
 .wc-badge {
   position: absolute;
   right: 12px;
   font-size: 13px;
-  color: var(--fp-muted);
+  color: var(--wc-muted);
 }
 
-.wc-badge--ok { color: var(--fp-text); }
+.wc-badge--ok { color: var(--wc-ink); }
 .wc-badge--bad { color: #c45c5c; }
 
 .wc-subdomain {
   display: block;
   margin-top: 10px;
   font-size: 13.5px;
-  color: var(--fp-muted);
+  color: var(--wc-muted);
   opacity: 0.85;
 }
 
-.wc-subdomain.is-ready {
-  opacity: 1;
-}
+.wc-subdomain.is-ready { opacity: 1; }
 
 .wc-use-grid {
   display: flex;
@@ -450,21 +716,21 @@ const WIZARD_CSS = `
   text-align: left;
   padding: 14px 16px;
   border-radius: 10px;
-  background: var(--fp-pill, rgba(15, 23, 42, 0.04));
-  border: 1px solid var(--fp-border, rgba(15, 23, 42, 0.08));
-  color: var(--fp-text);
+  background: var(--wc-card);
+  border: 1px solid var(--wc-border);
+  color: var(--wc-ink);
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease;
   font-family: inherit;
 }
 
 .wc-use-card:hover {
-  border-color: color-mix(in srgb, var(--fp-border) 60%, var(--fp-text));
+  border-color: var(--wc-border-hover);
 }
 
 .wc-use-card.is-selected {
-  border-color: color-mix(in srgb, var(--festag-primary, #5B647D) 55%, var(--fp-border));
-  background: color-mix(in srgb, var(--festag-primary, #5B647D) 8%, transparent);
+  background: var(--wc-card-on);
+  border-color: var(--wc-border-hover);
 }
 
 .wc-use-card-title {
@@ -476,7 +742,7 @@ const WIZARD_CSS = `
 .wc-use-card-body {
   font-size: 13.5px;
   line-height: 1.45;
-  color: var(--fp-muted);
+  color: var(--wc-muted);
 }
 
 .wc-creating-lines {
@@ -494,7 +760,7 @@ const WIZARD_CSS = `
   align-items: center;
   gap: 10px;
   font-size: 15px;
-  color: var(--fp-muted);
+  color: var(--wc-muted);
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 320ms ease, transform 320ms ease, color 320ms ease;
@@ -503,23 +769,55 @@ const WIZARD_CSS = `
 .wc-creating-line.is-on {
   opacity: 1;
   transform: translateY(0);
-  color: var(--fp-text);
+  color: var(--wc-ink);
 }
 
 .wc-creating-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--fp-text);
+  background: var(--wc-ink);
   flex-shrink: 0;
 }
 
-.wc-welcome-note,
-.wc-modal-note {
-  margin: 0;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--fp-muted);
+.wc-os-actions {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wc-os-btn {
+  height: var(--wc-control-h);
+  border-radius: 6px;
+  border: 1px solid var(--wc-btn-border) !important;
+  background: var(--wc-btn-bg) !important;
+  color: var(--wc-btn-fg) !important;
+  box-shadow: var(--wc-btn-shadow) !important;
+  font-size: 15px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: background 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+}
+
+.wc-os-btn:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.wc-os-btn.is-ready:not(:disabled) {
+  opacity: 1;
+  background: var(--wc-btn-ready-bg) !important;
+  color: var(--wc-btn-ready-fg) !important;
+}
+
+.wc-os[data-theme="dark"] .wc-os-btn:not(.is-ready):not(:disabled) {
+  background: transparent !important;
+  color: rgba(228, 228, 234, 0.62) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  box-shadow: none !important;
 }
 
 .wc-error {
@@ -528,7 +826,28 @@ const WIZARD_CSS = `
   color: #c45c5c;
 }
 
-@media (max-width: 768px) {
-  .wc-use-card { padding: 13px 14px; }
+@media (min-width: 769px) {
+  .wc-os {
+    --wc-gutter: 48px;
+  }
+  .wc-os-header {
+    padding: 24px 32px 12px;
+  }
+  .wc-os-wordmark {
+    width: 42px;
+    height: 42px;
+  }
+  .wc-os-mark {
+    width: 38px;
+    height: 38px;
+  }
+  .wc-os-body {
+    padding: clamp(48px, 12vh, 120px) var(--wc-gutter) 48px;
+    max-width: none;
+    align-items: center;
+  }
+  .wc-os-stage {
+    margin: 0 auto;
+  }
 }
 `
