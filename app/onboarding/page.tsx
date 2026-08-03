@@ -2,8 +2,9 @@
 
 /**
  * /onboarding — Build flow
- * Profile → Workspace → Connect → /preparing
+ * Profile → Username → Connect → /preparing
  * Auth identity stays on /login|/register. Invitees use /join.
+ * Workspace type/name is created after onboarding (/create-workspace).
  */
 
 import {
@@ -35,23 +36,19 @@ import {
   blueprintMetadataPatch,
   type TagroBlueprint,
 } from '@/lib/tagro/workspace-blueprint'
-import {
-  workspaceTypePatch,
-  workspaceTypeToLegacyMode,
-} from '@/lib/platform/workspace'
 import type { IntegrationId } from '@/lib/platform/integrations'
+import { normalizeWorkspaceName } from '@/lib/pending-workspace'
 import {
   MASTER_FLOW_DOTS,
   NAME_MIN_CHARS,
+  USERNAME_MIN_CHARS,
   type MasterBuildStep,
-  type WorkspaceOption,
-  clarifyToWorkspaceType,
   normalizeMasterStep,
 } from '@/lib/platform/master-onboarding'
 import { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import { MASTER_ONBOARDING_STYLES } from '@/components/auth/master-onboarding/styles'
 import ProfileStage from '@/components/auth/master-onboarding/ProfileStage'
-import WorkspaceStage from '@/components/auth/master-onboarding/WorkspaceStage'
+import UsernameStage from '@/components/auth/master-onboarding/UsernameStage'
 import ConnectStage, {
   rankConnectSources,
 } from '@/components/auth/master-onboarding/ConnectStage'
@@ -79,7 +76,7 @@ function MasterBuildInner() {
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isPreview = searchParams.get('preview') === '1'
+  const isPreview = (searchParams.get('preview') || '').startsWith('1')
 
   const [booting, setBooting] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
@@ -88,7 +85,7 @@ function MasterBuildInner() {
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [workspacePick, setWorkspacePick] = useState('')
+  const [username, setUsername] = useState('')
   const [connected, setConnected] = useState<Set<string>>(() => new Set())
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -99,13 +96,13 @@ function MasterBuildInner() {
   const mobRootRef = useRef<HTMLDivElement | null>(null)
 
   const contextSeed = useMemo(() => {
-    const bits = [position.trim(), workspacePick.trim()].filter(Boolean)
+    const bits = [position.trim()].filter(Boolean)
     return bits.join(' — ')
-  }, [position, workspacePick])
+  }, [position])
 
   const blueprint: TagroBlueprint = useMemo(
-    () => analyzeIntent(contextSeed || position, workspacePick),
-    [contextSeed, position, workspacePick],
+    () => analyzeIntent(contextSeed || position, ''),
+    [contextSeed, position],
   )
 
   const sources = useMemo(
@@ -157,6 +154,7 @@ function MasterBuildInner() {
         active instanceof HTMLElement &&
         el.contains(active) &&
         (active.classList.contains('mob-profile-input') ||
+          active.classList.contains('mob-username-input') ||
           active.classList.contains('mob-login-input') ||
           active.classList.contains('mob-login-textarea') ||
           active.classList.contains('mob-intent-input') ||
@@ -200,6 +198,7 @@ function MasterBuildInner() {
           active instanceof HTMLElement &&
           root()?.contains(active) &&
           (active.classList.contains('mob-profile-input') ||
+            active.classList.contains('mob-username-input') ||
             active.classList.contains('mob-login-input') ||
             active.classList.contains('mob-login-textarea'))
         if (!still) clearShift()
@@ -262,7 +261,7 @@ function MasterBuildInner() {
           await Promise.all([
             supabase
               .from('profiles')
-              .select('full_name, position, avatar_url, dev_profile_facts, dev_github_linked, github_username')
+              .select('full_name, position, avatar_url, dev_profile_facts, dev_github_linked, github_username, dev_username')
               .eq('id', user.id)
               .maybeSingle(),
             supabase
@@ -306,12 +305,7 @@ function MasterBuildInner() {
           return
         }
 
-        if (!ownedWs?.id && !memberWs?.workspace_id && !projectMember?.project_id) {
-          prepareAuthRouteTransition('/create-workspace')
-          router.replace('/create-workspace')
-          return
-        }
-
+        /* No workspace yet is fine — create after onboarding. */
         if (onboarding?.completed_at && !isResuming) {
           const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
           prepareAuthRouteTransition(target)
@@ -355,12 +349,8 @@ function MasterBuildInner() {
         if (pos) setPosition(pos)
         else if (facts) setPosition(facts.slice(0, 64))
 
-        const metaType = (ownedWs?.metadata as { workspace_type?: { value?: string } } | null)
-          ?.workspace_type?.value
-        if (metaType === 'agency') setWorkspacePick('Agentur')
-        else if (metaType === 'startup') setWorkspacePick('Startup')
-        else if (metaType === 'company') setWorkspacePick('Unternehmen')
-        else if (metaType === 'personal') setWorkspacePick('Developer')
+        const existingUsername = normalizeWorkspaceName(String(prof?.dev_username || ''))
+        if (existingUsername) setUsername(existingUsername)
 
         if (isResuming && resumeStep) setCurrent(resumeStep)
 
@@ -378,17 +368,21 @@ function MasterBuildInner() {
 
   const persistProfileAndWorkspace = useCallback(
     async (opts?: { markStep?: string }): Promise<TagroBlueprint | null> => {
-      if (isPreview) return analyzeIntent(contextSeed || position, workspacePick)
+      if (isPreview) return analyzeIntent(contextSeed || position, '')
       if (!userId) return null
       if (fullName.trim().length < NAME_MIN_CHARS) {
         setError('Bitte gib deinen Namen ein.')
         return null
       }
 
-      const bp = analyzeIntent(contextSeed || position, workspacePick)
-      const ctx =
-        position.trim().slice(0, 280) ||
-        (workspacePick ? `Workspace: ${workspacePick}` : '')
+      const handle = normalizeWorkspaceName(username)
+      if (handle.length < USERNAME_MIN_CHARS) {
+        setError('Bitte wähle einen Benutzernamen.')
+        return null
+      }
+
+      const bp = analyzeIntent(contextSeed || position, '')
+      const ctx = position.trim().slice(0, 280)
       const inferred = ctx ? inferWorkspaceUnderstanding(ctx) : null
       const shortPosition = position.trim().slice(0, 64)
 
@@ -396,6 +390,7 @@ function MasterBuildInner() {
         {
           id: userId,
           full_name: fullName.trim(),
+          dev_username: handle,
           ...(shortPosition ? { position: shortPosition } : {}),
           ...(avatarUrl && !avatarUrl.startsWith('blob:') ? { avatar_url: avatarUrl } : {}),
           ...(ctx ? { dev_profile_facts: ctx } : {}),
@@ -409,7 +404,12 @@ function MasterBuildInner() {
         { onConflict: 'id' },
       )
       if (upsertError) {
-        setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+        const msg = String(upsertError.message || '').toLowerCase()
+        if (msg.includes('dev_username') || msg.includes('unique') || msg.includes('duplicate')) {
+          setError('Dieser Benutzername ist bereits vergeben.')
+        } else {
+          setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+        }
         return null
       }
 
@@ -435,26 +435,19 @@ function MasterBuildInner() {
         meta = (ws?.metadata as Record<string, unknown>) ?? {}
       }
 
-      if (wsId && workspacePick) {
-        let nextMeta = meta
-        if (ctx && inferred) {
-          nextMeta = workspaceProfilePatch(nextMeta, {
+      if (wsId && ctx && inferred) {
+        const nextMeta = blueprintMetadataPatch(
+          workspaceProfilePatch(meta, {
             context: ctx,
             inferred,
             source: 'onboarding',
-          })
-        }
-        nextMeta = blueprintMetadataPatch(nextMeta, bp)
-        const type = clarifyToWorkspaceType(workspacePick)
-        nextMeta = workspaceTypePatch(nextMeta, type, {
-          suggestedByTagro: Boolean(position.trim()),
-          confirmed: true,
-        })
+          }),
+          bp,
+        )
         const { error: wsErr } = await supabase
           .from('workspaces')
           .update({
             metadata: nextMeta,
-            mode: workspaceTypeToLegacyMode(type),
             updated_at: new Date().toISOString(),
           })
           .eq('id', wsId)
@@ -468,7 +461,7 @@ function MasterBuildInner() {
         {
           user_id: userId,
           current_step: opts?.markStep || current,
-          workspace_done: Boolean(workspacePick),
+          workspace_done: Boolean(wsId),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'user_id' },
@@ -478,7 +471,7 @@ function MasterBuildInner() {
         void fetch('/api/onboarding/analyze-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: ctx, clarify: workspacePick, persist: true }),
+          body: JSON.stringify({ text: ctx, persist: true }),
         }).catch(() => null)
       }
 
@@ -493,8 +486,8 @@ function MasterBuildInner() {
       position,
       supabase,
       userId,
+      username,
       workspaceId,
-      workspacePick,
     ],
   )
 
@@ -514,7 +507,7 @@ function MasterBuildInner() {
           {
             user_id: userId,
             current_step: 'connect',
-            workspace_done: true,
+            workspace_done: Boolean(workspaceId),
             completed_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
@@ -534,7 +527,7 @@ function MasterBuildInner() {
       setError('Etwas ist schiefgelaufen. Bitte erneut versuchen.')
       setSubmitting(false)
     }
-  }, [isPreview, persistProfileAndWorkspace, submitting, supabase, userId])
+  }, [isPreview, persistProfileAndWorkspace, submitting, supabase, userId, workspaceId])
 
   const goProfileNext = useCallback(async () => {
     if (fullName.trim().length < NAME_MIN_CHARS) {
@@ -564,16 +557,53 @@ function MasterBuildInner() {
         }).catch(() => null)
       }
     }
-    setCurrent('workspace')
+    setCurrent('username')
   }, [avatarUrl, fullName, isPreview, position, supabase, userId])
 
-  const goWorkspaceNext = useCallback(async () => {
-    if (!workspacePick) return
+  const goUsernameNext = useCallback(async () => {
+    const handle = normalizeWorkspaceName(username)
+    if (handle.length < USERNAME_MIN_CHARS) {
+      setError('Bitte wähle einen Benutzernamen.')
+      return
+    }
     setError('')
-    const ok = await persistProfileAndWorkspace({ markStep: 'workspace' })
-    if (!ok && !isPreview) return
+    if (!isPreview && userId) {
+      try {
+        const qs = new URLSearchParams({ name: handle, excludeProfileId: userId })
+        const res = await fetch(`/api/usernames/check?${qs.toString()}`, { credentials: 'include' })
+        const data = await res.json().catch(() => null)
+        if (!data?.ok || !data.available) {
+          setError(String(data?.reason || 'Dieser Benutzername ist nicht verfügbar.'))
+          return
+        }
+      } catch {
+        setError('Benutzername konnte nicht geprüft werden.')
+        return
+      }
+      const { error: upErr } = await supabase.from('profiles').upsert(
+        {
+          id: userId,
+          full_name: fullName.trim() || undefined,
+          dev_username: handle,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' },
+      )
+      if (upErr) {
+        setError('Benutzername konnte nicht gespeichert werden.')
+        return
+      }
+      await supabase.from('onboarding_state').upsert(
+        {
+          user_id: userId,
+          current_step: 'username',
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' },
+      )
+    }
     setCurrent('connect')
-  }, [isPreview, persistProfileAndWorkspace, workspacePick])
+  }, [fullName, isPreview, supabase, userId, username])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -581,9 +611,9 @@ function MasterBuildInner() {
       const el = e.target as HTMLElement | null
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return
 
-      if (current === 'workspace' && workspacePick) {
+      if (current === 'username' && normalizeWorkspaceName(username).length >= USERNAME_MIN_CHARS) {
         e.preventDefault()
-        void goWorkspaceNext()
+        void goUsernameNext()
         return
       }
       if (current === 'connect' && !submitting) {
@@ -593,7 +623,7 @@ function MasterBuildInner() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [current, finishToPreparing, goWorkspaceNext, submitting, workspacePick])
+  }, [current, finishToPreparing, goUsernameNext, submitting, username])
 
   const toggleSource = useCallback(
     async (id: IntegrationId) => {
@@ -626,11 +656,11 @@ function MasterBuildInner() {
     [connected, isPreview, supabase.auth],
   )
 
-  const stepOrder: MasterBuildStep[] = ['profile', 'workspace', 'connect']
+  const stepOrder: MasterBuildStep[] = ['profile', 'username', 'connect']
 
   function canSwipeForward() {
     if (current === 'profile') return fullName.trim().length >= NAME_MIN_CHARS
-    if (current === 'workspace') return Boolean(workspacePick)
+    if (current === 'username') return normalizeWorkspaceName(username).length >= USERNAME_MIN_CHARS
     if (current === 'connect') return !submitting
     return false
   }
@@ -640,8 +670,8 @@ function MasterBuildInner() {
       void goProfileNext()
       return
     }
-    if (current === 'workspace') {
-      void goWorkspaceNext()
+    if (current === 'username') {
+      void goUsernameNext()
       return
     }
     if (current === 'connect') void finishToPreparing()
@@ -657,13 +687,13 @@ function MasterBuildInner() {
       setCurrent('profile')
       return
     }
-    if (id === 'workspace') {
+    if (id === 'username') {
       if (fullName.trim().length < NAME_MIN_CHARS) return
-      setCurrent('workspace')
+      setCurrent('username')
       return
     }
     if (id === 'connect') {
-      if (!workspacePick) return
+      if (normalizeWorkspaceName(username).length < USERNAME_MIN_CHARS) return
       setCurrent('connect')
     }
   }
@@ -762,11 +792,16 @@ function MasterBuildInner() {
               />
             ) : null}
 
-            {current === 'workspace' ? (
-              <WorkspaceStage
-                value={workspacePick}
-                onPick={(opt: WorkspaceOption) => setWorkspacePick(opt)}
-                onContinue={() => void goWorkspaceNext()}
+            {current === 'username' ? (
+              <UsernameStage
+                value={username}
+                onChange={(v) => {
+                  setUsername(v)
+                  if (error) setError('')
+                }}
+                userId={userId}
+                isPreview={isPreview}
+                onAdvance={() => void goUsernameNext()}
               />
             ) : null}
 

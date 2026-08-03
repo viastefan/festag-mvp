@@ -119,15 +119,16 @@ export async function resolvePostAuthTarget(
       return preferredNext
     }
 
-    if (!hasWorkspace) {
-      if (preferredNext?.startsWith('/dev')) {
-        return isExecutionPanelRole(role) ? '/dev' : '/onboarding'
-      }
+    // Identity onboarding before workspace creation.
+    if (!onboarded) {
       return '/onboarding'
     }
 
-    if (!onboarded) {
-      return '/onboarding'
+    if (!hasWorkspace) {
+      if (preferredNext?.startsWith('/dev')) {
+        return isExecutionPanelRole(role) ? '/dev' : '/create-workspace'
+      }
+      return '/create-workspace'
     }
 
     const workspaceMode = await resolveWorkspaceMode(supabase, userId)

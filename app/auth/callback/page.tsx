@@ -2,18 +2,17 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import FestagLoader from '@/components/FestagLoader'
+import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
 import AuthBrandLogo from '@/components/AuthBrandLogo'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import { isSsoProvider, finishSsoSession } from '@/lib/auth-sso'
 import {
+  clearPendingWorkspaceName,
   getPendingWorkspaceName,
   normalizeWorkspaceName,
-  setPendingWorkspaceName,
 } from '@/lib/pending-workspace'
-import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import {
   buildGithubProfilePatch,
   hasGithubIdentity,
@@ -45,7 +44,7 @@ async function persistGithubSession(session: {
 }
 
 function safeRedirectPath(value: string | null) {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/loading'
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/onboarding'
   return value
 }
 
@@ -229,9 +228,8 @@ function CallbackInner() {
       }
 
       if (oauthNeedsRegister) {
-        const prefill = oauthNeedsRegister.username
-          ? `&prefill=${encodeURIComponent(oauthNeedsRegister.username)}`
-          : ''
+        // Identity completion lives on /onboarding — never bounce OAuth back to
+        // a username-gated register screen.
         rememberFestagAccount({
           userId: user.id,
           email: user.email ?? null,
@@ -239,7 +237,7 @@ function CallbackInner() {
           onboardingCompleted: false,
           workspaceName: oauthNeedsRegister.workspace_name,
         })
-        hardNavigate(`/register?welcome=1${prefill}`)
+        hardNavigate('/onboarding')
         return
       }
 
@@ -259,41 +257,9 @@ function CallbackInner() {
         }
       } catch { /* best-effort */ }
 
-      // Create/rename personal workspace from the name typed on /register.
-      let needsWorkspaceCreate = false
+      // Workspace is created after onboarding via /create-workspace.
       if (!next.startsWith('/invite/') && !next.startsWith('/dev')) {
-        const pending =
-          getPendingWorkspaceName() ||
-          (typeof user.user_metadata?.pending_workspace_name === 'string'
-            ? user.user_metadata.pending_workspace_name
-            : '') ||
-          (typeof user.user_metadata?.workspace_name === 'string'
-            ? user.user_metadata.workspace_name
-            : '')
-        const wsName = normalizeWorkspaceName(pending)
-        if (wsName) {
-          const boot = await bootstrapPersonalWorkspace(wsName)
-          if (!boot.ok) {
-            setPendingWorkspaceName(wsName)
-            needsWorkspaceCreate = true
-          }
-        } else {
-          const [{ data: existingWs }, { data: memberWs }] = await Promise.all([
-            supabase
-              .from('workspaces')
-              .select('id')
-              .eq('primary_owner_id', user.id)
-              .limit(1)
-              .maybeSingle(),
-            supabase
-              .from('workspace_members')
-              .select('workspace_id')
-              .eq('user_id', user.id)
-              .limit(1)
-              .maybeSingle(),
-          ])
-          if (!existingWs && !memberWs && !ssoWorkspaceJoined) needsWorkspaceCreate = true
-        }
+        clearPendingWorkspaceName()
       }
 
       // Invite passthrough — when the auth flow originated from an invite link
@@ -312,9 +278,7 @@ function CallbackInner() {
 
       // `next` carries optional post-auth intent (e.g. return to /dev after login).
       // One account → resolvePostAuthTarget decides dashboard vs Execution perspective.
-      let target = needsWorkspaceCreate
-        ? '/create-workspace'
-        : await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
+      let target = await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
 
       const rememberedWs =
         getPendingWorkspaceName() ||
@@ -481,8 +445,43 @@ function CallbackInner() {
     )
   }
 
-  return <FestagLoader fullscreen label={mode === 'verifying' ? 'Anmeldung wird abgeschlossen…' : 'Wir prüfen deinen Link…'} />
+  return (
+    <div className="fl-mini" role="status" aria-live="polite" aria-label={mode === 'verifying' ? 'Anmeldung wird abgeschlossen' : 'Anmeldung'}>
+      <style>{MINI_CSS}</style>
+      <TagroDiamondDots active size={28} />
+    </div>
+  )
 }
+
+const MINI_CSS = `
+.fl-mini {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F5F7;
+}
+.fl-mini .tdd-dot {
+  --dms-dot: #5B647D;
+  background: var(--dms-dot);
+  width: 5px;
+  height: 5px;
+}
+html[data-theme="dark"] .fl-mini,
+html[data-theme="classic-dark"] .fl-mini {
+  background: #070708;
+}
+html[data-theme="dark"] .fl-mini .tdd-dot,
+html[data-theme="classic-dark"] .fl-mini .tdd-dot {
+  --dms-dot: rgba(230, 230, 234, 0.72);
+}
+@media (prefers-color-scheme: dark) {
+  .fl-mini { background: #070708; }
+  .fl-mini .tdd-dot { --dms-dot: rgba(230, 230, 234, 0.72); }
+}
+`
 
 const CB_CSS = `
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -501,7 +500,14 @@ const CB_CSS = `
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={<FestagLoader fullscreen label="Anmeldung wird abgeschlossen…" />}>
+    <Suspense
+      fallback={(
+        <div className="fl-mini" role="status" aria-label="Anmeldung wird abgeschlossen">
+          <style>{MINI_CSS}</style>
+          <TagroDiamondDots active size={28} />
+        </div>
+      )}
+    >
       <CallbackInner />
     </Suspense>
   )

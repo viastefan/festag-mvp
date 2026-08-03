@@ -339,7 +339,7 @@ const AUTH_DOCS_CSS = `
     border-radius: 6px;
     background: #FFFFFF !important;
     border: 1px solid rgba(30, 30, 32, 0.08) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     color: #1e1e20;
@@ -573,9 +573,7 @@ const AUTH_DOCS_CSS = `
       border-radius: var(--auth-docs-sheet-r) var(--auth-docs-sheet-r) 0 0 !important;
       border: 0 !important;
       background: #FFFFFF !important;
-      box-shadow:
-        0 -1px 2px rgba(0, 0, 0, 0.06),
-        0 -12px 32px -16px rgba(15, 23, 42, 0.16) !important;
+      box-shadow: 0 -1px 4px rgba(15, 23, 42, 0.05) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       isolation: isolate;

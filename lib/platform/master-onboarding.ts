@@ -1,21 +1,35 @@
 /**
  * Master Auth → Onboarding flow (canvas SSOT).
- * Identity → Profile (name + optional context) → Workspace → Connect → Preparing → Dashboard
+ * Profile → Username → Connect → Preparing → Dashboard
+ * Workspace creation happens after onboarding (/create-workspace).
  */
 
 import type { WorkspaceType } from '@/lib/platform/workspace'
 import type { IntegrationId } from '@/lib/platform/integrations'
 import { INTEGRATION_CATALOG } from '@/lib/platform/integrations'
 
-export const MASTER_BUILD_STEPS = ['profile', 'workspace', 'connect'] as const
+export const MASTER_BUILD_STEPS = ['profile', 'username', 'connect'] as const
 export type MasterBuildStep = (typeof MASTER_BUILD_STEPS)[number]
 
 /** Progress beads — preparing is /preparing after Connect. */
 export const MASTER_FLOW_DOTS = [
   { id: 'profile' as const, label: 'Profil' },
-  { id: 'workspace' as const, label: 'Workspace' },
+  { id: 'username' as const, label: 'Benutzername' },
   { id: 'connect' as const, label: 'Quellen' },
 ]
+
+export const USERNAME_HEADER = {
+  lead: 'Benutzername wählen.',
+  muted:
+    'Dein Benutzername ist deine eindeutige Identität auf Festag. Andere können dich damit einladen und erwähnen.',
+} as const
+
+export const USERNAME_EXAMPLES = ['stefan', 'alex', 'sam', 'jordan'] as const
+
+export const USERNAME_FOOT =
+  'Du kannst den Benutzernamen später jederzeit ändern.' as const
+
+export const USERNAME_MIN_CHARS = 2
 
 export const NAME_EXAMPLES = [
   'Stefan Dirnberger',
@@ -243,6 +257,16 @@ export function normalizeMasterStep(raw: string | null): MasterBuildStep | null 
     return 'profile'
   }
   if (
+    raw === 'username' ||
+    raw === 'benutzer' ||
+    raw === 'benutzername' ||
+    raw === 'handle' ||
+    raw === 'user'
+  ) {
+    return 'username'
+  }
+  // Legacy workspace step → username (workspace pick left onboarding).
+  if (
     raw === 'workspace' ||
     raw === 'passt' ||
     raw === 'clarify' ||
@@ -250,7 +274,7 @@ export function normalizeMasterStep(raw: string | null): MasterBuildStep | null 
     raw === 'type' ||
     raw === 'workspace_type'
   ) {
-    return 'workspace'
+    return 'username'
   }
   if (
     raw === 'quellen' ||

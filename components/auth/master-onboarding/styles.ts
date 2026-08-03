@@ -595,6 +595,40 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 0;
     min-height: var(--mob-control-h, 46px);
   }
+  /* Username step — @ prefix + live badge, same field chrome as profile */
+  .mob-username-field {
+    position: relative;
+    padding-left: 28px;
+  }
+  .mob-username-field.has-badge {
+    padding-right: 36px;
+  }
+  .mob-username-at {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--mob-muted);
+    pointer-events: none;
+  }
+  .mob-username-field.is-focused .mob-username-at,
+  .mob-username-field.has-value .mob-username-at {
+    color: var(--mob-ink, #1e1e20);
+  }
+  .mob-username-example {
+    left: 28px;
+    right: 14px;
+  }
+  .mob-username-hint {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #b42318;
+  }
   .mob-profile-legal {
     margin: 0;
     padding: 0;

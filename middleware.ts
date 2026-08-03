@@ -28,6 +28,7 @@ const PUBLIC_PATHS = [
   '/api',
   '/brand',
   '/fonts',
+  '/onboarding/avatars',
   '/bg-office.jpg',
   '/manifest.json',
   '/favicon',
@@ -125,7 +126,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // TEMP — UI-only onboarding preview (no auth). Remove after QA.
-  if (pathname === '/onboarding' && request.nextUrl.searchParams.get('preview') === '1') {
+  const preview = request.nextUrl.searchParams.get('preview') || ''
+  if (pathname === '/onboarding' && (preview === '1' || preview.startsWith('1'))) {
     return response
   }
 
@@ -148,8 +150,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Setup gating: personal workspace first, then hybrid profile + team
-  // on /onboarding until onboarding_state.completed_at is set.
+  // Setup gating: finish identity onboarding first; create workspace after.
   const onSetupPath = SETUP_PATHS.some(p => pathMatches(pathname, p))
   if (!onSetupPath && !pathname.startsWith('/logout')) {
     try {
@@ -180,18 +181,18 @@ export async function middleware(request: NextRequest) {
           .maybeSingle(),
       ])
 
-      // Join Project invitees may have project membership before/without owning a workspace.
-      if (!ownedWs && !memberWs && !projectMember) {
-        return NextResponse.redirect(new URL('/create-workspace', request.url))
-      }
+      const hasWorkspace = Boolean(ownedWs || memberWs || projectMember)
 
       if (!onboarding || !onboarding.completed_at) {
-        // Invitees finish Join Project; workspace owners finish Build Projects.
-        // Owning a workspace always wins over incidental project membership.
+        // Invitees finish Join Project; builders finish /onboarding (no workspace required yet).
         if (!ownedWs && (projectMember || memberWs)) {
           return NextResponse.redirect(new URL('/join', request.url))
         }
         return NextResponse.redirect(new URL('/onboarding', request.url))
+      }
+
+      if (!hasWorkspace) {
+        return NextResponse.redirect(new URL('/create-workspace', request.url))
       }
     } catch {
       // If the lookup fails, don't bounce the user — let the app resolve client-side.
