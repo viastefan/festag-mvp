@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import PortalSidebar from '@/components/PortalSidebar'
 import CommandPalette from '@/components/CommandPalette'
@@ -10,10 +10,9 @@ import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import WeeklyStatusBriefingModal from '@/components/briefing/WeeklyStatusBriefingModal'
 import StatusPlayerHost from '@/components/status/StatusPlayerHost'
 import { StatusPlayerProvider } from '@/components/status/StatusPlayerContext'
-import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import FestagAmbient from '@/components/ambient/FestagAmbient'
 import { PORTAL_PREMIUM_CSS } from '@/lib/portal/portal-premium-styles'
-import { FESTAG_GLASSY_ENTER_MS, FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
+import { FESTAG_ASSEMBLE_MS, FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
@@ -364,9 +363,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
   const [cpOpen, setCpOpen] = useState(false)
   const [tagroFullscreen, setTagroFullscreen] = useState(false)
-  const [loaderDone, setLoaderDone] = useState(false)
   const [playEnter, setPlayEnter] = useState(true)
-  const onLoaderDone = useCallback(() => setLoaderDone(true), [])
   const router = useRouter()
   const pathname = usePathname() || ''
   const isSettings = pathname.startsWith('/settings')
@@ -385,10 +382,9 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
-    if (!loaderDone) return
-    const t = window.setTimeout(() => setPlayEnter(false), FESTAG_GLASSY_ENTER_MS + 40)
+    const t = window.setTimeout(() => setPlayEnter(false), FESTAG_ASSEMBLE_MS + 40)
     return () => window.clearTimeout(t)
-  }, [loaderDone])
+  }, [])
 
   // Leaving settings: portal chrome is still mounted — just make sure it isn’t stuck inert visually.
   useEffect(() => {
@@ -439,17 +435,13 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
     })
   }
 
-  if (!loaderDone) {
-    return <FestagLoadingScreen surface="portal" onDone={onLoaderDone} />
-  }
-
   return (
     <StatusPlayerProvider>
       {/* Portal chrome stays mounted when opening settings — hide instead of remount (no glassy flash). */}
       <div
         className={[
           'portal-app-shell',
-          playEnter ? 'festag-glassy-enter' : '',
+          playEnter ? 'portal-assemble' : '',
           sidebarCollapsed ? 'portal-sidebar-collapsed' : '',
           cpOpen ? 'portal-cp-open' : '',
           tagroFullscreen ? 'portal-tagro-fullscreen' : '',

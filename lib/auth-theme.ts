@@ -62,15 +62,16 @@ export function prepareAuthRouteTransition(href: string) {
 export function navigateLeavingAuthChrome(href: string) {
   if (typeof window === 'undefined') return
   try {
-    const path = new URL(href, window.location.origin).pathname
-    // Paint docs/legal canvas before fading auth — never flash portal gray under the exit.
-    applyAppearanceForPath(path)
+    const url = new URL(href, window.location.origin)
+    const dest = `${url.pathname}${url.search}${url.hash}`
+    // Paint destination canvas before fading auth — never flash white under the exit.
+    applyAppearanceForPath(url.pathname)
     void document.documentElement.offsetHeight
     document.querySelectorAll('.al-root, .dl-root').forEach((el) => {
       el.classList.add('exiting')
     })
     // Hard assign: FOUC script paints the destination canvas on load — no shared React tree flash.
-    window.location.assign(path)
+    window.location.assign(dest)
   } catch {
     window.location.assign(href)
   }

@@ -24,14 +24,13 @@ import DevSidebar, { type DevLiveStats } from '@/components/DevSidebar'
 import DevTopBar from '@/components/dev/DevTopBar'
 import DevMobileDock from '@/components/dev/DevMobileDock'
 import CommandPalette from '@/components/CommandPalette'
-import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import TagroOverlay from '@/components/TagroOverlay'
 import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import DevTagroFab from '@/components/dev/DevTagroFab'
 import DevAmbient from '@/components/dev/DevAmbient'
 import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
 import { DEV_SHELL_MOBILE_CSS } from '@/components/dev/dev-mobile-page-styles'
-import { FESTAG_GLASSY_ENTER_MS, FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
+import { FESTAG_ASSEMBLE_MS, FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -73,8 +72,6 @@ export default function DevAppShell({
   const isDevSettings   = pathname.startsWith('/dev/settings')
   const isPublicDevAuth = isDevOnboarding || isDevJoin || isDevPending
 
-  const [loaderDone, setLoaderDone] = useState(false)
-  const onLoaderDone = useCallback(() => setLoaderDone(true), [])
   const [playEnter, setPlayEnter] = useState(true)
   const [checking, setChecking] = useState(true)
   const [identity, setIdentity] = useState<DevIdentity | null>(null)
@@ -95,10 +92,10 @@ export default function DevAppShell({
   }, [])
 
   useEffect(() => {
-    if (!loaderDone) return
-    const t = window.setTimeout(() => setPlayEnter(false), FESTAG_GLASSY_ENTER_MS + 40)
+    if (checking || !identity) return
+    const t = window.setTimeout(() => setPlayEnter(false), FESTAG_ASSEMBLE_MS + 40)
     return () => window.clearTimeout(t)
-  }, [loaderDone])
+  }, [checking, identity])
 
   useEffect(() => {
     function onTagroApplied() { router.refresh() }
@@ -220,7 +217,6 @@ export default function DevAppShell({
 
   if (isPublicDevAuth) return <>{children}</>
   if (isDevPending && identity) return <>{children}</>
-  if (!loaderDone) return <FestagLoadingScreen surface="dev" onDone={onLoaderDone} />
   if (checking || !identity) return null
 
   return (

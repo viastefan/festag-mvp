@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
 import BrowserTabTitle from '@/components/BrowserTabTitle'
@@ -9,7 +9,6 @@ import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import TagroOverlay from '@/components/TagroOverlay'
 import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
-import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import MobileClientDock from '@/components/MobileClientDock'
@@ -37,8 +36,6 @@ export default function ClientAppShell({
   ]
   const pathname = usePathname()
   const router = useRouter()
-  const [loaderDone, setLoaderDone] = useState(false)
-  const onLoaderDone = useCallback(() => setLoaderDone(true), [])
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -159,13 +156,11 @@ export default function ClientAppShell({
     setThemeMenuOpen(false)
   }
 
-  if (!loaderDone) return <FestagLoadingScreen surface="portal" onDone={onLoaderDone} />
-  if (checking) return null
-
   return (
     <div
-      className={`festag-app-shell festag-glassy-enter${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isFullHeight ? ' full-height' : ''}`}
+      className={`festag-app-shell festag-glassy-enter${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isFullHeight ? ' full-height' : ''}${checking ? ' is-checking' : ''}`}
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
+      aria-busy={checking || undefined}
     >
       <TagroOverlay />
       <TagroFocusComposeBar />
