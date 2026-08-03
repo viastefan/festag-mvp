@@ -14,10 +14,6 @@ import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import FestagToggle, { FESTAG_TOGGLE_CSS } from '@/components/ui/FestagToggle'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
-import {
-  getPendingWorkspaceName,
-  getRememberedWorkspaceName,
-} from '@/lib/pending-workspace'
 import { useWorkspaceNameField } from '@/lib/use-workspace-name-field'
 import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import {
@@ -72,7 +68,6 @@ export default function WorkspaceCreateWizardModal() {
     ready,
     inputRef,
     setWorkspaceName,
-    hydrate,
     checkAvailability,
   } = useWorkspaceNameField({ enabled: open && step === 'name' })
 
@@ -148,9 +143,8 @@ export default function WorkspaceCreateWizardModal() {
     setOpen(true)
     /* Always start on the full create flow — never open on the plan-only screen. */
     setStep('name')
-
-    const seed = getPendingWorkspaceName() || getRememberedWorkspaceName() || ''
-    if (seed) hydrate(seed)
+    /* Empty field + cursor — never seed remembered / pending names. */
+    setWorkspaceName('')
 
     try {
       const supabase = createClient()
@@ -398,9 +392,7 @@ export default function WorkspaceCreateWizardModal() {
                         </span>
                       ) : null}
                       {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
-                      {availability === 'checking' && displayName ? (
-                        <span className="wc-badge">…</span>
-                      ) : availability === 'available' && displayName ? (
+                      {availability === 'available' && displayName ? (
                         <span className="wc-badge wc-badge--ok" title="Available">✓</span>
                       ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
                         <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Taken'}>✕</span>
