@@ -41,7 +41,7 @@ const PUBLIC_PATHS = [
 ]
 
 /** Authenticated setup surfaces (session required, but not full portal). */
-const SETUP_PATHS = ['/create-workspace', '/onboarding', '/join', '/preparing']
+const SETUP_PATHS = ['/home', '/create-workspace', '/onboarding', '/join', '/preparing']
 
 /** Exact match for `/`; prefix match for everything else (`/login`, `/login/…`). */
 function pathMatches(pathname: string, prefix: string): boolean {
@@ -192,7 +192,7 @@ export async function middleware(request: NextRequest) {
       }
 
       if (!hasWorkspace) {
-        return NextResponse.redirect(new URL('/create-workspace', request.url))
+        return NextResponse.redirect(new URL('/home', request.url))
       }
     } catch {
       // If the lookup fails, don't bounce the user — let the app resolve client-side.

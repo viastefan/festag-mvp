@@ -117,6 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   var attr = (t === 'read') ? 'read' : t;
   var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/onboarding' || path === '/join' || path === '/preparing' || path === '/dev/pending' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/onboarding/') === 0 || path.indexOf('/join/') === 0 || path.indexOf('/preparing/') === 0 || path.indexOf('/dev/pending/') === 0;
   var docsLanding = path === '/docs' || path.indexOf('/docs/') === 0;
+  var appShell = path === '/home' || path.indexOf('/home/') === 0;
   var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0 || path.indexOf('/impressum/') === 0 || path.indexOf('/widerruf/') === 0 || path.indexOf('/privacy/') === 0 || path.indexOf('/terms/') === 0 || path.indexOf('/terms-of-use/') === 0;
   var loginRegister = path === '/login' || path === '/register' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0;
   // Legal docs are always-light — force data-theme=light (not only canvas bg).
@@ -130,10 +131,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   var devPortal = surface === 'dev' && !authLanding;
   if (devPortal) document.documentElement.setAttribute('data-dev-portal', '');
   else document.documentElement.removeAttribute('data-dev-portal');
+  if (appShell) document.documentElement.setAttribute('data-app-shell', '');
+  else document.documentElement.removeAttribute('data-app-shell');
   var bg = legalLanding
     ? '#ffffff'
     : docsLanding
       ? (t === 'dark' ? '#070708' : t === 'read' ? '#FBF7EE' : '#FCFCFD')
+    : appShell
+      ? (t === 'dark' ? '#070708' : '#FBF7EE')
     : devPortal
       ? (t === 'dark' ? '#05060A' : t === 'read' ? '#FBF7EE' : '#E8E9ED')
     : loginRegister
@@ -144,7 +149,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ? '#FBF7EE'
         : authLanding
           ? '#FBF7EE'
-          : '#F5F5F7';
+          : '#FBF7EE';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = legalLanding || loginRegister ? 'light' : (t === 'dark') ? 'dark' : 'light';
   if (authLanding) document.documentElement.setAttribute('data-auth-landing', '');
@@ -182,6 +187,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="light"][data-auth-landing] { background:#FBF7EE; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] { background:#FBF7EE; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] { background:#0C0D12; border-radius:0 !important; }
+          html[data-theme="light"][data-app-shell] { background:#FBF7EE; }
+          html[data-theme="read"][data-app-shell] { background:#FBF7EE; }
+          html[data-theme="dark"][data-app-shell] { background:#070708; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] { background:#070708; }
           html[data-theme="read"][data-docs-landing] { background:#FBF7EE; }
@@ -191,6 +199,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="light"][data-auth-landing] body { background:#FBF7EE; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] body { background:#FBF7EE; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] body { background:#0C0D12; border-radius:0 !important; }
+          html[data-theme="light"][data-app-shell] body { background:#FBF7EE; }
+          html[data-theme="read"][data-app-shell] body { background:#FBF7EE; }
+          html[data-theme="dark"][data-app-shell] body { background:#070708; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] body { background:#070708; }
           html[data-theme="read"][data-docs-landing] body { background:#FBF7EE; }

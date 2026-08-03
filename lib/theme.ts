@@ -60,6 +60,12 @@ export function isDocsLandingPath(pathname?: string): boolean {
   return path === '/docs' || path.startsWith('/docs/')
 }
 
+/** Pre-workspace App Shell (`/home`) — product ivory, never auth dusk. */
+export function isPreWorkspacePath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return path === '/home' || path.startsWith('/home/')
+}
+
 /** Legal articles always paint a white reading canvas (match LegalArticleShell). */
 export function isLegalLandingPath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
@@ -105,7 +111,7 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
     if (resolved === 'read') return FESTAG_SAND.canvas
     return FESTAG_SAND.canvas
   }
-  // Portal + Lesen — same warm Login ivory paper (no cool gray flash).
+  // Pre-workspace App Shell + portal + Lesen — warm Login ivory (no cool gray flash).
   return FESTAG_SAND.canvas
 }
 
@@ -182,6 +188,8 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathn
   root.removeAttribute('data-enter-landing')
   if (isDocsLandingPath(path)) root.setAttribute('data-docs-landing', '')
   else root.removeAttribute('data-docs-landing')
+  if (isPreWorkspacePath(path)) root.setAttribute('data-app-shell', '')
+  else root.removeAttribute('data-app-shell')
   if (path.startsWith('/dev') && !isAuthLandingPath(path)) root.setAttribute('data-dev-portal', '')
   else root.removeAttribute('data-dev-portal')
   if (document.body) {

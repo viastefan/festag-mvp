@@ -5,7 +5,7 @@
  * One path for every user (ChatGPT-style unified auth):
  *   1. Device memory only pre-fills UI (laptop).
  *   2. Auth creates or signs in the account (email / Google / SSO).
- *   3. Personal workspace → create-workspace if missing.
+ *   3. Personal workspace → /home (pre-workspace shell) if missing.
  *   4. Build Projects (/onboarding) until onboarding_state.completed_at.
  *      Invitees use Join Project (/join) instead.
  *   5. Execution-capable roles land in `/dev` when mode/role says so.
@@ -23,6 +23,7 @@ import { isJoinMidFlowNext, joinProjectHref } from '@/lib/platform/join'
 
 export type PostAuthTarget =
   | '/onboarding'
+  | '/home'
   | '/create-workspace'
   | '/dev'
   | '/dev/pending'
@@ -126,9 +127,15 @@ export async function resolvePostAuthTarget(
 
     if (!hasWorkspace) {
       if (preferredNext?.startsWith('/dev')) {
-        return isExecutionPanelRole(role) ? '/dev' : '/create-workspace'
+        return isExecutionPanelRole(role) ? '/dev' : '/home'
       }
-      return '/create-workspace'
+      if (preferredNext === '/create-workspace' || preferredNext?.startsWith('/create-workspace/')) {
+        return '/create-workspace'
+      }
+      if (preferredNext?.startsWith('/home')) {
+        return preferredNext
+      }
+      return '/home'
     }
 
     const workspaceMode = await resolveWorkspaceMode(supabase, userId)
@@ -137,7 +144,9 @@ export async function resolvePostAuthTarget(
       if (
         preferredNext === '/dashboard' ||
         preferredNext === '/onboarding' ||
-        preferredNext === '/create-workspace'
+        preferredNext === '/create-workspace' ||
+        preferredNext === '/home' ||
+        preferredNext.startsWith('/home/')
       ) {
         return '/dashboard'
       }
