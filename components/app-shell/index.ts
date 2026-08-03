@@ -1,3 +1,4 @@
+export { default as AppShellAccountPanel } from '@/components/app-shell/AppShellAccountPanel'
 export { default as WorkspaceCreateWizardModal } from '@/components/app-shell/WorkspaceCreateWizardModal'
 export { default as FestagAppShell } from '@/components/app-shell/FestagAppShell'
 export { default as AppShellOverview } from '@/components/app-shell/AppShellOverview'

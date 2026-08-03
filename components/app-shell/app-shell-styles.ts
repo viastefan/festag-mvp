@@ -23,6 +23,7 @@ export const APP_SHELL_STYLES = `
   --fas-nav-active-ink: ${FESTAG_SAND.ink};
   --fas-sidebar-w: 232px;
   --fas-sidebar-collapsed-w: 64px;
+  --festag-sidebar-width: var(--fas-sidebar-w);
   --fas-topbar-h: 52px;
   --fas-radius: 10px;
   --fas-radius-btn: 6px;
@@ -46,6 +47,10 @@ export const APP_SHELL_STYLES = `
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
   z-index: 1;
+}
+
+.fas-root.is-sidebar-collapsed {
+  --festag-sidebar-width: var(--fas-sidebar-collapsed-w);
 }
 
 html[data-theme="dark"] .fas-root,
