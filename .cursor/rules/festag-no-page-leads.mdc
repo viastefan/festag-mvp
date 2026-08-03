@@ -7,9 +7,11 @@ alwaysApply: true
 
 Do **not** render a second text line under a page `h1` (subtitle, lead, description, eyebrow).
 
+Also see: `.cursor/rules/festag-no-title-support.mdc` — auth / create / onboarding titles are one `AuthGlassyHero` (lead + muted rest), never a support `<p>`.
+
 Bad:
 - `h1` „Dokumente“ + `p` „Rechnungssteller für Angebote, Rechnungen und Verträge.“
-- `.set-page-lead`, `.festag-page-lead`, `.page-lead`, `.dec-m-lead` under the main title
+- `.set-page-lead`, `.festag-page-lead`, `.page-lead`, `.dec-m-lead`, `.wc-os-support` under the main title
 - Duplicating context that belongs in the body or in a section row inside the content card
 
 Prefer:

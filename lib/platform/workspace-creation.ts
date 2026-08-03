@@ -1,10 +1,11 @@
 /**
  * Workspace Creation Wizard — Phase 2 SSOT.
  *
- * Surface: sequential popup slider on Festag OS (`WorkspaceCreateWizardModal`).
- * Flow: Name → Wofür? → Creating… → Welcome → Overview
+ * Surface: single calm form on Festag OS (`WorkspaceCreateWizardModal`).
+ * Flow: Name + Nutzung → Creating… → Welcome → Overview
  * No module picker in the wizard. Templates configure defaults; Modules live in Settings later.
  * First workspace is free. Additional workspaces require the Workspace Plan.
+ * Titles: one AuthGlassyHero (lead + muted rest). Never a support <p> under the H1.
  *
  * @see docs/festag-os-workspace-phases.md
  * @see lib/workspace-create-open.ts
@@ -63,7 +64,9 @@ export function workspaceSubdomainPreview(rawName: string): string {
 }
 
 export const WORKSPACE_CREATION_COPY = {
-  nameTitle: 'Lass uns deinen ersten Workspace erstellen.',
+  /** One glassy H1: dark lead + muted rest. No separate support <p>. */
+  nameTitle: 'Erstelle deinen Workspace.',
+  nameTitleRest: 'Wähle einen Namen und wie du ihn nutzen willst.',
   nameLabel: 'Workspace-Name',
   namePlaceholder: 'Aerobay',
   useTitle: 'Wofür wird dieser Workspace genutzt?',

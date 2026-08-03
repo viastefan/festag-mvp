@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * Phase 2 — Workspace creation slider.
- * Onboarding chrome: glassy H1, 46px field, large use-case cards + toggle,
- * Weiter CTA with Enter glyph. Theme follows signed-in settings.
+ * Phase 2 — Workspace creation.
+ * One calm form: glassy H1 + name + use cards + Weiter.
+ * Creating / welcome / plan are short follow-on states.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -33,14 +33,7 @@ import {
   type WorkspaceUseCaseId,
 } from '@/lib/platform/workspace-creation'
 
-type Step = 'name' | 'use' | 'creating' | 'welcome' | 'plan'
-
-const SLIDE_ORDER: Step[] = ['name', 'use', 'creating', 'welcome']
-
-function slideIndex(step: Step): number {
-  if (step === 'plan') return 0
-  return Math.max(0, SLIDE_ORDER.indexOf(step))
-}
+type Step = 'form' | 'creating' | 'welcome' | 'plan'
 
 function resolveWizardTheme(mode: PanelThemeMode): 'light' | 'read' | 'dark' {
   if (mode === 'dark') return 'dark'
@@ -51,7 +44,7 @@ function resolveWizardTheme(mode: PanelThemeMode): 'light' | 'read' | 'dark' {
 export default function WorkspaceCreateWizardModal() {
   const [open, setOpen] = useState(false)
   const [visible, setVisible] = useState(false)
-  const [step, setStep] = useState<Step>('name')
+  const [step, setStep] = useState<Step>('form')
   const [useCase, setUseCase] = useState<WorkspaceUseCaseId | null>(null)
   const [error, setError] = useState('')
   const [creatingVisible, setCreatingVisible] = useState(0)
@@ -69,10 +62,11 @@ export default function WorkspaceCreateWizardModal() {
     inputRef,
     setWorkspaceName,
     checkAvailability,
-  } = useWorkspaceNameField({ enabled: open && step === 'name' })
+  } = useWorkspaceNameField({ enabled: open && step === 'form' })
 
   const subdomain = workspaceSubdomainPreview(displayName || workspaceName)
   const useReady = Boolean(useCase)
+  const formReady = ready && useReady && !checkingOwned
   const busy = step === 'creating' || step === 'welcome'
   const dataTheme = resolveWizardTheme(themeMode)
   const hasName = Boolean(displayName)
@@ -141,9 +135,7 @@ export default function WorkspaceCreateWizardModal() {
     setCheckingOwned(true)
     setThemeMode(getTheme('client'))
     setOpen(true)
-    /* Always start on the full create flow — never open on the plan-only screen. */
-    setStep('name')
-    /* Empty field + cursor — never seed remembered / pending names. */
+    setStep('form')
     setWorkspaceName('')
 
     try {
@@ -155,7 +147,7 @@ export default function WorkspaceCreateWizardModal() {
       }
       window.setTimeout(() => inputRef.current?.focus(), 120)
     } catch {
-      /* stay on name */
+      /* stay on form */
     } finally {
       setCheckingOwned(false)
     }
@@ -170,7 +162,8 @@ export default function WorkspaceCreateWizardModal() {
     }, 220)
   }
 
-  async function goToUse() {
+  async function startCreate() {
+    if (createStarted.current) return
     setError('')
     const trimmed = displayName
     if (!trimmed) {
@@ -184,20 +177,13 @@ export default function WorkspaceCreateWizardModal() {
       inputRef.current?.focus()
       return
     }
-    setStep('use')
-  }
-
-  async function startCreate() {
-    if (!useCase || createStarted.current) return
-    const trimmed = displayName
-    if (!trimmed) {
-      setStep('name')
+    if (!useCase) {
+      setError('Bitte wähle, wofür du den Workspace nutzt.')
       return
     }
     const selected = getWorkspaceUseCase(useCase)
     if (!selected) return
 
-    /* True second+ workspace only. One owned workspace can still be finished / updated via bootstrap. */
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -214,7 +200,6 @@ export default function WorkspaceCreateWizardModal() {
     } catch { /* continue to create */ }
 
     createStarted.current = true
-    setError('')
     setStep('creating')
     setCreatingVisible(0)
 
@@ -232,7 +217,7 @@ export default function WorkspaceCreateWizardModal() {
         lineTimers.forEach(clearTimeout)
         createStarted.current = false
         setError(result.message)
-        setStep('use')
+        setStep('form')
         return
       }
 
@@ -265,7 +250,7 @@ export default function WorkspaceCreateWizardModal() {
       lineTimers.forEach(clearTimeout)
       createStarted.current = false
       setError('Workspace konnte nicht erstellt werden. Bitte erneut versuchen.')
-      setStep('use')
+      setStep('form')
     }
   }
 
@@ -273,13 +258,14 @@ export default function WorkspaceCreateWizardModal() {
 
   const heroLead =
     step === 'plan' ? COPY.additionalTitle
-    : step === 'name' ? COPY.nameTitle
-    : step === 'use' ? COPY.useTitle
     : step === 'creating' ? COPY.creatingTitle
-    : `${COPY.welcomePrefix} ${displayName || 'deinem Workspace'}.`
+    : step === 'welcome' ? `${COPY.welcomePrefix} ${displayName || 'deinem Workspace'}.`
+    : COPY.nameTitle
 
-  /* Muted rest of the same H1 only — never a separate Zwischenüberschrift. */
-  const heroRest = step === 'plan' ? COPY.additionalBody : ''
+  const heroRest =
+    step === 'plan' ? COPY.additionalBody
+    : step === 'form' ? COPY.nameTitleRest
+    : ''
 
   return createPortal(
     <div
@@ -297,7 +283,7 @@ export default function WorkspaceCreateWizardModal() {
         <button
           type="button"
           className="wc-os-wordmark"
-          aria-label={busy ? 'Festag' : 'Close'}
+          aria-label={busy ? 'Festag' : 'Schließen'}
           onClick={() => {
             if (!busy) closeWizard()
           }}
@@ -338,155 +324,133 @@ export default function WorkspaceCreateWizardModal() {
                 />
               </div>
             </div>
-          ) : (
-            <div className="wc-slider" data-step={step}>
-              <div
-                className="wc-slider-track"
-                style={{ transform: `translateX(-${slideIndex(step) * 100}%)` }}
-              >
-                {/* Name */}
-                <div className="wc-slide" aria-hidden={step !== 'name'}>
-                  <label className="wc-field-label" htmlFor="wc-os-name">
-                    {COPY.nameLabel}
-                  </label>
-                  <div className="wc-field-wrap">
-                    <div
-                      className={[
-                        'wc-field-shell',
-                        hasName ? 'has-value' : '',
-                        fieldFocused ? 'is-focused' : '',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                    >
-                      <input
-                        ref={inputRef}
-                        id="wc-os-name"
-                        className={`wc-field-input${hasName ? '' : ' is-empty'}`}
-                        type="text"
-                        value={workspaceName}
-                        onChange={(e) => {
-                          setError('')
-                          setWorkspaceName(e.target.value)
-                        }}
-                        onFocus={() => setFieldFocused(true)}
-                        onBlur={() => setFieldFocused(false)}
-                        placeholder=""
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="words"
-                        spellCheck={false}
-                        maxLength={64}
-                        aria-invalid={availability === 'taken' || availability === 'invalid'}
-                        aria-label={`${COPY.nameLabel}, e.g. ${COPY.namePlaceholder}`}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && ready) {
-                            e.preventDefault()
-                            void goToUse()
-                          }
-                        }}
-                      />
-                      {!hasName ? (
-                        <span aria-hidden className="wc-field-example">
-                          {COPY.namePlaceholder}
-                        </span>
-                      ) : null}
-                      {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
-                      {availability === 'available' && displayName ? (
-                        <span className="wc-badge wc-badge--ok" title="Verfügbar">✓</span>
-                      ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
-                        <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Vergeben'}>✕</span>
-                      ) : null}
-                    </div>
-                    <span className={`wc-subdomain${displayName ? ' is-ready' : ''}`}>
-                      {subdomain}
+          ) : null}
+
+          {step === 'creating' ? (
+            <ul className="wc-creating-lines">
+              {COPY.creatingLines.map((line, i) => (
+                <li
+                  key={line}
+                  className={`wc-creating-line${creatingVisible > i ? ' is-on' : ''}`}
+                >
+                  <span className="wc-creating-dot" aria-hidden="true" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {step === 'form' ? (
+            <div className="wc-form">
+              <div className="wc-field-wrap">
+                <div
+                  className={[
+                    'wc-field-shell',
+                    hasName ? 'has-value' : '',
+                    fieldFocused ? 'is-focused' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <input
+                    ref={inputRef}
+                    id="wc-os-name"
+                    className={`wc-field-input${hasName ? '' : ' is-empty'}`}
+                    type="text"
+                    value={workspaceName}
+                    onChange={(e) => {
+                      setError('')
+                      setWorkspaceName(e.target.value)
+                    }}
+                    onFocus={() => setFieldFocused(true)}
+                    onBlur={() => setFieldFocused(false)}
+                    placeholder=""
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="words"
+                    spellCheck={false}
+                    maxLength={64}
+                    aria-invalid={availability === 'taken' || availability === 'invalid'}
+                    aria-label={`${COPY.nameLabel}, z. B. ${COPY.namePlaceholder}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && formReady) {
+                        e.preventDefault()
+                        void startCreate()
+                      }
+                    }}
+                  />
+                  {!hasName ? (
+                    <span aria-hidden className="wc-field-example">
+                      {COPY.namePlaceholder}
                     </span>
-                  </div>
-                  {error && step === 'name' ? <p className="wc-error">{error}</p> : null}
-                  <div className="wc-continue-slot">
-                    <ContinueHint
-                      ready={ready && !checkingOwned}
-                      label={COPY.continue}
-                      onContinue={() => void goToUse()}
-                    />
-                  </div>
+                  ) : null}
+                  {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
+                  {availability === 'available' && displayName ? (
+                    <span className="wc-badge wc-badge--ok" title="Verfügbar">✓</span>
+                  ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
+                    <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Vergeben'}>✕</span>
+                  ) : null}
                 </div>
+                <span className={`wc-subdomain${displayName ? ' is-ready' : ''}`}>
+                  {subdomain}
+                </span>
+              </div>
 
-                {/* Use case */}
-                <div className="wc-slide" aria-hidden={step !== 'use'}>
-                  <div className="wc-ws-list" role="listbox" aria-label={COPY.useTitle}>
-                    {WORKSPACE_USE_CASES.map((card, i) => {
-                      const on = useCase === card.id
-                      return (
-                        <div
-                          key={card.id}
-                          role="option"
-                          aria-selected={on}
-                          tabIndex={0}
-                          className={`wc-ws-card${on ? ' is-on' : ''}`}
-                          style={{ ['--i' as string]: i }}
-                          onClick={() => {
-                            setError('')
-                            setUseCase(card.id)
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              setUseCase(card.id)
-                            }
-                          }}
-                        >
-                          <span className="wc-ws-card-copy">
-                            <span className="wc-ws-card-title">{card.title}</span>
-                            <span className="wc-ws-card-body">{card.description}</span>
-                          </span>
-                          <FestagToggle
-                            on={on}
-                            label={`${card.title} auswählen`}
-                            stopPropagation
-                            onChange={() => setUseCase(card.id)}
-                          />
-                        </div>
-                      )
-                    })}
-                  </div>
-                  {error && step === 'use' ? <p className="wc-error">{error}</p> : null}
-                  <div className="wc-ws-footer">
-                    <div className="wc-continue-slot wc-continue-slot--ws">
-                      <ContinueHint
-                        ready={useReady}
-                        label={COPY.continue}
-                        onContinue={() => void startCreate()}
+              <div className="wc-ws-list" role="listbox" aria-label={COPY.useTitle}>
+                {WORKSPACE_USE_CASES.map((card, i) => {
+                  const on = useCase === card.id
+                  return (
+                    <div
+                      key={card.id}
+                      role="option"
+                      aria-selected={on}
+                      tabIndex={0}
+                      className={`wc-ws-card${on ? ' is-on' : ''}`}
+                      style={{ ['--i' as string]: i }}
+                      onClick={() => {
+                        setError('')
+                        setUseCase(card.id)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setUseCase(card.id)
+                        }
+                      }}
+                    >
+                      <span className="wc-ws-card-copy">
+                        <span className="wc-ws-card-title">{card.title}</span>
+                        <span className="wc-ws-card-body">{card.description}</span>
+                      </span>
+                      <FestagToggle
+                        on={on}
+                        label={`${card.title} auswählen`}
+                        stopPropagation
+                        onChange={() => setUseCase(card.id)}
                       />
                     </div>
-                  </div>
-                </div>
+                  )
+                })}
+              </div>
 
-                {/* Creating */}
-                <div className="wc-slide wc-slide--status" aria-hidden={step !== 'creating'}>
-                  <ul className="wc-creating-lines">
-                    {COPY.creatingLines.map((line, i) => (
-                      <li
-                        key={line}
-                        className={`wc-creating-line${creatingVisible > i ? ' is-on' : ''}`}
-                      >
-                        <span className="wc-creating-dot" aria-hidden="true" />
-                        {line}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {error ? <p className="wc-error">{error}</p> : null}
 
-                <div className="wc-slide wc-slide--status" aria-hidden={step !== 'welcome'} />
+              <div className="wc-continue-slot">
+                <ContinueHint
+                  ready={formReady}
+                  label={COPY.continue}
+                  onContinue={() => void startCreate()}
+                />
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>,
     document.body,
   )
 }
+
 
 const WIZARD_CSS = `
 .wc-os {
@@ -507,7 +471,7 @@ const WIZARD_CSS = `
   --wc-mark-filter: brightness(0) saturate(100%);
   --wc-mark-opacity: 0.9;
   --wc-gutter: 28px;
-  --wc-content-max: 380px;
+  --wc-content-max: 400px;
 
   position: fixed;
   inset: 0;
@@ -608,7 +572,9 @@ const WIZARD_CSS = `
   margin: 0 auto;
   padding: 20px var(--wc-gutter) 40px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .wc-os-stage {
@@ -658,52 +624,22 @@ const WIZARD_CSS = `
 }
 
 .wc-os-hero {
-  margin-bottom: 22px;
+  margin-bottom: 28px;
 }
 
 .wc-plan {
   width: 100%;
 }
 
-.wc-slider {
-  overflow: hidden;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-}
 
-.wc-slider-track {
-  display: flex;
-  width: 100%;
-  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
 
-.wc-slide {
-  flex: 0 0 100%;
-  width: 100%;
-  min-width: 100%;
-  box-sizing: border-box;
-}
 
-.wc-slide--status {
-  min-height: 140px;
-  display: flex;
-  align-items: flex-start;
-  padding-top: 8px;
-}
 
-.wc-field-label {
-  display: block;
-  margin: 0 0 10px;
-  font-size: 13px;
-  letter-spacing: var(--auth-tracking);
-  color: var(--mob-muted);
-}
 
 .wc-field-wrap {
   position: relative;
   width: 100%;
+  margin-bottom: 22px;
 }
 
 .wc-field-shell {
@@ -920,22 +856,24 @@ const WIZARD_CSS = `
   }
 }
 
-.wc-ws-footer {
+
+.wc-form {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  margin-top: 4px;
+  animation: wcFormIn 0.45s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes wcFormIn {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 .wc-continue-slot {
   min-height: var(--mob-control-h);
-  margin-top: 28px;
+  margin-top: 24px;
   width: 100%;
-}
-
-.wc-continue-slot--ws {
-  margin-top: 16px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ContinueHint — same as onboarding Weiter */
@@ -1091,6 +1029,7 @@ const WIZARD_CSS = `
 @media (min-width: 769px) {
   .wc-os {
     --wc-gutter: 48px;
+    --wc-content-max: 420px;
   }
   .wc-os-header {
     padding: 24px 32px 12px;
