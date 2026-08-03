@@ -94,7 +94,7 @@ export default function AppShellOverview({ user }: Props) {
         </p>
         {!hasWorkspace ? (
           <button type="button" className="fas-btn" onClick={() => openWorkspaceCreateWizard()}>
-            Create Workspace
+            Workspace erstellen
           </button>
         ) : null}
       </section>

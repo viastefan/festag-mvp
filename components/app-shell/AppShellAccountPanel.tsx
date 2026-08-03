@@ -213,7 +213,7 @@ export default function AppShellAccountPanel({ user }: Props) {
                   <Plus size={18} weight="bold" />
                 </span>
                 <span className="fas-account-create-copy">
-                  <span className="fas-account-create-title">Create Workspace</span>
+                  <span className="fas-account-create-title">Workspace erstellen</span>
                   <span className="fas-account-create-support">
                     Start your digital operating environment.
                   </span>

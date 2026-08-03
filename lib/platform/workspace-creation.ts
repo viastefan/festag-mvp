@@ -2,7 +2,7 @@
  * Workspace Creation Wizard — Phase 2 SSOT.
  *
  * Surface: sequential popup slider on Festag OS (`WorkspaceCreateWizardModal`).
- * Flow: Name → How will you use this? → Creating… → Welcome → Overview
+ * Flow: Name → Wofür? → Creating… → Welcome → Overview
  * No module picker in the wizard. Templates configure defaults; Modules live in Settings later.
  * First workspace is free. Additional workspaces require the Workspace Plan.
  *
@@ -18,30 +18,30 @@ export const WORKSPACE_USE_CASES = [
   {
     id: 'clients',
     workspaceType: 'personal' as const satisfies WorkspaceType,
-    title: 'Build for Clients',
-    description: 'Build software for clients with your team.',
+    title: 'Für Kunden bauen',
+    description: 'Software für Kunden mit deinem Team bauen.',
     /** Quiet defaults — never shown as checkboxes in the wizard. */
     seedModules: ['Projects', 'Tasks', 'Team', 'GitHub', 'Architecture', 'Documents', 'Tagro'],
   },
   {
     id: 'agency',
     workspaceType: 'agency' as const satisfies WorkspaceType,
-    title: 'Run an Agency',
-    description: 'Manage multiple clients and software projects.',
+    title: 'Agentur führen',
+    description: 'Mehrere Kunden und Softwareprojekte managen.',
     seedModules: ['Projects', 'CRM', 'Billing', 'Clients', 'Documents', 'Team', 'Tagro'],
   },
   {
     id: 'product',
     workspaceType: 'startup' as const satisfies WorkspaceType,
-    title: 'Build a Product',
-    description: 'Build and scale your own product.',
+    title: 'Produkt bauen',
+    description: 'Dein eigenes Produkt bauen und skalieren.',
     seedModules: ['Projects', 'Tasks', 'Roadmap', 'Team', 'Documents', 'Analytics', 'Tagro'],
   },
   {
     id: 'internal',
     workspaceType: 'company' as const satisfies WorkspaceType,
-    title: 'Internal Team',
-    description: 'Manage internal digital products and teams.',
+    title: 'Internes Team',
+    description: 'Interne digitale Produkte und Teams managen.',
     seedModules: ['Projects', 'Tasks', 'Team', 'Documents', 'Architecture', 'Meetings', 'Tagro'],
   },
 ] as const
@@ -58,24 +58,24 @@ export function getWorkspaceUseCase(id: WorkspaceUseCaseId | null | undefined): 
 /** Live subdomain preview under the name field. */
 export function workspaceSubdomainPreview(rawName: string): string {
   const slug = slugifyWorkspaceName(rawName)
-  if (!slug) return 'your-workspace.festag.app'
+  if (!slug) return 'dein-workspace.festag.app'
   return `${slug}.festag.app`
 }
 
 export const WORKSPACE_CREATION_COPY = {
-  nameTitle: "Let's create your first workspace.",
-  nameLabel: 'Workspace Name',
+  nameTitle: 'Lass uns deinen ersten Workspace erstellen.',
+  nameLabel: 'Workspace-Name',
   namePlaceholder: 'Aerobay',
-  useTitle: 'How will this workspace be used?',
-  creatingTitle: 'Creating your workspace…',
-  creatingLines: ['Projects', 'Tagro', 'Members'] as const,
-  welcomePrefix: 'Welcome to',
-  continue: 'Continue',
-  customizeLater: 'Customize later',
+  useTitle: 'Wofür wird dieser Workspace genutzt?',
+  creatingTitle: 'Workspace wird erstellt…',
+  creatingLines: ['Projekte', 'Tagro', 'Mitglieder'] as const,
+  welcomePrefix: 'Willkommen bei',
+  continue: 'Weiter',
+  customizeLater: 'Später anpassen',
   /** Plan gate H1: bright lead + muted rest (one glassy title, no Zwischenüberschrift). */
-  additionalTitle: 'Additional workspaces',
-  additionalBody: 'are available with the Workspace Plan (€19/month).',
-  additionalBack: 'Back to Overview',
+  additionalTitle: 'Zusätzliche Workspaces',
+  additionalBody: 'sind mit dem Workspace-Plan verfügbar (€19/Monat).',
+  additionalBack: 'Zurück zur Übersicht',
 } as const
 
 export const WORKSPACE_PLAN = {

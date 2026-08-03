@@ -12,7 +12,7 @@ type Props = {
 export default function AppShellModuleEmpty({
   title,
   description = 'Create a workspace to unlock this part of Festag.',
-  ctaLabel = 'Create Workspace',
+  ctaLabel = 'Workspace erstellen',
 }: Props) {
   return (
     <div className="fas-empty fas-assemble">

@@ -174,13 +174,13 @@ export default function WorkspaceCreateWizardModal() {
     setError('')
     const trimmed = displayName
     if (!trimmed) {
-      setError('Please give your workspace a name.')
+      setError('Bitte gib deinem Workspace einen Namen.')
       inputRef.current?.focus()
       return
     }
     const check = await checkAvailability(trimmed)
     if (!check.ok) {
-      setError(check.reason || 'This workspace name is already taken.')
+      setError(check.reason || 'Dieser Workspace-Name ist bereits vergeben.')
       inputRef.current?.focus()
       return
     }
@@ -264,7 +264,7 @@ export default function WorkspaceCreateWizardModal() {
     } catch {
       lineTimers.forEach(clearTimeout)
       createStarted.current = false
-      setError('Workspace could not be created. Please try again.')
+      setError('Workspace konnte nicht erstellt werden. Bitte erneut versuchen.')
       setStep('use')
     }
   }
@@ -276,7 +276,7 @@ export default function WorkspaceCreateWizardModal() {
     : step === 'name' ? COPY.nameTitle
     : step === 'use' ? COPY.useTitle
     : step === 'creating' ? COPY.creatingTitle
-    : `${COPY.welcomePrefix} ${displayName || 'your workspace'}.`
+    : `${COPY.welcomePrefix} ${displayName || 'deinem Workspace'}.`
 
   /* Muted rest of the same H1 only — never a separate Zwischenüberschrift. */
   const heroRest = step === 'plan' ? COPY.additionalBody : ''
@@ -393,9 +393,9 @@ export default function WorkspaceCreateWizardModal() {
                       ) : null}
                       {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
                       {availability === 'available' && displayName ? (
-                        <span className="wc-badge wc-badge--ok" title="Available">✓</span>
+                        <span className="wc-badge wc-badge--ok" title="Verfügbar">✓</span>
                       ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
-                        <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Taken'}>✕</span>
+                        <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Vergeben'}>✕</span>
                       ) : null}
                     </div>
                     <span className={`wc-subdomain${displayName ? ' is-ready' : ''}`}>
@@ -442,7 +442,7 @@ export default function WorkspaceCreateWizardModal() {
                           </span>
                           <FestagToggle
                             on={on}
-                            label={`Select ${card.title}`}
+                            label={`${card.title} auswählen`}
                             stopPropagation
                             onChange={() => setUseCase(card.id)}
                           />
