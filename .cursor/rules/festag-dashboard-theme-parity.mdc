@@ -1,0 +1,25 @@
+---
+description: Dashboard / OS shell design changes apply to light, read, and dark equally
+globs: components/app-shell/**/*, components/PortalSidebar.tsx, components/Sidebar.tsx, components/PortalAppShell.tsx, components/ClientAppShell.tsx
+alwaysApply: true
+---
+
+# Festag — dashboard theme parity
+
+Dashboard and Festag OS shell design changes apply to **all** themes the same way:
+
+- Light
+- Read
+- Dark (and classic-dark)
+
+## Do
+
+- Change structure, spacing, hierarchy, and chrome once — tokens adapt color only
+- Keep the same sidebar header (Workspace label + name + utilities), nav, and footer in every theme
+- Prefer shared CSS variables (`--fas-*`, `--portal-*`) over theme-forked layouts
+
+## Do not
+
+- Ship a light-only or dark-only sidebar layout
+- Hide collapse / workspace switcher / Einstellungen in one theme
+- Invent a second chrome for dark that does not exist in light/read

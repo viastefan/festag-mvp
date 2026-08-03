@@ -9,6 +9,8 @@ import {
   CaretDown,
   Plus,
   GearSix,
+  Bell,
+  Question,
 } from '@phosphor-icons/react'
 import {
   APP_SHELL_PRIMARY_NAV,
@@ -17,8 +19,9 @@ import {
   APP_SHELL_CREATE_WORKSPACE_HREF,
   isAppShellNavActive,
 } from '@/components/app-shell/app-shell-nav'
+import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
-import { getDisplayName, getFullDisplayName, getInitials, type UserProfile } from '@/lib/hooks/useUser'
+import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hooks/useUser'
 
 type Props = {
   user: UserProfile | null
@@ -30,20 +33,28 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const pathname = usePathname() || '/overview'
   const router = useRouter()
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
-  const initials = getInitials(user)
   const workspaceLabel = 'No workspace'
   const settingsActive = isAppShellNavActive(pathname, '/overview/settings')
 
   const [wsOpen, setWsOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
+  const helpTriggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    if (!wsOpen) return
+    if (!wsOpen && !notifOpen) return
     function onDown(e: MouseEvent) {
-      if (headerRef.current && !headerRef.current.contains(e.target as Node)) setWsOpen(false)
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
+        setWsOpen(false)
+        setNotifOpen(false)
+      }
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setWsOpen(false)
+      if (e.key === 'Escape') {
+        setWsOpen(false)
+        setNotifOpen(false)
+      }
     }
     document.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onKey)
@@ -51,7 +62,7 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
       document.removeEventListener('mousedown', onDown)
       window.removeEventListener('keydown', onKey)
     }
-  }, [wsOpen])
+  }, [wsOpen, notifOpen])
 
   function goCreateWorkspace() {
     setWsOpen(false)
@@ -71,52 +82,57 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
     >
       <div className="fas-sidebar-top" ref={headerRef}>
         <div className="fas-sidebar-header">
-          <div className="fas-identity">
+          <button
+            type="button"
+            className={`fas-ws-trigger${wsOpen ? ' is-open' : ''}`}
+            title={workspaceLabel}
+            aria-label="Workspace-Menü"
+            aria-haspopup="menu"
+            aria-expanded={wsOpen}
+            onClick={() => {
+              setNotifOpen(false)
+              setWsOpen((v) => !v)
+            }}
+          >
             {collapsed ? (
-              <button
-                type="button"
-                className={`fas-ws-trigger fas-ws-trigger--collapsed${wsOpen ? ' is-open' : ''}`}
-                title={workspaceLabel}
-                aria-label="Workspace-Menü"
-                aria-haspopup="menu"
-                aria-expanded={wsOpen}
-                onClick={() => setWsOpen((v) => !v)}
-              >
-                <span className="fas-profile-avatar" aria-hidden="true">{initials}</span>
-              </button>
+              <span className="fas-ws-mark" aria-hidden="true">WS</span>
             ) : (
-              <>
-                <span className="fas-profile-avatar" aria-hidden="true">{initials}</span>
-                <div className="fas-identity-copy">
-                  <span className="fas-profile-name" title={displayName}>{displayName}</span>
-                  <button
-                    type="button"
-                    className={`fas-ws-trigger${wsOpen ? ' is-open' : ''}`}
-                    title={workspaceLabel}
-                    aria-label="Workspace-Menü"
-                    aria-haspopup="menu"
-                    aria-expanded={wsOpen}
-                    onClick={() => setWsOpen((v) => !v)}
-                  >
-                    <span className="fas-ws-name">{workspaceLabel}</span>
-                    <CaretDown size={9} weight="bold" className="fas-ws-caret" aria-hidden />
-                  </button>
-                </div>
-              </>
+              <span className="fas-ws-copy">
+                <span className="fas-ws-text">
+                  <span className="fas-ws-label">Workspace</span>
+                  <span className="fas-ws-value">{workspaceLabel}</span>
+                </span>
+                <CaretDown size={6} weight="bold" className="fas-ws-caret" aria-hidden />
+              </span>
             )}
-          </div>
+          </button>
 
           <div className="fas-sidebar-utils">
             {!collapsed ? (
-              <button
-                type="button"
-                className="fas-sidebar-icon"
-                aria-label="Suche"
-                title="Suche"
-                onClick={openSearch}
-              >
-                <MagnifyingGlass size={14} weight="regular" />
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="fas-sidebar-icon"
+                  aria-label="Suche"
+                  title="Suche"
+                  onClick={openSearch}
+                >
+                  <MagnifyingGlass size={15} weight="regular" />
+                </button>
+                <button
+                  type="button"
+                  className="fas-sidebar-icon"
+                  aria-label="Benachrichtigungen"
+                  title="Benachrichtigungen"
+                  aria-expanded={notifOpen}
+                  onClick={() => {
+                    setWsOpen(false)
+                    setNotifOpen((v) => !v)
+                  }}
+                >
+                  <Bell size={15} weight="regular" />
+                </button>
+              </>
             ) : null}
             <button
               type="button"
@@ -137,6 +153,15 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
               <Plus size={14} weight="bold" />
               Workspace erstellen
             </button>
+          </div>
+        ) : null}
+
+        {notifOpen ? (
+          <div className="fas-popover fas-popover-left fas-ws-popover" role="dialog" aria-label="Benachrichtigungen">
+            <div className="fas-popover-title">Noch keine Benachrichtigungen.</div>
+            <p className="fas-popover-note">
+              Erstelle einen Workspace, um Updates von Tagro zu erhalten.
+            </p>
           </div>
         ) : null}
       </div>
@@ -198,14 +223,37 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
         </div>
       </nav>
 
-      <Link
-        href="/overview/settings"
-        className={`fas-settings-link${settingsActive ? ' is-active' : ''}`}
-        aria-current={settingsActive ? 'page' : undefined}
-        title="Einstellungen"
-      >
-        {collapsed ? <GearSix size={16} weight="light" /> : <span>Einstellungen</span>}
-      </Link>
+      <div className="fas-sidebar-footer">
+        <Link
+          href="/overview/settings"
+          className={`fas-settings-link${settingsActive ? ' is-active' : ''}`}
+          aria-current={settingsActive ? 'page' : undefined}
+          title="Einstellungen"
+        >
+          <GearSix size={16} weight="light" />
+          {!collapsed ? <span>Einstellungen</span> : null}
+        </Link>
+        <FestagHelpPanel
+          open={helpOpen}
+          onOpenChange={setHelpOpen}
+          anchorRef={helpTriggerRef}
+          userName={displayName}
+          railCollapsed={collapsed}
+          trigger={(
+            <button
+              ref={helpTriggerRef}
+              type="button"
+              className="fas-help-btn"
+              aria-label="Festag Help"
+              title="Festag Help"
+              aria-expanded={helpOpen}
+              onClick={() => setHelpOpen((v) => !v)}
+            >
+              {collapsed ? <Question size={15} weight="regular" /> : 'Help'}
+            </button>
+          )}
+        />
+      </div>
     </aside>
   )
 }

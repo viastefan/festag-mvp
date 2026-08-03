@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
-  MagnifyingGlass,
-  Bell,
   Moon,
   Sun,
   SignOut,
@@ -23,7 +21,7 @@ type Props = {
   user: UserProfile | null
 }
 
-type Menu = 'notifications' | 'profile' | null
+type Menu = 'profile' | null
 
 export default function AppShellTopBar({ user }: Props) {
   const [menu, setMenu] = useState<Menu>(null)
@@ -82,35 +80,6 @@ export default function AppShellTopBar({ user }: Props) {
       <div className="fas-topbar-left" />
 
       <div className="fas-topbar-right">
-        <button
-          type="button"
-          className="fas-icon-btn"
-          aria-label="Search"
-          onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-        >
-          <MagnifyingGlass size={16} weight="light" />
-        </button>
-
-        <div style={{ position: 'relative' }}>
-          <button
-            type="button"
-            className="fas-icon-btn"
-            aria-label="Notifications"
-            aria-expanded={menu === 'notifications'}
-            onClick={() => setMenu(menu === 'notifications' ? null : 'notifications')}
-          >
-            <Bell size={16} weight="light" />
-          </button>
-          {menu === 'notifications' && (
-            <div className="fas-popover" role="dialog" aria-label="Notifications">
-              <div className="fas-popover-title">No notifications yet.</div>
-              <p style={{ margin: '0 8px 8px', fontSize: 13, lineHeight: 1.5, color: 'var(--fas-ink-muted)' }}>
-                Create a workspace to start receiving updates from Tagro.
-              </p>
-            </div>
-          )}
-        </div>
-
         <button
           type="button"
           className="fas-icon-btn"
