@@ -1,10 +1,9 @@
 /**
  * Pre-workspace Festag App Shell — scoped styles on `.fas-root`.
- * Ivory light canvas · Festag Night dark · soft sidebar hairline.
+ * Ivory light · Primary Dusk dark (create-workspace) · soft sidebar hairline.
  */
 
 import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
-import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 
 export const APP_SHELL_STYLES = `
 .fas-root {
@@ -51,29 +50,35 @@ export const APP_SHELL_STYLES = `
 
 html[data-theme="dark"] .fas-root,
 html[data-theme="classic-dark"] .fas-root {
-  --fas-canvas: ${FESTAG_NIGHT.canvas};
-  --fas-sidebar-bg: ${FESTAG_NIGHT.content};
-  --fas-main-bg: ${FESTAG_NIGHT.canvas};
-  --fas-ink: ${FESTAG_NIGHT.ink};
-  --fas-ink-muted: ${FESTAG_NIGHT.inkMuted};
-  --fas-ink-faint: ${FESTAG_NIGHT.inkFaint};
-  --fas-card: ${FESTAG_NIGHT.raised};
-  --fas-card-border: ${FESTAG_NIGHT.border};
+  --fas-canvas: #0C0D12;
+  --fas-sidebar-bg: rgba(16, 18, 26, 0.72);
+  --fas-main-bg: transparent;
+  --fas-ink: #E6E8EE;
+  --fas-ink-muted: #8891a0;
+  --fas-ink-faint: #6B7385;
+  --fas-card: #14161F;
+  --fas-card-border: rgba(255, 255, 255, 0.06);
   --fas-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --fas-sep: ${FESTAG_NIGHT.border};
-  --fas-nav-idle: ${FESTAG_NIGHT.inkNav};
+  --fas-sep: rgba(255, 255, 255, 0.06);
+  --fas-nav-idle: rgba(230, 232, 238, 0.55);
   --fas-nav-hover: rgba(255, 255, 255, 0.05);
-  --fas-nav-active: rgba(255, 255, 255, 0.07);
-  --fas-nav-active-ink: ${FESTAG_NIGHT.ink};
+  --fas-nav-active: rgba(255, 255, 255, 0.08);
+  --fas-nav-active-ink: #E6E8EE;
   --fas-btn-bg: rgba(186, 194, 210, 0.08);
   --fas-btn-bg-hover: rgba(186, 194, 210, 0.11);
   --fas-btn-bg-active: rgba(186, 194, 210, 0.14);
   --fas-btn-fg: rgba(245, 245, 247, 0.88);
   --fas-btn-border: rgba(255, 255, 255, 0.06);
   --fas-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --fas-popover: ${FESTAG_NIGHT.popup};
-  --fas-popover-border: ${FESTAG_NIGHT.border};
+  --fas-popover: #171A24;
+  --fas-popover-border: rgba(255, 255, 255, 0.06);
   --fas-popover-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  /* Same Primary Dusk atmosphere as /create-workspace */
+  background:
+    radial-gradient(ellipse 90% 48% at 40% -8%, rgba(255, 255, 255, 0.035), transparent 55%),
+    radial-gradient(ellipse 80% 42% at 60% 110%, rgba(255, 255, 255, 0.02), transparent 60%),
+    linear-gradient(180deg, #10121A 0%, #0C0D12 48%, #0B0C10 100%) !important;
+  color: #E6E8EE;
 }
 
 html[data-theme="read"] .fas-root {
@@ -492,7 +497,7 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
   margin: 0 0 8px;
   font-size: 28px;
   line-height: 1.2;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   font-weight: 400;
   color: var(--fas-ink);
 }
@@ -500,7 +505,7 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
   margin: 0 0 10px;
   font-size: 28px;
   line-height: 1.2;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   font-weight: 400;
   color: var(--fas-ink);
 }

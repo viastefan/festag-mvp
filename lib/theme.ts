@@ -60,7 +60,7 @@ export function isDocsLandingPath(pathname?: string): boolean {
   return path === '/docs' || path.startsWith('/docs/')
 }
 
-/** Festag OS App Shell (`/overview`) — product ivory, never auth dusk. */
+/** Festag OS App Shell (`/overview`) — ivory in light; Primary Dusk in dark (create-workspace). */
 export function isPreWorkspacePath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
   return (
@@ -110,6 +110,8 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
     if (resolved === 'read') return FESTAG_SAND.canvas
     return FESTAG_ELEVATED.canvasDesktop
   }
+  // Pre-workspace OS — same Primary Dusk canvas as create-workspace.
+  if (isPreWorkspacePath(pathname) && isDark) return '#0C0D12'
   if (isDark) return FESTAG_NIGHT.canvas
   // Auth landings — soft read whisper in light; full sand in read; onboarding stays dark via mode.
   if (isAuthLandingPath(pathname)) {

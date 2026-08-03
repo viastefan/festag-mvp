@@ -189,7 +189,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"][data-auth-landing] { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-app-shell] { background:#FBF7EE; }
           html[data-theme="read"][data-app-shell] { background:#FBF7EE; }
-          html[data-theme="dark"][data-app-shell] { background:#070708; }
+          html[data-theme="dark"][data-app-shell] { background:#0C0D12; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] { background:#070708; }
           html[data-theme="read"][data-docs-landing] { background:#FBF7EE; }
@@ -201,7 +201,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"][data-auth-landing] body { background:#0C0D12; border-radius:0 !important; }
           html[data-theme="light"][data-app-shell] body { background:#FBF7EE; }
           html[data-theme="read"][data-app-shell] body { background:#FBF7EE; }
-          html[data-theme="dark"][data-app-shell] body { background:#070708; }
+          html[data-theme="dark"][data-app-shell] body { background:#0C0D12; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] body { background:#070708; }
           html[data-theme="read"][data-docs-landing] body { background:#FBF7EE; }
