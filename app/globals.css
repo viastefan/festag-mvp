@@ -1452,7 +1452,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.dec-card):not(.dec-head-tool):not(.mb-head-tool):not(.festag-content-fab):not(.festag-tagro-compose-btn):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not(.phm-item):not(.phm-news-item):not(.doc-create-tile):not(.doc-filter):not([class*="tov-"]),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not(.ft-toggle):not(.set-toggle):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.dec-card):not(.dec-head-tool):not(.mb-head-tool):not(.festag-content-fab):not(.festag-tagro-compose-btn):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not(.phm-item):not(.phm-news-item):not(.doc-create-tile):not(.doc-filter):not([class*="tov-"]),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
@@ -1486,7 +1486,7 @@ input[type="reset"],
   border-radius: 6px !important;
 }
 
-/* Festag mini switch — full pill, quiet size (beat global control geometry). */
+/* Festag mini switch — full pill (beat global 6px button radius). */
 button.ft-toggle,
 .ft-toggle,
 button.ft-toggle.ft-toggle--sm,
@@ -1501,21 +1501,21 @@ button.ft-toggle.ft-toggle--md,
 }
 button.ft-toggle.ft-toggle--sm,
 .ft-toggle.ft-toggle--sm {
-  width: 24px !important;
-  height: 14px !important;
-  min-width: 24px !important;
-  min-height: 14px !important;
-  max-width: 24px !important;
-  max-height: 14px !important;
+  width: 28px !important;
+  height: 16px !important;
+  min-width: 28px !important;
+  min-height: 16px !important;
+  max-width: 28px !important;
+  max-height: 16px !important;
 }
 button.ft-toggle.ft-toggle--md,
 .ft-toggle.ft-toggle--md {
-  width: 30px !important;
-  height: 17px !important;
-  min-width: 30px !important;
-  min-height: 17px !important;
-  max-width: 30px !important;
-  max-height: 17px !important;
+  width: 34px !important;
+  height: 20px !important;
+  min-width: 34px !important;
+  min-height: 20px !important;
+  max-width: 34px !important;
+  max-height: 20px !important;
 }
 button.ft-toggle::after,
 .ft-toggle::after {

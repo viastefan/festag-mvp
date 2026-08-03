@@ -266,6 +266,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const mainAutoFocused = useRef(false)
   /** Guards double verify from onComplete + Bestätigen in the same tick. */
   const verifyingCodeRef = useRef(false)
+  /** In-flight OTP request after optimistic code-entry switch — await before verify. */
+  const otpSendPromiseRef = useRef<Promise<'ok' | 'rate_limited' | 'error' | 'already_registered' | 'identity_mismatch' | 'sso'> | null>(null)
+  const emailSubmitLockRef = useRef(false)
   const [workspaceName, setWorkspaceName] = useState('')
   /** Locked when entering Code/SSO so the /Benutzer line cannot vanish mid-flow. */
   const [subflowWorkspaceName, setSubflowWorkspaceName] = useState('')
@@ -1059,17 +1062,18 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }
   }
 
-  function goTo(step: AuthStep) {
+  function goTo(step: AuthStep, opts?: { instant?: boolean }) {
     setError('')
     if (step === 'main') setSubflowWorkspaceName('')
-    if (prefersReducedMotion()) {
+    // Instant = paint code/SSO immediately; enter motion (glassy + rise) still plays.
+    if (opts?.instant || prefersReducedMotion()) {
       setAuthStep(step)
       setAnimating(false)
       return
     }
     setAnimating(true)
     // Match snappy .al-content exit — swap as soon as fade-out paints.
-    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 55)
+    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 40)
   }
 
   function switchBack() {
@@ -1197,55 +1201,61 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   async function handleEmailSubmit() {
+    if (emailSubmitLockRef.current) return
     setError('')
     setEmailTouched(true)
     if (!email.trim()) { setError(EMAIL_EMPTY_ERROR); return }
     if (!/\S+@\S+\.\S+/.test(email.trim())) { setError(EMAIL_INVALID_ERROR); return }
-    setLoading(true)
-    if (!isSignup && await preferSsoIfEnforced(email)) {
-      setLoading(false)
-      return
-    }
-    const result = await sendMagicLink()
-    setLoading(false)
-    if (result === 'already_registered') {
-      setAccountExistsFor(email.trim().toLowerCase())
-      return
-    }
-    if (result === 'identity_mismatch') {
-      // Cleared path above — retry once email-only.
-      setLoading(true)
-      const retry = await sendMagicLink()
-      setLoading(false)
-      if (retry === 'ok' || retry === 'rate_limited') {
-        setAccountExistsFor(null)
-        setError('')
-        setCode('')
-        saveMethod('email')
-        setResendCooldown(retry === 'ok' ? 60 : 30)
-        lockSubflowWorkspace()
-        goTo('codeEntry')
+
+    emailSubmitLockRef.current = true
+    // Instant switch — do not wait for OTP/SSO network. Send in background.
+    setAccountExistsFor(null)
+    setCode('')
+    saveMethod('email')
+    setResendCooldown(60)
+    lockSubflowWorkspace()
+    goTo('codeEntry', { instant: true })
+
+    const dispatch = (async (): Promise<'ok' | 'rate_limited' | 'error' | 'already_registered' | 'identity_mismatch' | 'sso'> => {
+      if (!isSignup && await preferSsoIfEnforced(email)) return 'sso'
+      let result = await sendMagicLink()
+      if (result === 'identity_mismatch') {
+        // Cleared path in sendMagicLink — retry once email-only.
+        result = await sendMagicLink()
       }
-      return
-    }
-    // Rate-limit = still continue — the earlier code remains valid.
-    // Always land on the shared 6-digit code window (login + register).
-    if (result === 'ok' || result === 'rate_limited') {
-      setAccountExistsFor(null)
-      setError('')
-      setCode('')
-      saveMethod('email')
-      setResendCooldown(result === 'ok' ? 60 : 30)
-      lockSubflowWorkspace()
-      goTo('codeEntry')
-      return
-    }
-    if (result === 'error' && !error) {
-      setError(
-        isSignup
-          ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
-          : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.',
-      )
+      return result
+    })()
+    otpSendPromiseRef.current = dispatch
+
+    try {
+      const result = await dispatch
+      if (otpSendPromiseRef.current === dispatch) otpSendPromiseRef.current = null
+
+      if (result === 'sso') return
+      if (result === 'already_registered') {
+        setAccountExistsFor(email.trim().toLowerCase())
+        goTo('main', { instant: true })
+        return
+      }
+      if (result === 'ok') {
+        setResendCooldown(60)
+        return
+      }
+      if (result === 'rate_limited') {
+        // Earlier code may still be valid — stay on code entry.
+        setResendCooldown(30)
+        return
+      }
+      if (result === 'identity_mismatch' || result === 'error') {
+        setError((prev) =>
+          prev ||
+          (isSignup
+            ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
+            : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'),
+        )
+      }
+    } finally {
+      emailSubmitLockRef.current = false
     }
   }
 
@@ -1280,6 +1290,26 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!trimmed || trimmed.length < 6) { setError('Bitte vollständigen Code eingeben.'); return }
     verifyingCodeRef.current = true
     setLoading(true)
+    // If Weiter already switched optimistically, wait for the send to finish first.
+    const pendingSend = otpSendPromiseRef.current
+    if (pendingSend) {
+      const sendResult = await pendingSend
+      if (sendResult === 'sso' || sendResult === 'already_registered') {
+        verifyingCodeRef.current = false
+        setLoading(false)
+        return
+      }
+      if (sendResult === 'error' || sendResult === 'identity_mismatch') {
+        verifyingCodeRef.current = false
+        setLoading(false)
+        setError(
+          isSignup
+            ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
+            : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.',
+        )
+        return
+      }
+    }
     // Match /api/auth/otp/request generateLink order — wrong type first can burn
     // a one-time token on some GoTrue versions ("ungültig" within seconds).
     const otpTypes = isSignup
@@ -1753,11 +1783,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         </div>
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="sso" instant lead="Mit SSO fortfahren." />
+                          <AuthGlassyHero animKey="sso" lead="Mit SSO fortfahren." />
                         </div>
                       ) : (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="otp" instant lead="Code eingeben." />
+                          <AuthGlassyHero animKey="otp" lead="Code eingeben." />
                         </div>
                       )}
                     </div>

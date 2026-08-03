@@ -237,6 +237,31 @@ export const AUTH_GLASSY_HERO_CSS = `
     transform: none !important;
     filter: none !important;
   }
+  /* Code / SSO step — soft-mode must NOT kill the rise from below. */
+  .al-root.al-soft-mode[data-auth-step="codeEntry"] .al-gword:not(.al-gword--settled),
+  .al-root.al-soft-enter[data-auth-step="codeEntry"] .al-gword:not(.al-gword--settled),
+  .al-root.al-soft-mode[data-auth-step="sso"] .al-gword:not(.al-gword--settled),
+  .al-root.al-soft-enter[data-auth-step="sso"] .al-gword:not(.al-gword--settled) {
+    overflow: hidden !important;
+  }
+  .al-root.al-soft-mode[data-auth-step="codeEntry"] .al-gword-inner,
+  .al-root.al-soft-enter[data-auth-step="codeEntry"] .al-gword-inner,
+  .al-root.al-soft-mode[data-auth-step="sso"] .al-gword-inner,
+  .al-root.al-soft-enter[data-auth-step="sso"] .al-gword-inner {
+    animation: alGwordIn 0.48s cubic-bezier(.16, 1, .3, 1) both !important;
+    animation-delay: calc(var(--i, 0) * 22ms) !important;
+    opacity: 0;
+    transform: translate3d(0, 110%, 0);
+    filter: none !important;
+  }
+  .al-root.al-soft-mode[data-auth-step="codeEntry"] .al-gword--settled .al-gword-inner,
+  .al-root.al-soft-enter[data-auth-step="codeEntry"] .al-gword--settled .al-gword-inner,
+  .al-root.al-soft-mode[data-auth-step="sso"] .al-gword--settled .al-gword-inner,
+  .al-root.al-soft-enter[data-auth-step="sso"] .al-gword--settled .al-gword-inner {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
   /* Light-first auth — dark ink on white. Dark chrome overrides below. */
   .al-gword-lead {
     color: #1e1e20;
@@ -265,6 +290,12 @@ export const AUTH_GLASSY_HERO_CSS = `
       opacity: 1;
       transform: translate3d(0, 0, 0);
     }
+  }
+  /* Code / SSO title — slightly snappier rise after Weiter. */
+  .al-root[data-auth-step="codeEntry"] .al-gword-inner,
+  .al-root[data-auth-step="sso"] .al-gword-inner {
+    animation-duration: 0.46s;
+    animation-delay: calc(var(--i, 0) * 22ms);
   }
 
   /* Username / workspace path — tight under H1 */

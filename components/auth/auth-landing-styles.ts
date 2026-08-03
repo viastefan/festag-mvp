@@ -644,12 +644,12 @@ const AUTH_LANDING_STYLES_BASE = `
         @media (max-width: 768px) {
           /* Room for the check/x badge so the value never renders under it. */
           .al-ws-name-line--has-badge {
-            padding-right:30px;
+            padding-right:42px;
           }
         }
         /* Desktop + mobile: reserve badge gutter whenever status is active. */
         .al-ws-name-line--has-badge {
-          padding-right:30px;
+          padding-right:42px;
         }
         /* Status lives only next to the name — never open a slot under the hero. */
         .al-ws-status-slot {
@@ -938,6 +938,23 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-content:not(.animating) {
           animation: alContentIn 0.1s cubic-bezier(.16,1,.3,1) both;
         }
+        /* Code / SSO — smooth rise from below (header glassy is separate). */
+        .al-root[data-auth-step="codeEntry"] .al-content:not(.animating),
+        .al-root[data-auth-step="sso"] .al-content:not(.animating) {
+          animation: alStepContentRise 0.42s cubic-bezier(.16, 1, .3, 1) both;
+        }
+        .al-root[data-auth-step="codeEntry"] .al-signin-head,
+        .al-root[data-auth-step="sso"] .al-signin-head {
+          animation: alStepHeadRise 0.4s cubic-bezier(.16, 1, .3, 1) both;
+        }
+        @keyframes alStepContentRise {
+          from { opacity:0; transform:translate3d(0, 18px, 0); }
+          to { opacity:1; transform:translate3d(0, 0, 0); }
+        }
+        @keyframes alStepHeadRise {
+          from { opacity:0; transform:translate3d(0, 12px, 0); }
+          to { opacity:1; transform:translate3d(0, 0, 0); }
+        }
         /* Mobile signup: collapse oauth/email/SSO while the workspace field is
            focused, so the keyboard never traps those controls off-screen. */
         @media (max-width: 768px) {
@@ -968,6 +985,23 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root.al-soft-mode .al-content:not(.animating),
         .al-root.al-soft-enter .al-content:not(.animating) {
           animation: none;
+        }
+        /* Soft-mode still allows code/SSO content rise. */
+        .al-root.al-soft-mode[data-auth-step="codeEntry"] .al-content:not(.animating),
+        .al-root.al-soft-enter[data-auth-step="codeEntry"] .al-content:not(.animating),
+        .al-root.al-soft-mode[data-auth-step="sso"] .al-content:not(.animating),
+        .al-root.al-soft-enter[data-auth-step="sso"] .al-content:not(.animating) {
+          animation: alStepContentRise 0.42s cubic-bezier(.16, 1, .3, 1) both !important;
+          opacity: 0;
+          transform: translate3d(0, 18px, 0);
+        }
+        .al-root.al-soft-mode[data-auth-step="codeEntry"] .al-signin-head,
+        .al-root.al-soft-enter[data-auth-step="codeEntry"] .al-signin-head,
+        .al-root.al-soft-mode[data-auth-step="sso"] .al-signin-head,
+        .al-root.al-soft-enter[data-auth-step="sso"] .al-signin-head {
+          animation: alStepHeadRise 0.4s cubic-bezier(.16, 1, .3, 1) both !important;
+          opacity: 0;
+          transform: translate3d(0, 12px, 0);
         }
         @keyframes alContentIn {
           from { opacity:0; }
@@ -2931,6 +2965,18 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root.al-soft-enter:not(.exiting):not(.al-panel-enter) .al-footer-meta {
             animation: none;
           }
+          .al-root.al-soft-mode[data-auth-step="codeEntry"]:not(.exiting):not(.al-panel-enter) .al-signin-head,
+          .al-root.al-soft-enter[data-auth-step="codeEntry"]:not(.exiting):not(.al-panel-enter) .al-signin-head,
+          .al-root.al-soft-mode[data-auth-step="sso"]:not(.exiting):not(.al-panel-enter) .al-signin-head,
+          .al-root.al-soft-enter[data-auth-step="sso"]:not(.exiting):not(.al-panel-enter) .al-signin-head {
+            animation: alStepHeadRise 0.4s cubic-bezier(.16, 1, .3, 1) both !important;
+          }
+          .al-root.al-soft-mode[data-auth-step="codeEntry"]:not(.exiting):not(.al-panel-enter) .al-content,
+          .al-root.al-soft-enter[data-auth-step="codeEntry"]:not(.exiting):not(.al-panel-enter) .al-content,
+          .al-root.al-soft-mode[data-auth-step="sso"]:not(.exiting):not(.al-panel-enter) .al-content,
+          .al-root.al-soft-enter[data-auth-step="sso"]:not(.exiting):not(.al-panel-enter) .al-content {
+            animation: alStepContentRise 0.42s cubic-bezier(.16, 1, .3, 1) both !important;
+          }
           @media (prefers-reduced-motion: reduce) {
             .al-root:not(.exiting):not(.al-panel-enter) .al-header,
             .al-root:not(.exiting):not(.al-panel-enter) .al-signin-head,
@@ -4558,9 +4604,18 @@ const AUTH_LANDING_STYLES_BASE = `
 
         /* Desktop Code eingeben — H1 + /Benutzer same optical size as login/register */
         @media (min-width: 769px) {
-          .al-root[data-auth-step="codeEntry"] .al-gword,
-          .al-root[data-auth-step="sso"] .al-gword {
+          .al-root[data-auth-step="codeEntry"] .al-gword.al-gword--settled,
+          .al-root[data-auth-step="sso"] .al-gword.al-gword--settled {
             overflow:visible !important;
+            padding-top:0 !important;
+            padding-bottom:0 !important;
+            margin-top:0 !important;
+            margin-bottom:0 !important;
+          }
+          /* Keep clip while glassy rises from below. */
+          .al-root[data-auth-step="codeEntry"] .al-gword:not(.al-gword--settled),
+          .al-root[data-auth-step="sso"] .al-gword:not(.al-gword--settled) {
+            overflow:hidden !important;
             padding-top:0 !important;
             padding-bottom:0 !important;
             margin-top:0 !important;
@@ -4641,9 +4696,17 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-step="sso"] .al-glassy-hero {
             overflow:visible !important;
           }
-          .al-root[data-auth-step="codeEntry"] .al-gword,
-          .al-root[data-auth-step="sso"] .al-gword {
+          .al-root[data-auth-step="codeEntry"] .al-gword.al-gword--settled,
+          .al-root[data-auth-step="sso"] .al-gword.al-gword--settled {
             overflow:visible !important;
+            padding-top:0 !important;
+            padding-bottom:0 !important;
+            margin-top:0 !important;
+            margin-bottom:0 !important;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-gword:not(.al-gword--settled),
+          .al-root[data-auth-step="sso"] .al-gword:not(.al-gword--settled) {
+            overflow:hidden !important;
             padding-top:0 !important;
             padding-bottom:0 !important;
             margin-top:0 !important;

@@ -45,7 +45,8 @@ export default function UsernameCheckBadge({
 const UC_BADGE_CSS = `
   .uc-badge {
     position: absolute;
-    right: 0;
+    /* Match field horizontal padding — never flush to the stroke. */
+    right: 14px;
     top: 0;
     bottom: 0;
     margin: auto 0;
