@@ -113,7 +113,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
   /* Light — cool gray canvas, white panels, quiet hairlines. */
-  --bg:#E8E9ED; --surface:#FFFFFF; --card:#FFFFFF;
+  --bg:#FBF7EE; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
   --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
   --text:#1E1E20; --text-secondary:#5c5c62; --text-muted:#8891a0;
@@ -177,12 +177,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     0 0 0 0.5px rgba(15,23,42,0.03),
     0 8px 24px rgba(15,23,42,0.04);
 
-  /* Elevated floating plate — portal main, settings shells (design system) */
+  /* Elevated surfaces — nested cards keep white; portal main is full-bleed. */
   --festag-plate-radius:12px;
-  --festag-plate-inset:4px;
+  --festag-plate-inset:0px;
   --festag-plate-nest-radius:10px;
   --festag-plate-bg:#FFFFFF;
-  --festag-plate-border:rgba(15,23,42,0.055);
+  --festag-plate-border:rgba(40,34,28,0.08);
   --festag-plate-shadow:var(--festag-glass-shadow);
   --festag-plate-shadow-soft:var(--festag-glass-shadow-soft);
 
@@ -193,13 +193,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-icon-muted:#555555;
   --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.05);
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
-  --festag-elev-active-bg:#F5F5F7;
-  --festag-elev-on-bg:#F2F2F7;
-  /* Client portal surface contract: soft studio canvas → floating plate. */
-  --festag-portal-canvas:#F2F2F4;
-  --festag-portal-canvas-desktop:#F7F7F8;
-  --festag-portal-sheet:#FAFAFA;
-  --festag-portal-panel:var(--festag-plate-bg);
+  --festag-elev-active-bg:#FBF7EE;
+  --festag-elev-on-bg:#F0EEE6;
+  /* Portal light = Login paper ivory (continuous canvas, no floating plate gap). */
+  --festag-portal-canvas:#FBF7EE;
+  --festag-portal-canvas-desktop:#FBF7EE;
+  --festag-portal-sheet:#FFFFFF;
+  --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:36px;
@@ -355,7 +355,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     0 8px 28px rgba(11,12,16,0.20);
 
   --festag-plate-radius:20px;
-  --festag-plate-inset:4px;
+  --festag-plate-inset:0px;
   --festag-plate-nest-radius:14px;
   --festag-plate-bg:var(--festag-black-content);
   --festag-plate-border:rgba(255,255,255,0.04);
@@ -453,7 +453,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-active-bg:#FBF7EE;
   --festag-elev-on-bg:#F0EEE6;
   --festag-portal-canvas:#FBF7EE;
-  --festag-portal-canvas-desktop:#F0EEE6;
+  --festag-portal-canvas-desktop:#FBF7EE;
   --festag-portal-sheet:#FFFFFF;
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
@@ -461,7 +461,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-tagro-fab-size:36px;
   --workspace-bg:var(--festag-portal-canvas-desktop);
   --festag-plate-radius:12px;
-  --festag-plate-inset:4px;
+  --festag-plate-inset:0px;
   --festag-plate-nest-radius:10px;
   --festag-plate-bg:#FFFFFF;
   --festag-plate-border:rgba(40,34,28,0.08);
@@ -526,17 +526,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-icon-muted:#555555;
   --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.05);
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
-  --festag-elev-active-bg:#F5F5F7;
-  --festag-elev-on-bg:#F2F2F7;
-  --festag-portal-canvas:#F2F2F4;
-  --festag-portal-canvas-desktop:#F7F7F8;
-  --festag-portal-sheet:#FAFAFA;
+  --festag-elev-active-bg:#FBF7EE;
+  --festag-elev-on-bg:#F0EEE6;
+  --festag-portal-canvas:#FBF7EE;
+  --festag-portal-canvas-desktop:#FBF7EE;
+  --festag-portal-sheet:#FFFFFF;
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
-  --festag-portal-muted:#90959F;
+  --festag-portal-muted:#8891a0;
   --festag-tagro-fab-size:36px;
   --festag-plate-radius:12px;
-  --festag-plate-inset:4px;
+  --festag-plate-inset:0px;
   --festag-plate-nest-radius:10px;
   --festag-plate-bg:#FFFFFF;
   --festag-plate-border:rgba(15,23,42,0.055);
@@ -657,7 +657,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     0 1px 0 rgba(255,255,255,0.02) inset,
     0 8px 28px rgba(11,12,16,0.20);
   --festag-plate-radius:20px;
-  --festag-plate-inset:4px;
+  --festag-plate-inset:0px;
   --festag-plate-nest-radius:14px;
   --festag-plate-bg:var(--festag-black-content);
   --festag-plate-border:rgba(255,255,255,0.04);

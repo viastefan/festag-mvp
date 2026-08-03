@@ -9,17 +9,17 @@
 export const FESTAG_ELEVATED = {
   /** Floating content plate corner radius (light). Dark overrides to 20px. */
   plateRadius: '12px',
-  /** Desktop inset from canvas: top / right / bottom (left hugs the rail). */
-  plateInset: '4px',
+  /** Desktop inset — full-bleed portal main (no top/right/bottom gap). */
+  plateInset: '0px',
 
-  /** Soft studio canvas — cool gray, never stark white. */
-  canvasDesktop: '#E8E9ED',
-  canvasMobile: '#F2F2F4',
+  /** Soft Login ivory canvas — same paper as auth light. */
+  canvasDesktop: '#FBF7EE',
+  canvasMobile: '#FBF7EE',
 
-  /** Plate fill — soft porcelain white. */
+  /** Nested elevated cards — soft porcelain white on ivory. */
   plateBg: '#FFFFFF',
   /** Whisper edge — felt more than seen. */
-  plateBorder: 'rgba(15, 23, 42, 0.055)',
+  plateBorder: 'rgba(40, 34, 28, 0.08)',
   /**
    * Elevation: soft inner light + contact + ambient.
    * Reads as presence, not a drop-shadow gadget.

@@ -18,12 +18,12 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
     --festag-sidebar-width: 260px;
     --cp-dock-width: 400px;
-    /* Soft studio canvas — closer to Dev flat workspace (#F7F7F8), less cool gray plate. */
-    --portal-bg: var(--festag-portal-canvas-desktop, #F7F7F8);
-    --portal-card: var(--festag-plate-bg, var(--festag-content-panel, #FFFFFF));
-    --portal-raised: var(--festag-portal-sheet, var(--raised, #FAFAFA));
+    /* Login light paper — warm ivory, continuous with auth (#FBF7EE). */
+    --portal-bg: var(--festag-portal-canvas-desktop, #FBF7EE);
+    --portal-card: var(--festag-portal-canvas-desktop, #FBF7EE);
+    --portal-raised: var(--festag-portal-sheet, var(--raised, #FFFFFF));
     --portal-text: var(--text, #1E1E20);
-    --portal-muted: var(--text-muted, #90959F);
+    --portal-muted: var(--text-muted, #8891a0);
     --portal-soft: var(--text-secondary, #5c5c62);
     --portal-nav-active-bg: color-mix(in srgb, var(--portal-text, #1D1D1F) 8%, transparent);
     --portal-nav-hover-bg: color-mix(in srgb, var(--portal-text, #1D1D1F) 5.5%, transparent);
@@ -101,9 +101,10 @@ export const PORTAL_APP_SHELL_CSS = `
     z-index:80;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    background: color-mix(in srgb, var(--portal-bg) 72%, transparent) !important;
-    backdrop-filter: blur(12px) saturate(1.06);
-    -webkit-backdrop-filter: blur(12px) saturate(1.06);
+    /* Continuous Login ivory — no frosted gray rail. */
+    background: var(--portal-bg) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border:0 !important;
     box-shadow:none !important;
     overflow:hidden;
@@ -131,8 +132,8 @@ export const PORTAL_APP_SHELL_CSS = `
   }
 
   .portal-app-shell.portal-cp-open .portal-app-nav-col {
-    background: #FFFFFF !important;
-    border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+    background: var(--portal-bg) !important;
+    border-right: 1px solid rgba(40, 34, 28, 0.08) !important;
     z-index: 84;
   }
   [data-theme="dark"] .portal-app-shell.portal-cp-open .portal-app-nav-col,
@@ -149,12 +150,13 @@ export const PORTAL_APP_SHELL_CSS = `
     min-width:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
+    /* Full-bleed content — no top/right/bottom inset against the viewport. */
+    padding:0;
     transition:margin-left .22s cubic-bezier(.16,1,.3,1);
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
     margin-left:56px;
-    padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
+    padding:0;
   }
 
   .portal-app-shell.portal-tagro-fullscreen {
@@ -173,7 +175,11 @@ export const PORTAL_APP_SHELL_CSS = `
 
   .portal-app-main {
     flex:1; min-height:0;
+    /* Full-bleed workspace — same ivory paper as Login light. */
     background:var(--portal-card);
+    border:0;
+    border-radius:0;
+    box-shadow:none;
     overflow:hidden;
     display:flex; flex-direction:column;
     position:relative;
@@ -181,79 +187,31 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-main,
   [data-theme="classic-dark"] .portal-app-main {
-    background: transparent;
+    background: var(--festag-black-canvas, #070708);
   }
   .portal-app-main :where(p, span, div, label, li, button, a, h1, h2, h3, h4, h5, h6) {
     letter-spacing:inherit;
   }
 
-  /* Desktop — elevated floating plate (design-system tokens) */
   @media (min-width: 769px) {
+    .portal-app-main-col {
+      padding:0;
+    }
     .portal-app-main {
-      border-radius:var(--festag-plate-radius, 12px);
-      border-top-left-radius:0;
-      border-bottom-left-radius:0;
-      border:1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055));
-      box-shadow:var(--festag-plate-shadow, var(--portal-white-elev));
-      background:var(--festag-plate-bg, var(--portal-card));
+      border:0;
+      border-radius:0;
+      box-shadow:none;
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
-      transition:none;
-    }
-    .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-      border-top-left-radius:var(--festag-plate-radius, 12px);
-      border-bottom-left-radius:var(--festag-plate-radius, 12px);
-    }
-    .portal-app-main-col {
-      padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
-    }
-    [data-theme="light"] .portal-app-main-col,
-    [data-theme="read"] .portal-app-main-col,
-    [data-theme="pure-light"] .portal-app-main-col {
-      padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
     }
     [data-theme="light"] .portal-app-main,
     [data-theme="read"] .portal-app-main,
     [data-theme="pure-light"] .portal-app-main {
-      background:var(--festag-plate-bg, #FFFFFF);
-      border-radius:var(--festag-plate-radius, 12px);
-      border-top-left-radius:0;
-      border-bottom-left-radius:0;
-      border:1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055));
-      box-shadow:var(--festag-plate-shadow);
-      backdrop-filter:none;
-      -webkit-backdrop-filter:none;
+      background:var(--festag-portal-canvas-desktop, #FBF7EE);
     }
-    [data-theme="light"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
-    [data-theme="read"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
-    [data-theme="pure-light"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-      border-top-left-radius:var(--festag-plate-radius, 12px);
-      border-bottom-left-radius:var(--festag-plate-radius, 12px);
-    }
-    /* Dark — floating graphite plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background: var(--festag-plate-bg, var(--festag-black-content, #0E0E10));
-      border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
-      border-radius: var(--festag-plate-radius, 12px);
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-      box-shadow: var(--festag-plate-shadow);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-    }
-    [data-theme="dark"] .portal-app-main-col,
-    [data-theme="classic-dark"] .portal-app-main-col {
-      padding: var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
-    }
-    [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
-    [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-      border-top-left-radius: var(--festag-plate-radius, 12px);
-      border-bottom-left-radius: var(--festag-plate-radius, 12px);
-    }
-    [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col,
-    [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
-      padding: var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
+      background: var(--festag-black-canvas, #070708);
     }
   }
 
@@ -318,7 +276,7 @@ export const PORTAL_APP_SHELL_CSS = `
 
   @media (max-width: 768px) {
     .portal-app-shell {
-      background: var(--festag-portal-canvas, #FCFCFC);
+      background: var(--festag-portal-canvas, #FBF7EE);
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {

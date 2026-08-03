@@ -105,9 +105,8 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
     if (resolved === 'read') return FESTAG_SAND.canvas
     return FESTAG_SAND.canvas
   }
-  // README / Lesen — Claude sandy white (previous warm light look).
-  if (resolved === 'read') return FESTAG_SAND.canvas
-  return FESTAG_ELEVATED.canvasDesktop
+  // Portal + Lesen — same warm Login ivory paper (no cool gray flash).
+  return FESTAG_SAND.canvas
 }
 
 function themeStorageKey(surface: ThemeSurface) {
