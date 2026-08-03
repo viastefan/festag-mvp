@@ -1,6 +1,6 @@
 /**
  * Pre-workspace Festag App Shell — scoped styles on `.fas-root`.
- * Ivory light canvas · Festag Night dark · no sidebar borders.
+ * Ivory light canvas · Festag Night dark · soft sidebar hairline.
  */
 
 import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
@@ -21,6 +21,7 @@ export const APP_SHELL_STYLES = `
   --fas-nav-active: rgba(30, 30, 32, 0.10);
   --fas-nav-active-ink: ${FESTAG_SAND.ink};
   --fas-sidebar-w: 232px;
+  --fas-sidebar-collapsed-w: 64px;
   --fas-topbar-h: 52px;
   --fas-radius: 10px;
   --fas-radius-btn: 6px;
@@ -84,43 +85,147 @@ html[data-theme="read"] .fas-root {
   padding: 14px 10px 12px;
   background: transparent;
   border: none;
+  border-right: 1px solid var(--fas-sep);
   overflow: hidden;
+  position: relative;
+  transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fas-sidebar.is-collapsed {
+  width: var(--fas-sidebar-collapsed-w);
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
-.fas-brand {
+.fas-sidebar-top {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+  z-index: 5;
+}
+
+.fas-sidebar-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 2px;
+}
+
+.fas-ws-trigger {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px 18px;
-  text-decoration: none;
-  color: inherit;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fas-ink);
+  font: inherit;
+  font-size: 13.5px;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
 }
-
-.fas-brand-mark {
-  width: 22px;
-  height: 22px;
+.fas-ws-trigger:hover,
+.fas-ws-trigger.is-open {
+  background: var(--fas-nav-hover);
+}
+.fas-ws-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+}
+.fas-ws-caret {
   flex-shrink: 0;
-  display: block;
-  -webkit-mask-image: url(/brand/festag-mark.png?v=20260727-cutout);
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-image: url(/brand/festag-mark.png?v=20260727-cutout);
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  background: linear-gradient(160deg, #3a3a40 0%, #1e1e20 58%, #2a2a2e 100%);
+  opacity: 0.55;
+  color: var(--fas-ink-muted);
 }
-
-html[data-theme="dark"] .fas-brand-mark,
-html[data-theme="classic-dark"] .fas-brand-mark {
-  background: linear-gradient(160deg, #f7f8fa 0%, #dfe3ea 52%, #f0f2f5 100%);
-}
-
-.fas-brand-name {
-  font-size: 15px;
+.fas-ws-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
   letter-spacing: -0.02em;
   color: var(--fas-ink);
+  background: var(--fas-card);
+  border: 1px solid var(--fas-card-border);
+  box-shadow: var(--fas-card-shadow);
+}
+
+.fas-sidebar-utils {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.fas-sidebar-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fas-ink-muted);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  font-family: inherit;
+  padding: 0;
+}
+.fas-sidebar-icon:hover {
+  background: var(--fas-nav-hover);
+  color: var(--fas-ink);
+}
+
+.fas-ws-popover {
+  top: calc(100% + 4px);
+  left: 0;
+  right: auto;
+  min-width: 220px;
+}
+
+.fas-sidebar.is-collapsed .fas-sidebar-header {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 8px;
+}
+.fas-sidebar.is-collapsed .fas-ws-trigger {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+.fas-sidebar.is-collapsed .fas-sidebar-utils {
+  flex-direction: column;
+}
+.fas-sidebar.is-collapsed .fas-nav-link {
+  justify-content: center;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+}
+.fas-sidebar.is-collapsed .fas-nav-group,
+.fas-sidebar.is-collapsed .fas-nav-after-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.fas-sidebar.is-collapsed .fas-profile {
+  justify-content: center;
+  padding: 10px 0 4px;
 }
 
 .fas-nav {
@@ -195,7 +300,7 @@ html[data-theme="classic-dark"] .fas-brand-mark {
 .fas-profile-avatar {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: 50%;
   background: rgba(30, 30, 32, 0.08);
   color: var(--fas-ink);
   display: flex;
@@ -258,27 +363,8 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
 }
 
 .fas-ws-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: var(--fas-radius-btn);
-  border: 1px solid var(--fas-btn-border);
-  background: var(--fas-btn-bg);
-  color: var(--fas-btn-fg);
-  box-shadow: var(--fas-btn-shadow);
-  font-size: 13px;
-  font-family: inherit;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.14s ease, border-color 0.14s ease;
+  display: none;
 }
-.fas-ws-switch:hover { background: var(--fas-btn-bg-hover); }
-.fas-ws-switch:active { background: var(--fas-btn-bg-active); box-shadow: none; }
-.fas-ws-switch-muted { color: var(--fas-ink-muted); }
 
 .fas-icon-btn {
   width: 32px;
@@ -610,16 +696,26 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
 
 @media (max-width: 768px) {
   .fas-root { flex-direction: column; }
-  .fas-sidebar {
+  .fas-sidebar,
+  .fas-sidebar.is-collapsed {
     width: 100%;
     flex-direction: row;
     align-items: center;
     padding: 8px 12px;
     overflow-x: auto;
     gap: 4px;
+    border-right: none;
+    border-bottom: 1px solid var(--fas-sep);
   }
-  .fas-brand { padding: 0 8px 0 0; }
-  .fas-brand-name { display: none; }
+  .fas-sidebar-top {
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .fas-sidebar-header {
+    grid-template-columns: auto auto;
+    gap: 4px;
+  }
+  .fas-ws-name { max-width: 110px; }
   .fas-nav {
     flex-direction: row;
     overflow-x: auto;
@@ -642,6 +738,7 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
   }
   .fas-nav-link span { display: none; }
   .fas-profile { display: none; }
+  .fas-sidebar-collapse { display: none; }
   .fas-content { padding: 12px 18px 40px; }
   .fas-hero-greet,
   .fas-hero-title { font-size: 24px; }

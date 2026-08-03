@@ -2,20 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
   MagnifyingGlass,
   Bell,
   Moon,
   Sun,
-  CaretDown,
-  Plus,
   SignOut,
   GearSix,
   User,
 } from '@phosphor-icons/react'
 import {
-  APP_SHELL_CREATE_WORKSPACE_HREF,
   appShellRoleLabel,
 } from '@/components/app-shell/app-shell-nav'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
@@ -27,10 +23,9 @@ type Props = {
   user: UserProfile | null
 }
 
-type Menu = 'workspace' | 'notifications' | 'profile' | null
+type Menu = 'notifications' | 'profile' | null
 
 export default function AppShellTopBar({ user }: Props) {
-  const router = useRouter()
   const [menu, setMenu] = useState<Menu>(null)
   const [themeMode, setThemeMode] = useState<PanelThemeMode>('light')
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -64,12 +59,6 @@ export default function AppShellTopBar({ user }: Props) {
     }
   }, [menu])
 
-  function goCreateWorkspace() {
-    setMenu(null)
-    prepareAuthRouteTransition(APP_SHELL_CREATE_WORKSPACE_HREF)
-    router.push(APP_SHELL_CREATE_WORKSPACE_HREF)
-  }
-
   function toggleTheme() {
     const next: PanelThemeMode = themeMode === 'dark' ? 'light' : 'dark'
     setTheme(next, 'client')
@@ -90,28 +79,7 @@ export default function AppShellTopBar({ user }: Props) {
 
   return (
     <header className="fas-topbar" ref={wrapRef}>
-      <div className="fas-topbar-left">
-        <div style={{ position: 'relative' }}>
-          <button
-            type="button"
-            className="fas-ws-switch"
-            aria-expanded={menu === 'workspace'}
-            onClick={() => setMenu(menu === 'workspace' ? null : 'workspace')}
-          >
-            <span className="fas-ws-switch-muted">No workspace</span>
-            <CaretDown size={12} weight="bold" />
-          </button>
-          {menu === 'workspace' && (
-            <div className="fas-popover fas-popover-left" role="menu">
-              <div className="fas-popover-title">You don&apos;t have a workspace yet.</div>
-              <button type="button" className="fas-popover-item" onClick={goCreateWorkspace}>
-                <Plus size={14} weight="bold" />
-                Create Workspace
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <div className="fas-topbar-left" />
 
       <div className="fas-topbar-right">
         <button
