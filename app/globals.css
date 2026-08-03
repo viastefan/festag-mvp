@@ -684,7 +684,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   }
   @media (max-width: 768px) {
     body.festag-portal-shell {
-      background: var(--festag-portal-canvas, #FCFCFC) !important;
+      background: var(--festag-portal-canvas, #FBF7EE) !important;
     }
     [data-theme="dark"] body.festag-portal-shell,
     [data-theme="classic-dark"] body.festag-portal-shell {
