@@ -105,7 +105,7 @@ function PreparingInner() {
         ? `${nextParam}&welcome=1`
         : `${nextParam}?welcome=1`
     } else if (userId) {
-      const resolved = await resolvePostAuthTarget(supabase, userId, '/dashboard')
+      const resolved = await resolvePostAuthTarget(supabase, userId, '/overview')
       target = resolved.includes('?')
         ? `${resolved}&welcome=1`
         : `${resolved}?welcome=1`

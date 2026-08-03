@@ -167,7 +167,7 @@ export default function WorkspaceCreatePage() {
           .maybeSingle()
 
         if (ws?.id) {
-          const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
+          const target = await resolvePostAuthTarget(supabase, user.id, '/overview')
           window.location.href = target
           return
         }

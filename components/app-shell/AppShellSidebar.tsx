@@ -22,6 +22,8 @@ import {
 import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hooks/useUser'
+import { createClient } from '@/lib/supabase/client'
+import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 
 type Props = {
   user: UserProfile | null
@@ -33,7 +35,10 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const pathname = usePathname() || '/overview'
   const router = useRouter()
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
-  const workspaceLabel = 'No workspace'
+  const [workspaceLabel, setWorkspaceLabel] = useState(
+    () => getRememberedWorkspaceName() || 'No workspace',
+  )
+  const hasWorkspace = workspaceLabel !== 'No workspace'
   const settingsActive = isAppShellNavActive(pathname, '/overview/settings')
 
   const [wsOpen, setWsOpen] = useState(false)
@@ -41,6 +46,54 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const [helpOpen, setHelpOpen] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
   const helpTriggerRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!alive || !authUser) return
+
+        const { data: owned } = await supabase
+          .from('workspaces')
+          .select('id, name')
+          .eq('primary_owner_id', authUser.id)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        let name = typeof owned?.name === 'string' ? owned.name.trim() : ''
+
+        if (!name) {
+          const { data: member } = await supabase
+            .from('workspace_members')
+            .select('workspace_id')
+            .eq('user_id', authUser.id)
+            .limit(1)
+            .maybeSingle()
+          const wsId = member?.workspace_id
+          if (wsId) {
+            const { data: ws } = await supabase
+              .from('workspaces')
+              .select('name')
+              .eq('id', wsId)
+              .maybeSingle()
+            name = typeof ws?.name === 'string' ? ws.name.trim() : ''
+          }
+        }
+
+        if (!alive) return
+        if (name) {
+          setWorkspaceLabel(name)
+          rememberWorkspaceName(name)
+        } else {
+          setWorkspaceLabel('No workspace')
+        }
+      } catch { /* best-effort */ }
+    })()
+    return () => { alive = false }
+  }, [user?.id])
 
   useEffect(() => {
     if (!wsOpen && !notifOpen) return
@@ -148,7 +201,11 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
 
         {wsOpen ? (
           <div className="fas-popover fas-popover-left fas-ws-popover" role="menu">
-            <div className="fas-popover-title">Du hast noch keinen Workspace.</div>
+            {hasWorkspace ? (
+              <div className="fas-popover-title">{workspaceLabel}</div>
+            ) : (
+              <div className="fas-popover-title">Du hast noch keinen Workspace.</div>
+            )}
             <button type="button" className="fas-popover-item" onClick={goCreateWorkspace}>
               <Plus size={14} weight="bold" />
               Workspace erstellen
@@ -160,7 +217,9 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
           <div className="fas-popover fas-popover-left fas-ws-popover" role="dialog" aria-label="Benachrichtigungen">
             <div className="fas-popover-title">Noch keine Benachrichtigungen.</div>
             <p className="fas-popover-note">
-              Erstelle einen Workspace, um Updates von Tagro zu erhalten.
+              {hasWorkspace
+                ? 'Updates von Tagro erscheinen hier.'
+                : 'Erstelle einen Workspace, um Updates von Tagro zu erhalten.'}
             </p>
           </div>
         ) : null}

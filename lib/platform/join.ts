@@ -66,5 +66,5 @@ export function normalizeInviteProjectRole(role: string | null | undefined): Pro
 /** Where to send the user after Join Project completes. */
 export function joinCompletionRedirect(projectId: string | null | undefined): string {
   if (projectId) return `/project/${projectId}`
-  return '/dashboard'
+  return '/overview'
 }

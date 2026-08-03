@@ -1,30 +1,12 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import ClientAppShell from '@/components/ClientAppShell'
-import PortalAppShell from '@/components/PortalAppShell'
-import { isPortalShellRoute } from '@/lib/portal/shell-routes'
+import FestagAppShell from '@/components/app-shell/FestagAppShell'
 
+/**
+ * Product chrome is Festag OS (FestagAppShell).
+ * Legacy PortalAppShell / ClientAppShell are retired from the live product UI —
+ * backend APIs and page data modules remain; routes render inside the new shell.
+ */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() || ''
-  const portalRoute = isPortalShellRoute(pathname)
-
-  const isFullHeight = pathname === '/tasks'
-    || pathname === '/reports'
-    || pathname === '/ai'
-    || pathname === '/dashboard'
-    || pathname === '/members'
-    || pathname === '/notes'
-    || pathname.startsWith('/settings')
-    || pathname.startsWith('/project/')
-
-  if (portalRoute) {
-    return <PortalAppShell>{children}</PortalAppShell>
-  }
-
-  return (
-    <ClientAppShell isFullHeight={isFullHeight} scrollId="app-main-scroll">
-      {children}
-    </ClientAppShell>
-  )
+  return <FestagAppShell>{children}</FestagAppShell>
 }

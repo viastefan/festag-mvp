@@ -1,16 +1,6 @@
-import { Suspense } from 'react'
-import DashboardPageClient from './DashboardPageClient'
+import { redirect } from 'next/navigation'
 
+/** Legacy Client Portal dashboard — product UI is Festag OS Overview. */
 export default function DashboardPage() {
-  return (
-    <Suspense
-      fallback={(
-        <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted, #7B8294)' }}>
-          Lade…
-        </div>
-      )}
-    >
-      <DashboardPageClient />
-    </Suspense>
-  )
+  redirect('/overview')
 }

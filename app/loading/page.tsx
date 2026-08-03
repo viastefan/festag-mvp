@@ -28,7 +28,7 @@ function LoadingInner() {
           const resolved = await resolvePostAuthTarget(supabase, session.user.id, explicitNext)
           target = resolved === '/dashboard' ? explicitNext : resolved
         } else {
-          target = await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
+          target = await resolvePostAuthTarget(supabase, session.user.id, '/overview')
         }
       }
 

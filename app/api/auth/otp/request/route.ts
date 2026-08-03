@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   const kind: Kind = body?.kind === 'signup' ? 'signup' : 'login'
   /** Resend after the first signup OTP — user may already exist; fall back to magiclink. */
   const isResend = body?.resend === true
-  const nextPath = String(body?.next || (kind === 'signup' ? '/onboarding' : '/dashboard')).slice(0, 200)
+  const nextPath = String(body?.next || (kind === 'signup' ? '/onboarding' : '/overview')).slice(0, 200)
   const pendingWorkspace =
     typeof body?.pendingWorkspaceName === 'string'
       ? body.pendingWorkspaceName.trim().slice(0, 80)

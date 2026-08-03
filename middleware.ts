@@ -59,6 +59,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308)
   }
 
+  // Legacy Client Portal dashboard / Statusbericht — Festag OS Overview is the product UI.
+  if (
+    pathname === '/dashboard' ||
+    pathname.startsWith('/dashboard/') ||
+    pathname === '/statusabfrage' ||
+    pathname.startsWith('/statusabfrage/')
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/overview'
+    return NextResponse.redirect(url, 308)
+  }
+
   // Legacy dual-product auth entry → one login
   if (pathname === '/dev/login' || pathname.startsWith('/dev/login/')) {
     const url = request.nextUrl.clone()

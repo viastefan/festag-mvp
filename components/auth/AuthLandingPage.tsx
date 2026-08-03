@@ -330,7 +330,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     ? `/join?token=${encodeURIComponent(inviteToken)}`
     : devInviteToken
       ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
-      : (isSignup ? '/onboarding' : '/dashboard')
+      : (isSignup ? '/onboarding' : '/overview')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
   displayWorkspaceNameRef.current = displayWorkspaceName
@@ -780,12 +780,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
     } catch { /* noop */ }
 
-    const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
+    const target = await resolvePostAuthTarget(supabase, user.id, '/overview')
     rememberFestagAccount({
       userId: user.id,
       email: user.email ?? null,
       method: lastMethod ?? inferSessionMethod(user),
-      onboardingCompleted: target === '/dashboard',
+      onboardingCompleted: target === '/overview' || target === '/dashboard',
       workspaceName: normalizeWorkspaceName(workspaceName) || getRememberedWorkspaceName(),
     })
     window.location.replace(
@@ -1361,8 +1361,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     }
     let target = session
-      ? await resolvePostAuthTarget(supabase, session.user.id, isSignup ? '/onboarding' : '/dashboard')
-      : (isSignup ? '/onboarding' : '/dashboard')
+      ? await resolvePostAuthTarget(supabase, session.user.id, isSignup ? '/onboarding' : '/overview')
+      : (isSignup ? '/onboarding' : '/overview')
     if (session) {
       if (isSignup && !hasInvite) {
         target = await resolvePostAuthTarget(supabase, session.user.id, '/onboarding')
@@ -1371,7 +1371,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         userId: session.user.id,
         email: email.trim(),
         method: 'email',
-        onboardingCompleted: target === '/dashboard' || target === '/dev',
+        onboardingCompleted: target === '/overview' || target === '/dashboard' || target === '/dev',
         workspaceName: getRememberedWorkspaceName() || undefined,
       })
       if (isSignup) {

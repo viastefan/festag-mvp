@@ -307,7 +307,7 @@ function MasterBuildInner() {
 
         /* No workspace yet is fine — create after onboarding. */
         if (onboarding?.completed_at && !isResuming) {
-          const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
+          const target = await resolvePostAuthTarget(supabase, user.id, '/overview')
           prepareAuthRouteTransition(target)
           router.replace(target)
           return

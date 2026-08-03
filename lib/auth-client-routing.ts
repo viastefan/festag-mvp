@@ -2,13 +2,16 @@
  * resolvePostAuthTarget — single source of truth for "where should this
  * user land after login / OAuth callback / OTP verify?"
  *
- * One path for every user (ChatGPT-style unified auth):
+ * Product UI is Festag OS (`/overview` + FestagAppShell). Legacy Client/Portal
+ * shells are not post-auth destinations — APIs and data stay shared.
+ *
  *   1. Device memory only pre-fills UI (laptop).
  *   2. Auth creates or signs in the account (email / Google / SSO).
- *   3. Personal workspace → /overview (Festag OS shell) if missing.
+ *   3. Missing workspace → /overview (Create Workspace).
  *   4. Build Projects (/onboarding) until onboarding_state.completed_at.
  *      Invitees use Join Project (/join) instead.
- *   5. Execution-capable roles land in `/dev` when mode/role says so.
+ *   5. Onboarded (with or without workspace) → /overview.
+ *   6. Execution-capable roles may still land in `/dev` when preferred.
  */
 
 import {
@@ -146,24 +149,28 @@ export async function resolvePostAuthTarget(
     const workspaceMode = await resolveWorkspaceMode(supabase, userId)
 
     if (preferredNext) {
+      // Legacy Client Portal — always Festag OS Overview.
       if (
         preferredNext === '/dashboard' ||
         preferredNext === '/onboarding' ||
         preferredNext === '/create-workspace' ||
-        preferredNext === '/overview' ||
-        preferredNext.startsWith('/overview/') ||
         preferredNext === '/home' ||
         preferredNext.startsWith('/home/')
       ) {
-        return '/dashboard'
+        return '/overview'
+      }
+      if (preferredNext === '/overview' || preferredNext.startsWith('/overview/')) {
+        return preferredNext
       }
       if (preferredNext.startsWith('/dev')) {
-        return canAccessExecutionPanel(bits) ? '/dev' : '/dashboard'
+        return canAccessExecutionPanel(bits) ? '/dev' : '/overview'
       }
+      // Other deep links (project, settings, …) keep path — shell is Festag OS.
+      if (preferredNext.startsWith('/')) return preferredNext
     }
 
     return defaultPostAuthPathForExecution(bits, workspaceMode)
   } catch {
-    return '/dashboard'
+    return '/overview'
   }
 }

@@ -64,18 +64,16 @@ export function showExecutionPanelPortalEntry(
 
 /**
  * After onboarding, where should an approved exec land?
- * - `dev` / `admin` → Execution Panel (they execute)
- * - `project_owner` in Teams → Execution Panel
- * - otherwise → Client Portal
+ * Product UI is Festag OS Overview. `/dev` remains for explicit execution roles.
  */
 export function defaultPostAuthPathForExecution(
   profile: ExecutionProfileBits,
   workspaceMode?: PortalWorkspaceMode | string | null,
-): '/dev' | '/dashboard' {
-  if (!canAccessExecutionPanel(profile)) return '/dashboard'
+): '/dev' | '/overview' {
+  if (!canAccessExecutionPanel(profile)) return '/overview'
   if (profile.role === 'dev' || profile.role === 'admin') return '/dev'
   if (profile.role === 'project_owner' && workspaceMode === 'team') return '/dev'
-  return '/dashboard'
+  return '/overview'
 }
 
 /** Preferred New-Project delivery models ordered for a workspace mode. */
