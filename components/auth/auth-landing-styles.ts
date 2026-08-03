@@ -1033,22 +1033,6 @@ const AUTH_LANDING_STYLES_BASE = `
           max-width:100% !important;
           align-self:stretch;
         }
-        /* Email + password — real <form> so Keychain / Password Managers can save. */
-        .al-password-form {
-          display:flex;
-          flex-direction:column;
-          gap:inherit;
-          width:100%;
-          margin:0;
-          padding:0;
-          border:0;
-          box-sizing:border-box;
-        }
-        .al-method-group .al-password-form > .al-btn {
-          width:100% !important;
-          max-width:100% !important;
-          align-self:stretch;
-        }
         .al-sso-group { margin-top:0; overflow:visible; }
         /* Desktop: full OAuth labels. Mobile row uses .al-oauth-label-short. */
         .al-oauth-label-short { display:none; }
@@ -1691,30 +1675,15 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-tap-highlight-color:transparent;
           transition:color .18s ease;
         }
-        /* Code entry: even vertical rhythm — stack gap only, no stacked margins. */
-        .al-signin-stack--code {
-          gap:20px;
-        }
-        .al-signin-stack--code > .al-otp {
-          margin:0;
-        }
-        .al-signin-stack--code > .al-btn {
-          margin-top:0;
-        }
-        .al-signin-stack--code > .al-code-help {
-          margin:0;
-        }
-        /* Code entry: Zurück + Passwort — left stack under help.
-           Beat desktop `.al-login-aux { margin-top: 32px !important }` so Zurück
-           doesn’t float far below the help line. */
+        /* Code entry: Zurück + Passwort — left stack under help. */
         .al-signin-stack--code > .al-login-aux.al-code-nav {
-          margin:0 !important;
+          margin:4px 0 0;
           gap:4px;
           align-items:flex-start;
         }
         .al-signin-stack--code > .al-login-aux.al-code-nav .al-back {
           margin:0;
-          padding:4px 0;
+          padding:8px 0;
         }
         .al-login-aux-secondary:hover,
         .al-login-aux-secondary:active {
@@ -1722,7 +1691,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         .al-code-help {
-          margin:0;
+          margin:14px 0 0;
           padding:0;
           width:100%;
           font-size:13px;
@@ -4622,10 +4591,7 @@ const AUTH_LANDING_STYLES_BASE = `
             color:#8891a0 !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-signin-stack--code {
-            gap:20px;
-          }
-          .al-root[data-auth-step="codeEntry"] .al-signin-stack--code > .al-login-aux.al-code-nav {
-            margin:0 !important;
+            gap:14px;
           }
           .al-root[data-auth-step="codeEntry"] .al-otp-cell {
             border:2px solid rgba(30, 30, 32, 0.14) !important;
@@ -4721,7 +4687,7 @@ const AUTH_LANDING_STYLES_BASE = `
             height:18px;
           }
           .al-root[data-auth-step="codeEntry"] .al-signin-stack--code {
-            gap:20px;
+            gap:14px;
             width:100%;
             max-width:100%;
           }
@@ -4740,7 +4706,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-step="codeEntry"] .al-otp {
             gap:8px;
             justify-content:space-between;
-            margin:0;
+            margin-top:2px;
           }
           .al-root[data-auth-step="codeEntry"] .al-otp-cell {
             width:40px;
@@ -4763,20 +4729,20 @@ const AUTH_LANDING_STYLES_BASE = `
             height:var(--festag-btn-height, 46px);
             min-height:var(--festag-btn-height, 46px);
             max-height:var(--festag-btn-height, 46px);
-            margin-top:0;
+            margin-top:2px;
             font-size:var(--festag-btn-font-size, 14.5px);
             letter-spacing:-0.01em;
             border-radius:8px;
           }
           .al-root[data-auth-step="codeEntry"] .al-code-help {
-            margin:0;
+            margin:4px 0 0;
             font-size:13px;
             line-height:1.45;
             letter-spacing:0.015em;
             text-align:left;
           }
           .al-root[data-auth-step="codeEntry"] .al-code-nav {
-            margin:0 !important;
+            margin-top:2px;
             align-items:flex-start;
           }
           .al-root[data-auth-step="codeEntry"] .al-code-nav .al-back,
