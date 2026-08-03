@@ -146,6 +146,7 @@ export default function WorkspaceCreateWizardModal() {
     setCheckingOwned(true)
     setThemeMode(getTheme('client'))
     setOpen(true)
+    /* Always start on the full create flow — never open on the plan-only screen. */
     setStep('name')
 
     const seed = getPendingWorkspaceName() || getRememberedWorkspaceName() || ''
@@ -158,18 +159,9 @@ export default function WorkspaceCreateWizardModal() {
         window.location.href = '/login?next=/overview?create=1'
         return
       }
-      const { count } = await supabase
-        .from('workspaces')
-        .select('id', { count: 'exact', head: true })
-        .eq('primary_owner_id', user.id)
-      if ((count ?? 0) >= 1) {
-        setStep('plan')
-      } else {
-        setStep('name')
-        window.setTimeout(() => inputRef.current?.focus(), 120)
-      }
+      window.setTimeout(() => inputRef.current?.focus(), 120)
     } catch {
-      setStep('name')
+      /* stay on name */
     } finally {
       setCheckingOwned(false)
     }
@@ -210,6 +202,22 @@ export default function WorkspaceCreateWizardModal() {
     }
     const selected = getWorkspaceUseCase(useCase)
     if (!selected) return
+
+    /* True second+ workspace only. One owned workspace can still be finished / updated via bootstrap. */
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { count } = await supabase
+          .from('workspaces')
+          .select('id', { count: 'exact', head: true })
+          .eq('primary_owner_id', user.id)
+        if ((count ?? 0) >= 2) {
+          setStep('plan')
+          return
+        }
+      }
+    } catch { /* continue to create */ }
 
     createStarted.current = true
     setError('')
@@ -276,12 +284,12 @@ export default function WorkspaceCreateWizardModal() {
     : step === 'creating' ? COPY.creatingTitle
     : `${COPY.welcomePrefix} ${displayName || 'your workspace'}.`
 
-  const heroRest =
+  const heroSupport =
     step === 'plan' ? COPY.additionalBody
     : step === 'name' ? COPY.nameSupport
     : step === 'use' ? COPY.useFootnote
     : step === 'welcome' ? 'Your workspace is ready.'
-    : ''
+    : null
 
   return createPortal(
     <div
@@ -323,21 +331,22 @@ export default function WorkspaceCreateWizardModal() {
         <div className="wc-os-stage">
           <div id="wc-os-title" className="wc-os-hero">
             <AuthGlassyHero
-              animKey={`wc-${step}-${useCase || 'idle'}`}
+              animKey={`wc-${step}`}
               lead={heroLead}
-              rest={heroRest ? ` ${heroRest}` : undefined}
-              stacked
               className="mob-glassy-h1"
             />
+            {heroSupport ? <p className="wc-os-support">{heroSupport}</p> : null}
           </div>
 
           {step === 'plan' ? (
-            <div className="wc-continue-slot">
-              <ContinueHint
-                ready
-                label={COPY.additionalBack}
-                onContinue={closeWizard}
-              />
+            <div className="wc-plan">
+              <div className="wc-continue-slot">
+                <ContinueHint
+                  ready
+                  label={COPY.additionalBack}
+                  onContinue={closeWizard}
+                />
+              </div>
             </div>
           ) : (
             <div className="wc-slider" data-step={step}>
@@ -662,6 +671,19 @@ const WIZARD_CSS = `
 
 .wc-os-hero {
   margin-bottom: 22px;
+}
+
+.wc-os-support {
+  margin: 12px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--mob-muted);
+  max-width: 36ch;
+  letter-spacing: var(--auth-tracking);
+}
+
+.wc-plan {
+  width: 100%;
 }
 
 .wc-slider {
