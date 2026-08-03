@@ -63,13 +63,20 @@ function isValidAuthEmail(value: string): boolean {
 
 const EMAIL_EMPTY_ERROR = 'Bitte E-Mail-Adresse eingeben.'
 const EMAIL_INVALID_ERROR = 'Bitte eine gültige E-Mail-Adresse eingeben.'
+const PASSWORD_EMPTY_ERROR = 'Bitte Passwort eingeben.'
+const PASSWORD_SHORT_ERROR = 'Passwort muss mindestens 6 Zeichen haben.'
 const EMAIL_ALREADY_USED_ERROR =
   'Diese E-Mail wird bereits verwendet. Melde dich an oder nutze eine andere Adresse.'
 const EMAIL_ALREADY_USED_TITLE = 'Für diese E-Mail gibt es schon ein Konto.'
 const IDENTITY_MISMATCH_ERROR = 'Benutzer und E-Mail passen nicht zusammen.'
+const PASSWORD_MIN_LEN = 6
 
 function isEmailFieldError(msg: string): boolean {
   return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
+}
+
+function isPasswordFieldError(msg: string): boolean {
+  return msg === PASSWORD_EMPTY_ERROR || msg === PASSWORD_SHORT_ERROR
 }
 
 function consumeSoftAuthModeSwitch(): boolean {
@@ -120,6 +127,29 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
     return mode === 'login'
       ? 'Kein Account mit dieser E-Mail. Registriere dich zuerst.'
       : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
+  if (
+    msg.includes('invalid login') ||
+    msg.includes('invalid credentials') ||
+    msg.includes('wrong password') ||
+    msg.includes('incorrect password') ||
+    msg.includes('invalid password') ||
+    msg.includes('email not confirmed')
+  ) {
+    if (msg.includes('email not confirmed')) {
+      return 'Bitte bestätige zuerst deine E-Mail (Code in der Inbox).'
+    }
+    return mode === 'login'
+      ? 'E-Mail oder Passwort stimmen nicht. Oder melde dich per Code an.'
+      : 'Passwort konnte nicht gesetzt werden. Bitte versuche es erneut.'
+  }
+  if (
+    msg.includes('password should be') ||
+    msg.includes('password is too short') ||
+    msg.includes('weak password') ||
+    (msg.includes('password') && msg.includes('at least'))
+  ) {
+    return 'Passwort muss mindestens 6 Zeichen haben.'
+  }
   if (
     msg.includes('identity_mismatch') ||
     msg.includes('workspace_unknown') ||
@@ -230,6 +260,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [pageExiting, setPageExiting] = useState(false)
   const [panelEnter, setPanelEnter] = useState(false)
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [ssoInput, setSsoInput] = useState('')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
@@ -257,15 +288,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [supportOpen, setSupportOpen] = useState(false)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [returningUser, setReturningUser] = useState(false)
-  /** Login only: reveal „Passwort vergessen“ after 2 wrong code/credential attempts. */
+  /** Login only: reveal „Passwort vergessen“ after wrong code/credential attempts (code flow). */
   const [failedAuthAttempts, setFailedAuthAttempts] = useState(0)
-  const showForgotPassword = !isSignup && failedAuthAttempts >= 2
+  /** Password login is primary — always offer recovery on login main. */
+  const showForgotPassword = !isSignup && (authStep === 'main' || failedAuthAttempts >= 2)
   const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
   const ssoRef = useRef<HTMLInputElement>(null)
   const wsNameRef = useRef<HTMLInputElement>(null)
   const mainAutoFocused = useRef(false)
   /** Guards double verify from onComplete + Bestätigen in the same tick. */
   const verifyingCodeRef = useRef(false)
+  /** In-flight OTP request after optimistic code-entry switch — await before verify. */
+  const otpSendPromiseRef = useRef<Promise<'ok' | 'rate_limited' | 'error' | 'already_registered' | 'identity_mismatch' | 'sso'> | null>(null)
+  const emailSubmitLockRef = useRef(false)
   const [workspaceName, setWorkspaceName] = useState('')
   /** Locked when entering Code/SSO so the /Benutzer line cannot vanish mid-flow. */
   const [subflowWorkspaceName, setSubflowWorkspaceName] = useState('')
@@ -917,6 +953,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setError('')
     setAccountExistsFor(null)
     setCode('')
+    setPassword('')
     mainAutoFocused.current = false
     const known = hasFestagDeviceAccount()
     setReturningUser(known && !isSignup)
@@ -1059,10 +1096,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }
   }
 
-  function goTo(step: AuthStep) {
+  function goTo(step: AuthStep, opts?: { instant?: boolean }) {
     setError('')
     if (step === 'main') setSubflowWorkspaceName('')
-    if (prefersReducedMotion()) {
+    if (opts?.instant || prefersReducedMotion()) {
       setAuthStep(step)
       setAnimating(false)
       return
@@ -1074,7 +1111,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   function switchBack() {
     setCode('')
-    goTo('main')
+    otpSendPromiseRef.current = null
+    goTo('main', { instant: true })
   }
 
   async function openSsoFlow() {
@@ -1196,56 +1234,200 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }
   }
 
-  async function handleEmailSubmit() {
+  async function finishAuthSession(opts?: {
+    userId?: string
+    email?: string | null
+  }) {
+    saveMethod('email')
+    const { data: { session } } = await supabase.auth.getSession()
+    const userId = opts?.userId || session?.user?.id
+    const authEmail = opts?.email ?? email.trim()
+    if (session?.user?.id) {
+      void supabase
+        .from('onboarding_state')
+        .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+    }
+    let target = userId
+      ? await resolvePostAuthTarget(supabase, userId, isSignup ? '/onboarding' : '/dashboard')
+      : (isSignup ? '/onboarding' : '/dashboard')
+    if (userId) {
+      if (isSignup && !hasInvite) {
+        target = await resolvePostAuthTarget(supabase, userId, '/onboarding')
+      }
+      rememberFestagAccount({
+        userId,
+        email: authEmail,
+        method: 'email',
+        onboardingCompleted: target === '/dashboard' || target === '/dev' || target === '/overview',
+        workspaceName: getRememberedWorkspaceName() || undefined,
+      })
+      if (isSignup) {
+        void fetch('/api/auth/signup-notify', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ method: 'email' }),
+        }).catch(() => {})
+      }
+    } else {
+      try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
+    }
+    const dest = inviteToken
+      ? `/join?token=${encodeURIComponent(inviteToken)}`
+      : devInviteToken
+        ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
+        : target
+    navigateAfterAuth(dest)
+  }
+
+  async function handlePasswordSubmit() {
+    if (emailSubmitLockRef.current || loading) return
     setError('')
     setEmailTouched(true)
     if (!email.trim()) { setError(EMAIL_EMPTY_ERROR); return }
-    if (!/\S+@\S+\.\S+/.test(email.trim())) { setError(EMAIL_INVALID_ERROR); return }
+    if (!isValidAuthEmail(email)) { setError(EMAIL_INVALID_ERROR); return }
+    if (!password) { setError(PASSWORD_EMPTY_ERROR); return }
+    if (password.length < PASSWORD_MIN_LEN) { setError(PASSWORD_SHORT_ERROR); return }
+
+    emailSubmitLockRef.current = true
     setLoading(true)
-    if (!isSignup && await preferSsoIfEnforced(email)) {
-      setLoading(false)
-      return
-    }
-    const result = await sendMagicLink()
-    setLoading(false)
-    if (result === 'already_registered') {
-      setAccountExistsFor(email.trim().toLowerCase())
-      return
-    }
-    if (result === 'identity_mismatch') {
-      // Cleared path above — retry once email-only.
-      setLoading(true)
-      const retry = await sendMagicLink()
-      setLoading(false)
-      if (retry === 'ok' || retry === 'rate_limited') {
-        setAccountExistsFor(null)
-        setError('')
+    setAccountExistsFor(null)
+    saveMethod('email')
+
+    try {
+      if (!isSignup && await preferSsoIfEnforced(email)) return
+
+      if (isSignup) {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
+          },
+        })
+        if (signUpError) {
+          const mapped = mapAuthError(signUpError.message, mode)
+          if (mapped === EMAIL_ALREADY_USED_ERROR) {
+            setAccountExistsFor(email.trim().toLowerCase())
+            return
+          }
+          setError(mapped || 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.')
+          return
+        }
+        if (data.session?.user) {
+          setFailedAuthAttempts(0)
+          await finishAuthSession({
+            userId: data.session.user.id,
+            email: data.session.user.email ?? email.trim(),
+          })
+          return
+        }
+        // Email confirmation required — continue with code entry (password already set).
+        // User exists from signUp → OTP API must use resend/magiclink, not signup link.
         setCode('')
-        saveMethod('email')
-        setResendCooldown(retry === 'ok' ? 60 : 30)
+        setResendCooldown(60)
         lockSubflowWorkspace()
-        goTo('codeEntry')
+        goTo('codeEntry', { instant: true })
+        const result = await sendMagicLink({ resend: true })
+        if (result === 'already_registered') {
+          setAccountExistsFor(email.trim().toLowerCase())
+          goTo('main', { instant: true })
+          return
+        }
+        if (result === 'ok' || result === 'rate_limited') {
+          if (result === 'rate_limited') setResendCooldown(30)
+          return
+        }
+        setError('Bitte Code aus der E-Mail eingeben, um fortzufahren.')
+        return
       }
-      return
-    }
-    // Rate-limit = still continue — the earlier code remains valid.
-    // Always land on the shared 6-digit code window (login + register).
-    if (result === 'ok' || result === 'rate_limited') {
-      setAccountExistsFor(null)
-      setError('')
-      setCode('')
-      saveMethod('email')
-      setResendCooldown(result === 'ok' ? 60 : 30)
-      lockSubflowWorkspace()
-      goTo('codeEntry')
-      return
-    }
-    if (result === 'error' && !error) {
+
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+      if (signInError) {
+        const mapped = mapAuthError(signInError.message, mode)
+        setError(mapped || 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.')
+        if (isWrongCredentialAttempt(signInError.message)) {
+          setFailedAuthAttempts(n => n + 1)
+        }
+        return
+      }
+      setFailedAuthAttempts(0)
+      await finishAuthSession({
+        userId: data.user?.id,
+        email: data.user?.email ?? email.trim(),
+      })
+    } catch {
       setError(
         isSignup
           ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
           : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.',
       )
+    } finally {
+      emailSubmitLockRef.current = false
+      setLoading(false)
+    }
+  }
+
+  async function handleEmailOtpSubmit() {
+    if (emailSubmitLockRef.current) return
+    setError('')
+    setEmailTouched(true)
+    if (!email.trim()) { setError(EMAIL_EMPTY_ERROR); return }
+    if (!isValidAuthEmail(email)) { setError(EMAIL_INVALID_ERROR); return }
+
+    emailSubmitLockRef.current = true
+    // Instant switch — do not wait for OTP/SSO network. Send in background.
+    setAccountExistsFor(null)
+    setCode('')
+    saveMethod('email')
+    setResendCooldown(60)
+    lockSubflowWorkspace()
+    goTo('codeEntry', { instant: true })
+
+    const dispatch = (async (): Promise<'ok' | 'rate_limited' | 'error' | 'already_registered' | 'identity_mismatch' | 'sso'> => {
+      if (!isSignup && await preferSsoIfEnforced(email)) return 'sso'
+      let result = await sendMagicLink()
+      if (result === 'identity_mismatch') {
+        // Cleared path in sendMagicLink — retry once email-only.
+        result = await sendMagicLink()
+      }
+      return result
+    })()
+    otpSendPromiseRef.current = dispatch
+
+    try {
+      const result = await dispatch
+      if (otpSendPromiseRef.current === dispatch) otpSendPromiseRef.current = null
+
+      if (result === 'sso') return
+      if (result === 'already_registered') {
+        setAccountExistsFor(email.trim().toLowerCase())
+        goTo('main', { instant: true })
+        return
+      }
+      if (result === 'ok') {
+        setResendCooldown(60)
+        return
+      }
+      if (result === 'rate_limited') {
+        // Earlier code may still be valid — stay on code entry.
+        setResendCooldown(30)
+        return
+      }
+      if (result === 'identity_mismatch' || result === 'error') {
+        // Prefer mapped API copy from sendMagicLink when present.
+        setError((prev) =>
+          prev ||
+          (isSignup
+            ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
+            : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'),
+        )
+      }
+    } finally {
+      emailSubmitLockRef.current = false
     }
   }
 
@@ -1280,6 +1462,26 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!trimmed || trimmed.length < 6) { setError('Bitte vollständigen Code eingeben.'); return }
     verifyingCodeRef.current = true
     setLoading(true)
+    // If Weiter already switched optimistically, wait for the send to finish first.
+    const pendingSend = otpSendPromiseRef.current
+    if (pendingSend) {
+      const sendResult = await pendingSend
+      if (sendResult === 'sso' || sendResult === 'already_registered') {
+        verifyingCodeRef.current = false
+        setLoading(false)
+        return
+      }
+      if (sendResult === 'error' || sendResult === 'identity_mismatch') {
+        verifyingCodeRef.current = false
+        setLoading(false)
+        setError(
+          isSignup
+            ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
+            : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.',
+        )
+        return
+      }
+    }
     // Match /api/auth/otp/request generateLink order — wrong type first can burn
     // a one-time token on some GoTrue versions ("ungültig" within seconds).
     const otpTypes = isSignup
@@ -1322,48 +1524,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }
     if (!isSignup) setFailedAuthAttempts(0)
     // Keep loading until hard navigation — avoids a brief re-enabled CTA.
-    saveMethod('email')
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-      // Fire-and-forget — must not block redirect after a valid OTP.
-      void supabase
-        .from('onboarding_state')
-        .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
-    }
-    let target = session
-      ? await resolvePostAuthTarget(supabase, session.user.id, isSignup ? '/onboarding' : '/dashboard')
-      : (isSignup ? '/onboarding' : '/dashboard')
-    if (session) {
-      if (isSignup && !hasInvite) {
-        target = await resolvePostAuthTarget(supabase, session.user.id, '/onboarding')
-      }
-      rememberFestagAccount({
-        userId: session.user.id,
-        email: email.trim(),
-        method: 'email',
-        onboardingCompleted: target === '/dashboard' || target === '/dev',
-        workspaceName: getRememberedWorkspaceName() || undefined,
-      })
-      if (isSignup) {
-        // Founder ping — server gates on created_at + idempotency metadata.
-        void fetch('/api/auth/signup-notify', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            method: 'email',
-          }),
-        }).catch(() => {})
-      }
-    } else {
-      try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
-    }
-    const dest = inviteToken
-      ? `/join?token=${encodeURIComponent(inviteToken)}`
-      : devInviteToken
-        ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
-        : target
-    navigateAfterAuth(dest)
+    await finishAuthSession()
   }
 
   function openSupportModal() {
@@ -1373,13 +1534,18 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const resendDisabled = resending || resendCooldown > 0
 
   const emailHasInput = email.trim().length > 0
-  const emailCtaReady = emailReady
+  const passwordReady = password.length >= PASSWORD_MIN_LEN
+  const emailCtaReady = emailReady && passwordReady
   const emailCtaEnabled = emailCtaReady && !loading
+  const otpFallbackEnabled = emailReady && !loading
   const codeCtaEnabled = !loading
+  const primaryCtaLabel = loading
+    ? (isSignup ? 'Wird erstellt…' : 'Wird angemeldet…')
+    : (isSignup ? 'Weiter' : 'Anmelden')
 
   useAuthEnterSubmit({
     enabled: authStep === 'main' && emailCtaEnabled,
-    onSubmit: () => { void handleEmailSubmit() },
+    onSubmit: () => { void handlePasswordSubmit() },
   })
   useAuthEnterSubmit({
     enabled: authStep === 'sso' && !oauthLoading && Boolean(ssoDomainPreview),
@@ -1446,54 +1612,96 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       </div>
 
       <div className="al-method-group">
-        <div className={`al-input-shell${email.trim() ? ' has-value' : ''}`}>
-          {!email.trim() ? (
-            <span className="al-input-fake-ph" aria-hidden="true">Arbeits-E-Mail eingeben</span>
-          ) : null}
-          <input
-            ref={emailRef}
-            className="al-input"
-            type="email"
-            autoComplete="email"
-            placeholder=""
-            aria-label="Arbeits-E-Mail eingeben"
-            value={email}
-            aria-invalid={showEmailInvalid || undefined}
-            onChange={e => {
-              const next = e.target.value
-              setEmail(next)
-              if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
-              if (error && isEmailFieldError(error)) setError('')
-              if (accountExistsFor && next.trim().toLowerCase() !== accountExistsFor) {
-                setAccountExistsFor(null)
-              }
-            }}
-            onBlur={() => setEmailTouched(true)}
-          />
-        </div>
-        {isMobileAuth ? (
-          <div
-            className={`al-email-feedback-host${showMobileEmailError ? ' is-open' : ''}`}
-            aria-live="polite"
-          >
-            <div className="al-email-feedback-clip">
-              <div className="al-email-feedback al-email-feedback--error" role="alert">
-                <div key={showMobileEmailError ? 'err' : 'idle'} className="al-email-feedback-inner">
-                  <p className="al-email-feedback-text">{emailInvalidLabel}</p>
+        <form
+          className="al-password-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void handlePasswordSubmit()
+          }}
+          noValidate
+        >
+          <div className={`al-input-shell${email.trim() ? ' has-value' : ''}`}>
+            {!email.trim() ? (
+              <span className="al-input-fake-ph" aria-hidden="true">Arbeits-E-Mail eingeben</span>
+            ) : null}
+            <input
+              ref={emailRef}
+              className="al-input"
+              type="email"
+              name="email"
+              id="festag-auth-email"
+              autoComplete="username"
+              inputMode="email"
+              placeholder=""
+              aria-label="Arbeits-E-Mail eingeben"
+              value={email}
+              aria-invalid={showEmailInvalid || undefined}
+              onChange={e => {
+                const next = e.target.value
+                setEmail(next)
+                if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
+                if (error && (isEmailFieldError(error) || isPasswordFieldError(error))) setError('')
+                if (accountExistsFor && next.trim().toLowerCase() !== accountExistsFor) {
+                  setAccountExistsFor(null)
+                }
+              }}
+              onBlur={() => setEmailTouched(true)}
+            />
+          </div>
+          {isMobileAuth ? (
+            <div
+              className={`al-email-feedback-host${showMobileEmailError ? ' is-open' : ''}`}
+              aria-live="polite"
+            >
+              <div className="al-email-feedback-clip">
+                <div className="al-email-feedback al-email-feedback--error" role="alert">
+                  <div key={showMobileEmailError ? 'err' : 'idle'} className="al-email-feedback-inner">
+                    <p className="al-email-feedback-text">{emailInvalidLabel}</p>
+                  </div>
                 </div>
               </div>
             </div>
+          ) : null}
+          <div className={`al-input-shell${password ? ' has-value' : ''}`}>
+            {!password ? (
+              <span className="al-input-fake-ph" aria-hidden="true">
+                {isSignup ? 'Passwort wählen' : 'Passwort'}
+              </span>
+            ) : null}
+            <input
+              ref={passwordRef}
+              className="al-input"
+              type="password"
+              name="password"
+              id="festag-auth-password"
+              autoComplete={isSignup ? 'new-password' : 'current-password'}
+              placeholder=""
+              aria-label={isSignup ? 'Passwort wählen' : 'Passwort'}
+              value={password}
+              onChange={e => {
+                setPassword(e.target.value)
+                if (error && isPasswordFieldError(error)) setError('')
+              }}
+            />
           </div>
-        ) : null}
+          <button
+            className={`al-btn al-btn-primary${emailHasInput || password ? ' al-btn--enter-glyph' : ''}${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
+            type="submit"
+            disabled={!emailCtaEnabled}
+            aria-disabled={!emailCtaEnabled}
+          >
+            <span className="al-btn-label">{primaryCtaLabel}</span>
+            {emailHasInput || password ? <AuthEnterGlyph ready={emailCtaReady && !loading} /> : null}
+          </button>
+        </form>
         <button
-          className={`al-btn al-btn-primary${emailHasInput ? ' al-btn--enter-glyph' : ''}${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
+          className="al-btn al-btn-ghost"
           type="button"
-          onClick={handleEmailSubmit}
-          disabled={!emailCtaEnabled}
-          aria-disabled={!emailCtaEnabled}
+          onClick={() => { void handleEmailOtpSubmit() }}
+          disabled={!otpFallbackEnabled}
+          aria-disabled={!otpFallbackEnabled}
         >
-          <span className="al-btn-label">{loading ? 'Wird gesendet…' : 'Weiter'}</span>
-          {emailHasInput ? <AuthEnterGlyph ready={emailCtaReady && !loading} /> : null}
+          Code per E-Mail
         </button>
       </div>
 
@@ -1508,7 +1716,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </button>
       </div>
 
-      {!isSignup && showForgotPassword ? (
+      {!isSignup ? (
         <div className="al-login-aux">
           <button
             type="button"
