@@ -64,20 +64,17 @@ export function workspaceSubdomainPreview(rawName: string): string {
 
 export const WORKSPACE_CREATION_COPY = {
   nameTitle: "Let's create your first workspace.",
-  nameSupport: 'Every workspace is an independent environment for projects, people and AI.',
   nameLabel: 'Workspace Name',
   namePlaceholder: 'Aerobay',
   useTitle: 'How will this workspace be used?',
-  useFootnote: 'Templates only configure your workspace. Everything can be changed later.',
   creatingTitle: 'Creating your workspace…',
   creatingLines: ['Projects', 'Tagro', 'Members'] as const,
   welcomePrefix: 'Welcome to',
   continue: 'Continue',
   customizeLater: 'Customize later',
-  /** Shown only when the account already has ≥1 workspace. */
+  /** Plan gate H1: bright lead + muted rest (one glassy title, no Zwischenüberschrift). */
   additionalTitle: 'Additional workspaces',
-  additionalBody:
-    'Additional workspaces are available with the Workspace Plan (€19/month).',
+  additionalBody: 'are available with the Workspace Plan (€19/month).',
   additionalBack: 'Back to Overview',
 } as const
 

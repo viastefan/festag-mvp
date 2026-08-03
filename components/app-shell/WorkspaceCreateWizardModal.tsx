@@ -284,12 +284,8 @@ export default function WorkspaceCreateWizardModal() {
     : step === 'creating' ? COPY.creatingTitle
     : `${COPY.welcomePrefix} ${displayName || 'your workspace'}.`
 
-  const heroSupport =
-    step === 'plan' ? COPY.additionalBody
-    : step === 'name' ? COPY.nameSupport
-    : step === 'use' ? COPY.useFootnote
-    : step === 'welcome' ? 'Your workspace is ready.'
-    : null
+  /* Muted rest of the same H1 only — never a separate Zwischenüberschrift. */
+  const heroRest = step === 'plan' ? COPY.additionalBody : ''
 
   return createPortal(
     <div
@@ -333,9 +329,9 @@ export default function WorkspaceCreateWizardModal() {
             <AuthGlassyHero
               animKey={`wc-${step}`}
               lead={heroLead}
+              rest={heroRest}
               className="mob-glassy-h1"
             />
-            {heroSupport ? <p className="wc-os-support">{heroSupport}</p> : null}
           </div>
 
           {step === 'plan' ? (
@@ -671,15 +667,6 @@ const WIZARD_CSS = `
 
 .wc-os-hero {
   margin-bottom: 22px;
-}
-
-.wc-os-support {
-  margin: 12px 0 0;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--mob-muted);
-  max-width: 36ch;
-  letter-spacing: var(--auth-tracking);
 }
 
 .wc-plan {

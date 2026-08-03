@@ -314,8 +314,10 @@ export default function WorkspaceCreatePage() {
                     <div className="wc-wizard">
                       {step === 'plan' ? (
                         <div className="wc-plan">
-                          <h1 className="wc-plan-title">{COPY.additionalTitle}</h1>
-                          <p className="wc-plan-body">{COPY.additionalBody}</p>
+                          <h1 className="wc-plan-title">
+                            {COPY.additionalTitle}{' '}
+                            <span className="wc-plan-title-muted">{COPY.additionalBody}</span>
+                          </h1>
                           <div className="wc-actions">
                             <button
                               type="button"
@@ -331,7 +333,6 @@ export default function WorkspaceCreatePage() {
                       {step === 'name' ? (
                         <>
                           <h1 className="wc-hero-title">{COPY.nameTitle}</h1>
-                          <p className="wc-hero-support">{COPY.nameSupport}</p>
                           <label className="wc-field-label" htmlFor="wc-workspace-name">
                             {COPY.nameLabel}
                           </label>
@@ -409,7 +410,6 @@ export default function WorkspaceCreatePage() {
                               )
                             })}
                           </div>
-                          <p className="wc-footnote">{COPY.useFootnote}</p>
                           {error ? <p className="al-error" style={{ marginTop: 14 }}>{error}</p> : null}
                           <div className="wc-actions">
                             <button
