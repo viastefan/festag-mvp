@@ -11,7 +11,7 @@ import { applyAppearanceForPath } from '@/lib/theme'
 
 export default function FestagAppShell({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
-  const pathname = usePathname() || '/home'
+  const pathname = usePathname() || '/overview'
 
   useEffect(() => {
     applyAppearanceForPath(pathname)

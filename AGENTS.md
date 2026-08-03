@@ -11,6 +11,16 @@
 Eight pillars: Workspace OS · Project · Communication · Production · Business · Knowledge · Tagro Intelligence · Experience.  
 Gate: which pillar owns this? No owner → do not build. Cross-cutting: Smart Writing, Decision Intelligence, AI Token Intelligence, Voice→Experience.
 
+## Festag OS vs Workspace (phase freeze)
+
+**Without workspace = Festag OS** (Overview, Docs, Settings, Create Workspace).  
+**With workspace = Festag Workspace** (Projects, Tagro, Team, …).  
+Primary nav label is **Overview** (`/overview`) — not Home. Phase 1 is frozen before the Workspace Wizard.
+
+**Always apply:** `.cursor/rules/festag-os-workspace-phases.mdc`  
+**Human doc:** `docs/festag-os-workspace-phases.md`  
+**Code:** `components/app-shell/` · `app/(pre-workspace)/overview/`
+
 ## Product constitution (one platform · roles · onboarding)
 
 Festag is **The Operating System for Projects** — not project management software

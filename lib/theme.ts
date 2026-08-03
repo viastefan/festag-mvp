@@ -60,10 +60,15 @@ export function isDocsLandingPath(pathname?: string): boolean {
   return path === '/docs' || path.startsWith('/docs/')
 }
 
-/** Pre-workspace App Shell (`/home`) — product ivory, never auth dusk. */
+/** Festag OS App Shell (`/overview`) — product ivory, never auth dusk. */
 export function isPreWorkspacePath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
-  return path === '/home' || path.startsWith('/home/')
+  return (
+    path === '/overview' ||
+    path.startsWith('/overview/') ||
+    path === '/home' ||
+    path.startsWith('/home/')
+  )
 }
 
 /** Legal articles always paint a white reading canvas (match LegalArticleShell). */

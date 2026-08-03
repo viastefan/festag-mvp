@@ -172,7 +172,7 @@ export default function AppShellTopBar({ user }: Props) {
                 <span>{role}</span>
               </div>
               <Link
-                href="/home/settings"
+                href="/overview/settings"
                 className="fas-popover-item"
                 onClick={() => setMenu(null)}
               >
@@ -180,7 +180,7 @@ export default function AppShellTopBar({ user }: Props) {
                 Settings
               </Link>
               <Link
-                href="/home/settings"
+                href="/overview/settings"
                 className="fas-popover-item"
                 onClick={() => setMenu(null)}
               >

@@ -16,14 +16,14 @@ type Props = {
 }
 
 export default function AppShellSidebar({ user }: Props) {
-  const pathname = usePathname() || '/home'
+  const pathname = usePathname() || '/overview'
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
   const role = appShellRoleLabel(user?.role)
   const initials = getInitials(user)
 
   return (
     <aside className="fas-sidebar" aria-label="Festag navigation">
-      <Link href="/home" className="fas-brand" aria-label="Festag Home">
+      <Link href="/overview" className="fas-brand" aria-label="Festag Overview">
         <span className="fas-brand-mark" aria-hidden="true" />
         <span className="fas-brand-name">Festag</span>
       </Link>
@@ -82,7 +82,7 @@ export default function AppShellSidebar({ user }: Props) {
         </div>
       </nav>
 
-      <Link href="/home/settings" className="fas-profile">
+      <Link href="/overview/settings" className="fas-profile">
         <span className="fas-profile-avatar" aria-hidden="true">{initials}</span>
         <span className="fas-profile-meta">
           <span className="fas-profile-name">{displayName}</span>

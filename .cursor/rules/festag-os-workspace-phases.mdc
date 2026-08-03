@@ -1,0 +1,52 @@
+---
+description: Festag OS vs Workspace phases — freeze Phase 1 before wizard/dashboard
+alwaysApply: true
+---
+
+# Festag OS · Workspace Phases (locked foundation)
+
+## Two product modes
+
+| Mode | When | Product name | Surfaces |
+|---|---|---|---|
+| **Festag OS** | No workspace yet | Account-level OS | Overview, Docs, Product Tour, Settings, Profile, empty module states, Create Workspace CTA |
+| **Festag Workspace** | ≥1 workspace | Workspace operating system | Projects, Tasks, Documents, Activity, Tagro, Team, Decisions, Health |
+
+Do **not** mix these. Without a workspace the app explains Festag and the next step (create a workspace). With a workspace the app becomes the operating system for that workspace.
+
+## Phase freeze (build order)
+
+Ship in this order — do not invent ahead:
+
+1. **Phase 1 — Festag OS (frozen foundation)**  
+   Auth → Onboarding (name, avatar, position, username, connections) → Overview shell (sidebar, empty states, Create Workspace CTA).  
+   Goal: user understands Festag and that the next step is a workspace.
+2. **Phase 2 — Workspace Creation**  
+   Wizard: Name → Template → Module Preview → create.
+3. **Phase 3 — Workspace Dashboard**  
+   Tagro Briefing, Projects, Activity, Decisions, Health, Team — only after wizard exists.
+
+Page-by-page after Phase 1: Overview → Wizard → Workspace Dashboard → Projects → Project Detail → Tasks → Tagro → Documents → Team.
+
+## Overview (not “Home”)
+
+The primary rail item is **Overview** (`/overview`).
+
+- Without workspace: welcome + Create Workspace + explainer cards.
+- With workspace (later): same menu label — Tagro briefing, health, projects, activity.
+
+Never rename the menu when a workspace appears. Legacy `/home` redirects to `/overview`.
+
+## Code anchors
+
+- Shell: `components/app-shell/`
+- Routes: `app/(pre-workspace)/overview/`
+- Gate: `middleware.ts` SETUP_PATHS · `lib/auth-client-routing.ts` → `/overview` when `!hasWorkspace`
+- Do **not** put `/overview` in `isPortalShellRoute` until workspace mode owns that chrome
+
+## Gate before coding
+
+1. Does this belong to Festag OS (no workspace) or Festag Workspace?
+2. Are we still in Phase 1 freeze — or has Phase 2/3 been explicitly started?
+3. Would this force a later nav rename? Prefer Overview-stable labels.
+4. Fake dashboards / KPIs / charts without a workspace? → stop.

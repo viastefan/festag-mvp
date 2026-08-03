@@ -19,6 +19,22 @@ export type ArchitectureMemoryEntry = {
 
 export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
   {
+    id: 'festag-os-vs-workspace',
+    question: 'Warum gibt es Festag OS und Festag Workspace als getrennte Modi?',
+    answer:
+      'Ohne Workspace ist Festag ein ruhiges OS (Overview, Docs, Settings, Create Workspace) — der Nutzer versteht das Produkt und den nächsten Schritt. Mit Workspace wird dieselbe Plattform zum Workspace-OS (Projects, Tagro, Team). Das verhindert halbleere Dashboards und spätere Nav-Umbauten. Overview bleibt der stabile Menüpunkt in beiden Modi.',
+    decision:
+      'Phase 1 freeze: Festag OS at /overview · Phase 2 Workspace Wizard · Phase 3 Workspace Dashboard · Home renamed to Overview',
+    date: '2026-08-03',
+    version: '3.2',
+    status: 'locked',
+    related: [
+      'docs/festag-os-workspace-phases.md',
+      '.cursor/rules/festag-os-workspace-phases.mdc',
+      'components/app-shell/',
+    ],
+  },
+  {
     id: 'one-platform',
     question: 'Warum gibt es keine Client App und Developer App mehr?',
     answer:

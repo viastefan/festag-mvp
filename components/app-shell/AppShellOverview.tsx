@@ -14,7 +14,7 @@ type Props = {
   user: UserProfile | null
 }
 
-export default function AppShellHome({ user }: Props) {
+export default function AppShellOverview({ user }: Props) {
   const router = useRouter()
   const firstName = getDisplayName(user) || 'there'
   const greet = appShellGreeting()
