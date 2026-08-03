@@ -8,6 +8,7 @@ import {
   SidebarSimple,
   CaretDown,
   Plus,
+  GearSix,
 } from '@phosphor-icons/react'
 import {
   APP_SHELL_PRIMARY_NAV,
@@ -15,7 +16,6 @@ import {
   APP_SHELL_SECONDARY_NAV,
   APP_SHELL_CREATE_WORKSPACE_HREF,
   isAppShellNavActive,
-  appShellRoleLabel,
 } from '@/components/app-shell/app-shell-nav'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { getDisplayName, getFullDisplayName, getInitials, type UserProfile } from '@/lib/hooks/useUser'
@@ -30,9 +30,9 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const pathname = usePathname() || '/overview'
   const router = useRouter()
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
-  const role = appShellRoleLabel(user?.role)
   const initials = getInitials(user)
   const workspaceLabel = 'No workspace'
+  const settingsActive = isAppShellNavActive(pathname, '/overview/settings')
 
   const [wsOpen, setWsOpen] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
@@ -71,32 +71,48 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
     >
       <div className="fas-sidebar-top" ref={headerRef}>
         <div className="fas-sidebar-header">
-          <button
-            type="button"
-            className={`fas-ws-trigger${wsOpen ? ' is-open' : ''}`}
-            title={workspaceLabel}
-            aria-label="Workspace menu"
-            aria-haspopup="menu"
-            aria-expanded={wsOpen}
-            onClick={() => setWsOpen((v) => !v)}
-          >
+          <div className="fas-identity">
             {collapsed ? (
-              <span className="fas-ws-mark" aria-hidden="true">WS</span>
+              <button
+                type="button"
+                className={`fas-ws-trigger fas-ws-trigger--collapsed${wsOpen ? ' is-open' : ''}`}
+                title={workspaceLabel}
+                aria-label="Workspace-Menü"
+                aria-haspopup="menu"
+                aria-expanded={wsOpen}
+                onClick={() => setWsOpen((v) => !v)}
+              >
+                <span className="fas-profile-avatar" aria-hidden="true">{initials}</span>
+              </button>
             ) : (
               <>
-                <span className="fas-ws-name">{workspaceLabel}</span>
-                <CaretDown size={9} weight="bold" className="fas-ws-caret" aria-hidden />
+                <span className="fas-profile-avatar" aria-hidden="true">{initials}</span>
+                <div className="fas-identity-copy">
+                  <span className="fas-profile-name" title={displayName}>{displayName}</span>
+                  <button
+                    type="button"
+                    className={`fas-ws-trigger${wsOpen ? ' is-open' : ''}`}
+                    title={workspaceLabel}
+                    aria-label="Workspace-Menü"
+                    aria-haspopup="menu"
+                    aria-expanded={wsOpen}
+                    onClick={() => setWsOpen((v) => !v)}
+                  >
+                    <span className="fas-ws-name">{workspaceLabel}</span>
+                    <CaretDown size={9} weight="bold" className="fas-ws-caret" aria-hidden />
+                  </button>
+                </div>
               </>
             )}
-          </button>
+          </div>
 
           <div className="fas-sidebar-utils">
             {!collapsed ? (
               <button
                 type="button"
                 className="fas-sidebar-icon"
-                aria-label="Search"
-                title="Search"
+                aria-label="Suche"
+                title="Suche"
                 onClick={openSearch}
               >
                 <MagnifyingGlass size={14} weight="regular" />
@@ -105,8 +121,8 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
             <button
               type="button"
               className="fas-sidebar-icon fas-sidebar-collapse"
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={collapsed ? 'Expand' : 'Collapse'}
+              aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
+              title={collapsed ? 'Ausklappen' : 'Einklappen'}
               onClick={onToggleCollapse}
             >
               <SidebarSimple size={15} weight="regular" />
@@ -116,19 +132,11 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
 
         {wsOpen ? (
           <div className="fas-popover fas-popover-left fas-ws-popover" role="menu">
-            <div className="fas-popover-title">You don&apos;t have a workspace yet.</div>
+            <div className="fas-popover-title">Du hast noch keinen Workspace.</div>
             <button type="button" className="fas-popover-item" onClick={goCreateWorkspace}>
               <Plus size={14} weight="bold" />
-              Create Workspace
+              Workspace erstellen
             </button>
-            <div className="fas-popover-sep" />
-            <Link
-              href="/overview/settings"
-              className="fas-popover-item"
-              onClick={() => setWsOpen(false)}
-            >
-              Settings
-            </Link>
           </div>
         ) : null}
       </div>
@@ -192,16 +200,11 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
 
       <Link
         href="/overview/settings"
-        className="fas-profile"
-        title={collapsed ? `${displayName} — Settings` : 'Settings'}
+        className={`fas-settings-link${settingsActive ? ' is-active' : ''}`}
+        aria-current={settingsActive ? 'page' : undefined}
+        title="Einstellungen"
       >
-        <span className="fas-profile-avatar" aria-hidden="true">{initials}</span>
-        {!collapsed ? (
-          <span className="fas-profile-meta">
-            <span className="fas-profile-name">{displayName}</span>
-            <span className="fas-profile-role">{role}</span>
-          </span>
-        ) : null}
+        {collapsed ? <GearSix size={16} weight="light" /> : <span>Einstellungen</span>}
       </Link>
     </aside>
   )

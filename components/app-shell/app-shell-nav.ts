@@ -13,7 +13,6 @@ import {
   SquaresFour,
   FileText,
   Pulse,
-  GearSix,
 } from '@phosphor-icons/react'
 
 export type AppShellNavItem = {
@@ -35,11 +34,10 @@ export const APP_SHELL_WORKSPACE_NAV: AppShellNavItem[] = [
   { href: '/overview/workspaces', label: 'Workspaces', icon: SquaresFour },
 ]
 
-/** Secondary — Documents / Activity / Settings */
+/** Secondary — Documents / Activity (Settings lives as footer word) */
 export const APP_SHELL_SECONDARY_NAV: AppShellNavItem[] = [
   { href: '/overview/documents', label: 'Documents', icon: FileText },
   { href: '/overview/activity', label: 'Activity', icon: Pulse },
-  { href: '/overview/settings', label: 'Settings', icon: GearSix },
 ]
 
 export const APP_SHELL_ALL_NAV: AppShellNavItem[] = [
