@@ -601,7 +601,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     padding-left: 28px;
   }
   .mob-username-field.has-badge {
-    padding-right: 36px;
+    /* 14 inset + 20 badge + 8 gap before typed text */
+    padding-right: 42px;
   }
   .mob-username-at {
     position: absolute;
@@ -716,7 +717,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     letter-spacing: var(--auth-tracking);
     color: var(--mob-ink);
   }
-  /* Full pill — beat global 6px button radius inside onboarding */
+  /* Full pill — beat any leftover control radius inside onboarding */
   .mob .ft-toggle,
   .mob button.ft-toggle,
   .mob .mob-ws-card .ft-toggle,
@@ -727,6 +728,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob .ft-toggle::after,
   .mob button.ft-toggle::after {
     border-radius: 9999px !important;
+  }
+  .mob .ft-toggle.ft-toggle--sm,
+  .mob button.ft-toggle.ft-toggle--sm {
+    width: 28px !important;
+    height: 16px !important;
+    min-width: 28px !important;
+    min-height: 16px !important;
+    max-width: 28px !important;
+    max-height: 16px !important;
   }
   .mob-ws-footer {
     display: flex;

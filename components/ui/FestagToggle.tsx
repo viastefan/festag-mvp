@@ -67,22 +67,22 @@ export const FESTAG_TOGGLE_CSS = `
     overflow: hidden !important;
     transition: background 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  /* Quiet mini pill */
+  /* Quiet mini pill — fully round caps (height/2). */
   .ft-toggle--sm {
-    width: 24px !important;
-    height: 14px !important;
-    min-width: 24px !important;
-    min-height: 14px !important;
-    max-width: 24px !important;
-    max-height: 14px !important;
+    width: 28px !important;
+    height: 16px !important;
+    min-width: 28px !important;
+    min-height: 16px !important;
+    max-width: 28px !important;
+    max-height: 16px !important;
   }
   .ft-toggle--md {
-    width: 30px !important;
-    height: 17px !important;
-    min-width: 30px !important;
-    min-height: 17px !important;
-    max-width: 30px !important;
-    max-height: 17px !important;
+    width: 34px !important;
+    height: 20px !important;
+    min-width: 34px !important;
+    min-height: 20px !important;
+    max-width: 34px !important;
+    max-height: 20px !important;
   }
   .ft-toggle.is-on {
     background: #1e1e20;
@@ -90,38 +90,43 @@ export const FESTAG_TOGGLE_CSS = `
   .ft-toggle::after {
     content: '';
     position: absolute;
-    top: 2px;
+    top: 50%;
     left: 2px;
     border-radius: 9999px !important;
     background: #ffffff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(-50%);
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), left 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .ft-toggle--sm::after {
-    width: 10px !important;
-    height: 10px !important;
+    width: 12px !important;
+    height: 12px !important;
   }
   .ft-toggle--md::after {
-    width: 13px !important;
-    height: 13px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
   .ft-toggle--sm.is-on::after {
-    transform: translateX(10px);
+    left: 14px;
+    transform: translateY(-50%);
   }
   .ft-toggle--md.is-on::after {
-    transform: translateX(13px);
+    left: 16px;
+    transform: translateY(-50%);
   }
   .ft-toggle:focus-visible {
     box-shadow: 0 0 0 2px rgba(126, 136, 159, 0.32) !important;
   }
   .ft-toggle:active::after {
-    transform: scale(0.94);
+    transform: translateY(-50%) scale(0.94);
   }
   .ft-toggle--sm.is-on:active::after {
-    transform: translateX(10px) scale(0.94);
+    left: 14px;
+    transform: translateY(-50%) scale(0.94);
   }
   .ft-toggle--md.is-on:active::after {
-    transform: translateX(13px) scale(0.94);
+    left: 16px;
+    transform: translateY(-50%) scale(0.94);
   }
 
   html[data-theme="dark"] .ft-toggle,
