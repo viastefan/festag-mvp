@@ -51,8 +51,8 @@ export function isAppShellNavActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-/** Create Workspace bootstrap — existing auth surface. */
-export const APP_SHELL_CREATE_WORKSPACE_HREF = '/create-workspace'
+/** Create Workspace — opens popup slider via `openWorkspaceCreateWizard()`. Legacy path redirects. */
+export const APP_SHELL_CREATE_WORKSPACE_HREF = '/overview?create=1'
 
 /** Calm label from legacy profiles.role — never surveillance tone. */
 export function appShellRoleLabel(role?: string | null): string {

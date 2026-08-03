@@ -22,16 +22,17 @@ Ship in this order — do not invent ahead:
    Auth → Onboarding (name, avatar, position, username, connections) → Overview shell (sidebar, empty states, Create Workspace CTA).  
    Goal: user understands Festag and that the next step is a workspace.
 2. **Phase 2 — Workspace Creation (locked)**  
-   Wizard only:
+   Sequential **popup slider** on Overview (not a full-page form):
    ```
    Create Workspace → Name (+ subdomain preview)
    → How will you use this? (action cards)
-   → Creating… → Welcome → Overview / Workspace Dashboard
+   → Creating… → Welcome → Overview
    ```
    Use-case cards (jobs, not categories): Build for Clients · Run an Agency · Build a Product · Internal Team.  
    **No module picker** in the wizard — templates configure defaults; Modules live in Settings later.  
    **First workspace free** — never mention €19 here. Additional workspaces → Workspace Plan (€19/month).  
-   Code: `lib/platform/workspace-creation.ts` · `components/auth/WorkspaceCreatePage.tsx`
+   Code: `lib/platform/workspace-creation.ts` · `components/app-shell/WorkspaceCreateWizardModal.tsx` · `lib/workspace-create-open.ts`  
+   Legacy `/create-workspace` → `/overview?create=1`
 3. **Phase 3 — Workspace Dashboard**  
    Tagro Briefing, Projects, Activity, Decisions, Health, Team — only after wizard exists.
 

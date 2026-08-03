@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import AppShellSidebar from '@/components/app-shell/AppShellSidebar'
 import AppShellTopBar from '@/components/app-shell/AppShellTopBar'
+import WorkspaceCreateWizardModal from '@/components/app-shell/WorkspaceCreateWizardModal'
 import { APP_SHELL_STYLES } from '@/components/app-shell/app-shell-styles'
 import CommandPalette from '@/components/CommandPalette'
 import { useUser } from '@/lib/hooks/useUser'
@@ -47,6 +48,7 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
         <main className="fas-content">{children}</main>
       </div>
       <CommandPalette theme="portal" />
+      <WorkspaceCreateWizardModal />
     </div>
   )
 }

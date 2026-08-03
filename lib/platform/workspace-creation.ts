@@ -1,11 +1,13 @@
 /**
  * Workspace Creation Wizard — Phase 2 SSOT.
  *
+ * Surface: sequential popup slider on Festag OS (`WorkspaceCreateWizardModal`).
  * Flow: Name → How will you use this? → Creating… → Welcome → Overview
  * No module picker in the wizard. Templates configure defaults; Modules live in Settings later.
  * First workspace is free. Additional workspaces require the Workspace Plan.
  *
  * @see docs/festag-os-workspace-phases.md
+ * @see lib/workspace-create-open.ts
  */
 
 import type { WorkspaceType } from '@/lib/platform/workspace'

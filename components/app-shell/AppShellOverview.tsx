@@ -1,16 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import {
-  APP_SHELL_CREATE_WORKSPACE_HREF,
-  appShellGreeting,
-} from '@/components/app-shell/app-shell-nav'
+import { appShellGreeting } from '@/components/app-shell/app-shell-nav'
 import AppShellWorkflow from '@/components/app-shell/AppShellWorkflow'
-import { prepareAuthRouteTransition, navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { getDisplayName, type UserProfile } from '@/lib/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName } from '@/lib/pending-workspace'
+import {
+  openWorkspaceCreateWizard,
+  WORKSPACE_CREATED_EVENT,
+} from '@/lib/workspace-create-open'
 import { ArrowRight } from '@phosphor-icons/react'
 
 type Props = {
@@ -18,7 +18,6 @@ type Props = {
 }
 
 export default function AppShellOverview({ user }: Props) {
-  const router = useRouter()
   const firstName = getDisplayName(user) || 'there'
   const greet = appShellGreeting()
   const [workspaceName, setWorkspaceName] = useState<string | null>(
@@ -64,10 +63,14 @@ export default function AppShellOverview({ user }: Props) {
     return () => { alive = false }
   }, [user?.id])
 
-  function createWorkspace() {
-    prepareAuthRouteTransition(APP_SHELL_CREATE_WORKSPACE_HREF)
-    router.push(APP_SHELL_CREATE_WORKSPACE_HREF)
-  }
+  useEffect(() => {
+    function onCreated(e: Event) {
+      const name = (e as CustomEvent<{ name?: string }>).detail?.name
+      if (typeof name === 'string' && name.trim()) setWorkspaceName(name.trim())
+    }
+    window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+    return () => window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+  }, [])
 
   function openDocs(path = '/docs') {
     navigateLeavingAuthChrome(path)
@@ -90,7 +93,7 @@ export default function AppShellOverview({ user }: Props) {
             : 'Create your first workspace to start building software with Tagro.'}
         </p>
         {!hasWorkspace ? (
-          <button type="button" className="fas-btn" onClick={createWorkspace}>
+          <button type="button" className="fas-btn" onClick={() => openWorkspaceCreateWizard()}>
             Create Workspace
           </button>
         ) : null}

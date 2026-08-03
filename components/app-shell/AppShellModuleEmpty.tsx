@@ -1,8 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { APP_SHELL_CREATE_WORKSPACE_HREF } from '@/components/app-shell/app-shell-nav'
-import { prepareAuthRouteTransition } from '@/lib/auth-theme'
+import { openWorkspaceCreateWizard } from '@/lib/workspace-create-open'
 
 type Props = {
   title: string
@@ -16,18 +14,11 @@ export default function AppShellModuleEmpty({
   description = 'Create a workspace to unlock this part of Festag.',
   ctaLabel = 'Create Workspace',
 }: Props) {
-  const router = useRouter()
-
-  function createWorkspace() {
-    prepareAuthRouteTransition(APP_SHELL_CREATE_WORKSPACE_HREF)
-    router.push(APP_SHELL_CREATE_WORKSPACE_HREF)
-  }
-
   return (
     <div className="fas-empty fas-assemble">
       <h1 className="fas-empty-title">{title}</h1>
       <p className="fas-empty-body">{description}</p>
-      <button type="button" className="fas-btn" onClick={createWorkspace}>
+      <button type="button" className="fas-btn" onClick={() => openWorkspaceCreateWizard()}>
         {ctaLabel}
       </button>
     </div>

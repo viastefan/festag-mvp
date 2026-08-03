@@ -17,15 +17,15 @@ Success criterion: the user understands Festag and knows the next step is creati
 
 ## Phase 2 (locked) — Workspace Creation
 
-Not a folder form. The user creates their **digital operating environment**.
+Not a folder form. The user creates their **digital operating environment** via a **sequential popup slider** on Festag OS Overview.
 
 ```
-Create Workspace
+Create Workspace (popup)
 → Workspace Name (+ live subdomain: name.festag.app)
 → How will this workspace be used? (action cards)
 → Creating your workspace… (calm assemble)
 → Welcome to {Name}.
-→ Overview / Workspace Dashboard
+→ Overview stays open (dashboard next in Phase 3)
 ```
 
 **Use cases (jobs, not category labels):**
@@ -43,7 +43,8 @@ Footnote on use step: *Templates only configure your workspace. Everything can b
 
 **Pricing:** first owned workspace is free. Creating an additional workspace surfaces: *Additional workspaces are available with the Workspace Plan (€19/month).*
 
-Code: `lib/platform/workspace-creation.ts` · `/create-workspace` · `POST /api/workspaces/bootstrap` (`useCase` / `workspaceType`).
+Code: `lib/platform/workspace-creation.ts` · `WorkspaceCreateWizardModal` · `openWorkspaceCreateWizard()` · `POST /api/workspaces/bootstrap`.  
+Legacy `/create-workspace` redirects to `/overview?create=1`.
 
 ## Overview
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   MagnifyingGlass,
   SidebarSimple,
@@ -16,14 +16,13 @@ import {
   APP_SHELL_PRIMARY_NAV,
   APP_SHELL_WORKSPACE_NAV,
   APP_SHELL_SECONDARY_NAV,
-  APP_SHELL_CREATE_WORKSPACE_HREF,
   isAppShellNavActive,
 } from '@/components/app-shell/app-shell-nav'
 import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
-import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
+import { openWorkspaceCreateWizard, WORKSPACE_CREATED_EVENT } from '@/lib/workspace-create-open'
 
 type Props = {
   user: UserProfile | null
@@ -33,7 +32,6 @@ type Props = {
 
 export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: Props) {
   const pathname = usePathname() || '/overview'
-  const router = useRouter()
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
   const [workspaceLabel, setWorkspaceLabel] = useState(
     () => getRememberedWorkspaceName() || 'No workspace',
@@ -96,6 +94,18 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   }, [user?.id])
 
   useEffect(() => {
+    function onCreated(e: Event) {
+      const name = (e as CustomEvent<{ name?: string }>).detail?.name
+      if (typeof name === 'string' && name.trim()) {
+        setWorkspaceLabel(name.trim())
+        rememberWorkspaceName(name.trim())
+      }
+    }
+    window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+    return () => window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+  }, [])
+
+  useEffect(() => {
     if (!wsOpen && !notifOpen) return
     function onDown(e: MouseEvent) {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
@@ -119,8 +129,7 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
 
   function goCreateWorkspace() {
     setWsOpen(false)
-    prepareAuthRouteTransition(APP_SHELL_CREATE_WORKSPACE_HREF)
-    router.push(APP_SHELL_CREATE_WORKSPACE_HREF)
+    openWorkspaceCreateWizard()
   }
 
   function openSearch() {
