@@ -230,20 +230,20 @@ export default function AppShellAccountPanel({ user }: Props) {
 
               <nav className="fas-account-menu" aria-label="Account">
                 <Link
-                  href="/overview/settings"
+                  href="/settings"
                   className="fas-account-item"
                   onClick={close}
                 >
                   <GearSix size={16} weight="light" />
-                  Settings
+                  Einstellungen
                 </Link>
                 <Link
-                  href="/overview/settings"
+                  href="/settings"
                   className="fas-account-item"
                   onClick={close}
                 >
                   <User size={16} weight="light" />
-                  Account
+                  Profil
                 </Link>
                 <button type="button" className="fas-account-item" onClick={toggleTheme}>
                   {isDark ? <Sun size={16} weight="light" /> : <Moon size={16} weight="light" />}

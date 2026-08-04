@@ -38,7 +38,10 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
     () => getRememberedWorkspaceName() || 'No workspace',
   )
   const hasWorkspace = workspaceLabel !== 'No workspace'
-  const settingsActive = isAppShellNavActive(pathname, '/overview/settings')
+  const settingsActive =
+    pathname === '/settings' ||
+    pathname.startsWith('/settings/') ||
+    isAppShellNavActive(pathname, '/overview/settings')
 
   const [wsOpen, setWsOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -319,7 +322,7 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
 
       <div className="fas-sidebar-footer">
         <Link
-          href="/overview/settings"
+          href="/settings"
           className={`fas-settings-link${settingsActive ? ' is-active' : ''}`}
           aria-current={settingsActive ? 'page' : undefined}
           title="Einstellungen"

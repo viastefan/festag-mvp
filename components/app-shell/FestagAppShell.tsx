@@ -17,6 +17,8 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   const { user } = useUser()
   const pathname = usePathname() || '/overview'
   const [collapsed, setCollapsed] = useState(false)
+  const isSettingsWorkspace =
+    pathname === '/settings' || pathname.startsWith('/settings/')
 
   useEffect(() => {
     applyAppearanceForPath(pathname)
@@ -34,6 +36,18 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
       try { localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0') } catch { /* noop */ }
       return next
     })
+  }
+
+  /* Full settings workspace keeps its own rail — park the OS chrome. */
+  if (isSettingsWorkspace) {
+    return (
+      <div className="fas-root fas-root--settings" data-app-shell="">
+        <style>{APP_SHELL_STYLES}</style>
+        {children}
+        <CommandPalette theme="portal" />
+        <WorkspaceCreateWizardModal />
+      </div>
+    )
   }
 
   return (

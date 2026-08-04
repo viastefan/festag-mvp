@@ -178,9 +178,9 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
 
       <aside className="ds-rail" aria-label="Einstellungen">
         <div className="ds-rail-head">
-          <Link href="/dashboard" className="ds-back" title="Zurück zum Client Portal" prefetch>
+          <Link href="/overview" className="ds-back" title="Zurück zur Übersicht" prefetch>
             <ArrowLeft size={15} weight="bold" />
-            <span>Portal</span>
+            <span>Übersicht</span>
           </Link>
         </div>
 
@@ -297,9 +297,9 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
       <main className="ds-main">
         <div className="ds-mobile-bar">
           <div className="ds-mobile-bar-top">
-            <Link href="/dashboard" className="ds-back" title="Zurück zum Client Portal" prefetch>
+            <Link href="/overview" className="ds-back" title="Zurück zur Übersicht" prefetch>
               <ArrowLeft size={16} weight="bold" />
-              <span>Portal</span>
+              <span>Übersicht</span>
             </Link>
             <button
               type="button"
@@ -352,7 +352,7 @@ export default function ClientSettingsShell({ children }: { children: React.Reac
 
 const CLIENT_SETTINGS_EXTRA_CSS = `
   .cs-root.ds-root {
-    --ds-canvas: #F7F7F8;
+    --ds-canvas: #FBF7EE;
     --ds-surface: #FFFFFF;
   }
   html[data-theme="read"] .cs-root.ds-root {
