@@ -1,8 +1,11 @@
 /**
- * Tagro Intent Intake — freestyle request → structured draft (human confirms).
+ * Tagro Intent Intake — freestyle / first-project request → structured draft (human confirms).
  *
- * Users describe goals. Tagro proposes Project / Task / Invite / Answer / Briefing.
- * Nothing is saved until the human confirms.
+ * First project (v3.7): name + optional description → real prepare → milestones/tasks draft.
+ * Later: describe goals in one input; Tagro proposes Project / Task / Invite / Answer / Briefing.
+ * Nothing structural is saved until the human confirms.
+ *
+ * @see docs/festag-create-project-flow.md
  */
 
 export type TagroIntentKind =

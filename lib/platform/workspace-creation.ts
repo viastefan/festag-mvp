@@ -2,13 +2,14 @@
  * Workspace Creation Wizard — Phase 2 SSOT.
  *
  * Surface: popup slider on Festag OS (`WorkspaceCreateWizardModal`).
- * Flow: Name → Nutzung (slides) → Creating… → Welcome → Overview
- * First project opens later via darkened NewProjectModal (Tagro), not in this wizard.
- * No module picker in the wizard. Templates configure defaults; Modules live in Settings later.
+ * Flow: Name → Nutzung (slides) → Creating… → Ready → Create first project (if zero projects)
+ * First project is NOT a wizard slide — immediate follow-on after Ready (Architecture v3.7).
+ * No module picker / invite in the wizard. Templates configure defaults; Modules in Settings later.
  * First workspace is free. Additional workspaces require the Workspace Plan.
  * Titles: one AuthGlassyHero (lead + muted rest). Never a support <p> under the H1.
  *
  * @see docs/festag-os-workspace-phases.md
+ * @see docs/festag-create-project-flow.md
  * @see lib/workspace-create-open.ts
  */
 

@@ -1,13 +1,16 @@
 # Festag OS · Workspace Phases
 
 **Rule:** `.cursor/rules/festag-os-workspace-phases.mdc`  
-**Code:** `components/app-shell/` · `app/(pre-workspace)/overview/`
+**Code:** `components/app-shell/` · `app/(pre-workspace)/overview/`  
+**Create Project law:** `docs/festag-create-project-flow.md` (Architecture v3.7)
 
 ## Intent
 
 Without a workspace, Festag is an **operating system entry** — not a half-empty dashboard.
 
-With a workspace, Festag becomes the **workspace OS** for projects, Tagro, and delivery.
+With a workspace and **no projects**, the next honest step is **Create Project** — not empty Overview aggregation.
+
+With projects, Festag becomes the **workspace OS** for delivery, Tagro, and collaboration. Overview then aggregates real state.
 
 ## Phase 1 (frozen)
 
@@ -25,11 +28,11 @@ Create Workspace (popup + slides)
 → How will you use this?
 → Creating…
 → Your workspace is ready. (short success)
-→ Overview
+→ Create your first project   ← not empty Overview
 ```
 
-**First project is not part of workspace create.**  
-„Neues Projekt“ opens later as a **darkened popup** (`NewProjectModal` — Tagro Intent Intake): one intelligent input (voice, files, drag-and-drop). Tagro detects intent (project, bug, feature, invite, question, briefing), shows an editable draft, and writes only after the human confirms.
+**First project is not a slide inside the workspace wizard** (no module picker, no invite gate in the slides).  
+It is the **immediate follow-on** after Ready when the workspace has zero projects.
 
 **Use cases (jobs, not category labels):**
 
@@ -44,13 +47,40 @@ Create Workspace (popup + slides)
 
 **Pricing:** first owned workspace is free (Hobby). Creating an additional workspace surfaces the Workspace Plan (€19/month).
 
-Code: `lib/platform/workspace-creation.ts` · `lib/new-project-open.ts` · `lib/tagro/intent-intake.ts` · `WorkspaceCreateWizardModal` · `AppShellNewProjectHost` · `NewProjectModal` · `OverviewPendingInvites`.  
+Code: `lib/platform/workspace-creation.ts` · `lib/workspace-create-open.ts` · `WorkspaceCreateWizardModal`.  
 Legacy `/create-workspace` redirects to `/overview?create=1`.
+
+## Phase 2b (locked) — Create Project Core Flow
+
+See `docs/festag-create-project-flow.md`.
+
+```
+Create Project (name required · description optional)
+→ Tagro prepare (real draft work only)
+→ Editable structure draft → human confirms
+→ Optional invite (client / team)
+→ Open project
+```
+
+Later „Neues Projekt“ uses the same surface (`openNewProject` / Intent Intake).  
+Freestyle one-liner / voice / files remain for returning creators — first project stays minimal.
+
+**Entry Intent:** project invite → land in project; own create → land in project after create; workspace invite → Workspace Overview; Festag OS (no workspace) → Overview.
+
+## Phase 3 — Workspace Overview (after real projects)
+
+Tagro Briefing, projects list, activity, decisions, health, team — only when there is something honest to summarize.
+
+Do **not** polish empty Overview before Create Project + Invite + Project view work.
 
 ## Overview
 
 Canonical path: `/overview`. Legacy `/home` → `/overview`.
 
-The label **Overview** stays when workspace dashboards arrive later — no menu rename.
+The label **Overview** stays — no menu rename.
+
+- **No workspace:** Festag OS welcome + Create Workspace.  
+- **Workspace, zero projects:** Create Project (not fake aggregation).  
+- **Workspace with projects:** pending invitations + Tagro briefing + health + projects + activity.
 
 Pending invitations render as a dedicated Overview section (not only in the bell). Notifications for invite sent / accepted / joined appear in the shell bell.

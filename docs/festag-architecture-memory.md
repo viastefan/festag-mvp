@@ -72,6 +72,8 @@ Append-only versions of OS-shaping decisions (not code commits):
 | 2.5 | Tagro Superintelligence Constitution |
 | 2.6 | Tagro Invisible Operating Intelligence |
 | 3.0 | Festag OS Constitution v1.0 |
+| 3.6 | Tagro Intent Intake |
+| 3.7 | Create Project Core Flow · Entry Intent (process before Overview) |
 
 Tagro Architect must be able to answer **why** something was built, not only **what**.
 

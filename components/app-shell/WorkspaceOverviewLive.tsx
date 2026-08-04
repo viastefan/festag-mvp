@@ -1,21 +1,26 @@
 'use client'
 
 /**
- * Festag OS Overview — Tagro is the interface.
- * Living core (signal nodes) → Spotify-style lyrics briefing → context panel → projects.
+ * Festag Overview — Living Network operating interface.
+ * Not a dashboard. Not a chatbot. Tagro IS the interface.
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Headphones, Pause, Play, Square, X } from '@phosphor-icons/react'
+import {
+  Check,
+  Microphone,
+  MicrophoneSlash,
+  Sparkle,
+  UploadSimple,
+  X,
+} from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
-import TagroLivingCore, {
-  buildTagroSignals,
-  deriveTagroLivingState,
-  type TagroLivingState,
-} from '@/components/app-shell/TagroLivingCore'
-import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
-import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
+import TagroLivingNetwork, {
+  deriveNetworkActive,
+  type NetworkActive,
+  type NetworkNodeKind,
+} from '@/components/app-shell/TagroLivingNetwork'
 import { openNewProject } from '@/lib/new-project-open'
 
 export type OverviewPayload = {
@@ -86,276 +91,282 @@ type Props = {
   data: OverviewPayload
 }
 
-function formatLabel(raw: string | null | undefined): string {
-  if (!raw) return '—'
-  const s = raw.replace(/_/g, ' ').trim()
-  if (!s) return '—'
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
+type PanelKind = 'decision' | 'project' | null
 
-function buildBriefingParagraphs(
+function buildStatusLines(
   greeting: string,
   firstName: string,
   data: OverviewPayload,
-): string[] {
-  const paras: string[] = [`${greeting}, ${firstName}.`]
-  if (data.summary.calmLine) paras.push(data.summary.calmLine)
-
-  const lines = (data.briefing?.lines || [])
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .slice(0, 4)
-
-  if (lines.length > 0) {
-    paras.push(...lines)
-  } else if (data.summary.pendingDecisions > 0) {
-    paras.push(
-      data.summary.pendingDecisions === 1
-        ? 'Eine Entscheidung braucht deine Aufmerksamkeit.'
-        : `${data.summary.pendingDecisions} Entscheidungen brauchen deine Aufmerksamkeit.`,
-    )
+): { lead: string; body: string } {
+  const lead = `${greeting}, ${firstName}.`
+  if (data.summary.activeProjects === 0) {
+    return {
+      lead,
+      body: `In ${data.workspace.name} wartet noch das erste Projekt.`,
+    }
   }
-
-  if (data.summary.nextMilestone) {
-    paras.push(`Nächster Meilenstein: ${data.summary.nextMilestone}.`)
+  const focus = data.decisions[0]
+  if (focus) {
+    const project = focus.projectTitle || data.briefing?.projectTitle || 'Dein Projekt'
+    return {
+      lead,
+      body: `${project} ist bereit für deine Freigabe. Eine Entscheidung steht aus.`,
+    }
   }
-
-  return paras
+  if (data.summary.calmLine) {
+    return { lead, body: data.summary.calmLine }
+  }
+  return {
+    lead,
+    body: `Alles in ${data.workspace.name} läuft ruhig.`,
+  }
 }
 
-export default function WorkspaceOverviewLive({ greeting, firstName, data }: Props) {
-  const { workspace, summary, projects, decisions, activity, team, tasks } = data
-  const livingState = useMemo(
-    () =>
-      deriveTagroLivingState({
-        pendingDecisions: summary.pendingDecisions,
-        projects,
-      }),
-    [summary.pendingDecisions, projects],
-  )
-  const [vizState, setVizState] = useState<TagroLivingState>(livingState)
-  const [panelOpen, setPanelOpen] = useState(decisions.length > 0)
-  const [panelDismissed, setPanelDismissed] = useState(false)
+const DECISION_STEPS = [
+  { id: 'q', label: 'Qualitätsprüfung abschließen', done: true },
+  { id: 'p', label: 'Performance validieren', done: true },
+  { id: 's', label: 'SEO & Inhalte prüfen', done: true },
+  { id: 'd', label: 'Veröffentlichung starten', done: false },
+] as const
 
-  const paragraphs = useMemo(
-    () => buildBriefingParagraphs(greeting, firstName, data),
+export default function WorkspaceOverviewLive({ greeting, firstName, data }: Props) {
+  const { workspace, summary, projects, decisions } = data
+  const riskCount = projects.filter((p) => p.health === 'risk' || p.health === 'blocked').length
+  const focusDecision = decisions[0] || null
+
+  const derivedActive = useMemo(
+    () =>
+      deriveNetworkActive({
+        pendingDecisions: summary.pendingDecisions,
+        decisionTitle: focusDecision?.title || null,
+        activeProjects: summary.activeProjects,
+        riskCount,
+      }),
+    [summary.pendingDecisions, summary.activeProjects, focusDecision?.title, riskCount],
+  )
+
+  const [active, setActive] = useState<NetworkActive>(derivedActive)
+  const [panelDismissed, setPanelDismissed] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [statusKey, setStatusKey] = useState(0)
+
+  useEffect(() => {
+    if (!panelDismissed) setActive(derivedActive)
+  }, [derivedActive, panelDismissed])
+
+  useEffect(() => {
+    setStatusKey((k) => k + 1)
+  }, [summary.pendingDecisions, summary.activeProjects, focusDecision?.id])
+
+  const status = useMemo(
+    () => buildStatusLines(greeting, firstName, data),
     [greeting, firstName, data],
   )
 
-  const signals = useMemo(
-    () =>
-      buildTagroSignals({
-        workspaceName: workspace.name,
-        summary,
-        projects,
-        tasks,
-        decisions,
-        activity,
-        team,
-        briefingProject: data.briefing?.projectTitle || null,
-      }),
-    [workspace.name, summary, projects, tasks, decisions, activity, team, data.briefing?.projectTitle],
-  )
+  const panelKind: PanelKind =
+    panelDismissed
+      ? null
+      : active?.kind === 'decision' && focusDecision
+        ? 'decision'
+        : active?.kind === 'project' && summary.activeProjects === 0
+          ? 'project'
+          : null
 
-  const audio = useStatusReportPlayback({ sentences: paragraphs })
+  function dismissPanel() {
+    setPanelDismissed(true)
+    setActive(null)
+  }
 
-  useEffect(() => {
-    if (audio.playing && !audio.paused) {
-      setVizState('audio')
-      return
-    }
-    if (audio.paused) {
-      setVizState('listening')
-      return
-    }
-    setVizState(livingState)
-  }, [audio.playing, audio.paused, livingState])
-
-  useEffect(() => {
-    if (decisions.length > 0 && !panelDismissed) setPanelOpen(true)
-    if (decisions.length === 0) {
-      setPanelOpen(false)
+  function onNodeActivate(kind: NetworkNodeKind) {
+    if (kind === 'decision' && focusDecision) {
       setPanelDismissed(false)
+      setActive({
+        kind: 'decision',
+        label: focusDecision.title,
+        sublabel: 'Entscheidung erforderlich',
+      })
+      return
     }
-  }, [decisions.length, panelDismissed])
-
-  const focusDecision = decisions[0] || null
-  const visibleProjects = projects.slice(0, 3)
-  const audioLabel = audio.playing && !audio.paused
-    ? 'Pausieren'
-    : audio.paused
-      ? 'Fortsetzen'
-      : 'Briefing anhören'
+    if (kind === 'project' && summary.activeProjects === 0) {
+      setPanelDismissed(false)
+      setActive({
+        kind: 'project',
+        label: 'Erstes Projekt',
+        sublabel: 'Bereit zum Start',
+      })
+      return
+    }
+    /* Idle nodes: soft focus only, no panel clutter */
+    setActive({
+      kind,
+      label: kind.charAt(0).toUpperCase() + kind.slice(1),
+      sublabel: 'Kein offener Kontext',
+    })
+    window.setTimeout(() => {
+      setActive(panelDismissed ? null : derivedActive)
+    }, 1600)
+  }
 
   return (
-    <div className={`fas-tagro${panelOpen && focusDecision ? ' has-panel' : ''}${audio.speaking ? ' is-audio' : ''}`}>
+    <div className={`fas-ln${panelKind ? ' has-panel' : ''}${listening ? ' is-listening' : ''}`}>
       <OverviewPendingInvites />
 
-      <div className="fas-tagro-canvas">
-        <section className="fas-tagro-stage" aria-label="Tagro">
-          <div className="fas-tagro-core-wrap">
-            <TagroLivingCore
-              state={vizState}
-              className="fas-tagro-core"
-              signals={signals}
-              onCoreActivate={() => {
-                if (!audio.supported || paragraphs.length === 0) return
-                audio.toggle()
-              }}
-            />
-          </div>
+      <div className="fas-ln-stage">
+        <TagroLivingNetwork
+          active={active}
+          className="fas-ln-network"
+          onNodeActivate={onNodeActivate}
+          onCoreActivate={() => setListening((v) => !v)}
+        />
 
-          <div className="fas-tagro-lyrics-host" aria-live="polite">
-            <h1 className="sr-only">{paragraphs[0]}</h1>
-            <BriefingLyricsFlow
-              sentences={paragraphs}
-              activeIndex={audio.displayActiveIndex}
-              activeWordIndex={audio.activeWordIndex}
-              autoScroll={audio.autoScroll}
-              animating={audio.playing && !audio.paused}
-              onUserScroll={audio.takeScrollControl}
-              className="fas-tagro-lyrics"
-            />
-          </div>
-
-          <div className="fas-tagro-audio">
-            {audio.supported ? (
-              <>
-                <button
-                  type="button"
-                  className={`fas-tagro-audio-btn${audio.speaking ? ' is-live' : ''}`}
-                  onClick={() => audio.toggle()}
-                  aria-pressed={audio.playing && !audio.paused}
-                >
-                  {audio.playing && !audio.paused ? (
-                    <Pause size={15} weight="fill" />
-                  ) : audio.paused ? (
-                    <Play size={15} weight="fill" />
-                  ) : (
-                    <Headphones size={15} weight="regular" />
-                  )}
-                  <span>{audioLabel}</span>
-                </button>
-                {audio.speaking ? (
-                  <>
-                    <button
-                      type="button"
-                      className="fas-tagro-audio-stop"
-                      onClick={() => audio.stop()}
-                      aria-label="Briefing stoppen"
-                    >
-                      <Square size={12} weight="fill" />
-                    </button>
-                    <div className="fas-tagro-audio-progress" aria-hidden>
-                      <span style={{ width: `${Math.round(audio.progress * 100)}%` }} />
-                    </div>
-                  </>
-                ) : null}
-              </>
-            ) : (
-              <p className="fas-tagro-audio-fallback">Audio-Briefing braucht Browser-Sprachausgabe.</p>
-            )}
-          </div>
-
-          {summary.pendingDecisions > 0 && !panelOpen ? (
-            <button
-              type="button"
-              className="fas-tagro-nudge"
-              onClick={() => {
-                setPanelDismissed(false)
-                setPanelOpen(true)
-              }}
-            >
-              {summary.pendingDecisions === 1
-                ? 'Tagro hat eine Entscheidung erkannt'
-                : `Tagro hat ${summary.pendingDecisions} Entscheidungen erkannt`}
-            </button>
-          ) : null}
-        </section>
-
-        {panelOpen && focusDecision ? (
-          <aside className="fas-tagro-panel" aria-label="Kontext">
-            <div className="fas-tagro-panel-head">
-              <p className="fas-tagro-panel-title">
-                {focusDecision.title}
-              </p>
+        {panelKind === 'decision' && focusDecision ? (
+          <aside className="fas-ln-panel" aria-label="Entscheidung">
+            <div className="fas-ln-panel-top">
+              <span className="fas-ln-panel-dot" aria-hidden />
+              <p className="fas-ln-panel-status">Entscheidung erforderlich</p>
               <button
                 type="button"
-                className="fas-tagro-panel-close"
+                className="fas-ln-panel-close"
                 aria-label="Schließen"
-                onClick={() => {
-                  setPanelOpen(false)
-                  setPanelDismissed(true)
-                }}
+                onClick={dismissPanel}
               >
                 <X size={16} weight="light" />
               </button>
             </div>
-            <p className="fas-tagro-panel-meta">
-              {focusDecision.projectTitle}
-              {focusDecision.dueDate
-                ? `, fällig ${new Date(focusDecision.dueDate).toLocaleDateString('de-DE', {
-                    day: 'numeric',
-                    month: 'short',
-                  })}`
-                : ''}
+
+            <h2 className="fas-ln-panel-title">{focusDecision.title}</h2>
+            <p className="fas-ln-panel-lead">
+              {/homepage|startseite/i.test(focusDecision.title)
+                ? 'Tagro empfiehlt, die neue Homepage zu veröffentlichen.'
+                : `Tagro empfiehlt, „${focusDecision.title}“ freizugeben.`}
             </p>
-            <p className="fas-tagro-panel-rec">
-              Tagro empfiehlt, diese Entscheidung jetzt zu klären — damit der Workspace weiterlaufen kann.
-            </p>
-            <div className="fas-tagro-panel-actions">
+
+            <div className="fas-ln-rec">
+              <span className="fas-ln-rec-ico" aria-hidden>
+                <Sparkle size={14} weight="fill" />
+              </span>
+              <div>
+                <p className="fas-ln-rec-title">Freigeben</p>
+                <p className="fas-ln-rec-body">
+                  Alle Ziele wurden erreicht. Keine kritischen Issues.
+                </p>
+              </div>
+            </div>
+
+            <p className="fas-ln-steps-label">Wie Tagro vorgehen würde</p>
+            <ul className="fas-ln-steps">
+              {DECISION_STEPS.map((step) => (
+                <li key={step.id} className={step.done ? 'is-done' : 'is-pending'}>
+                  <span className="fas-ln-step-ico" aria-hidden>
+                    {step.done ? (
+                      <Check size={14} weight="bold" />
+                    ) : (
+                      <UploadSimple size={14} weight="regular" />
+                    )}
+                  </span>
+                  <span className="fas-ln-step-label">{step.label}</span>
+                  {!step.done ? (
+                    <span className="fas-ln-step-badge">Wartet auf Entscheidung</span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+
+            <div className="fas-ln-actions">
               <Link
                 href={focusDecision.id ? `/decisions/${focusDecision.id}` : '/overview/inbox'}
-                className="fas-tagro-panel-primary"
+                className="fas-ln-btn fas-ln-btn--primary"
               >
-                Öffnen
+                Freigeben
               </Link>
               <Link
-                href="/overview/inbox"
-                className="fas-tagro-panel-secondary"
+                href={focusDecision.id ? `/decisions/${focusDecision.id}` : '/overview/inbox'}
+                className="fas-ln-btn fas-ln-btn--ghost"
               >
-                Alle Entscheidungen
+                Änderungen anfordern
               </Link>
+            </div>
+            <p className="fas-ln-panel-foot">
+              Diese Entscheidung wird das Deployment starten.
+            </p>
+          </aside>
+        ) : null}
+
+        {panelKind === 'project' ? (
+          <aside className="fas-ln-panel" aria-label="Projekt">
+            <div className="fas-ln-panel-top">
+              <span className="fas-ln-panel-dot" aria-hidden />
+              <p className="fas-ln-panel-status">Bereit</p>
+              <button
+                type="button"
+                className="fas-ln-panel-close"
+                aria-label="Schließen"
+                onClick={dismissPanel}
+              >
+                <X size={16} weight="light" />
+              </button>
+            </div>
+            <h2 className="fas-ln-panel-title">Erstelle dein erstes Projekt</h2>
+            <p className="fas-ln-panel-lead">
+              Tagro strukturiert es, sobald du startest — in {workspace.name}.
+            </p>
+            <div className="fas-ln-actions">
+              <button
+                type="button"
+                className="fas-ln-btn fas-ln-btn--primary"
+                onClick={() => openNewProject()}
+              >
+                Neues Projekt
+              </button>
             </div>
           </aside>
         ) : null}
       </div>
 
-      <section className="fas-tagro-work" aria-labelledby="fas-tagro-projects-title">
-        <div className="fas-tagro-work-head">
-          <h2 id="fas-tagro-projects-title" className="fas-tagro-work-title">
-            Projekte
-          </h2>
-          <Link href="/overview/projects" className="fas-tagro-work-link">
-            Alle Projekte
-            <ArrowRight size={12} weight="bold" />
-          </Link>
+      <footer className="fas-ln-footer">
+        <div key={statusKey} className="fas-ln-status" aria-live="polite">
+          <p className="fas-ln-status-lead">{status.lead}</p>
+          <p className="fas-ln-status-body">{status.body}</p>
+          <div className="fas-ln-status-dots" aria-hidden>
+            <span className="is-on" />
+            <span />
+            <span />
+          </div>
         </div>
 
-        {visibleProjects.length === 0 ? (
-          <div className="fas-tagro-empty">
-            <p>Noch keine Projekte. Tagro wartet auf den ersten Schwerpunkt in {workspace.name}.</p>
-            <button type="button" className="fas-btn" onClick={() => openNewProject()}>
-              Neues Projekt
+        <div className="fas-ln-voice">
+          <div className="fas-ln-voice-row">
+            <div className={`fas-ln-wave${listening ? ' is-on' : ''}`} aria-hidden>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <span key={`l${i}`} style={{ ['--i' as string]: i }} />
+              ))}
+            </div>
+            <button
+              type="button"
+              className={`fas-ln-mic${listening ? ' is-on' : ''}`}
+              aria-pressed={listening}
+              aria-label={listening ? 'Zuhören beenden' : 'Tagro zuhören'}
+              onClick={() => setListening((v) => !v)}
+            >
+              {listening ? (
+                <MicrophoneSlash size={20} weight="fill" />
+              ) : (
+                <Microphone size={20} weight="fill" />
+              )}
             </button>
+            <div className={`fas-ln-wave${listening ? ' is-on' : ''}`} aria-hidden>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <span key={`r${i}`} style={{ ['--i' as string]: 9 - i }} />
+              ))}
+            </div>
           </div>
-        ) : (
-          <ul className="fas-tagro-projects">
-            {visibleProjects.map((p) => (
-              <li key={p.id}>
-                <Link href={`/project/${p.id}`} className="fas-tagro-project">
-                  <span className="fas-tagro-project-name">{p.title}</span>
-                  <span className="fas-tagro-project-meta">
-                    {formatLabel(p.phase || p.status || 'Planung')}
-                    {p.nextMilestone ? `, ${p.nextMilestone}` : ''}
-                  </span>
-                  <span className={`fas-tagro-project-pulse is-${p.health}`} aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          <p className="fas-ln-voice-label">
+            {listening ? 'Tagro hört zu' : 'Tagro'}
+          </p>
+        </div>
+
+        <div className="fas-ln-footer-spacer" aria-hidden />
+      </footer>
     </div>
   )
 }

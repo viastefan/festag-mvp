@@ -19,6 +19,7 @@ Primary nav label is **Overview** (`/overview`) — not Home. Phase 1 is frozen 
 
 **Always apply:** `.cursor/rules/festag-os-workspace-phases.mdc`  
 **Human doc:** `docs/festag-os-workspace-phases.md`  
+**Create Project law:** `docs/festag-create-project-flow.md` (Architecture v3.7 — process before Overview polish)  
 **Code:** `components/app-shell/` · `app/(pre-workspace)/overview/`
 
 ## Product constitution (one platform · roles · onboarding)

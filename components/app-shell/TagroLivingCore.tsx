@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * Tagro Living Core — calm constellation for Overview.
- * Static layout + CSS hover grow. No continuous rAF (perf).
+ * Tagro Living Core — neural sphere for Overview.
+ * Interface, not decoration. Extremely subtle motion. Silence is default.
  */
 
 import { useId, useMemo, useState } from 'react'
@@ -15,6 +15,7 @@ export type TagroLivingState =
   | 'listening'
   | 'speaking'
   | 'audio'
+  | 'thinking'
 
 export type TagroSignalKind =
   | 'core'
@@ -49,24 +50,22 @@ type NodeDef = {
   angle: number
   radius: number
   size: number
-  labelDist: number
 }
 
-const CX = 200
-const CY = 142
-const VIEW_W = 400
-const VIEW_H = 300
-const SQUASH = 0.88
+/** Square sphere composition ≈ 250px rendered */
+const CX = 140
+const CY = 140
+const VIEW = 280
 
 const NODES: NodeDef[] = [
-  { id: 'n1', kind: 'decisions', angle: -Math.PI / 2, radius: 108, size: 9, labelDist: 26 },
-  { id: 'n2', kind: 'risks', angle: -Math.PI / 6, radius: 112, size: 8.2, labelDist: 26 },
-  { id: 'n3', kind: 'projects', angle: Math.PI / 5, radius: 114, size: 9.4, labelDist: 28 },
-  { id: 'n4', kind: 'tasks', angle: (2 * Math.PI) / 3, radius: 110, size: 8.6, labelDist: 26 },
-  { id: 'n5', kind: 'activity', angle: Math.PI, radius: 106, size: 8.4, labelDist: 26 },
-  { id: 'n6', kind: 'team', angle: (-3 * Math.PI) / 4, radius: 110, size: 7.8, labelDist: 26 },
-  { id: 'n7', kind: 'milestone', angle: (-5 * Math.PI) / 6, radius: 72, size: 6.4, labelDist: 22 },
-  { id: 'n8', kind: 'briefing', angle: Math.PI / 2, radius: 52, size: 6.2, labelDist: 22 },
+  { id: 'n1', kind: 'decisions', angle: -Math.PI / 2.15, radius: 92, size: 7.2 },
+  { id: 'n2', kind: 'risks', angle: -Math.PI / 7, radius: 96, size: 6.4 },
+  { id: 'n3', kind: 'projects', angle: Math.PI / 4.2, radius: 98, size: 7.6 },
+  { id: 'n4', kind: 'tasks', angle: (2.1 * Math.PI) / 3, radius: 94, size: 6.8 },
+  { id: 'n5', kind: 'activity', angle: Math.PI * 0.98, radius: 90, size: 6.6 },
+  { id: 'n6', kind: 'team', angle: (-2.55 * Math.PI) / 3, radius: 94, size: 6.2 },
+  { id: 'n7', kind: 'milestone', angle: (-4.2 * Math.PI) / 5, radius: 58, size: 5.4 },
+  { id: 'n8', kind: 'briefing', angle: Math.PI / 2.1, radius: 48, size: 5.2 },
 ]
 
 const DEFAULT_SIGNALS: Record<TagroSignalKind, TagroNodeSignal> = {
@@ -81,30 +80,14 @@ const DEFAULT_SIGNALS: Record<TagroSignalKind, TagroNodeSignal> = {
   briefing: { kind: 'briefing', label: 'Briefing', detail: 'Status wird fortlaufend gelesen.' },
 }
 
-type Pos = { x: number; y: number; lx: number; ly: number; size: number }
+type Pos = { x: number; y: number; size: number }
 
 function restPos(def: NodeDef): Pos {
-  const x = CX + Math.cos(def.angle) * def.radius
-  const y = CY + Math.sin(def.angle) * def.radius * SQUASH
-  const lx = CX + Math.cos(def.angle) * (def.radius + def.labelDist)
-  const ly = CY + Math.sin(def.angle) * (def.radius + def.labelDist) * SQUASH
-  return { x, y, lx, ly, size: def.size }
-}
-
-function MiniSpark({ accent }: { accent: 'calm' | 'attention' | 'risk' }) {
-  return (
-    <svg className="tlc-pop-spark" viewBox="0 0 64 28" aria-hidden>
-      <path
-        className={`tlc-pop-spark-line is-${accent}`}
-        d="M2 20 C10 18, 14 8, 22 12 S34 24, 42 14 S54 6, 62 10"
-        fill="none"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <circle className={`tlc-pop-spark-dot is-${accent}`} cx="22" cy="12" r="2.2" />
-      <circle className={`tlc-pop-spark-dot is-${accent}`} cx="42" cy="14" r="2.2" />
-    </svg>
-  )
+  return {
+    x: CX + Math.cos(def.angle) * def.radius,
+    y: CY + Math.sin(def.angle) * def.radius,
+    size: def.size,
+  }
 }
 
 export default function TagroLivingCore({
@@ -128,7 +111,7 @@ export default function TagroLivingCore({
 
   const positions = useMemo(() => {
     const map = new Map<string, Pos>()
-    map.set('c', { x: CX, y: CY, lx: CX, ly: CY + 36, size: 22 })
+    map.set('c', { x: CX, y: CY, size: 18 })
     for (const def of NODES) map.set(def.id, restPos(def))
     return map
   }, [])
@@ -140,8 +123,8 @@ export default function TagroLivingCore({
         ? 'Tagro wartet auf eine Entscheidung'
         : state === 'audio' || state === 'speaking'
           ? 'Tagro spricht'
-          : state === 'listening'
-            ? 'Tagro hört zu'
+          : state === 'listening' || state === 'thinking'
+            ? 'Tagro denkt'
             : 'Tagro — Workspace ruhig'
 
   const hoverSignal = hoverKind ? resolved[hoverKind] : null
@@ -160,43 +143,49 @@ export default function TagroLivingCore({
 
       <svg
         className="tlc-svg"
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        viewBox={`0 0 ${VIEW} ${VIEW}`}
         preserveAspectRatio="xMidYMid meet"
         aria-hidden
       >
         <defs>
           <radialGradient id={`${uid}-core`} cx="34%" cy="28%" r="72%">
             <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="38%" stopColor="#E8ECF4" />
-            <stop offset="72%" stopColor="#B8C0D4" />
-            <stop offset="100%" stopColor="#8A94AA" />
+            <stop offset="42%" stopColor="#E6EAF2" />
+            <stop offset="78%" stopColor="#A8B0C4" />
+            <stop offset="100%" stopColor="#7A849A" />
           </radialGradient>
           <radialGradient id={`${uid}-node`} cx="32%" cy="26%" r="74%">
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="45%" stopColor="#DCE2EE" />
-            <stop offset="100%" stopColor="#9AA4BA" />
+            <stop offset="0%" stopColor="rgba(255,255,255,0.96)" />
+            <stop offset="48%" stopColor="rgba(220,226,238,0.92)" />
+            <stop offset="100%" stopColor="rgba(154,164,186,0.88)" />
           </radialGradient>
           <radialGradient id={`${uid}-node-hot`} cx="30%" cy="24%" r="76%">
             <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="40%" stopColor="#E6EAF4" />
-            <stop offset="100%" stopColor="#7A869E" />
+            <stop offset="40%" stopColor="#E8ECF4" />
+            <stop offset="100%" stopColor="#6E7A92" />
           </radialGradient>
-          <radialGradient id={`${uid}-shadow`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(40,48,70,0.2)" />
-            <stop offset="100%" stopColor="rgba(40,48,70,0)" />
-          </radialGradient>
+          <filter id={`${uid}-soft`} x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="1.2" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
-        <ellipse className="tlc-guide" cx={CX} cy={CY} rx={110} ry={96} />
-        <ellipse className="tlc-guide tlc-guide--inner" cx={CX} cy={CY} rx={64} ry={56} />
+        <circle className="tlc-orbit tlc-orbit--outer" cx={CX} cy={CY} r={102} />
+        <circle className="tlc-orbit tlc-orbit--inner" cx={CX} cy={CY} r={56} />
 
         <g className="tlc-edges">
-          {NODES.map((def) => {
+          {NODES.map((def, i) => {
             const pb = positions.get(def.id)!
+            const sig = resolved[def.kind]
+            const lit = (sig.count || 0) > 0 || (sig.accent && sig.accent !== 'calm')
             return (
               <line
                 key={def.id}
-                className={`tlc-edge${hoverKind === def.kind ? ' is-hot' : ''}`}
+                className={`tlc-edge${hoverKind === def.kind ? ' is-hot' : ''}${lit ? ' is-lit' : ''}`}
+                style={{ ['--i' as string]: i }}
                 x1={CX}
                 y1={CY}
                 x2={pb.x}
@@ -206,41 +195,35 @@ export default function TagroLivingCore({
           })}
         </g>
 
-        <g className="tlc-nodes">
-          {NODES.map((def) => {
+        <g className="tlc-nodes" filter={`url(#${uid}-soft)`}>
+          {NODES.map((def, i) => {
             const pos = positions.get(def.id)!
             const sig = resolved[def.kind]
             const accent = sig.accent || ((sig.count || 0) > 0 ? 'attention' : 'calm')
             const hot = hoverKind === def.kind
             const lit = (sig.count || 0) > 0 || accent !== 'calm'
+            const pulseDecision = def.kind === 'decisions' && state === 'attention' && lit
             return (
               <g
                 key={def.id}
-                className={`tlc-node-g is-${accent}${hot ? ' is-hot' : ''}${lit ? ' is-lit' : ''}`}
+                className={`tlc-node-g is-${accent}${hot ? ' is-hot' : ''}${lit ? ' is-lit' : ''}${pulseDecision ? ' is-pulse' : ''}`}
+                style={{ ['--i' as string]: i }}
                 transform={`translate(${pos.x},${pos.y})`}
               >
                 <g className={`tlc-node-scale${hot ? ' is-hot' : ''}`}>
-                  <ellipse
-                    className="tlc-node-shadow"
-                    cx={0}
-                    cy={def.size * 0.55}
-                    rx={def.size * 1.15}
-                    ry={def.size * 0.42}
-                    fill={`url(#${uid}-shadow)`}
-                  />
-                  {lit ? <circle className="tlc-node-halo" cx={0} cy={0} r={def.size + 7} /> : null}
+                  {lit ? <circle className="tlc-node-halo" cx={0} cy={0} r={pos.size + 6} /> : null}
                   <circle
                     className="tlc-node"
                     cx={0}
                     cy={0}
-                    r={def.size}
+                    r={pos.size}
                     fill={hot ? `url(#${uid}-node-hot)` : `url(#${uid}-node)`}
                   />
                   <circle
                     className="tlc-node-spec"
-                    cx={-def.size * 0.28}
-                    cy={-def.size * 0.32}
-                    r={def.size * 0.28}
+                    cx={-pos.size * 0.28}
+                    cy={-pos.size * 0.32}
+                    r={pos.size * 0.26}
                   />
                 </g>
               </g>
@@ -252,79 +235,50 @@ export default function TagroLivingCore({
             transform={`translate(${CX},${CY})`}
           >
             <g className={`tlc-core-scale${hoverKind === 'core' ? ' is-hot' : ''}`}>
-              <circle className="tlc-core-halo" cx={0} cy={0} r={42} />
-              <ellipse
-                className="tlc-core-shadow"
-                cx={0}
-                cy={14}
-                rx={26}
-                ry={10}
-                fill={`url(#${uid}-shadow)`}
-              />
-              <circle className="tlc-core-ring" cx={0} cy={0} r={32} />
-              <circle className="tlc-core" cx={0} cy={0} r={22} fill={`url(#${uid}-core)`} />
-              <circle className="tlc-core-spec" cx={-7} cy={-8} r={5.5} />
+              <circle className="tlc-core-halo" cx={0} cy={0} r={36} />
+              <circle className="tlc-core-ring" cx={0} cy={0} r={26} />
+              <circle className="tlc-core" cx={0} cy={0} r={18} fill={`url(#${uid}-core)`} />
+              <circle className="tlc-core-spec" cx={-5.5} cy={-6.5} r={4.2} />
             </g>
           </g>
         </g>
       </svg>
 
       <div className="tlc-hits">
-        <div className="tlc-anchor">
-          <button
-            type="button"
-            className={`tlc-hit is-core${hoverKind === 'core' ? ' is-hot' : ''}`}
-            style={{ left: `${(CX / VIEW_W) * 100}%`, top: `${(CY / VIEW_H) * 100}%` }}
-            aria-label="Tagro"
-            onMouseEnter={() => setHoverKind('core')}
-            onFocus={() => setHoverKind('core')}
-            onClick={(e) => {
-              e.stopPropagation()
-              onCoreActivate?.()
-            }}
-          />
-          <span
-            className={`tlc-chip is-core${hoverKind === 'core' ? ' is-hot' : ''}`}
-            style={{ left: `${(CX / VIEW_W) * 100}%`, top: `${((CY + 36) / VIEW_H) * 100}%` }}
-            onMouseEnter={() => setHoverKind('core')}
-          >
-            <span className="tlc-chip-label">Tagro</span>
-          </span>
-        </div>
+        <button
+          type="button"
+          className={`tlc-hit is-core${hoverKind === 'core' ? ' is-hot' : ''}`}
+          style={{ left: `${(CX / VIEW) * 100}%`, top: `${(CY / VIEW) * 100}%` }}
+          aria-label="Tagro"
+          onMouseEnter={() => setHoverKind('core')}
+          onFocus={() => setHoverKind('core')}
+          onClick={(e) => {
+            e.stopPropagation()
+            onCoreActivate?.()
+          }}
+        />
 
         {NODES.map((def) => {
           const pos = positions.get(def.id)!
           const sig = resolved[def.kind]
           const showCount = typeof sig.count === 'number' && sig.count > 0
           return (
-            <div key={def.id} className="tlc-anchor">
-              <button
-                type="button"
-                className={`tlc-hit${hoverKind === def.kind ? ' is-hot' : ''}`}
-                style={{
-                  left: `${(pos.x / VIEW_W) * 100}%`,
-                  top: `${(pos.y / VIEW_H) * 100}%`,
-                }}
-                aria-label={showCount ? `${sig.label}, ${sig.count}` : sig.label}
-                onMouseEnter={() => setHoverKind(def.kind)}
-                onFocus={() => setHoverKind(def.kind)}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (sig.href) window.location.assign(sig.href)
-                }}
-              />
-              <span
-                className={`tlc-chip${hoverKind === def.kind ? ' is-hot' : ''}${showCount ? ' has-count' : ''}`}
-                style={{
-                  left: `${(pos.lx / VIEW_W) * 100}%`,
-                  top: `${(pos.ly / VIEW_H) * 100}%`,
-                }}
-                onMouseEnter={() => setHoverKind(def.kind)}
-              >
-                <span className="tlc-chip-label">{sig.label}</span>
-                {showCount ? <span className="tlc-chip-count">{sig.count}</span> : null}
-              </span>
-            </div>
+            <button
+              key={def.id}
+              type="button"
+              className={`tlc-hit${hoverKind === def.kind ? ' is-hot' : ''}${showCount ? ' has-signal' : ''}`}
+              style={{
+                left: `${(pos.x / VIEW) * 100}%`,
+                top: `${(pos.y / VIEW) * 100}%`,
+              }}
+              aria-label={showCount ? `${sig.label}, ${sig.count}` : sig.label}
+              onMouseEnter={() => setHoverKind(def.kind)}
+              onFocus={() => setHoverKind(def.kind)}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (sig.href) window.location.assign(sig.href)
+              }}
+            />
           )
         })}
       </div>
@@ -334,15 +288,16 @@ export default function TagroLivingCore({
           className="tlc-pop"
           role="tooltip"
           style={{
-            left: `${(hoverPos.x / VIEW_W) * 100}%`,
-            top: `${(hoverPos.y / VIEW_H) * 100}%`,
+            left: `${(hoverPos.x / VIEW) * 100}%`,
+            top: `${(hoverPos.y / VIEW) * 100}%`,
           }}
         >
           <div className="tlc-pop-card">
-            <MiniSpark accent={hoverSignal.accent || ((hoverSignal.count || 0) > 0 ? 'attention' : 'calm')} />
             <p className="tlc-pop-title">
               {hoverSignal.label}
-              {typeof hoverSignal.count === 'number' ? `, ${hoverSignal.count}` : ''}
+              {typeof hoverSignal.count === 'number' && hoverSignal.count > 0
+                ? `, ${hoverSignal.count}`
+                : ''}
             </p>
             <p className="tlc-pop-body">{hoverSignal.detail}</p>
             {hoverSignal.href ? (

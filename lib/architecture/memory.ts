@@ -19,17 +19,55 @@ export type ArchitectureMemoryEntry = {
 
 export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
   {
+    id: 'create-project-core-flow',
+    question: 'Warum bauen wir Create Project vor Workspace Overview?',
+    answer:
+      'Festag verkauft den Prozess Idee→Workspace→Projekt→Tagro-Struktur→Einladung→Zusammenarbeit→Lieferung — kein Dashboard. Overview ist Aggregation; ohne Projekte ist sie leer und unehrlich. Der erste komplette Flow (Workspace→Projekt→Tagro-Draft→Invite→Projekt öffnen) macht Festag benutzbar. Workspace Overview kommt erst, wenn echte Projektdaten existieren.',
+    decision:
+      'Sprint order: Auth → Workspace → Create Project → Tagro draft (human confirms) → Invite → Project view → erst dann Workspace Overview. Doc: docs/festag-create-project-flow.md · v3.7',
+    date: '2026-08-04',
+    version: '3.7',
+    status: 'locked',
+    related: [
+      'docs/festag-create-project-flow.md',
+      'docs/festag-os-workspace-phases.md',
+      '.cursor/rules/festag-os-workspace-phases.mdc',
+      'lib/tagro/intent-intake.ts',
+      'lib/new-project-open.ts',
+      'components/NewProjectModal.tsx',
+      'lib/platform/join.ts',
+    ],
+  },
+  {
+    id: 'entry-intent-landing',
+    question: 'Warum steuert Intention den Einstieg — nicht Rolle?',
+    answer:
+      'Rolle steuert Sicht und Rechte. Intention (Einladung / Registrierung / Create) steuert den ersten Raum. Projekt-Invite → Projekt. Eigene Registrierung → Festag OS Overview. Workspace ohne Projekte → Create first project. Workspace-Mitgliedschaft → Workspace Overview. Sonst verliert Festag den Fokus: Kunden wollen „Wo ist mein Projekt?“, nicht Activity/Team am Tag 1. Eine Plattform, progressive Disclosure — Kapazität ≠ Tag-1-Oberfläche.',
+    decision:
+      'Entry Intent > Role for first landing. Invitation carries intent. joinCompletionRedirect → /project/:id. Zero projects after Ready → Create Project, not empty Overview.',
+    date: '2026-08-04',
+    version: '3.7',
+    status: 'locked',
+    related: [
+      'docs/festag-create-project-flow.md',
+      'lib/platform/join.ts',
+      'docs/festag-authentication-onboarding-constitution.md',
+      'docs/festag-product-constitution.md',
+    ],
+  },
+  {
     id: 'workspace-creation-as-os',
     question: 'Warum ist Workspace-Erstellung kein Name→Template→Module-Wizard?',
     answer:
-      'Der erste Workspace muss sich wie ein digitales Betriebssystem anfühlen, nicht wie ein Ordner. Oberfläche: sequentieller Popup-Slider auf Overview (nicht Full-Page). Name + Subdomain machen ihn real; Use-Case-Karten wählen eine Aufgabe. Module und €19 gehören nicht in den ersten Moment. Erster Workspace gratis (Hobby); Zusatz-Workspaces → Workspace Plan. Erstes Projekt ist kein Wizard-Schritt — „Neues Projekt“ öffnet später Tagro Intent Intake (NewProjectModal): ein Freitext-Input, Draft-Preview, Mensch bestätigt.',
+      'Der erste Workspace muss sich wie ein digitales Betriebssystem anfühlen, nicht wie ein Ordner. Oberfläche: sequentieller Popup-Slider auf Festag OS Overview (nicht Full-Page). Name + Subdomain machen ihn real; Use-Case-Karten wählen eine Aufgabe. Module und €19 gehören nicht in den ersten Moment. Erster Workspace gratis (Hobby); Zusatz-Workspaces → Workspace Plan. Erstes Projekt ist kein Slide im Wizard — aber nach Ready folgt sofort Create first project (nicht leeres Overview). Spätere Projekte: Tagro Intent Intake via openNewProject().',
     decision:
-      'Phase 2: Name → Use-case → Creating → Ready → Overview. No first-project/invite in wizard. New work = Tagro Intent Intake via openNewProject(). No module picker. First WS free. SSOT workspace-creation + new-project-open + intent-intake',
+      'Phase 2: Name → Use-case → Creating → Ready → Create first project (if zero projects). No project/invite/module inside wizard slides. First WS free. SSOT workspace-creation + create-project-flow · v3.7',
     date: '2026-08-04',
-    version: '3.6',
+    version: '3.7',
     status: 'locked',
     related: [
       'docs/festag-os-workspace-phases.md',
+      'docs/festag-create-project-flow.md',
       '.cursor/rules/festag-os-workspace-phases.mdc',
       'lib/platform/workspace-creation.ts',
       'lib/platform/workspace-setup.ts',
@@ -46,13 +84,14 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     id: 'tagro-intent-intake',
     question: 'Warum ist Projekterstellung kein Create-Project-Formular?',
     answer:
-      'Festag ist kein PM-Tool. Nutzer beschreiben Ziele in einem Input. Tagro erkennt Intent (neues Projekt, Bug, Feature, Frage, Einladung, Status) und zeigt einen editierbaren Draft. Speichern erst nach Bestätigung. Voice, Dateien und Drag-and-Drop gehören zum Intake — nicht separate Formularfelder für Projekt vs Task vs Bug.',
+      'Festag ist kein PM-Tool. First-project mode: Name (required) + optionale Beschreibung — minimal, ruhig. Tagro erzeugt einen editierbaren Struktur-Draft (Milestones, wenige Tasks); Speichern der Struktur erst nach Bestätigung. Später: freestyle Intent Intake (ein Input, Voice, Dateien) für Bug/Feature/Invite/Frage/Status. Nie Dutzende Tasks still auto-schreiben. Nie Fake-Loading ohne echte Draft-Arbeit.',
     decision:
-      'NewProjectModal = Intent Intake. APIs: /api/tagro/intent-intake (draft) + /api/tagro/intent-confirm (write). Human confirms always.',
+      'Create Project = Intent Intake. First project: name + optional description → real prepare → draft → human confirms → land in project. APIs intent-intake + intent-confirm. Later freestyle kinds remain.',
     date: '2026-08-04',
-    version: '1.0',
+    version: '3.7',
     status: 'locked',
     related: [
+      'docs/festag-create-project-flow.md',
       'lib/tagro/intent-intake.ts',
       'components/NewProjectModal.tsx',
       'app/api/tagro/intent-intake/route.ts',
@@ -64,14 +103,15 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     id: 'festag-os-vs-workspace',
     question: 'Warum gibt es Festag OS und Festag Workspace als getrennte Modi?',
     answer:
-      'Ohne Workspace ist Festag ein ruhiges OS (Overview, Docs, Settings, Create Workspace) — der Nutzer versteht das Produkt und den nächsten Schritt. Mit Workspace wird dieselbe Plattform zum Workspace-OS (Projects, Tagro, Team). Das verhindert halbleere Dashboards und spätere Nav-Umbauten. Overview bleibt der stabile Menüpunkt in beiden Modi.',
+      'Ohne Workspace ist Festag ein ruhiges OS (Overview, Docs, Settings, Create Workspace) — der Nutzer versteht das Produkt und den nächsten Schritt. Mit Workspace und ohne Projekte: Create Project zuerst — nicht leere Aggregation. Mit Projekten wird dieselbe Plattform zum Workspace-OS; Overview aggregiert erst dann ehrlich. Overview bleibt der stabile Menüpunkt — Landung folgt Entry Intent.',
     decision:
-      'Phase 1 freeze: Festag OS at /overview · Phase 2 Workspace Wizard · Phase 3 Workspace Dashboard · Home renamed to Overview',
-    date: '2026-08-03',
-    version: '3.2',
+      'Phase 1: Festag OS at /overview · Phase 2: Workspace Wizard · Phase 2b: Create Project core flow · Phase 3: Workspace Overview after real projects · v3.7',
+    date: '2026-08-04',
+    version: '3.7',
     status: 'locked',
     related: [
       'docs/festag-os-workspace-phases.md',
+      'docs/festag-create-project-flow.md',
       '.cursor/rules/festag-os-workspace-phases.mdc',
       'components/app-shell/',
     ],
@@ -293,14 +333,15 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     id: 'overview-tagro-core-interface',
     question: 'Warum ist Overview kein Dashboard, sondern Tagro als Interface?',
     answer:
-      'SaaS-Dashboards (KPIs, Karten-Grids) machen Festag austauschbar. Overview soll sich wie ein lebendiger Arbeitsraum anfühlen: Tagro Living Core erklärt den Workspace-Zustand, Briefing ist die Oberfläche, Context Panels erscheinen nur bei Bedarf, Projekte sind sekundär. Projects/Tasks/Documents bleiben produktiv und klar — hybrid, nicht Theater auf jeder Route.',
+      'SaaS-Dashboards machen Festag austauschbar. Overview ist das Living Network: zentrierter Tagro-Knoten, periphere Nodes (Decision, Project, GitHub, …) im Idle getrennt. Nur bei Kontext wächst eine Primary-Blue-Verbindung und ein Floating-Panel. Status unten links, Voice unten Mitte. Keine KPI-Karten. Silence und Whitespace sind Features. Sidebar default collapsed icon rail.',
     decision:
-      'Overview = Tagro Core Interface · collapsed icon rail default · contextual right panel · max 3 projects · no KPI cards',
+      'Overview = Tagro Living Network · idle silence · context connection grows · one floating panel · status + voice footer · no KPI/widgets · collapsed sidebar · v3.8',
     date: '2026-08-04',
-    version: '3.1',
-    status: 'evolving',
+    version: '3.8',
+    status: 'locked',
     related: [
-      'components/app-shell/TagroLivingCore.tsx',
+      'docs/festag-create-project-flow.md',
+      'components/app-shell/TagroLivingNetwork.tsx',
       'components/app-shell/WorkspaceOverviewLive.tsx',
       'docs/festag-tagro-invisible-intelligence.md',
       'docs/festag-experience-constitution.md',

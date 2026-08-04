@@ -13,6 +13,29 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '3.8',
+    title: 'Overview as Tagro Operating Interface',
+    summary:
+      'Overview redesigned as Living Network: idle silence with disconnected nodes, blue connection grows on context, one floating decision panel, status + voice footer. No continuous animation. No KPI widgets.',
+    date: '2026-08-04',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
+    version: '3.7',
+    title: 'Create Project Core Flow · Entry Intent',
+    summary:
+      'Domain-first: process before dashboard. After Workspace Ready with zero projects → Create first project (name + optional description), Tagro draft with human confirm, optional invite, land in project — not empty Overview. Entry Intent > Role for first landing. Overview deferred until real project data exists.',
+    date: '2026-08-04',
+    memoryIds: [
+      'create-project-core-flow',
+      'entry-intent-landing',
+      'workspace-creation-as-os',
+      'tagro-intent-intake',
+      'festag-os-vs-workspace',
+      'overview-tagro-core-interface',
+    ],
+  },
+  {
     version: '3.6',
     title: 'Tagro Intent Intake',
     summary:

@@ -363,206 +363,221 @@ export default function WorkspaceCreateWizardModal() {
           >
             {/* Slide: Name */}
             <section className="wc-os-slide" aria-hidden={step !== 'name'}>
-              <div id="wc-os-title" className="wc-os-hero">
-                <AuthGlassyHero
-                  animKey="wc-name"
-                  lead={COPY.nameTitle}
-                  rest={COPY.nameTitleRest}
-                  className="mob-glassy-h1"
-                  instant={step !== 'name'}
-                />
-              </div>
-              <div className="wc-form">
-                <div className="wc-field-wrap">
-                  <div
-                    className={[
-                      'wc-field-shell',
-                      hasName ? 'has-value' : '',
-                      fieldFocused ? 'is-focused' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-                    <input
-                      ref={inputRef}
-                      id="wc-os-name"
-                      className={`wc-field-input${hasName ? '' : ' is-empty'}`}
-                      type="text"
-                      value={workspaceName}
-                      onChange={(e) => {
-                        setError('')
-                        setWorkspaceName(e.target.value)
-                      }}
-                      onFocus={() => setFieldFocused(true)}
-                      onBlur={() => setFieldFocused(false)}
-                      placeholder=""
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="words"
-                      spellCheck={false}
-                      maxLength={64}
-                      aria-invalid={availability === 'taken' || availability === 'invalid'}
-                      aria-label={`${COPY.nameLabel}, z. B. ${COPY.namePlaceholder}`}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && nameReady) {
-                          e.preventDefault()
-                          goUseSlide()
-                        }
-                      }}
-                    />
-                    {!hasName ? (
-                      <span aria-hidden className="wc-field-example">
-                        {COPY.namePlaceholder}
-                      </span>
-                    ) : null}
-                    {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
-                    {availability === 'checking' && displayName ? (
-                      <UsernameCheckBadge status="checking" title="Wird geprüft…" />
-                    ) : availability === 'available' && displayName ? (
-                      <UsernameCheckBadge status="available" title="Verfügbar" />
-                    ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
-                      <UsernameCheckBadge status="taken" title={availabilityMsg || 'Vergeben'} />
-                    ) : null}
-                  </div>
-                  <div className={`wc-domain${displayName ? ' is-ready' : ''}`}>
-                    <span className="wc-domain-label">{COPY.domainLabel}</span>
-                    <span className="wc-subdomain" aria-live="polite">
-                      {subdomain}
-                    </span>
-                    <p className="wc-domain-hint">{COPY.domainHint}</p>
-                  </div>
-                  <p className="wc-hobby-hint">{COPY.hobbyHint}</p>
-                </div>
-                {error && step === 'name' ? <p className="wc-error">{error}</p> : null}
-                <div className="wc-continue-slot">
-                  <ContinueHint
-                    ready={nameReady}
-                    label={COPY.continue}
-                    onContinue={goUseSlide}
+              <div className="wc-os-stage">
+                <div id="wc-os-title" className="wc-os-hero">
+                  <AuthGlassyHero
+                    animKey="wc-name"
+                    lead={COPY.nameTitle}
+                    rest={COPY.nameTitleRest}
+                    className="mob-glassy-h1"
+                    instant={step !== 'name'}
                   />
+                </div>
+                <div className="wc-form">
+                  <div className="wc-form-body">
+                    <div className="wc-field-wrap">
+                      <div
+                        className={[
+                          'wc-field-shell',
+                          hasName ? 'has-value' : '',
+                          fieldFocused ? 'is-focused' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                      >
+                        <input
+                          ref={inputRef}
+                          id="wc-os-name"
+                          className={`wc-field-input${hasName ? '' : ' is-empty'}`}
+                          type="text"
+                          value={workspaceName}
+                          onChange={(e) => {
+                            setError('')
+                            setWorkspaceName(e.target.value)
+                          }}
+                          onFocus={() => setFieldFocused(true)}
+                          onBlur={() => setFieldFocused(false)}
+                          placeholder=""
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="words"
+                          spellCheck={false}
+                          maxLength={64}
+                          aria-invalid={availability === 'taken' || availability === 'invalid'}
+                          aria-label={`${COPY.nameLabel}, z. B. ${COPY.namePlaceholder}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && nameReady) {
+                              e.preventDefault()
+                              goUseSlide()
+                            }
+                          }}
+                        />
+                        {!hasName ? (
+                          <span aria-hidden className="wc-field-example">
+                            {COPY.namePlaceholder}
+                          </span>
+                        ) : null}
+                        {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
+                        {availability === 'checking' && displayName ? (
+                          <UsernameCheckBadge status="checking" title="Wird geprüft…" />
+                        ) : availability === 'available' && displayName ? (
+                          <UsernameCheckBadge status="available" title="Verfügbar" />
+                        ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
+                          <UsernameCheckBadge status="taken" title={availabilityMsg || 'Vergeben'} />
+                        ) : null}
+                      </div>
+                      <div className={`wc-domain${displayName ? ' is-ready' : ''}`}>
+                        <span className="wc-domain-label">{COPY.domainLabel}</span>
+                        <span className="wc-subdomain" aria-live="polite">
+                          {subdomain}
+                        </span>
+                        <p className="wc-domain-hint">{COPY.domainHint}</p>
+                      </div>
+                      <p className="wc-hobby-hint">{COPY.hobbyHint}</p>
+                    </div>
+                    {error && step === 'name' ? <p className="wc-error">{error}</p> : null}
+                  </div>
+                  <div className="wc-continue-slot">
+                    <ContinueHint
+                      ready={nameReady}
+                      label={COPY.continue}
+                      onContinue={goUseSlide}
+                    />
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* Slide: Use */}
             <section className="wc-os-slide" aria-hidden={step !== 'use'}>
-              <div className="wc-os-hero">
-                <AuthGlassyHero
-                  animKey="wc-use"
-                  lead={COPY.useSlideTitle}
-                  rest={COPY.useSlideRest}
-                  className="mob-glassy-h1"
-                  instant={step !== 'use'}
-                />
-              </div>
-              <div className="wc-form">
-                <div className="wc-ws-list" role="listbox" aria-label={COPY.useTitle}>
-                  {WORKSPACE_USE_CASES.map((card, i) => {
-                    const on = useCase === card.id
-                    return (
-                      <div
-                        key={card.id}
-                        role="option"
-                        aria-selected={on}
-                        tabIndex={0}
-                        className={`wc-ws-row${on ? ' is-on' : ''}`}
-                        style={{ ['--i' as string]: i }}
-                        onClick={() => {
-                          setError('')
-                          setUseCase(card.id)
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            setUseCase(card.id)
-                          }
-                        }}
-                      >
-                        <span className="wc-ws-card-copy">
-                          <span className="wc-ws-card-title">{card.title}</span>
-                          <span className="wc-ws-card-body">{card.description}</span>
-                        </span>
-                        <FestagToggle
-                          on={on}
-                          label={`${card.title} auswählen`}
-                          stopPropagation
-                          onChange={() => setUseCase(card.id)}
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
-                {error && step === 'use' ? <p className="wc-error">{error}</p> : null}
-                <div className="wc-continue-slot">
-                  <ContinueHint
-                    ready={canCreate}
-                    label={COPY.continue}
-                    onContinue={() => void startCreate()}
+              <div className="wc-os-stage">
+                <div className="wc-os-hero">
+                  <AuthGlassyHero
+                    animKey="wc-use"
+                    lead={COPY.useSlideTitle}
+                    rest={COPY.useSlideRest}
+                    className="mob-glassy-h1"
+                    instant={step !== 'use'}
                   />
+                </div>
+                <div className="wc-form">
+                  <div className="wc-form-body">
+                    <div className="wc-ws-list" role="listbox" aria-label={COPY.useTitle}>
+                      {WORKSPACE_USE_CASES.map((card, i) => {
+                        const on = useCase === card.id
+                        return (
+                          <div
+                            key={card.id}
+                            role="option"
+                            aria-selected={on}
+                            tabIndex={0}
+                            className={`wc-ws-row${on ? ' is-on' : ''}`}
+                            style={{ ['--i' as string]: i }}
+                            onClick={() => {
+                              setError('')
+                              setUseCase(card.id)
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                setUseCase(card.id)
+                              }
+                            }}
+                          >
+                            <span className="wc-ws-card-copy">
+                              <span className="wc-ws-card-title">{card.title}</span>
+                              <span className="wc-ws-card-body">{card.description}</span>
+                            </span>
+                            <FestagToggle
+                              on={on}
+                              label={`${card.title} auswählen`}
+                              stopPropagation
+                              onChange={() => setUseCase(card.id)}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {error && step === 'use' ? <p className="wc-error">{error}</p> : null}
+                  </div>
+                  <div className="wc-continue-slot">
+                    <ContinueHint
+                      ready={canCreate}
+                      label={COPY.continue}
+                      onContinue={() => void startCreate()}
+                    />
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* Slide: Creating */}
             <section className="wc-os-slide" aria-hidden={step !== 'creating'}>
-              <div className="wc-os-hero">
-                <AuthGlassyHero
-                  animKey="wc-creating"
-                  lead={COPY.creatingTitle}
-                  className="mob-glassy-h1"
-                  instant={step !== 'creating'}
-                />
+              <div className="wc-os-stage">
+                <div className="wc-os-hero">
+                  <AuthGlassyHero
+                    animKey="wc-creating"
+                    lead={COPY.creatingTitle}
+                    className="mob-glassy-h1"
+                    instant={step !== 'creating'}
+                  />
+                </div>
+                <ul className="wc-creating-lines">
+                  {COPY.creatingLines.map((line, i) => (
+                    <li
+                      key={line}
+                      className={`wc-creating-line${creatingVisible > i ? ' is-on' : ''}`}
+                    >
+                      <span className="wc-creating-dot" aria-hidden="true" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="wc-creating-lines">
-                {COPY.creatingLines.map((line, i) => (
-                  <li
-                    key={line}
-                    className={`wc-creating-line${creatingVisible > i ? ' is-on' : ''}`}
-                  >
-                    <span className="wc-creating-dot" aria-hidden="true" />
-                    {line}
-                  </li>
-                ))}
-              </ul>
             </section>
 
             {/* Slide: Welcome */}
             <section className="wc-os-slide" aria-hidden={step !== 'welcome'}>
-              <div className="wc-os-hero">
-                <AuthGlassyHero
-                  animKey="wc-welcome"
-                  lead={COPY.welcomeReady}
-                  className="mob-glassy-h1"
-                  instant={step !== 'welcome'}
-                />
-              </div>
-              {displayName ? (
-                <div className="wc-welcome-domain" aria-live="polite">
-                  <p className="wc-welcome-domain-lead">{COPY.welcomeDomainLead}</p>
-                  <p className="wc-welcome-domain-url">{workspaceSubdomainPreview(displayName)}</p>
-                  <p className="wc-domain-hint">{COPY.domainHint}</p>
+              <div className="wc-os-stage">
+                <div className="wc-os-hero">
+                  <AuthGlassyHero
+                    animKey="wc-welcome"
+                    lead={COPY.welcomeReady}
+                    className="mob-glassy-h1"
+                    instant={step !== 'welcome'}
+                  />
                 </div>
-              ) : null}
+                {displayName ? (
+                  <div className="wc-welcome-domain" aria-live="polite">
+                    <p className="wc-welcome-domain-lead">{COPY.welcomeDomainLead}</p>
+                    <p className="wc-welcome-domain-url">{workspaceSubdomainPreview(displayName)}</p>
+                    <p className="wc-domain-hint">{COPY.domainHint}</p>
+                  </div>
+                ) : null}
+              </div>
             </section>
 
             {/* Slide: Plan gate */}
             <section className="wc-os-slide" aria-hidden={step !== 'plan'}>
-              <div className="wc-os-hero">
-                <AuthGlassyHero
-                  animKey="wc-plan"
-                  lead={COPY.additionalTitle}
-                  rest={COPY.additionalBody}
-                  className="mob-glassy-h1"
-                  instant={step !== 'plan'}
-                />
-              </div>
-              <div className="wc-plan">
-                <div className="wc-continue-slot">
-                  <ContinueHint
-                    ready
-                    label={COPY.additionalBack}
-                    onContinue={closeWizard}
+              <div className="wc-os-stage">
+                <div className="wc-os-hero">
+                  <AuthGlassyHero
+                    animKey="wc-plan"
+                    lead={COPY.additionalTitle}
+                    rest={COPY.additionalBody}
+                    className="mob-glassy-h1"
+                    instant={step !== 'plan'}
                   />
+                </div>
+                <div className="wc-form">
+                  <div className="wc-form-body wc-plan" />
+                  <div className="wc-continue-slot">
+                    <ContinueHint
+                      ready
+                      label={COPY.additionalBack}
+                      onContinue={closeWizard}
+                    />
+                  </div>
                 </div>
               </div>
             </section>
@@ -581,8 +596,11 @@ const WIZARD_CSS = `
   --mob-muted: #8891a0;
   --mob-primary: #5B647D;
   --mob-caret: #5B647D;
+  /* Idle: thin primary blue · Focus: slightly thicker primary */
   --mob-stroke-idle: 1px;
-  --mob-stroke-focus: 1px;
+  --mob-stroke-focus: 1.5px;
+  --mob-stroke-idle-color: rgba(91, 100, 125, 0.38);
+  --mob-stroke-focus-color: #5B647D;
   --mob-card-bg-on: #FFFFFF;
   --mob-control-h: 46px;
   --mob-field-radius: 4px;
@@ -594,9 +612,18 @@ const WIZARD_CSS = `
   --wc-wash-bottom: #F3EFE4;
   --wc-mark-filter: brightness(0) saturate(100%);
   --wc-mark-opacity: 0.9;
-  --wc-gutter: 32px;
-  --wc-content-max: 480px;
-  --wc-panel-radius: 12px;
+  /* Shared slide stack — same padding + hero rhythm on every slide */
+  --wc-pad-x: 44px;
+  --wc-pad-top: 8px;
+  --wc-pad-bottom: 28px;
+  --wc-stack-gap: 22px;
+  --wc-hero-lh: 34px;
+  --wc-hero-lines: 2;
+  --wc-hero-stack-h: calc(var(--wc-hero-lines) * var(--wc-hero-lh));
+  --wc-gutter: var(--wc-pad-x);
+  --wc-content-max: 100%;
+  --wc-panel-radius: 14px;
+  --wc-panel-w: 520px;
 
   position: fixed;
   inset: 0;
@@ -636,8 +663,9 @@ const WIZARD_CSS = `
 .wc-os-panel {
   position: relative;
   z-index: 1;
-  width: min(100%, 560px);
-  max-height: min(900px, calc(100dvh - 48px));
+  width: min(100%, var(--wc-panel-w));
+  height: auto;
+  max-height: min(88dvh, 760px);
   display: flex;
   flex-direction: column;
   border-radius: var(--wc-panel-radius);
@@ -673,6 +701,8 @@ const WIZARD_CSS = `
   --mob-ink: rgba(245, 245, 247, 0.96);
   --mob-muted: rgba(245, 245, 247, 0.55);
   --mob-card-bg-on: rgba(186, 194, 210, 0.1);
+  --mob-stroke-idle-color: rgba(91, 100, 125, 0.55);
+  --mob-stroke-focus-color: #5B647D;
   --wc-canvas: #0C0D12;
   --wc-panel: #12141C;
   --wc-wash-top: #151822;
@@ -698,7 +728,7 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px 8px;
+  padding: 20px var(--wc-pad-x) 4px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -771,7 +801,7 @@ const WIZARD_CSS = `
 }
 
 .wc-os-viewport {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
   width: 100%;
   overflow: hidden;
@@ -779,8 +809,9 @@ const WIZARD_CSS = `
 
 .wc-os-track {
   display: flex;
+  align-items: stretch;
   width: 100%;
-  height: 100%;
+  /* Height = tallest slide → all slides share the same stack height */
   transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
@@ -790,13 +821,14 @@ const WIZARD_CSS = `
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 12px var(--wc-gutter) 32px;
+  padding: var(--wc-pad-top) var(--wc-pad-x) var(--wc-pad-bottom);
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  min-height: 420px;
+  /* No forced tall min-height — hug content; stretch to tallest sibling via track */
+  min-height: 0;
 }
 
 .wc-os-stage {
@@ -805,18 +837,19 @@ const WIZARD_CSS = `
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 100%;
+  box-sizing: border-box;
 }
 
-/* Glassy H1 — same metrics as onboarding */
+/* Glassy H1 — locked line metrics for every slide */
 .wc-os .al-glassy-hero.mob-glassy-h1 {
-  --al-hero-display-size: 26px;
-  --al-hero-display-lh: 32px;
+  --al-hero-display-size: 28px;
+  --al-hero-display-lh: var(--wc-hero-lh);
   margin: 0;
   max-width: 100%;
-  font-size: 26px !important;
-  line-height: 32px !important;
+  font-size: 28px !important;
+  line-height: var(--wc-hero-lh) !important;
   letter-spacing: var(--auth-tracking-display) !important;
   font-weight: 400 !important;
   font-family: Aeonik, system-ui, sans-serif;
@@ -830,27 +863,33 @@ const WIZARD_CSS = `
 }
 .wc-os .al-glassy-hero--stacked .al-glassy-hero-line {
   display: block;
-  line-height: 32px;
-  min-height: 32px;
+  line-height: var(--wc-hero-lh);
+  min-height: var(--wc-hero-lh);
 }
 .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword {
-  height: 32px;
-  line-height: 32px;
+  height: var(--wc-hero-lh);
+  line-height: var(--wc-hero-lh);
   vertical-align: top;
   padding: 0;
   margin: 0;
 }
 .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword-inner {
-  height: 32px;
-  line-height: 32px;
+  height: var(--wc-hero-lh);
+  line-height: var(--wc-hero-lh);
 }
 
 .wc-os-hero {
-  margin-bottom: 22px;
+  flex-shrink: 0;
+  min-height: var(--wc-hero-stack-h);
+  margin: 0 0 var(--wc-stack-gap);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .wc-plan {
   width: 100%;
+  min-height: 0;
 }
 
 
@@ -861,7 +900,7 @@ const WIZARD_CSS = `
 .wc-field-wrap {
   position: relative;
   width: 100%;
-  margin-bottom: 22px;
+  margin-bottom: 0;
 }
 
 .wc-field-shell {
@@ -872,31 +911,32 @@ const WIZARD_CSS = `
   height: var(--mob-control-h);
   padding: 0 40px 0 16px;
   border-radius: var(--mob-field-radius);
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.10) !important;
+  border: var(--mob-stroke-idle) solid var(--mob-stroke-idle-color) !important;
   background: transparent;
   box-sizing: border-box;
   transition: border-color .18s ease, border-width .18s ease;
 }
 
 .wc-field-shell:hover {
-  border-color: rgba(30, 30, 32, 0.14) !important;
+  border-color: rgba(91, 100, 125, 0.55) !important;
 }
 
 .wc-field-shell.has-value,
 .wc-field-shell.is-focused {
   border-width: var(--mob-stroke-focus) !important;
-  border-color: var(--mob-primary) !important;
+  border-color: var(--mob-stroke-focus-color) !important;
 }
 
 .wc-os[data-theme="dark"] .wc-field-shell {
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--mob-stroke-idle-color) !important;
 }
 .wc-os[data-theme="dark"] .wc-field-shell:hover {
-  border-color: rgba(255, 255, 255, 0.20) !important;
+  border-color: rgba(91, 100, 125, 0.72) !important;
 }
 .wc-os[data-theme="dark"] .wc-field-shell.has-value,
 .wc-os[data-theme="dark"] .wc-field-shell.is-focused {
-  border-color: var(--mob-primary) !important;
+  border-width: var(--mob-stroke-focus) !important;
+  border-color: var(--mob-stroke-focus-color) !important;
 }
 
 .wc-field-input {
@@ -1139,9 +1179,19 @@ const WIZARD_CSS = `
 
 .wc-form {
   width: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   animation: wcFormIn 0.45s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.wc-form-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 @keyframes wcFormIn {
@@ -1149,11 +1199,13 @@ const WIZARD_CSS = `
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
+/* CTA sits at the bottom of every slide stack — no dead air under the button */
 .wc-continue-slot {
+  flex-shrink: 0;
   min-height: var(--mob-control-h);
-  margin-top: 28px;
+  margin-top: auto;
+  padding-top: var(--wc-stack-gap);
   width: 100%;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ContinueHint — same as onboarding Weiter */
@@ -1324,7 +1376,7 @@ const WIZARD_CSS = `
   resize: none !important;
   padding: 12px 16px;
   border-radius: var(--mob-field-radius);
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.10) !important;
+  border: var(--mob-stroke-idle) solid var(--mob-stroke-idle-color) !important;
   background: transparent;
   color: var(--mob-ink);
   font-size: 15.5px;
@@ -1336,11 +1388,12 @@ const WIZARD_CSS = `
 }
 
 .wc-os[data-theme="dark"] .wc-textarea {
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--mob-stroke-idle-color) !important;
 }
 
 .wc-textarea:focus {
-  border-color: var(--mob-primary) !important;
+  border-width: var(--mob-stroke-focus) !important;
+  border-color: var(--mob-stroke-focus-color) !important;
 }
 
 .wc-invite-tabs {
@@ -1463,9 +1516,14 @@ const WIZARD_CSS = `
 /* ── Mobile — bottom sheet ── */
 @media (max-width: 768px) {
   .wc-os {
-    --wc-gutter: 18px;
+    --wc-pad-x: 24px;
+    --wc-pad-top: 6px;
+    --wc-pad-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    --wc-stack-gap: 18px;
+    --wc-hero-lh: 30px;
     --wc-content-max: 100%;
     --wc-panel-radius: 16px;
+    --wc-panel-w: 100%;
     align-items: flex-end;
     justify-content: stretch;
     padding: 0;
@@ -1474,7 +1532,7 @@ const WIZARD_CSS = `
   .wc-os-panel {
     width: 100%;
     max-width: none;
-    max-height: min(94dvh, 940px);
+    max-height: min(92dvh, 940px);
     border-radius: var(--wc-panel-radius) var(--wc-panel-radius) 0 0;
     border-left: none;
     border-right: none;
@@ -1513,48 +1571,37 @@ const WIZARD_CSS = `
   }
 
   .wc-os-header {
-    padding: 4px 12px 2px;
+    padding: 4px var(--wc-pad-x) 2px;
+  }
+
+  .wc-os-viewport {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .wc-os-track {
+    height: 100%;
   }
 
   .wc-os-slide {
-    min-height: 0;
     height: 100%;
-    padding: 4px var(--wc-gutter) 0;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+    padding: var(--wc-pad-top) var(--wc-pad-x) var(--wc-pad-bottom);
+  }
+
+  .wc-os-stage {
+    min-height: 100%;
   }
 
   .wc-os-hero {
-    margin-bottom: 16px;
-    flex-shrink: 0;
+    margin-bottom: var(--wc-stack-gap);
   }
 
   .wc-os .al-glassy-hero.mob-glassy-h1 {
     font-size: 24px !important;
-    line-height: 30px !important;
+    line-height: var(--wc-hero-lh) !important;
     --al-hero-display-size: 24px;
-    --al-hero-display-lh: 30px;
-  }
-
-  .wc-os .al-glassy-hero--stacked .al-glassy-hero-line,
-  .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword,
-  .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword-inner {
-    height: 30px;
-    line-height: 30px;
-    min-height: 30px;
-  }
-
-  .wc-form {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    margin-top: 0;
-    padding-bottom: 0;
-  }
-
-  .wc-field-wrap {
-    flex-shrink: 0;
+    --al-hero-display-lh: var(--wc-hero-lh);
   }
 
   .wc-ws-list {
@@ -1587,12 +1634,8 @@ const WIZARD_CSS = `
   }
 
   .wc-continue-slot {
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
     margin-top: auto;
-    padding-top: 12px;
-    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    padding-top: 14px;
     background: linear-gradient(
       180deg,
       transparent 0%,
@@ -1610,49 +1653,23 @@ const WIZARD_CSS = `
 
   .wc-creating-lines {
     margin-top: 8px;
-    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
   }
 
-  .wc-welcome-domain {
-    padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
-  }
-
-  .wc-plan .wc-continue-slot {
-    margin-top: 20px;
-  }
-
-  /* Keyboard: keep sheet in the visual viewport without page scroll */
   .wc-os-panel {
-    max-height: min(94dvh, 100svh);
+    max-height: min(92dvh, 100svh);
   }
 }
 
 @media (min-width: 769px) {
   .wc-os {
-    --wc-gutter: 28px;
-    --wc-content-max: 400px;
-  }
-  .wc-os-panel {
-    width: min(100%, 460px);
-  }
-  .wc-os-header {
-    padding: 14px 16px 6px;
+    --wc-pad-x: 44px;
+    --wc-pad-top: 8px;
+    --wc-pad-bottom: 28px;
+    --wc-hero-lh: 34px;
+    --wc-panel-w: 520px;
   }
   .wc-os-grip {
     display: none !important;
-  }
-  .wc-os .al-glassy-hero.mob-glassy-h1 {
-    font-size: 28px !important;
-    line-height: 34px !important;
-    --al-hero-display-size: 28px;
-    --al-hero-display-lh: 34px;
-  }
-  .wc-os .al-glassy-hero--stacked .al-glassy-hero-line,
-  .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword,
-  .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword-inner {
-    height: 34px;
-    line-height: 34px;
-    min-height: 34px;
   }
 }
 `

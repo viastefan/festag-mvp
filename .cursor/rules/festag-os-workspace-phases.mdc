@@ -1,18 +1,20 @@
 ---
-description: Festag OS vs Workspace phases — freeze Phase 1 before wizard/dashboard
+description: Festag OS vs Workspace phases — Create Project before Overview polish
 alwaysApply: true
 ---
 
 # Festag OS · Workspace Phases (locked foundation)
+
+**Create Project law:** `docs/festag-create-project-flow.md` · Architecture Memory v3.7
 
 ## Two product modes
 
 | Mode | When | Product name | Surfaces |
 |---|---|---|---|
 | **Festag OS** | No workspace yet | Account-level OS | Overview, Docs, Product Tour, Settings, Profile, empty module states, Create Workspace CTA |
-| **Festag Workspace** | ≥1 workspace | Workspace operating system | Projects, Tasks, Documents, Activity, Tagro, Team, Decisions, Health |
+| **Festag Workspace** | ≥1 workspace | Workspace operating system | Projects first; Overview aggregates only when projects exist; Tagro, Team, Decisions, Health |
 
-Do **not** mix these. Without a workspace the app explains Festag and the next step (create a workspace). With a workspace the app becomes the operating system for that workspace.
+Do **not** mix these. Without a workspace the app explains Festag and the next step (create a workspace). With a workspace and zero projects → **Create Project**. With projects → workspace OS + honest Overview.
 
 ## Phase freeze (build order)
 
@@ -27,25 +29,35 @@ Ship in this order — do not invent ahead:
    Create Workspace → Name (+ subdomain)
    → How will you use this?
    → Creating… → Ready (short)
-   → Overview
+   → Create your first project (if zero projects)
    ```
    Use-case cards (jobs, not categories): Build for Clients · Run an Agency · Build a Product · Internal Team.  
    **No module picker** in the wizard — templates configure defaults; Modules live in Settings later.  
    **First workspace free (Hobby)** — never mention €19 here. Additional workspaces → Workspace Plan (€19/month).  
-  **No first-project step in the wizard.** „Neues Projekt“ opens later as darkened `NewProjectModal` (Tagro Intent Intake: one input → draft → confirm).  
-  Code: `lib/platform/workspace-creation.ts` · `lib/new-project-open.ts` · `lib/tagro/intent-intake.ts` · `WorkspaceCreateWizardModal` · `AppShellNewProjectHost` · `NewProjectModal` · `lib/workspace-create-open.ts`
+   **No first-project / invite inside wizard slides.** Immediate follow-on after Ready = Create Project.  
+   Code: `lib/platform/workspace-creation.ts` · `lib/workspace-create-open.ts` · `WorkspaceCreateWizardModal`
    Legacy `/create-workspace` → `/overview?create=1`
-3. **Phase 3 — Workspace Dashboard**  
-   Tagro Briefing, Projects, Activity, Decisions, Health, Team — only after a workspace exists.
+3. **Phase 2b — Create Project Core Flow (locked next)**  
+   Name + optional description → Tagro real prepare → draft → human confirms → optional invite → open project.  
+   Later: `openNewProject()` / Intent Intake freestyle.  
+   Doc: `docs/festag-create-project-flow.md` · `lib/tagro/intent-intake.ts` · `NewProjectModal`
+4. **Phase 3 — Workspace Overview**  
+   Tagro Briefing, Projects, Activity, Decisions, Health, Team — only after real projects exist. Do not polish empty aggregation first.
 
-Page-by-page after Phase 1: Overview → Wizard → Workspace Dashboard → Projects → Project Detail → Tasks → Tagro → Documents → Team.
+Page-by-page: Overview (OS) → Wizard → Create Project → Project view → Invite → Workspace Overview (later).
+
+## Entry Intent (landing)
+
+Intention of invite/registration controls first room — not role.  
+Project invite → project. Zero projects after Ready → Create Project. Own project create → project. Workspace invite → Workspace Overview. No workspace → Festag OS Overview.
 
 ## Overview (not “Home”)
 
 The primary rail item is **Overview** (`/overview`).
 
 - Without workspace: welcome + Create Workspace + explainer cards.
-- With workspace: same menu label — pending invitations + Tagro briefing, health, projects, activity.
+- Workspace, zero projects: push Create Project — do not fake briefing theater.
+- With projects: pending invitations + Tagro briefing, health, projects, activity.
 
 Never rename the menu when a workspace appears. Legacy `/home` redirects to `/overview`.
 
@@ -59,7 +71,8 @@ Never rename the menu when a workspace appears. Legacy `/home` redirects to `/ov
 ## Gate before coding
 
 1. Does this belong to Festag OS (no workspace) or Festag Workspace?
-2. Are we still in Phase 1 freeze — or has Phase 2/3 been explicitly started?
+2. Are we building Create Project before Overview polish?
 3. Would this force a later nav rename? Prefer Overview-stable labels.
-4. Fake dashboards / KPIs / charts without a workspace? → stop.
-5. After workspace create — land on Overview; open projects only via Tagro „Neues Projekt“ popup (never force first-project inside the wizard).
+4. Fake dashboards / KPIs / charts without projects? → stop.
+5. After workspace Ready with zero projects → Create Project (never empty Overview dump; never force project/invite inside wizard slides).
+6. After project create → land in project. Entry Intent > Role for first landing.

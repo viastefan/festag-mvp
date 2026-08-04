@@ -1,4 +1,8 @@
-/** Open Festag OS / Workspace „Neues Projekt“ popup (Tagro Intent Intake). */
+/**
+ * Open Create Project / „Neues Projekt“ (Tagro Intent Intake).
+ * First project after Workspace Ready: name + optional description → draft → confirm → project.
+ * Later: freestyle intake. Architecture v3.7 — docs/festag-create-project-flow.md
+ */
 
 export const OPEN_NEW_PROJECT_EVENT = 'festag:open-new-project'
 export const PROJECT_CREATED_EVENT = 'festag:project-created'
