@@ -1151,149 +1151,214 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 
 /* ── Tagro Living Core ── */
 .tlc {
+  --tlc-edge: rgba(91, 100, 125, 0.28);
+  --tlc-warm: rgba(180, 110, 90, 0.32);
   --tlc-ink: rgba(30, 30, 32, 0.55);
-  --tlc-edge: rgba(91, 100, 125, 0.22);
-  --tlc-pulse: rgba(91, 100, 125, 0.35);
-  --tlc-warm: rgba(180, 110, 90, 0.28);
   position: relative;
-  width: min(420px, 100%);
-  aspect-ratio: 400 / 280;
+  width: min(460px, 100%);
+  aspect-ratio: 400 / 300;
   margin: 0 auto;
   display: grid;
   place-items: center;
   overflow: visible;
 }
-.tlc-glow {
+.tlc-aura {
   position: absolute;
-  inset: 12% 18%;
+  inset: 8% 12%;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(91, 100, 125, 0.10), transparent 68%);
+  background:
+    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.55), transparent 42%),
+    radial-gradient(ellipse at 50% 55%, rgba(91, 100, 125, 0.14), transparent 70%);
   pointer-events: none;
-  animation: tlcBreathe 7.5s ease-in-out infinite;
+  filter: blur(2px);
+  animation: tlcAura 8s ease-in-out infinite;
+}
+.tlc-aura--soft {
+  inset: 18% 22%;
+  opacity: 0.7;
+  animation-duration: 11s;
+  animation-direction: reverse;
+  background: radial-gradient(ellipse at center, rgba(186, 194, 210, 0.18), transparent 72%);
 }
 .tlc-svg {
   width: 100%;
   height: 100%;
   overflow: visible;
 }
-.tlc-edge {
-  stroke: var(--tlc-edge);
+.tlc-guide {
+  animation: tlcSpin 48s linear infinite;
+  transform-box: fill-box;
+}
+.tlc-guide-ring {
+  fill: none;
+  stroke: rgba(91, 100, 125, 0.08);
   stroke-width: 1;
+  stroke-dasharray: 3 10;
+}
+.tlc-guide-ring--inner {
+  stroke: rgba(91, 100, 125, 0.06);
+  stroke-dasharray: 2 8;
+  animation: tlcSpin 36s linear infinite reverse;
+  transform-origin: 200px 148px;
+  transform-box: fill-box;
+}
+.tlc-edge {
+  stroke-width: 1.1;
   stroke-linecap: round;
+  opacity: 0.7;
+}
+.tlc-edge.is-spoke {
+  stroke-width: 1.15;
   opacity: 0.85;
-  animation: tlcEdgeFlow 8s ease-in-out infinite;
+}
+.tlc-edge.is-ring {
+  stroke-width: 0.9;
+  opacity: 0.45;
+  stroke-dasharray: 2 6;
+}
+.tlc-particle {
+  fill: rgba(91, 100, 125, 0.55);
+  filter: blur(0.2px);
+}
+.tlc-node-halo {
+  fill: rgba(91, 100, 125, 0.1);
+  animation: tlcHalo 3.6s ease-in-out infinite;
+}
+.tlc-node-g.is-risk .tlc-node-halo {
+  fill: rgba(180, 110, 90, 0.16);
+}
+.tlc-node-g.is-attention .tlc-node-halo {
+  fill: rgba(91, 100, 125, 0.16);
 }
 .tlc-node {
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: tlcFloat 9s ease-in-out infinite;
+  transition: r 0.25s ease;
 }
-.tlc-orbit-1 { animation-delay: 0s; }
-.tlc-orbit-2 { animation-delay: -1.1s; }
-.tlc-orbit-3 { animation-delay: -2.2s; }
-.tlc-orbit-4 { animation-delay: -3.0s; }
-.tlc-orbit-5 { animation-delay: -4.1s; }
-.tlc-orbit-6 { animation-delay: -5.2s; }
-.tlc-orbit-7 { animation-delay: -6.0s; }
-.tlc-orbit-8 { animation-delay: -7.1s; }
-.tlc-core {
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: tlcCoreBreath 5.5s ease-in-out infinite;
+.tlc-node-g.is-hot .tlc-node {
+  filter: brightness(1.08);
+}
+.tlc-core-halo {
+  fill: rgba(91, 100, 125, 0.08);
+  animation: tlcCoreHalo 5.5s ease-in-out infinite;
 }
 .tlc-core-ring {
   fill: none;
-  stroke: rgba(91, 100, 125, 0.18);
+  stroke: rgba(91, 100, 125, 0.22);
   stroke-width: 1;
-  animation: tlcRing 6.5s ease-in-out infinite;
+  animation: tlcRing 6s ease-in-out infinite;
+  transform-origin: 200px 148px;
+  transform-box: fill-box;
+}
+.tlc-core-ring--mid {
+  stroke: rgba(91, 100, 125, 0.12);
+  stroke-dasharray: 4 7;
+  animation: tlcSpin 22s linear infinite;
+}
+.tlc-core {
+  transform-origin: 200px 148px;
+  transform-box: fill-box;
+  animation: tlcCoreBreath 5s ease-in-out infinite;
+}
+.tlc-core-spec {
+  fill: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
 }
 
 .tlc[data-state="attention"] {
-  --tlc-edge: rgba(91, 100, 125, 0.32);
-  --tlc-pulse: rgba(91, 100, 125, 0.5);
+  --tlc-edge: rgba(91, 100, 125, 0.4);
 }
-.tlc[data-state="attention"] .tlc-orbit-3,
-.tlc[data-state="attention"] .tlc-orbit-7 {
-  animation: tlcPulseNode 2.8s ease-in-out infinite;
+.tlc[data-state="attention"] .tlc-aura {
+  background:
+    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.5), transparent 42%),
+    radial-gradient(ellipse at 50% 55%, rgba(91, 100, 125, 0.2), transparent 70%);
 }
 .tlc[data-state="blocked"] {
   --tlc-edge: var(--tlc-warm);
 }
-.tlc[data-state="blocked"] .tlc-edge {
-  animation-duration: 14s;
-  opacity: 0.7;
+.tlc[data-state="blocked"] .tlc-aura {
+  background:
+    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.45), transparent 42%),
+    radial-gradient(ellipse at 50% 55%, rgba(180, 110, 90, 0.16), transparent 70%);
 }
-.tlc[data-state="blocked"] .tlc-glow {
-  background: radial-gradient(ellipse at center, rgba(180, 110, 90, 0.12), transparent 68%);
+.tlc[data-state="blocked"] .tlc-particle {
+  fill: rgba(180, 110, 90, 0.55);
 }
-.tlc[data-state="audio"] .tlc-edge,
-.tlc[data-state="speaking"] .tlc-edge {
+.tlc[data-state="audio"] .tlc-edge.is-spoke,
+.tlc[data-state="speaking"] .tlc-edge.is-spoke {
   opacity: 1;
-  animation: tlcEdgeSync 2.4s ease-in-out infinite;
+  stroke-width: 1.35;
 }
-.tlc[data-state="audio"] .tlc-node,
-.tlc[data-state="speaking"] .tlc-node {
-  animation-duration: 3.2s;
+.tlc[data-state="audio"] .tlc-particle,
+.tlc[data-state="speaking"] .tlc-particle {
+  fill: rgba(91, 100, 125, 0.85);
 }
-.tlc[data-state="audio"] .tlc-glow,
-.tlc[data-state="speaking"] .tlc-glow {
-  animation-duration: 3.2s;
-  background: radial-gradient(ellipse at center, rgba(91, 100, 125, 0.18), transparent 68%);
-}
-.tlc[data-state="audio"] .tlc-core-ring,
-.tlc[data-state="speaking"] .tlc-core-ring {
-  stroke: rgba(91, 100, 125, 0.42);
-  animation: tlcRing 2.8s ease-in-out infinite;
+.tlc[data-state="audio"] .tlc-core-halo,
+.tlc[data-state="speaking"] .tlc-core-halo {
+  animation-duration: 2.4s;
 }
 .tlc[data-state="listening"] .tlc-core {
   animation: tlcListen 2.2s ease-in-out infinite;
 }
-.tlc[data-state="listening"] .tlc-glow {
-  animation-duration: 2.4s;
-}
 
 html[data-theme="dark"] .tlc,
 html[data-theme="classic-dark"] .tlc {
-  --tlc-edge: rgba(186, 194, 210, 0.22);
-  --tlc-pulse: rgba(186, 194, 210, 0.4);
-  --tlc-warm: rgba(210, 140, 120, 0.32);
+  --tlc-edge: rgba(186, 194, 210, 0.28);
+  --tlc-warm: rgba(210, 140, 120, 0.36);
 }
-html[data-theme="dark"] .tlc-glow,
-html[data-theme="classic-dark"] .tlc-glow {
-  background: radial-gradient(ellipse at center, rgba(186, 194, 210, 0.08), transparent 68%);
+html[data-theme="dark"] .tlc-aura,
+html[data-theme="classic-dark"] .tlc-aura {
+  background:
+    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.08), transparent 42%),
+    radial-gradient(ellipse at 50% 55%, rgba(186, 194, 210, 0.12), transparent 70%);
+}
+html[data-theme="dark"] .tlc-guide-ring,
+html[data-theme="classic-dark"] .tlc-guide-ring {
+  stroke: rgba(186, 194, 210, 0.1);
+}
+html[data-theme="dark"] .tlc-particle,
+html[data-theme="classic-dark"] .tlc-particle {
+  fill: rgba(186, 194, 210, 0.55);
 }
 
-@keyframes tlcBreathe {
+@keyframes tlcAura {
   0%, 100% { opacity: 0.55; transform: scale(0.96); }
-  50% { opacity: 1; transform: scale(1.04); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+@keyframes tlcSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 @keyframes tlcCoreBreath {
-  0%, 100% { transform: scale(1); opacity: 0.92; }
-  50% { transform: scale(1.06); opacity: 1; }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes tlcCoreHalo {
+  0%, 100% { opacity: 0.45; transform: scale(0.92); }
+  50% { opacity: 0.9; transform: scale(1.08); }
 }
 @keyframes tlcRing {
   0%, 100% { opacity: 0.35; transform: scale(0.96); }
-  50% { opacity: 0.7; transform: scale(1.08); }
+  50% { opacity: 0.75; transform: scale(1.06); }
 }
-@keyframes tlcFloat {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(0, -2.5px); }
-}
-@keyframes tlcPulseNode {
-  0%, 100% { transform: scale(1); opacity: 0.85; }
-  50% { transform: scale(1.22); opacity: 1; }
-}
-@keyframes tlcEdgeFlow {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 0.9; }
-}
-@keyframes tlcEdgeSync {
+@keyframes tlcHalo {
   0%, 100% { opacity: 0.35; }
-  50% { opacity: 1; }
+  50% { opacity: 0.85; }
 }
 @keyframes tlcListen {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  50% { transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tlc-aura,
+  .tlc-guide,
+  .tlc-guide-ring--inner,
+  .tlc-core,
+  .tlc-core-halo,
+  .tlc-core-ring,
+  .tlc-core-ring--mid,
+  .tlc-node-halo {
+    animation: none !important;
+  }
 }
 
 /* ── Tagro Overview (Core Interface) ── */
@@ -1329,7 +1394,7 @@ html[data-theme="classic-dark"] .tlc-glow {
   padding: 12px 12px 8px;
 }
 .fas-tagro-core-wrap {
-  width: min(440px, 94vw);
+  width: min(480px, 96vw);
   position: relative;
 }
 .fas-tagro-core {
