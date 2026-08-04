@@ -1234,8 +1234,21 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 .tlc[data-state="speaking"] .tlc-node {
   animation-duration: 3.2s;
 }
+.tlc[data-state="audio"] .tlc-glow,
+.tlc[data-state="speaking"] .tlc-glow {
+  animation-duration: 3.2s;
+  background: radial-gradient(ellipse at center, rgba(91, 100, 125, 0.18), transparent 68%);
+}
+.tlc[data-state="audio"] .tlc-core-ring,
+.tlc[data-state="speaking"] .tlc-core-ring {
+  stroke: rgba(91, 100, 125, 0.42);
+  animation: tlcRing 2.8s ease-in-out infinite;
+}
 .tlc[data-state="listening"] .tlc-core {
   animation: tlcListen 2.2s ease-in-out infinite;
+}
+.tlc[data-state="listening"] .tlc-glow {
+  animation-duration: 2.4s;
 }
 
 html[data-theme="dark"] .tlc,
@@ -1314,8 +1327,27 @@ html[data-theme="classic-dark"] .tlc-glow {
   gap: 28px;
   padding: 20px 12px 8px;
 }
+.fas-tagro-core-hit {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+}
+.fas-tagro-core-hit:disabled {
+  cursor: default;
+}
+.fas-tagro-core-hit:focus,
+.fas-tagro-core-hit:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
 .fas-tagro-core {
   width: min(380px, 86vw);
+  pointer-events: none;
 }
 .fas-tagro-briefing {
   max-width: 520px;
@@ -1331,6 +1363,8 @@ html[data-theme="classic-dark"] .tlc-glow {
   letter-spacing: -0.03em;
   font-weight: 400;
   color: var(--fas-ink);
+  cursor: default;
+  transition: opacity 0.35s ease, color 0.35s ease;
 }
 .fas-tagro-line {
   margin: 0;
@@ -1338,12 +1372,121 @@ html[data-theme="classic-dark"] .tlc-glow {
   line-height: 1.55;
   letter-spacing: -0.015em;
   color: var(--fas-ink-muted);
+  cursor: default;
+  transition: opacity 0.35s ease, color 0.35s ease;
   animation: fasAssemble 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .fas-tagro-line:nth-child(2) { animation-delay: 0.05s; }
 .fas-tagro-line:nth-child(3) { animation-delay: 0.1s; }
 .fas-tagro-line:nth-child(4) { animation-delay: 0.15s; }
 .fas-tagro-line:nth-child(5) { animation-delay: 0.2s; }
+.fas-tagro.is-audio .fas-tagro-greet,
+.fas-tagro.is-audio .fas-tagro-line {
+  cursor: pointer;
+}
+.fas-tagro-greet.is-dim,
+.fas-tagro-line.is-dim {
+  opacity: 0.34;
+}
+.fas-tagro-greet.is-speaking,
+.fas-tagro-line.is-speaking {
+  opacity: 1;
+  color: var(--fas-ink);
+}
+
+.fas-tagro-audio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 40px;
+  width: min(420px, 100%);
+}
+.fas-tagro-audio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--fas-ink);
+  font: inherit;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: background 0.14s ease, border-color 0.14s ease;
+  white-space: nowrap;
+}
+.fas-tagro-audio-btn:hover {
+  background: #fff;
+}
+.fas-tagro-audio-btn.is-live {
+  border-color: rgba(91, 100, 125, 0.28);
+  background: rgba(91, 100, 125, 0.08);
+}
+.fas-tagro-audio-stop {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  background: transparent;
+  color: var(--fas-ink-muted);
+  cursor: pointer;
+}
+.fas-tagro-audio-stop:hover {
+  color: var(--fas-ink);
+  background: var(--fas-nav-hover);
+}
+.fas-tagro-audio-progress {
+  flex: 1 1 120px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(30, 30, 32, 0.08);
+  overflow: hidden;
+  min-width: 80px;
+}
+.fas-tagro-audio-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(91, 100, 125, 0.55);
+  transition: width 0.2s linear;
+}
+.fas-tagro-audio-fallback {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fas-ink-muted);
+}
+html[data-theme="dark"] .fas-tagro-audio-btn,
+html[data-theme="classic-dark"] .fas-tagro-audio-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+html[data-theme="dark"] .fas-tagro-audio-btn:hover,
+html[data-theme="classic-dark"] .fas-tagro-audio-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+html[data-theme="dark"] .fas-tagro-audio-btn.is-live,
+html[data-theme="classic-dark"] .fas-tagro-audio-btn.is-live {
+  background: rgba(91, 100, 125, 0.2);
+  border-color: rgba(91, 100, 125, 0.4);
+}
+html[data-theme="dark"] .fas-tagro-audio-progress,
+html[data-theme="classic-dark"] .fas-tagro-audio-progress {
+  background: rgba(255, 255, 255, 0.1);
+}
+html[data-theme="dark"] .fas-tagro-audio-stop,
+html[data-theme="classic-dark"] .fas-tagro-audio-stop {
+  border-color: rgba(255, 255, 255, 0.08);
+}
 
 .fas-tagro-nudge {
   margin-top: 4px;

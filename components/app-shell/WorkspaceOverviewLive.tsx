@@ -3,17 +3,18 @@
 /**
  * Festag OS Overview — Tagro is the interface.
  * Living core → briefing → contextual panel → secondary work (projects).
- * Not a KPI dashboard. Not a chat.
+ * Audio briefing syncs the living core (not a chat bubble).
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, X } from '@phosphor-icons/react'
+import { ArrowRight, Headphones, Pause, Play, Square, X } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import TagroLivingCore, {
   deriveTagroLivingState,
   type TagroLivingState,
 } from '@/components/app-shell/TagroLivingCore'
+import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { openNewProject } from '@/lib/new-project-open'
 
 export type OverviewPayload = {
@@ -135,9 +136,24 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
   const [panelOpen, setPanelOpen] = useState(decisions.length > 0)
   const [panelDismissed, setPanelDismissed] = useState(false)
 
+  const paragraphs = useMemo(
+    () => buildBriefingParagraphs(greeting, firstName, data),
+    [greeting, firstName, data],
+  )
+
+  const audio = useStatusReportPlayback({ sentences: paragraphs })
+
   useEffect(() => {
+    if (audio.playing && !audio.paused) {
+      setVizState('audio')
+      return
+    }
+    if (audio.paused) {
+      setVizState('listening')
+      return
+    }
     setVizState(livingState)
-  }, [livingState])
+  }, [audio.playing, audio.paused, livingState])
 
   useEffect(() => {
     if (decisions.length > 0 && !panelDismissed) setPanelOpen(true)
@@ -147,28 +163,95 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
     }
   }, [decisions.length, panelDismissed])
 
-  const paragraphs = useMemo(
-    () => buildBriefingParagraphs(greeting, firstName, data),
-    [greeting, firstName, data],
-  )
   const focusDecision = decisions[0] || null
   const visibleProjects = projects.slice(0, 3)
+  const activeLine = audio.displayActiveIndex
+  const audioLabel = audio.playing && !audio.paused
+    ? 'Pausieren'
+    : audio.paused
+      ? 'Fortsetzen'
+      : 'Briefing anhören'
 
   return (
-    <div className={`fas-tagro${panelOpen && focusDecision ? ' has-panel' : ''}`}>
+    <div className={`fas-tagro${panelOpen && focusDecision ? ' has-panel' : ''}${audio.speaking ? ' is-audio' : ''}`}>
       <OverviewPendingInvites />
 
       <div className="fas-tagro-canvas">
         <section className="fas-tagro-stage" aria-label="Tagro">
-          <TagroLivingCore state={vizState} className="fas-tagro-core" />
+          <button
+            type="button"
+            className={`fas-tagro-core-hit${audio.speaking ? ' is-live' : ''}`}
+            onClick={() => {
+              if (!audio.supported) return
+              audio.toggle()
+            }}
+            aria-label={audio.supported ? audioLabel : 'Audio-Briefing nicht verfügbar'}
+            disabled={!audio.supported || paragraphs.length === 0}
+          >
+            <TagroLivingCore state={vizState} className="fas-tagro-core" />
+          </button>
 
           <div className="fas-tagro-briefing" aria-live="polite">
-            <h1 className="fas-tagro-greet">{paragraphs[0]}</h1>
-            {paragraphs.slice(1).map((line) => (
-              <p key={line} className="fas-tagro-line">
-                {line}
-              </p>
-            ))}
+            {paragraphs.map((line, i) => {
+              const Tag = i === 0 ? 'h1' : 'p'
+              const active = activeLine === i
+              const dim = audio.speaking && activeLine >= 0 && !active
+              return (
+                <Tag
+                  key={`${i}-${line}`}
+                  className={
+                    i === 0
+                      ? `fas-tagro-greet${active ? ' is-speaking' : ''}${dim ? ' is-dim' : ''}`
+                      : `fas-tagro-line${active ? ' is-speaking' : ''}${dim ? ' is-dim' : ''}`
+                  }
+                  onClick={() => {
+                    if (!audio.supported) return
+                    if (audio.speaking) audio.speakFrom(i)
+                  }}
+                >
+                  {line}
+                </Tag>
+              )
+            })}
+          </div>
+
+          <div className="fas-tagro-audio">
+            {audio.supported ? (
+              <>
+                <button
+                  type="button"
+                  className={`fas-tagro-audio-btn${audio.speaking ? ' is-live' : ''}`}
+                  onClick={() => audio.toggle()}
+                  aria-pressed={audio.playing && !audio.paused}
+                >
+                  {audio.playing && !audio.paused ? (
+                    <Pause size={15} weight="fill" />
+                  ) : audio.paused ? (
+                    <Play size={15} weight="fill" />
+                  ) : (
+                    <Headphones size={15} weight="regular" />
+                  )}
+                  <span>{audioLabel}</span>
+                </button>
+                {audio.speaking ? (
+                  <>
+                    <button
+                      type="button"
+                      className="fas-tagro-audio-stop"
+                      onClick={() => audio.stop()}
+                      aria-label="Briefing stoppen"
+                    >
+                      <Square size={12} weight="fill" />
+                    </button>
+                    <div className="fas-tagro-audio-progress" aria-hidden>
+                      <span style={{ width: `${Math.round(audio.progress * 100)}%` }} />
+                    </div>
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <p className="fas-tagro-audio-fallback">Audio-Briefing braucht Browser-Sprachausgabe.</p>
+            )}
           </div>
 
           {summary.pendingDecisions > 0 && !panelOpen ? (
