@@ -1151,34 +1151,27 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 
 /* ── Tagro Living Core ── */
 .tlc {
-  --tlc-edge: rgba(91, 100, 125, 0.28);
-  --tlc-warm: rgba(180, 110, 90, 0.32);
-  --tlc-ink: rgba(30, 30, 32, 0.55);
+  --tlc-edge: rgba(91, 100, 125, 0.16);
+  --tlc-edge-hot: rgba(91, 100, 125, 0.42);
+  --tlc-warm: rgba(180, 110, 90, 0.28);
   position: relative;
-  width: min(460px, 100%);
+  width: min(480px, 100%);
   aspect-ratio: 400 / 300;
   margin: 0 auto;
   display: grid;
   place-items: center;
   overflow: visible;
 }
-.tlc-aura {
+.tlc-field {
   position: absolute;
-  inset: 8% 12%;
+  inset: 6% 10%;
   border-radius: 50%;
   background:
-    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.55), transparent 42%),
-    radial-gradient(ellipse at 50% 55%, rgba(91, 100, 125, 0.14), transparent 70%);
+    radial-gradient(ellipse at 48% 42%, rgba(255,255,255,0.7), transparent 46%),
+    radial-gradient(ellipse at 50% 54%, rgba(91, 100, 125, 0.09), transparent 72%);
   pointer-events: none;
-  filter: blur(2px);
-  animation: tlcAura 8s ease-in-out infinite;
-}
-.tlc-aura--soft {
-  inset: 18% 22%;
-  opacity: 0.7;
-  animation-duration: 11s;
-  animation-direction: reverse;
-  background: radial-gradient(ellipse at center, rgba(186, 194, 210, 0.18), transparent 72%);
+  filter: blur(1px);
+  animation: tlcField 10s ease-in-out infinite;
 }
 .tlc-svg {
   width: 100%;
@@ -1186,177 +1179,135 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   overflow: visible;
 }
 .tlc-guide {
-  animation: tlcSpin 48s linear infinite;
-  transform-box: fill-box;
-}
-.tlc-guide-ring {
   fill: none;
-  stroke: rgba(91, 100, 125, 0.08);
+  stroke: rgba(91, 100, 125, 0.07);
   stroke-width: 1;
-  stroke-dasharray: 3 10;
+  stroke-dasharray: 2 9;
+  pointer-events: none;
 }
-.tlc-guide-ring--inner {
-  stroke: rgba(91, 100, 125, 0.06);
-  stroke-dasharray: 2 8;
-  animation: tlcSpin 36s linear infinite reverse;
-  transform-origin: 200px 148px;
-  transform-box: fill-box;
+.tlc-guide--inner {
+  stroke: rgba(91, 100, 125, 0.05);
+  stroke-dasharray: 1.5 8;
 }
 .tlc-edge {
-  stroke-width: 1.1;
+  stroke: var(--tlc-edge);
+  stroke-width: 1;
   stroke-linecap: round;
-  opacity: 0.7;
+  opacity: 0.9;
+  transition: stroke 0.28s ease, stroke-width 0.28s ease, opacity 0.28s ease;
 }
-.tlc-edge.is-spoke {
-  stroke-width: 1.15;
-  opacity: 0.85;
+.tlc-edge.is-hot {
+  stroke: var(--tlc-edge-hot);
+  stroke-width: 1.35;
+  opacity: 1;
 }
-.tlc-edge.is-ring {
-  stroke-width: 0.9;
-  opacity: 0.45;
-  stroke-dasharray: 2 6;
+.tlc-node-g {
+  transform-box: fill-box;
 }
-.tlc-particle {
-  fill: rgba(91, 100, 125, 0.55);
-  filter: blur(0.2px);
+.tlc-node-shadow {
+  opacity: 0.55;
+  pointer-events: none;
 }
 .tlc-node-halo {
   fill: rgba(91, 100, 125, 0.1);
-  animation: tlcHalo 3.6s ease-in-out infinite;
+  opacity: 0.55;
 }
 .tlc-node-g.is-risk .tlc-node-halo {
-  fill: rgba(180, 110, 90, 0.16);
+  fill: rgba(180, 110, 90, 0.18);
 }
 .tlc-node-g.is-attention .tlc-node-halo {
   fill: rgba(91, 100, 125, 0.16);
 }
-.tlc-node {
-  transition: r 0.25s ease;
+.tlc-node-g.is-hot .tlc-node-halo {
+  opacity: 1;
 }
-.tlc-node-g.is-hot .tlc-node {
-  filter: brightness(1.08);
+.tlc-node-spec,
+.tlc-core-spec {
+  fill: rgba(255, 255, 255, 0.72);
+  pointer-events: none;
 }
 .tlc-core-halo {
-  fill: rgba(91, 100, 125, 0.08);
-  animation: tlcCoreHalo 5.5s ease-in-out infinite;
+  fill: rgba(91, 100, 125, 0.07);
+  animation: tlcCoreHalo 7s ease-in-out infinite;
 }
 .tlc-core-ring {
   fill: none;
-  stroke: rgba(91, 100, 125, 0.22);
+  stroke: rgba(91, 100, 125, 0.16);
   stroke-width: 1;
-  animation: tlcRing 6s ease-in-out infinite;
-  transform-origin: 200px 148px;
-  transform-box: fill-box;
+  animation: tlcRing 8s ease-in-out infinite;
 }
-.tlc-core-ring--mid {
-  stroke: rgba(91, 100, 125, 0.12);
-  stroke-dasharray: 4 7;
-  animation: tlcSpin 22s linear infinite;
-}
-.tlc-core {
-  transform-origin: 200px 148px;
-  transform-box: fill-box;
-  animation: tlcCoreBreath 5s ease-in-out infinite;
-}
-.tlc-core-spec {
-  fill: rgba(255, 255, 255, 0.55);
+.tlc-core-shadow {
+  opacity: 0.65;
   pointer-events: none;
+}
+.tlc-core-g.is-hot .tlc-core-halo {
+  fill: rgba(91, 100, 125, 0.14);
 }
 
 .tlc[data-state="attention"] {
-  --tlc-edge: rgba(91, 100, 125, 0.4);
+  --tlc-edge: rgba(91, 100, 125, 0.22);
+  --tlc-edge-hot: rgba(91, 100, 125, 0.5);
 }
-.tlc[data-state="attention"] .tlc-aura {
+.tlc[data-state="attention"] .tlc-field {
   background:
-    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.5), transparent 42%),
-    radial-gradient(ellipse at 50% 55%, rgba(91, 100, 125, 0.2), transparent 70%);
+    radial-gradient(ellipse at 48% 42%, rgba(255,255,255,0.65), transparent 46%),
+    radial-gradient(ellipse at 50% 54%, rgba(91, 100, 125, 0.13), transparent 72%);
 }
 .tlc[data-state="blocked"] {
-  --tlc-edge: var(--tlc-warm);
+  --tlc-edge: rgba(180, 110, 90, 0.2);
+  --tlc-edge-hot: rgba(180, 110, 90, 0.48);
 }
-.tlc[data-state="blocked"] .tlc-aura {
+.tlc[data-state="blocked"] .tlc-field {
   background:
-    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.45), transparent 42%),
-    radial-gradient(ellipse at 50% 55%, rgba(180, 110, 90, 0.16), transparent 70%);
+    radial-gradient(ellipse at 48% 42%, rgba(255,255,255,0.55), transparent 46%),
+    radial-gradient(ellipse at 50% 54%, rgba(180, 110, 90, 0.12), transparent 72%);
 }
-.tlc[data-state="blocked"] .tlc-particle {
-  fill: rgba(180, 110, 90, 0.55);
-}
-.tlc[data-state="audio"] .tlc-edge.is-spoke,
-.tlc[data-state="speaking"] .tlc-edge.is-spoke {
+.tlc[data-state="audio"] .tlc-edge,
+.tlc[data-state="speaking"] .tlc-edge {
   opacity: 1;
-  stroke-width: 1.35;
-}
-.tlc[data-state="audio"] .tlc-particle,
-.tlc[data-state="speaking"] .tlc-particle {
-  fill: rgba(91, 100, 125, 0.85);
 }
 .tlc[data-state="audio"] .tlc-core-halo,
 .tlc[data-state="speaking"] .tlc-core-halo {
-  animation-duration: 2.4s;
+  animation-duration: 3.2s;
 }
-.tlc[data-state="listening"] .tlc-core {
-  animation: tlcListen 2.2s ease-in-out infinite;
+.tlc[data-state="listening"] .tlc-core-halo {
+  animation-duration: 2.6s;
 }
 
 html[data-theme="dark"] .tlc,
 html[data-theme="classic-dark"] .tlc {
-  --tlc-edge: rgba(186, 194, 210, 0.28);
-  --tlc-warm: rgba(210, 140, 120, 0.36);
+  --tlc-edge: rgba(186, 194, 210, 0.16);
+  --tlc-edge-hot: rgba(186, 194, 210, 0.42);
+  --tlc-warm: rgba(210, 140, 120, 0.32);
 }
-html[data-theme="dark"] .tlc-aura,
-html[data-theme="classic-dark"] .tlc-aura {
+html[data-theme="dark"] .tlc-field,
+html[data-theme="classic-dark"] .tlc-field {
   background:
-    radial-gradient(ellipse at 42% 38%, rgba(255,255,255,0.08), transparent 42%),
-    radial-gradient(ellipse at 50% 55%, rgba(186, 194, 210, 0.12), transparent 70%);
+    radial-gradient(ellipse at 48% 42%, rgba(255,255,255,0.05), transparent 46%),
+    radial-gradient(ellipse at 50% 54%, rgba(186, 194, 210, 0.1), transparent 72%);
 }
-html[data-theme="dark"] .tlc-guide-ring,
-html[data-theme="classic-dark"] .tlc-guide-ring {
-  stroke: rgba(186, 194, 210, 0.1);
-}
-html[data-theme="dark"] .tlc-particle,
-html[data-theme="classic-dark"] .tlc-particle {
-  fill: rgba(186, 194, 210, 0.55);
+html[data-theme="dark"] .tlc-guide,
+html[data-theme="classic-dark"] .tlc-guide {
+  stroke: rgba(186, 194, 210, 0.08);
 }
 
-@keyframes tlcAura {
-  0%, 100% { opacity: 0.55; transform: scale(0.96); }
-  50% { opacity: 1; transform: scale(1.05); }
-}
-@keyframes tlcSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@keyframes tlcCoreBreath {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+@keyframes tlcField {
+  0%, 100% { opacity: 0.65; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.03); }
 }
 @keyframes tlcCoreHalo {
-  0%, 100% { opacity: 0.45; transform: scale(0.92); }
-  50% { opacity: 0.9; transform: scale(1.08); }
+  0%, 100% { opacity: 0.4; transform: scale(0.94); }
+  50% { opacity: 0.85; transform: scale(1.06); }
 }
 @keyframes tlcRing {
-  0%, 100% { opacity: 0.35; transform: scale(0.96); }
-  50% { opacity: 0.75; transform: scale(1.06); }
-}
-@keyframes tlcHalo {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.85; }
-}
-@keyframes tlcListen {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  0%, 100% { opacity: 0.3; transform: scale(0.97); }
+  50% { opacity: 0.65; transform: scale(1.04); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tlc-aura,
-  .tlc-guide,
-  .tlc-guide-ring--inner,
-  .tlc-core,
+  .tlc-field,
   .tlc-core-halo,
-  .tlc-core-ring,
-  .tlc-core-ring--mid,
-  .tlc-node-halo {
+  .tlc-core-ring {
     animation: none !important;
   }
 }
@@ -1394,7 +1345,7 @@ html[data-theme="classic-dark"] .tlc-particle {
   padding: 12px 12px 8px;
 }
 .fas-tagro-core-wrap {
-  width: min(480px, 96vw);
+  width: min(520px, 96vw);
   position: relative;
 }
 .fas-tagro-core {
@@ -1415,8 +1366,8 @@ html[data-theme="classic-dark"] .tlc-particle {
 }
 .tlc-hit {
   position: absolute;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   margin: 0;
   padding: 0;
   border: none;
@@ -1428,8 +1379,8 @@ html[data-theme="classic-dark"] .tlc-particle {
   z-index: 2;
 }
 .tlc-hit.is-core {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
 }
 .tlc-hit:focus,
 .tlc-hit:focus-visible {
@@ -1442,25 +1393,26 @@ html[data-theme="classic-dark"] .tlc-particle {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 7px;
+  padding: 4px 9px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(30, 30, 32, 0.06);
   color: var(--fas-ink-muted);
-  font-size: 10.5px;
+  font-size: 11px;
   letter-spacing: -0.01em;
   line-height: 1;
   white-space: nowrap;
   pointer-events: auto;
   z-index: 3;
-  opacity: 0.78;
-  transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease;
+  opacity: 0.72;
+  transition: opacity 0.22s ease, background 0.22s ease, color 0.22s ease, transform 0.22s ease;
 }
 .tlc-chip.is-hot,
 .tlc-hit.is-hot + .tlc-chip {
   opacity: 1;
   color: var(--fas-ink);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.96);
+  transform: translate(-50%, -50%) scale(1.04);
 }
 .tlc-chip-count {
   min-width: 14px;

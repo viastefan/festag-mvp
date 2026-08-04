@@ -1,9 +1,8 @@
 'use client'
 
 /**
- * Tagro Living Core — living orbital intelligence for Overview.
- * Soft glass orbs drift on calm orbits; edges breathe; hover reveals signals.
- * Motion runs via rAF + DOM mutation (no React re-render per frame).
+ * Tagro Living Core — calm constellation for Overview.
+ * Fixed layout + micro-breath. Hover grows the orb. No racing orbits.
  */
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
@@ -44,47 +43,43 @@ type Props = {
   onCoreActivate?: () => void
 }
 
-type OrbitDef = {
+type NodeDef = {
   id: string
   kind: TagroSignalKind
+  /** Fixed angle from center (radians) */
   angle: number
+  /** Distance from center */
   radius: number
+  /** Resting visual radius */
   size: number
-  speed: number
-  squash: number
-  wobble: number
+  /** Label distance beyond node */
   labelDist: number
+  /** Micro-float phase offset */
+  phase: number
 }
 
 const CX = 200
-const CY = 148
+const CY = 142
 const VIEW_W = 400
 const VIEW_H = 300
+const SQUASH = 0.88
 
-const ORBITS: OrbitDef[] = [
-  { id: 'n1', kind: 'decisions', angle: -2.35, radius: 92, size: 7.5, speed: 0.11, squash: 0.86, wobble: 4, labelDist: 22 },
-  { id: 'n2', kind: 'risks', angle: -1.05, radius: 98, size: 6.8, speed: 0.09, squash: 0.86, wobble: 5, labelDist: 22 },
-  { id: 'n3', kind: 'projects', angle: 0.15, radius: 104, size: 8.2, speed: 0.08, squash: 0.86, wobble: 3.5, labelDist: 24 },
-  { id: 'n4', kind: 'tasks', angle: 1.2, radius: 96, size: 6.4, speed: 0.12, squash: 0.86, wobble: 4.5, labelDist: 22 },
-  { id: 'n5', kind: 'activity', angle: 2.2, radius: 90, size: 7.2, speed: 0.1, squash: 0.86, wobble: 4, labelDist: 22 },
-  { id: 'n6', kind: 'team', angle: 2.95, radius: 88, size: 6, speed: 0.13, squash: 0.86, wobble: 3.8, labelDist: 22 },
-  { id: 'n7', kind: 'milestone', angle: -1.75, radius: 72, size: 5.2, speed: -0.14, squash: 0.9, wobble: 3, labelDist: 20 },
-  { id: 'n8', kind: 'briefing', angle: 0.75, radius: 58, size: 5, speed: 0.16, squash: 0.92, wobble: 2.5, labelDist: 18 },
+/**
+ * Stable constellation — clock positions, generous gaps so chips never collide.
+ * Inner: Briefing · Milestone. Outer: Decisions · Risks · Projects · Tasks · Activity · Team.
+ */
+const NODES: NodeDef[] = [
+  { id: 'n1', kind: 'decisions', angle: -Math.PI / 2, radius: 108, size: 9, labelDist: 26, phase: 0.2 },
+  { id: 'n2', kind: 'risks', angle: -Math.PI / 6, radius: 112, size: 8.2, labelDist: 26, phase: 1.1 },
+  { id: 'n3', kind: 'projects', angle: Math.PI / 5, radius: 114, size: 9.4, labelDist: 28, phase: 2.0 },
+  { id: 'n4', kind: 'tasks', angle: (2 * Math.PI) / 3, radius: 110, size: 8.6, labelDist: 26, phase: 2.8 },
+  { id: 'n5', kind: 'activity', angle: Math.PI, radius: 106, size: 8.4, labelDist: 26, phase: 0.7 },
+  { id: 'n6', kind: 'team', angle: (-3 * Math.PI) / 4, radius: 110, size: 7.8, labelDist: 26, phase: 1.6 },
+  { id: 'n7', kind: 'milestone', angle: (-5 * Math.PI) / 6, radius: 72, size: 6.4, labelDist: 22, phase: 3.2 },
+  { id: 'n8', kind: 'briefing', angle: Math.PI / 2, radius: 52, size: 6.2, labelDist: 22, phase: 0.4 },
 ]
 
-const CORE_EDGES: Array<[string, string]> = ORBITS.map((o) => ['c', o.id])
-const RING_EDGES: Array<[string, string]> = [
-  ['n1', 'n2'],
-  ['n2', 'n3'],
-  ['n3', 'n4'],
-  ['n4', 'n5'],
-  ['n5', 'n6'],
-  ['n6', 'n1'],
-  ['n7', 'n1'],
-  ['n7', 'n2'],
-  ['n8', 'n3'],
-  ['n8', 'n4'],
-]
+const SPOKES: Array<[string, string]> = NODES.map((n) => ['c', n.id])
 
 const DEFAULT_SIGNALS: Record<TagroSignalKind, TagroNodeSignal> = {
   core: { kind: 'core', label: 'Tagro', detail: 'Workspace-Intelligenz' },
@@ -100,23 +95,34 @@ const DEFAULT_SIGNALS: Record<TagroSignalKind, TagroNodeSignal> = {
 
 type Pos = { x: number; y: number; lx: number; ly: number; size: number }
 
-function positionAt(def: OrbitDef, tSec: number, speedMul: number): Pos {
-  const a = def.angle + tSec * def.speed * speedMul
-  const wob = Math.sin(tSec * 0.7 + def.angle * 2) * def.wobble
-  const r = def.radius + wob
-  const x = CX + Math.cos(a) * r
-  const y = CY + Math.sin(a) * r * def.squash
-  const lx = CX + Math.cos(a) * (r + def.labelDist)
-  const ly = CY + Math.sin(a) * (r + def.labelDist) * def.squash
+function restPos(def: NodeDef): Pos {
+  const x = CX + Math.cos(def.angle) * def.radius
+  const y = CY + Math.sin(def.angle) * def.radius * SQUASH
+  const lx = CX + Math.cos(def.angle) * (def.radius + def.labelDist)
+  const ly = CY + Math.sin(def.angle) * (def.radius + def.labelDist) * SQUASH
   return { x, y, lx, ly, size: def.size }
 }
 
-function speedForState(state: TagroLivingState): number {
-  if (state === 'audio' || state === 'speaking') return 1.55
-  if (state === 'listening') return 0.55
-  if (state === 'blocked') return 0.35
-  if (state === 'attention') return 0.85
-  return 0.65
+function livePos(def: NodeDef, tSec: number, breath: number): Pos {
+  const rest = restPos(def)
+  // Barely conscious float — 1.2px max
+  const dx = Math.sin(tSec * 0.35 + def.phase) * 1.2 * breath
+  const dy = Math.cos(tSec * 0.28 + def.phase * 1.3) * 1.0 * breath
+  return {
+    x: rest.x + dx,
+    y: rest.y + dy,
+    lx: rest.lx + dx * 0.4,
+    ly: rest.ly + dy * 0.4,
+    size: def.size,
+  }
+}
+
+function breathForState(state: TagroLivingState): number {
+  if (state === 'audio' || state === 'speaking') return 1.35
+  if (state === 'listening') return 0.7
+  if (state === 'blocked') return 0.45
+  if (state === 'attention') return 1.0
+  return 0.85
 }
 
 function MiniSpark({ accent }: { accent: 'calm' | 'attention' | 'risk' }) {
@@ -148,15 +154,16 @@ export default function TagroLivingCore({
   const stateRef = useRef(state)
   const reducedRef = useRef(false)
   const hoverKindRef = useRef<TagroSignalKind | null>(null)
-  const positionsRef = useRef<Map<string, Pos>>(new Map())
+  const scalesRef = useRef(new Map<string, number>())
+  const positionsRef = useRef(new Map<string, Pos>())
   const startRef = useRef<number | null>(null)
   const rafRef = useRef(0)
 
   const nodeEls = useRef(new Map<string, SVGGElement | null>())
   const edgeEls = useRef(new Map<string, SVGLineElement | null>())
-  const particleEls = useRef(new Map<string, SVGCircleElement | null>())
   const hitEls = useRef(new Map<string, HTMLButtonElement | null>())
   const chipEls = useRef(new Map<string, HTMLSpanElement | null>())
+  const coreGRef = useRef<SVGGElement | null>(null)
   const popEl = useRef<HTMLDivElement | null>(null)
 
   stateRef.current = state
@@ -174,12 +181,10 @@ export default function TagroLivingCore({
 
   const initialPositions = useMemo(() => {
     const map = new Map<string, Pos>()
-    map.set('c', { x: CX, y: CY, lx: CX, ly: CY + 34, size: 20 })
-    for (const def of ORBITS) {
-      map.set(def.id, positionAt(def, 0, speedForState(state)))
-    }
+    map.set('c', { x: CX, y: CY, lx: CX, ly: CY + 36, size: 22 })
+    for (const def of NODES) map.set(def.id, restPos(def))
     return map
-  }, [state])
+  }, [])
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -193,65 +198,85 @@ export default function TagroLivingCore({
   }, [])
 
   useEffect(() => {
-    const applyFrame = (tSec: number) => {
-      const speedMul = speedForState(stateRef.current)
-      const map = positionsRef.current
-      map.set('c', { x: CX, y: CY, lx: CX, ly: CY + 34, size: 20 })
+    for (const def of NODES) {
+      if (!scalesRef.current.has(def.id)) scalesRef.current.set(def.id, 1)
+    }
+    if (!scalesRef.current.has('c')) scalesRef.current.set('c', 1)
 
-      for (const def of ORBITS) {
-        const pos = positionAt(def, tSec, speedMul)
+    const applyFrame = (tSec: number) => {
+      const breath = reducedRef.current ? 0 : breathForState(stateRef.current)
+      const hover = hoverKindRef.current
+      const map = positionsRef.current
+      map.set('c', { x: CX, y: CY, lx: CX, ly: CY + 36, size: 22 })
+
+      // Soft approach toward hover scale (no overshoot)
+      const approach = (id: string, target: number) => {
+        const cur = scalesRef.current.get(id) ?? 1
+        const next = cur + (target - cur) * 0.14
+        scalesRef.current.set(id, Math.abs(next - target) < 0.002 ? target : next)
+        return scalesRef.current.get(id)!
+      }
+
+      const coreScale = approach('c', hover === 'core' ? 1.28 : 1)
+      if (coreGRef.current) {
+        coreGRef.current.setAttribute(
+          'transform',
+          `translate(${CX},${CY}) scale(${coreScale})`,
+        )
+      }
+      const coreHit = hitEls.current.get('c')
+      if (coreHit) {
+        coreHit.style.transform = `translate(-50%, -50%) scale(${0.9 + coreScale * 0.25})`
+      }
+
+      for (const def of NODES) {
+        const pos = livePos(def, tSec, breath)
         map.set(def.id, pos)
+        const target =
+          hover === def.kind ? 1.62 : hover && hover !== 'core' ? 0.9 : 1
+        const scale = approach(def.id, target)
 
         const g = nodeEls.current.get(def.id)
         if (g) {
-          const halo = g.querySelector('.tlc-node-halo') as SVGCircleElement | null
-          const node = g.querySelector('.tlc-node') as SVGCircleElement | null
-          if (halo) {
-            halo.setAttribute('cx', String(pos.x))
-            halo.setAttribute('cy', String(pos.y))
-          }
-          if (node) {
-            node.setAttribute('cx', String(pos.x))
-            node.setAttribute('cy', String(pos.y))
-          }
+          g.setAttribute('transform', `translate(${pos.x},${pos.y}) scale(${scale})`)
         }
 
         const hit = hitEls.current.get(def.id)
         if (hit) {
           hit.style.left = `${(pos.x / VIEW_W) * 100}%`
           hit.style.top = `${(pos.y / VIEW_H) * 100}%`
+          const hitScale = 0.85 + scale * 0.35
+          hit.style.transform = `translate(-50%, -50%) scale(${hitScale})`
         }
         const chip = chipEls.current.get(def.id)
         if (chip) {
           chip.style.left = `${(pos.lx / VIEW_W) * 100}%`
           chip.style.top = `${(pos.ly / VIEW_H) * 100}%`
+          chip.classList.toggle('is-hot', hover === def.kind)
         }
       }
 
-      for (const [a, b] of [...CORE_EDGES, ...RING_EDGES]) {
+      for (const [a, b] of SPOKES) {
         const pa = map.get(a)
         const pb = map.get(b)
         const line = edgeEls.current.get(`${a}-${b}`)
         if (!pa || !pb || !line) continue
-        line.setAttribute('x1', String(pa.x))
-        line.setAttribute('y1', String(pa.y))
-        line.setAttribute('x2', String(pb.x))
-        line.setAttribute('y2', String(pb.y))
+        // Pull spoke end slightly toward scaled node surface
+        const scale = scalesRef.current.get(b) ?? 1
+        const def = NODES.find((n) => n.id === b)!
+        const dx = pb.x - CX
+        const dy = pb.y - CY
+        const len = Math.hypot(dx, dy) || 1
+        const pull = def.size * scale * 0.15
+        line.setAttribute('x1', String(CX))
+        line.setAttribute('y1', String(CY))
+        line.setAttribute('x2', String(pb.x - (dx / len) * pull))
+        line.setAttribute('y2', String(pb.y - (dy / len) * pull))
+        line.classList.toggle('is-hot', hover === def.kind)
       }
 
-      CORE_EDGES.forEach(([a, b], i) => {
-        const pa = map.get(a)
-        const pb = map.get(b)
-        const dot = particleEls.current.get(b)
-        if (!pa || !pb || !dot) return
-        const p = (Math.sin(tSec * 0.9 + i * 0.85) + 1) / 2
-        dot.setAttribute('cx', String(pa.x + (pb.x - pa.x) * p))
-        dot.setAttribute('cy', String(pa.y + (pb.y - pa.y) * p))
-      })
-
-      const hk = hoverKindRef.current
-      if (hk && popEl.current) {
-        const id = hk === 'core' ? 'c' : ORBITS.find((n) => n.kind === hk)?.id
+      if (hover && popEl.current) {
+        const id = hover === 'core' ? 'c' : NODES.find((n) => n.kind === hover)?.id
         const pos = id ? map.get(id) : null
         if (pos) {
           popEl.current.style.left = `${(pos.x / VIEW_W) * 100}%`
@@ -263,8 +288,7 @@ export default function TagroLivingCore({
     positionsRef.current = new Map(initialPositions)
     applyFrame(0)
 
-    if (reducedRef.current) return
-
+    // Always run the loop — reduced motion freezes float but keeps hover grow.
     const tick = (now: number) => {
       if (startRef.current == null) startRef.current = now
       applyFrame((now - startRef.current) / 1000)
@@ -273,6 +297,11 @@ export default function TagroLivingCore({
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
   }, [initialPositions, reduced])
+
+  // Keep hover scale responsive even when reduced motion freezes float
+  useEffect(() => {
+    hoverKindRef.current = hoverKind
+  }, [hoverKind])
 
   const ariaLabel =
     state === 'blocked'
@@ -287,8 +316,10 @@ export default function TagroLivingCore({
 
   const hoverSignal = hoverKind ? resolved[hoverKind] : null
   const hoverId =
-    hoverKind === 'core' ? 'c' : hoverKind ? ORBITS.find((n) => n.kind === hoverKind)?.id : null
-  const hoverPos = hoverId ? positionsRef.current.get(hoverId) || initialPositions.get(hoverId) : null
+    hoverKind === 'core' ? 'c' : hoverKind ? NODES.find((n) => n.kind === hoverKind)?.id : null
+  const hoverPos = hoverId
+    ? positionsRef.current.get(hoverId) || initialPositions.get(hoverId)
+    : null
 
   return (
     <div
@@ -297,8 +328,7 @@ export default function TagroLivingCore({
       aria-label={ariaLabel}
       onMouseLeave={() => setHoverKind(null)}
     >
-      <div className="tlc-aura" aria-hidden />
-      <div className="tlc-aura tlc-aura--soft" aria-hidden />
+      <div className="tlc-field" aria-hidden />
 
       <svg
         className="tlc-svg"
@@ -307,36 +337,36 @@ export default function TagroLivingCore({
         aria-hidden
       >
         <defs>
-          <radialGradient id={`${uid}-core`} cx="38%" cy="32%" r="68%">
-            <stop offset="0%" stopColor="rgba(255,255,255,1)" />
-            <stop offset="42%" stopColor="rgba(220,226,238,0.88)" />
-            <stop offset="78%" stopColor="rgba(130,142,170,0.42)" />
-            <stop offset="100%" stopColor="rgba(91,100,125,0.12)" />
+          <radialGradient id={`${uid}-core`} cx="34%" cy="28%" r="72%">
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="38%" stopColor="#E8ECF4" />
+            <stop offset="72%" stopColor="#B8C0D4" />
+            <stop offset="100%" stopColor="#8A94AA" />
           </radialGradient>
-          <radialGradient id={`${uid}-node`} cx="32%" cy="28%" r="72%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.98)" />
-            <stop offset="55%" stopColor="rgba(200,208,224,0.75)" />
-            <stop offset="100%" stopColor="rgba(120,132,158,0.38)" />
+          <radialGradient id={`${uid}-node`} cx="32%" cy="26%" r="74%">
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="45%" stopColor="#DCE2EE" />
+            <stop offset="100%" stopColor="#9AA4BA" />
           </radialGradient>
-          <radialGradient id={`${uid}-node-hot`} cx="32%" cy="28%" r="72%">
-            <stop offset="0%" stopColor="rgba(255,255,255,1)" />
-            <stop offset="50%" stopColor="rgba(186,194,210,0.9)" />
-            <stop offset="100%" stopColor="rgba(91,100,125,0.55)" />
+          <radialGradient id={`${uid}-node-hot`} cx="30%" cy="24%" r="76%">
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="40%" stopColor="#E6EAF4" />
+            <stop offset="100%" stopColor="#7A869E" />
           </radialGradient>
-          <linearGradient id={`${uid}-edge`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="rgba(91,100,125,0.05)" />
-            <stop offset="50%" stopColor="rgba(91,100,125,0.42)" />
-            <stop offset="100%" stopColor="rgba(91,100,125,0.05)" />
-          </linearGradient>
-          <filter id={`${uid}-soft`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="1.4" result="b" />
+          <radialGradient id={`${uid}-shadow`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(40,48,70,0.22)" />
+            <stop offset="70%" stopColor="rgba(40,48,70,0.06)" />
+            <stop offset="100%" stopColor="rgba(40,48,70,0)" />
+          </radialGradient>
+          <filter id={`${uid}-soft`} x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="1.2" result="b" />
             <feMerge>
               <feMergeNode in="b" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <filter id={`${uid}-bloom`} x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="6" result="b" />
+          <filter id={`${uid}-bloom`} x="-90%" y="-90%" width="280%" height="280%">
+            <feGaussianBlur stdDeviation="7" result="b" />
             <feMerge>
               <feMergeNode in="b" />
               <feMergeNode in="SourceGraphic" />
@@ -344,85 +374,83 @@ export default function TagroLivingCore({
           </filter>
         </defs>
 
-        <g className="tlc-guide" style={{ transformOrigin: `${CX}px ${CY}px` }}>
-          <ellipse className="tlc-guide-ring" cx={CX} cy={CY} rx={96} ry={82} />
-          <ellipse className="tlc-guide-ring tlc-guide-ring--inner" cx={CX} cy={CY} rx={62} ry={54} />
-        </g>
+        {/* Quiet orbital guides — static, almost invisible */}
+        <ellipse className="tlc-guide" cx={CX} cy={CY} rx={110} ry={96} />
+        <ellipse className="tlc-guide tlc-guide--inner" cx={CX} cy={CY} rx={64} ry={56} />
 
         <g className="tlc-edges">
-          {[...CORE_EDGES, ...RING_EDGES].map(([a, b]) => {
-            const pa = initialPositions.get(a)!
+          {SPOKES.map(([a, b]) => {
             const pb = initialPositions.get(b)!
-            const isCore = a === 'c' || b === 'c'
             return (
               <line
                 key={`${a}-${b}`}
                 ref={(el) => {
                   edgeEls.current.set(`${a}-${b}`, el)
                 }}
-                className={`tlc-edge${isCore ? ' is-spoke' : ' is-ring'}`}
-                x1={pa.x}
-                y1={pa.y}
+                className="tlc-edge"
+                x1={CX}
+                y1={CY}
                 x2={pb.x}
                 y2={pb.y}
-                stroke={`url(#${uid}-edge)`}
-              />
-            )
-          })}
-        </g>
-
-        <g className="tlc-particles">
-          {CORE_EDGES.map(([, b]) => {
-            const pb = initialPositions.get(b)!
-            return (
-              <circle
-                key={`p-${b}`}
-                ref={(el) => {
-                  particleEls.current.set(b, el)
-                }}
-                className="tlc-particle"
-                cx={pb.x}
-                cy={pb.y}
-                r={1.35}
               />
             )
           })}
         </g>
 
         <g className="tlc-nodes" filter={`url(#${uid}-soft)`}>
-          {ORBITS.map((def) => {
-            const pos = initialPositions.get(def.id)!
+          {NODES.map((def) => {
             const sig = resolved[def.kind]
             const accent = sig.accent || ((sig.count || 0) > 0 ? 'attention' : 'calm')
             const hot = hoverKind === def.kind
+            const lit = (sig.count || 0) > 0 || accent !== 'calm'
             return (
               <g
                 key={def.id}
                 ref={(el) => {
                   nodeEls.current.set(def.id, el)
                 }}
-                className={`tlc-node-g is-${accent}${hot ? ' is-hot' : ''}`}
+                className={`tlc-node-g is-${accent}${hot ? ' is-hot' : ''}${lit ? ' is-lit' : ''}`}
+                transform={`translate(${initialPositions.get(def.id)!.x},${initialPositions.get(def.id)!.y})`}
               >
-                {(sig.count || 0) > 0 || accent !== 'calm' ? (
-                  <circle className="tlc-node-halo" cx={pos.x} cy={pos.y} r={pos.size + 5} />
-                ) : null}
+                <ellipse
+                  className="tlc-node-shadow"
+                  cx={0}
+                  cy={def.size * 0.55}
+                  rx={def.size * 1.15}
+                  ry={def.size * 0.42}
+                  fill={`url(#${uid}-shadow)`}
+                />
+                {lit ? <circle className="tlc-node-halo" cx={0} cy={0} r={def.size + 7} /> : null}
                 <circle
                   className="tlc-node"
-                  cx={pos.x}
-                  cy={pos.y}
-                  r={pos.size}
+                  cx={0}
+                  cy={0}
+                  r={def.size}
                   fill={hot ? `url(#${uid}-node-hot)` : `url(#${uid}-node)`}
                 />
+                <circle className="tlc-node-spec" cx={-def.size * 0.28} cy={-def.size * 0.32} r={def.size * 0.28} />
               </g>
             )
           })}
 
-          <g className="tlc-core-g" filter={`url(#${uid}-bloom)`}>
-            <circle className="tlc-core-halo" cx={CX} cy={CY} r={36} />
-            <circle className="tlc-core-ring" cx={CX} cy={CY} r={30} />
-            <circle className="tlc-core-ring tlc-core-ring--mid" cx={CX} cy={CY} r={24} />
-            <circle className="tlc-core" cx={CX} cy={CY} r={18} fill={`url(#${uid}-core)`} />
-            <circle className="tlc-core-spec" cx={CX - 5} cy={CY - 6} r={4.5} />
+          <g
+            ref={coreGRef}
+            className={`tlc-core-g${hoverKind === 'core' ? ' is-hot' : ''}`}
+            filter={`url(#${uid}-bloom)`}
+            transform={`translate(${CX},${CY})`}
+          >
+            <circle className="tlc-core-halo" cx={0} cy={0} r={42} />
+            <ellipse
+              className="tlc-core-shadow"
+              cx={0}
+              cy={14}
+              rx={26}
+              ry={10}
+              fill={`url(#${uid}-shadow)`}
+            />
+            <circle className="tlc-core-ring" cx={0} cy={0} r={32} />
+            <circle className="tlc-core" cx={0} cy={0} r={22} fill={`url(#${uid}-core)`} />
+            <circle className="tlc-core-spec" cx={-7} cy={-8} r={5.5} />
           </g>
         </g>
       </svg>
@@ -431,6 +459,9 @@ export default function TagroLivingCore({
         <div className="tlc-anchor">
           <button
             type="button"
+            ref={(el) => {
+              hitEls.current.set('c', el)
+            }}
             className={`tlc-hit is-core${hoverKind === 'core' ? ' is-hot' : ''}`}
             style={{ left: `${(CX / VIEW_W) * 100}%`, top: `${(CY / VIEW_H) * 100}%` }}
             aria-label="Tagro"
@@ -443,14 +474,14 @@ export default function TagroLivingCore({
           />
           <span
             className={`tlc-chip is-core${hoverKind === 'core' ? ' is-hot' : ''}`}
-            style={{ left: `${(CX / VIEW_W) * 100}%`, top: `${((CY + 34) / VIEW_H) * 100}%` }}
+            style={{ left: `${(CX / VIEW_W) * 100}%`, top: `${((CY + 36) / VIEW_H) * 100}%` }}
             onMouseEnter={() => setHoverKind('core')}
           >
             <span className="tlc-chip-label">Tagro</span>
           </span>
         </div>
 
-        {ORBITS.map((def) => {
+        {NODES.map((def) => {
           const pos = initialPositions.get(def.id)!
           const sig = resolved[def.kind]
           const showCount = typeof sig.count === 'number' && sig.count > 0
@@ -567,9 +598,7 @@ export function buildTagroSignals(data: {
       kind: 'decisions',
       label: 'Entscheidungen',
       count: data.summary.pendingDecisions,
-      detail: topDecision
-        ? `Offen: ${topDecision}`
-        : 'Keine offenen Entscheidungen.',
+      detail: topDecision ? `Offen: ${topDecision}` : 'Keine offenen Entscheidungen.',
       href: '/overview/inbox',
       accent: data.summary.pendingDecisions > 0 ? 'attention' : 'calm',
     },
@@ -577,9 +606,7 @@ export function buildTagroSignals(data: {
       kind: 'risks',
       label: 'Risiken',
       count: riskProjects.length,
-      detail: topRisk
-        ? `${topRisk} braucht Aufmerksamkeit.`
-        : 'Keine kritischen Risiken.',
+      detail: topRisk ? `${topRisk} braucht Aufmerksamkeit.` : 'Keine kritischen Risiken.',
       href: '/overview/projects',
       accent: riskProjects.length > 0 ? 'risk' : 'calm',
     },
@@ -609,9 +636,7 @@ export function buildTagroSignals(data: {
       kind: 'activity',
       label: 'Aktivität',
       count: data.activity.length,
-      detail: data.activity[0]?.title
-        ? `Zuletzt: ${data.activity[0].title}`
-        : 'Noch keine Aktivität.',
+      detail: data.activity[0]?.title ? `Zuletzt: ${data.activity[0].title}` : 'Noch keine Aktivität.',
       href: '/overview/activity',
       accent: 'calm',
     },
