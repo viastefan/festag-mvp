@@ -43,7 +43,7 @@ Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal 
 
 ## Inputs
 
-Idle fields have **no visible stroke**. Stroke appears only on **focus** (accent `#5B647D` / `--al-accent`), slightly soft (`1.5px`). No focus rings / glow shadows. Focus changes **stroke only** — never a fill step. Hover and filled-unfocused stay transparent.
+Idle text fields have **no visible stroke**. Stroke appears only on **focus** (accent `#5B647D` / `--al-accent`), slightly soft (`1.5px`). No focus rings / glow shadows. Focus changes **stroke only** — never a fill step. Hover and filled-unfocused stay transparent.
 
 ```css
 background: transparent;
@@ -53,6 +53,8 @@ border-color: #5B647D; /* --festag-input-border-focus */
 ```
 
 Same in light and dark. Autofill may use a canvas-matched inset paint but must not show an idle accent stroke — only while focused.
+
+**Exception — OTP digit boxes (`.al-otp-cell`):** idle strokes stay visible (`rgba(30,30,32,0.16)` light / white hairline dark). Empty code boxes must read as six fields at rest — never inherit transparent `--festag-input-border`.
 
 ## Do not
 

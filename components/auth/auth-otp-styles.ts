@@ -1,13 +1,24 @@
 import {
   AUTH_INPUT_CARET_DARK,
   AUTH_INPUT_FG_DARK,
+  AUTH_STROKE,
+  AUTH_STROKE_WIDTH_FOCUS,
 } from '@/components/auth/auth-chrome-tokens'
 
 /**
  * Shared 6-box OTP / PIN digit styles — AuthLanding (`/login`) + Dev login.
  * Classes: `.al-otp`, `.al-otp-cell` (from AuthOtpInput).
- * Geometry matches auth CTAs: 8px soft rects (never pills).
+ *
+ * Auth text fields use transparent idle strokes (focus-only).
+ * OTP cells are different: empty boxes must stay visible at rest, or Code eingeben
+ * collapses to a single caret with “missing” fields.
  */
+const OTP_IDLE_LIGHT = 'rgba(30, 30, 32, 0.16)'
+const OTP_HOVER_LIGHT = 'rgba(30, 30, 32, 0.24)'
+const OTP_IDLE_DARK = 'rgba(255, 255, 255, 0.16)'
+const OTP_HOVER_DARK = 'rgba(255, 255, 255, 0.24)'
+const OTP_STROKE_WIDTH = '1.5px'
+
 export const AUTH_OTP_STYLES = `
         /* Single-field PIN (variant="pill") — same soft rect as email, digits centered. */
         .al-otp-pill {
@@ -25,7 +36,7 @@ export const AUTH_OTP_STYLES = `
           justify-content:space-between;
           gap:8px;
           width:100%;
-          /* Gutter so 2px focus/filled strokes never clip L/R. */
+          /* Gutter so focus/filled strokes never clip L/R. */
           padding-inline:2px;
           box-sizing:border-box;
         }
@@ -33,10 +44,12 @@ export const AUTH_OTP_STYLES = `
           width:40px;
           height:40px;
           flex:0 0 40px;
-          /* Match fields — soft rect (Read keeps 6px via --festag-input-radius). */
+          min-width:40px;
+          max-width:40px;
           border-radius:var(--festag-input-radius, 8px) !important;
-          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(30,30,32,0.15));
-          background-color:var(--festag-input-fill, transparent);
+          /* Always-visible idle box — do NOT use --festag-input-border (transparent). */
+          border:${OTP_STROKE_WIDTH} solid ${OTP_IDLE_LIGHT} !important;
+          background-color:transparent;
           background-image:none;
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
@@ -45,7 +58,7 @@ export const AUTH_OTP_STYLES = `
           letter-spacing:0;
           text-align:center;
           outline:none;
-          caret-color:var(--festag-input-caret, #5B647D);
+          caret-color:var(--festag-input-caret, ${AUTH_STROKE});
           box-shadow:none;
           box-sizing:border-box;
           transition:border-color .18s ease, background .15s;
@@ -55,12 +68,12 @@ export const AUTH_OTP_STYLES = `
           background-color:transparent !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
-          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(40,34,28,0.14)) !important;
+          border:${OTP_STROKE_WIDTH} solid ${OTP_IDLE_LIGHT} !important;
           border-radius:8px !important;
         }
         .al-root:not([data-theme="dark"]) .al-otp-cell:hover,
         .dl-root:not([data-theme="dark"]) .al-otp-cell:hover {
-          border-color:var(--festag-input-border-hover, rgba(40,34,28,0.20)) !important;
+          border-color:${OTP_HOVER_LIGHT} !important;
         }
         .al-root:not([data-theme="dark"]) .al-otp-cell:focus,
         .al-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
@@ -69,7 +82,7 @@ export const AUTH_OTP_STYLES = `
         .dl-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
         .dl-root:not([data-theme="dark"]) .al-otp-cell.has-value {
           background:transparent !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:${AUTH_STROKE_WIDTH_FOCUS} solid var(--festag-input-border-focus, ${AUTH_STROKE}) !important;
           border-radius:8px !important;
           box-shadow:none !important;
         }
@@ -81,7 +94,7 @@ export const AUTH_OTP_STYLES = `
           background-color:transparent !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:var(--festag-input-border-width, 2px) solid var(--festag-input-border, rgba(255,255,255,0.10)) !important;
+          border:${OTP_STROKE_WIDTH} solid ${OTP_IDLE_DARK} !important;
           border-radius:8px !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
@@ -89,7 +102,7 @@ export const AUTH_OTP_STYLES = `
         .al-root[data-theme="dark"] .al-otp-cell:hover,
         .dl-root[data-theme="dark"] .al-otp-cell:hover {
           background:transparent !important;
-          border-color:var(--festag-input-border-hover, rgba(255,255,255,0.16)) !important;
+          border-color:${OTP_HOVER_DARK} !important;
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-otp-cell:focus,
@@ -100,7 +113,7 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell.has-value {
           background:transparent !important;
           background-color:transparent !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:${AUTH_STROKE_WIDTH_FOCUS} solid var(--festag-input-border-focus, ${AUTH_STROKE}) !important;
           border-radius:8px !important;
           box-shadow:none !important;
         }
@@ -110,6 +123,8 @@ export const AUTH_OTP_STYLES = `
             height:40px;
             width:40px;
             flex:0 0 40px;
+            min-width:40px;
+            max-width:40px;
             border-radius:8px !important;
             font-size:17px;
           }
@@ -123,6 +138,7 @@ export const AUTH_OTP_STYLES = `
             width:min(40px, calc((100% - 30px) / 6));
             flex:1 1 0;
             min-width:0;
+            max-width:none;
             height:40px;
             border-radius:8px !important;
             font-size:17px;

@@ -4649,13 +4649,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-step="codeEntry"] .al-signin-stack--code {
             gap:14px;
           }
+          /* OTP boxes stay visible at rest — auth text fields use transparent idle. */
           .al-root[data-auth-step="codeEntry"] .al-otp-cell {
-            border:2px solid rgba(30, 30, 32, 0.14) !important;
+            border:1.5px solid rgba(30, 30, 32, 0.16) !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus-visible,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell.has-value {
-            border:2px solid #5B647D !important;
+            border:1.5px solid #5B647D !important;
             box-shadow:none !important;
           }
         }
@@ -4780,13 +4781,13 @@ const AUTH_LANDING_STYLES_BASE = `
             height:40px;
             font-size:17px;
             border-radius:8px !important;
-            border:2px solid rgba(30, 30, 32, 0.14) !important;
+            border:1.5px solid rgba(30, 30, 32, 0.16) !important;
             background:transparent !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus-visible,
           .al-root[data-auth-step="codeEntry"] .al-otp-cell.has-value {
-            border:2px solid #5B647D !important;
+            border:1.5px solid #5B647D !important;
             box-shadow:none !important;
           }
           .al-root[data-auth-step="codeEntry"] .al-signin-stack--code > .al-btn.al-btn-primary {
