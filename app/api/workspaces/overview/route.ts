@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
+import { enrichDecisionFocus } from '@/lib/overview/decision-canvas'
 import {
   listWorkspacesForUser,
   resolveActiveWorkspaceId,
@@ -29,13 +30,31 @@ export type WorkspaceOverviewTask = {
   updatedAt: string | null
 }
 
+export type WorkspaceOverviewDecisionOption = {
+  id: string
+  label: string
+  hint: string | null
+  recommended: boolean
+  handoffSteps?: unknown
+}
+
+/** Rich decision focus for Decision Canvas — not a thin list row. */
 export type WorkspaceOverviewDecision = {
   id: string
   title: string
+  summary: string | null
   projectId: string | null
   projectTitle: string
   urgency: string | null
   dueDate: string | null
+  responseType: string | null
+  decisionType: string | null
+  recommendedOptionId: string | null
+  recommendationReason: string | null
+  tagroReasoning: string | null
+  options: WorkspaceOverviewDecisionOption[]
+  reasons: string[]
+  explainSteps: Array<{ n: number; label: string }>
 }
 
 export type WorkspaceOverviewActivity = {
@@ -156,7 +175,9 @@ export async function GET(req: NextRequest) {
     projectIds.length > 0
       ? service
           .from('decisions')
-          .select('id, title, client_title, project_id, urgency, due_date, created_at, status')
+          .select(
+            'id, title, client_title, client_summary, project_id, urgency, due_date, created_at, status, response_type, decision_type, recommended_option, tagro_recommendation_reason, tagro_reasoning, options_json',
+          )
           .in('project_id', projectIds)
           .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
           .order('created_at', { ascending: false })
@@ -305,16 +326,94 @@ export async function GET(req: NextRequest) {
     if (openTasks.length >= 40) break
   }
 
+  /* Load options for the top open decisions — Decision Canvas needs real labels */
+  const topDecisionIds = (decisions || []).slice(0, 8).map((d: any) => d.id as string)
+  const optionsByDecision = new Map<string, any[]>()
+  if (topDecisionIds.length > 0) {
+    const { data: optRows } = await service
+      .from('decision_options')
+      .select(
+        'id, decision_id, ordinal, external_id, label, client_label, description, implications_json, recommended_by_tagro',
+      )
+      .in('decision_id', topDecisionIds)
+      .order('ordinal', { ascending: true })
+    for (const row of optRows || []) {
+      const list = optionsByDecision.get(row.decision_id) || []
+      list.push(row)
+      optionsByDecision.set(row.decision_id, list)
+    }
+  }
+
   const pendingDecisions: WorkspaceOverviewDecision[] = (decisions || [])
     .slice(0, 8)
-    .map((d: any) => ({
-      id: d.id,
-      title: String(d.client_title || d.title || 'Decision'),
-      projectId: d.project_id || null,
-      projectTitle: (d.project_id && titleById.get(d.project_id)) || 'Project',
-      urgency: typeof d.urgency === 'string' ? d.urgency : null,
-      dueDate: d.due_date || null,
-    }))
+    .map((d: any) => {
+      const fromTable = optionsByDecision.get(d.id) || []
+      let options: WorkspaceOverviewDecisionOption[] = fromTable.map((o: any) => ({
+        id: String(o.external_id || o.id),
+        label: String(o.client_label || o.label || 'Option'),
+        hint:
+          typeof o.description === 'string' && o.description.trim()
+            ? o.description.trim()
+            : null,
+        recommended: Boolean(o.recommended_by_tagro),
+        handoffSteps: o.implications_json?.external_handoff?.steps,
+      }))
+
+      if (options.length === 0 && Array.isArray(d.options_json)) {
+        options = d.options_json
+          .filter((o: any) => o && (o.id || o.label))
+          .map((o: any) => ({
+            id: String(o.id || o.label),
+            label: String(o.label || o.id || 'Option'),
+            hint: typeof o.hint === 'string' ? o.hint : null,
+            recommended: String(o.id) === String(d.recommended_option),
+          }))
+      }
+
+      const enriched = enrichDecisionFocus({
+        id: d.id,
+        title: String(d.client_title || d.title || 'Entscheidung'),
+        summary: typeof d.client_summary === 'string' ? d.client_summary : null,
+        projectId: d.project_id || null,
+        projectTitle: (d.project_id && titleById.get(d.project_id)) || 'Projekt',
+        urgency: typeof d.urgency === 'string' ? d.urgency : null,
+        dueDate: d.due_date || null,
+        responseType: typeof d.response_type === 'string' ? d.response_type : null,
+        decisionType: typeof d.decision_type === 'string' ? d.decision_type : null,
+        recommendedOptionId:
+          typeof d.recommended_option === 'string' ? d.recommended_option : null,
+        recommendationReason:
+          typeof d.tagro_recommendation_reason === 'string'
+            ? d.tagro_recommendation_reason
+            : null,
+        tagroReasoning:
+          typeof d.tagro_reasoning === 'string' ? d.tagro_reasoning : null,
+        options,
+      })
+
+      return {
+        id: enriched.id,
+        title: enriched.title,
+        summary: enriched.summary,
+        projectId: enriched.projectId,
+        projectTitle: enriched.projectTitle,
+        urgency: enriched.urgency,
+        dueDate: enriched.dueDate,
+        responseType: enriched.responseType,
+        decisionType: enriched.decisionType,
+        recommendedOptionId: enriched.recommendedOptionId,
+        recommendationReason: enriched.recommendationReason,
+        tagroReasoning: enriched.tagroReasoning,
+        options: enriched.options.map((o) => ({
+          id: o.id,
+          label: o.label,
+          hint: o.hint,
+          recommended: o.recommended,
+        })),
+        reasons: enriched.reasons,
+        explainSteps: enriched.explainSteps,
+      }
+    })
 
   let activity: WorkspaceOverviewActivity[] = (feedRes.data || []).map((row: any) => ({
     id: row.id,
@@ -464,12 +563,12 @@ export async function GET(req: NextRequest) {
   const healthyCount = projects.filter((p) => p.health === 'healthy').length
   const calmLine =
     projects.length === 0
-      ? `Create your first project inside ${workspace.name}.`
-      : healthyCount === projects.length
-        ? `Everything inside ${workspace.name} is running smoothly.`
-        : pendingDecisions.length > 0
-          ? `${workspace.name} needs a few calm decisions today.`
-          : `${workspace.name} is moving — keep momentum on active work.`
+      ? `In ${workspace.name} läuft noch alles ruhig.`
+      : pendingDecisions.length > 0
+        ? 'Alles läuft ruhig.'
+        : healthyCount === projects.length
+          ? 'Alles läuft ruhig.'
+          : `${workspace.name} bewegt sich — halte den Fokus.`
 
   const workspaces = workspacesList.map((w) => ({
     id: w.id,

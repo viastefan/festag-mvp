@@ -1645,11 +1645,12 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   background: var(--dc-primary);
   opacity: 0.55;
 }
-.fas-dc-sheet-actions {
-  margin-top: 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.fas-dc-sheet-error {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: #B42318;
 }
 .fas-dc-sheet-btn {
   display: inline-flex;

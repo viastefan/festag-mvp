@@ -333,14 +333,17 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     id: 'overview-tagro-core-interface',
     question: 'Warum ist Overview ein Decision Canvas mit organischer Tintenlinie und Apple Sheet?',
     answer:
-      'Show me only what deserves my attention. Calm: Greeting + Status + Waiting-Pill. Klick → eine organische Ink-Path wächst (Progress = Bewegung, kein Spinner). Dann erscheint die eine Frage mit Optionen. Rechts: Apple Floating Sheet (weiß, 20px radius, keine blauen Buttons) mit Empfehlung / Begründung / Übernehmen / Alternativen / Erklären. Erklären öffnet Popup an der Path. Mobile: Path oben ~40%, Entscheidung Mitte, Sheet als Bottom Sheet — nicht skaliertes Desktop. Nie Dashboard, nie Chat, nie mehr als eine Hauptlinie. Primary #5B647D nur für Fokus.',
+      'Show me only what deserves my attention. Calm: Greeting + Status + Waiting-Pill. Klick → organische Ink-Path (Progress = Bewegung). Dann die eine Frage mit echten Optionen aus dem Decision Engine. Rechts: Apple Sheet ohne blaue Buttons. Erklären öffnet Popup an der Path. Accept → POST /api/decisions/:id/decide. Overview API liefert options, reasons, explainSteps. Mobile: Path oben, Bottom Sheet — nicht skaliertes Desktop. Nie Dashboard, nie Chat, nie mehr als eine Hauptlinie.',
     decision:
-      'Overview v4.1 · calm waiting pill · organic ink path · focus question · Apple sheet (no blue CTAs) · explain on path · mobile bottom sheet · one line max',
+      'Overview v4.2 · enriched overview API · accept via POST /decide · organic ink · Apple sheet · mobile bottom sheet · one focus one line',
     date: '2026-08-04',
-    version: '4.1',
+    version: '4.2',
     status: 'locked',
     related: [
+      'docs/festag-decision-canvas.md',
       'components/app-shell/WorkspaceOverviewLive.tsx',
+      'lib/overview/decision-canvas.ts',
+      'app/api/workspaces/overview/route.ts',
       'docs/festag-tagro-invisible-intelligence.md',
       'docs/festag-experience-constitution.md',
     ],

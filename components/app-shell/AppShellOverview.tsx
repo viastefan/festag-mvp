@@ -15,7 +15,7 @@ type Props = {
 export default function AppShellOverview({ user }: Props) {
   const firstName = getDisplayName(user) || 'du'
   const greet = appShellGreeting()
-  const { state: load } = useWorkspaceOverview()
+  const { state: load, refresh } = useWorkspaceOverview()
 
   function openDocs(path = '/docs') {
     navigateLeavingAuthChrome(path)
@@ -35,6 +35,7 @@ export default function AppShellOverview({ user }: Props) {
         greeting={greet}
         firstName={firstName}
         data={load.data}
+        onDecided={() => void refresh()}
       />
     )
   }

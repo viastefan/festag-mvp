@@ -13,6 +13,14 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '4.2',
+    title: 'Decision Canvas wired to decision engine',
+    summary:
+      'Overview API returns options, Tagro recommendation, reasons and explain steps. Accept calls POST /api/decisions/:id/decide. UI: calm waiting pill, organic ink path, Apple sheet, explain on path, mobile bottom sheet.',
+    date: '2026-08-04',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
     version: '4.1',
     title: 'Decision Canvas — organic ink + Apple sheet + mobile bottom sheet',
     summary:
