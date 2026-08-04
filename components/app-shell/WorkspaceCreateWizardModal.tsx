@@ -318,6 +318,9 @@ export default function WorkspaceCreateWizardModal() {
       />
 
       <div className="wc-os-panel" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="wc-os-grip" aria-hidden="true">
+          <span className="wc-os-grip-bar" />
+        </div>
         <header className="wc-os-header">
           <button
             type="button"
@@ -800,7 +803,7 @@ const WIZARD_CSS = `
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  min-height: 420px;
+  min-height: 360px;
 }
 
 .wc-os-stage {
@@ -1472,6 +1475,176 @@ const WIZARD_CSS = `
   box-shadow: none !important;
 }
 
+.wc-os-grip {
+  display: none;
+}
+
+/* ── Mobile — bottom sheet ── */
+@media (max-width: 768px) {
+  .wc-os {
+    --wc-gutter: 18px;
+    --wc-content-max: 100%;
+    --wc-panel-radius: 16px;
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 0;
+  }
+
+  .wc-os-panel {
+    width: 100%;
+    max-width: none;
+    max-height: min(94dvh, 940px);
+    border-radius: var(--wc-panel-radius) var(--wc-panel-radius) 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.16);
+    transform: translateY(100%);
+    filter: none;
+  }
+
+  .wc-os.is-visible .wc-os-panel {
+    transform: translateY(0);
+    filter: none;
+  }
+
+  .wc-os[data-theme="dark"] .wc-os-panel {
+    box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.5);
+  }
+
+  .wc-os-grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 10px 0 2px;
+  }
+
+  .wc-os-grip-bar {
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(30, 30, 32, 0.14);
+  }
+
+  .wc-os[data-theme="dark"] .wc-os-grip-bar {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .wc-os-header {
+    padding: 4px 12px 2px;
+  }
+
+  .wc-os-slide {
+    min-height: 0;
+    height: 100%;
+    padding: 4px var(--wc-gutter) 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .wc-os-hero {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .wc-os .al-glassy-hero.mob-glassy-h1 {
+    font-size: 24px !important;
+    line-height: 30px !important;
+    --al-hero-display-size: 24px;
+    --al-hero-display-lh: 30px;
+  }
+
+  .wc-os .al-glassy-hero--stacked .al-glassy-hero-line,
+  .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword,
+  .wc-os .al-glassy-hero.mob-glassy-h1 .al-gword-inner {
+    height: 30px;
+    line-height: 30px;
+    min-height: 30px;
+  }
+
+  .wc-form {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+    padding-bottom: 0;
+  }
+
+  .wc-field-wrap {
+    flex-shrink: 0;
+  }
+
+  .wc-ws-groups {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-inline: 0;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .wc-ws-row {
+    min-height: 56px;
+    padding: 12px;
+  }
+
+  .wc-ws-card-title {
+    font-size: 14.5px;
+  }
+
+  .wc-ws-card-body {
+    font-size: 12.5px;
+  }
+
+  .wc-domain-hint,
+  .wc-hobby-hint {
+    font-size: 12.5px;
+  }
+
+  .wc-continue-slot {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-top: auto;
+    padding-top: 12px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--wc-panel) 28%
+    );
+  }
+
+  .wc-os[data-theme="dark"] .wc-continue-slot {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--wc-panel) 28%
+    );
+  }
+
+  .wc-creating-lines {
+    margin-top: 8px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .wc-welcome-domain {
+    padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .wc-plan .wc-continue-slot {
+    margin-top: 20px;
+  }
+
+  /* Keyboard: keep sheet in the visual viewport without page scroll */
+  .wc-os-panel {
+    max-height: min(94dvh, 100svh);
+  }
+}
+
 @media (min-width: 769px) {
   .wc-os {
     --wc-gutter: 28px;
@@ -1482,6 +1655,9 @@ const WIZARD_CSS = `
   }
   .wc-os-header {
     padding: 14px 16px 6px;
+  }
+  .wc-os-grip {
+    display: none !important;
   }
   .wc-os .al-glassy-hero.mob-glassy-h1 {
     font-size: 28px !important;
