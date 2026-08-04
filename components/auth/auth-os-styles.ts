@@ -1540,13 +1540,13 @@ export const AUTH_OS_STYLES = `
     --festag-btn-dark-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     --festag-btn-dark-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.04);
     --festag-btn-dark-shadow-active: none;
-    --festag-input-border: rgba(30, 30, 32, 0.14);
-    --festag-input-border-hover: rgba(30, 30, 32, 0.2);
-    --festag-input-border-width: 2px;
-    --festag-input-border-filled: #5B647D;
-    --festag-input-border-width-filled: 2px;
+    --festag-input-border: transparent;
+    --festag-input-border-hover: transparent;
+    --festag-input-border-width: 1.5px;
+    --festag-input-border-filled: transparent;
+    --festag-input-border-width-filled: 1.5px;
     --festag-input-border-focus: #5B647D;
-    --festag-input-border-width-focus: 2px;
+    --festag-input-border-width-focus: 1.5px;
     --festag-btn-border-width-focus: 2px;
     background: #F5F5F7 !important;
     color: #1d1d1f;
@@ -1698,16 +1698,16 @@ export const AUTH_OS_STYLES = `
   .al-root.al-root--gate[data-theme="light"] .al-input-shell .al-input {
     background: transparent !important;
     color: #1d1d1f !important;
-    border: 1px solid rgba(30, 30, 32, 0.14) !important;
+    border: 1.5px solid transparent !important;
     box-shadow: none !important;
   }
   .al-root.al-root--gate[data-theme="light"] .al-input:hover,
   .al-root.al-root--gate[data-theme="light"] .al-input:not(:placeholder-shown) {
-    border-color: rgba(30, 30, 32, 0.2) !important;
+    border-color: transparent !important;
   }
   .al-root.al-root--gate[data-theme="light"] .al-input:focus,
   .al-root.al-root--gate[data-theme="light"] .al-input:focus-visible {
-    border-width: var(--festag-input-border-width-focus, 2px) !important;
+    border-width: var(--festag-input-border-width-focus, 1.5px) !important;
     border-color: var(--festag-input-border-focus, #5B647D) !important;
     background: transparent !important;
     box-shadow: none !important;

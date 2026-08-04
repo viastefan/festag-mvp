@@ -43,39 +43,23 @@ Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal 
 
 ## Inputs
 
-Sana-style outer hairline on auth email/fields in **both** themes. No focus rings / glow shadows. Focus changes **stroke only** — never a fill step. Focus stroke uses the Google CTA accent (`#5B647D` / `--al-accent`).
-
-**Light:** transparent fill + dark ink idle stroke:
+Idle fields have **no visible stroke**. Stroke appears only on **focus** (accent `#5B647D` / `--al-accent`), slightly soft (`1.5px`). No focus rings / glow shadows. Focus changes **stroke only** — never a fill step. Hover and filled-unfocused stay transparent.
 
 ```css
 background: transparent;
-border: 1px solid rgba(30, 30, 32, 0.15); /* --festag-input-border */
-/* hover / filled */
-border-color: rgba(30, 30, 32, 0.20); /* --festag-input-border-hover */
+border: 1.5px solid transparent; /* idle / hover / filled */
 /* focus */
-border-color: #5B647D; /* --festag-input-border-focus — Google accent */
-/* background stays transparent */
+border-color: #5B647D; /* --festag-input-border-focus */
 ```
 
-**Dark:** transparent fill + white idle stroke, same accent on focus:
-
-```css
-background: transparent;
-border: 1px solid rgba(255, 255, 255, 0.15); /* --festag-input-border */
-/* hover / filled */
-border-color: rgba(255, 255, 255, 0.20); /* --festag-input-border-hover */
-/* focus */
-border-color: #5B647D; /* --festag-input-border-focus — same as light */
-```
-
-Autofill may use a canvas-matched inset paint (`#f7f8f8` light / soft slate dark) but must keep the same outer stroke — never reintroduce gray field fills in light.
+Same in light and dark. Autofill may use a canvas-matched inset paint but must not show an idle accent stroke — only while focused.
 
 ## Do not
 
 - Dual/heavy marketing shadows
-- Borderless white-on-white in light (need the soft hairline)
+- Idle field hairlines (stroke only on focus)
 - Thick / opaque strokes in dark CTAs (keep ~6% white hairline only)
 - Inset top strokes / `inset 0 1px …` on idle or hover
 - Thicker “3D platform” bars (`0 1.5px 0`)
 - Gray light-mode field fills (`#EEEEF0` / `#E4E4E9`) or fill-step on focus
-- Reintroduce fill-only auth inputs without the outer stroke
+- Reintroduce fill-only auth inputs without the focus stroke

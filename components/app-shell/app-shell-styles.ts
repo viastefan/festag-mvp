@@ -8,7 +8,7 @@ import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 export const APP_SHELL_STYLES = `
 .fas-root {
   --fas-canvas: ${FESTAG_SAND.canvasWarm};
-  --fas-sidebar-bg: ${FESTAG_SAND.canvasSoft};
+  --fas-sidebar-bg: #FFFFFF;
   --fas-main-bg: #FFFEFB;
   --fas-ink: ${FESTAG_SAND.ink};
   --fas-ink-muted: #8891a0;
@@ -16,10 +16,10 @@ export const APP_SHELL_STYLES = `
   --fas-card: #ffffff;
   --fas-card-border: rgba(30, 30, 32, 0.07);
   --fas-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --fas-sep: rgba(30, 30, 32, 0.07);
-  --fas-nav-idle: rgba(30, 30, 32, 0.52);
-  --fas-nav-hover: rgba(30, 30, 32, 0.06);
-  --fas-nav-active: rgba(30, 30, 32, 0.09);
+  --fas-sep: rgba(30, 30, 32, 0.12);
+  --fas-nav-idle: rgba(30, 30, 32, 0.64);
+  --fas-nav-hover: rgba(30, 30, 32, 0.07);
+  --fas-nav-active: rgba(30, 30, 32, 0.10);
   --fas-nav-active-ink: ${FESTAG_SAND.ink};
   --fas-sidebar-w: 248px;
   --fas-sidebar-collapsed-w: 64px;
@@ -56,7 +56,7 @@ export const APP_SHELL_STYLES = `
 html[data-theme="dark"] .fas-root,
 html[data-theme="classic-dark"] .fas-root {
   --fas-canvas: #0C0D12;
-  --fas-sidebar-bg: rgba(16, 18, 26, 0.72);
+  --fas-sidebar-bg: #14161F;
   --fas-main-bg: transparent;
   --fas-ink: #E6E8EE;
   --fas-ink-muted: #8891a0;
@@ -64,10 +64,10 @@ html[data-theme="classic-dark"] .fas-root {
   --fas-card: #14161F;
   --fas-card-border: rgba(255, 255, 255, 0.06);
   --fas-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --fas-sep: rgba(255, 255, 255, 0.06);
-  --fas-nav-idle: rgba(230, 232, 238, 0.55);
-  --fas-nav-hover: rgba(255, 255, 255, 0.05);
-  --fas-nav-active: rgba(255, 255, 255, 0.08);
+  --fas-sep: rgba(255, 255, 255, 0.11);
+  --fas-nav-idle: rgba(230, 232, 238, 0.62);
+  --fas-nav-hover: rgba(255, 255, 255, 0.06);
+  --fas-nav-active: rgba(255, 255, 255, 0.10);
   --fas-nav-active-ink: #E6E8EE;
   --fas-btn-bg: rgba(186, 194, 210, 0.08);
   --fas-btn-bg-hover: rgba(186, 194, 210, 0.11);
@@ -88,7 +88,7 @@ html[data-theme="classic-dark"] .fas-root {
 
 html[data-theme="read"] .fas-root {
   --fas-canvas: ${FESTAG_SAND.canvasWarm};
-  --fas-sidebar-bg: ${FESTAG_SAND.canvasSoft};
+  --fas-sidebar-bg: #FFFFFF;
   --fas-main-bg: #FFFEFB;
 }
 
@@ -102,9 +102,14 @@ html[data-theme="read"] .fas-root {
   background: var(--fas-sidebar-bg);
   border: none;
   border-right: 1px solid var(--fas-sep);
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.04);
   overflow: hidden;
   position: relative;
   transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+html[data-theme="dark"] .fas-sidebar,
+html[data-theme="classic-dark"] .fas-sidebar {
+  box-shadow: 4px 0 28px rgba(0, 0, 0, 0.35);
 }
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
