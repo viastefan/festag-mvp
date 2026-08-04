@@ -223,6 +223,7 @@ html[data-theme="read"] .fas-root {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   border: none;
   border-radius: 8px;
   background: transparent;
@@ -247,6 +248,61 @@ html[data-theme="read"] .fas-root {
   margin: 0 8px 8px;
   font-size: 13px;
   line-height: 1.5;
+  color: var(--fas-ink-muted);
+}
+
+.fas-notif-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5B647D;
+}
+.fas-notif-popover {
+  min-width: 300px;
+  max-width: 340px;
+  max-height: min(420px, 70vh);
+  overflow: auto;
+  padding: 8px;
+}
+.fas-notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fas-notif-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 12px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+}
+.fas-notif-card:hover {
+  background: var(--fas-nav-hover);
+}
+.fas-notif-card.is-unread {
+  background: rgba(91, 100, 125, 0.06);
+}
+.fas-notif-card-title {
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: var(--fas-ink);
+}
+.fas-notif-card-body {
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--fas-ink-muted);
 }
 

@@ -19,22 +19,26 @@ Do **not** mix these. Without a workspace the app explains Festag and the next s
 Ship in this order — do not invent ahead:
 
 1. **Phase 1 — Festag OS (frozen foundation)**  
-   Auth → Onboarding (name, avatar, position, username, connections) → Overview shell (sidebar, empty states, Create Workspace CTA).  
+   Auth → Onboarding → Overview shell (sidebar, empty states, Create Workspace CTA).  
    Goal: user understands Festag and that the next step is a workspace.
-2. **Phase 2 — Workspace Creation (locked)**  
-   Sequential **popup slider** on Overview (not a full-page form):
+2. **Phase 2 — Workspace Creation + First Project Setup (locked)**  
+   Calm full-screen flow on Overview:
    ```
-   Create Workspace → Name (+ subdomain preview)
+   Create Workspace → Name (+ subdomain)
    → How will you use this? (action cards)
-   → Creating… → Welcome → Overview
+   → Creating… → Ready (short)
+   → First project (required — no skip)
+   → Invite team (@username / email + project role)
+   → Overview (Pending Invitations + notifications)
    ```
    Use-case cards (jobs, not categories): Build for Clients · Run an Agency · Build a Product · Internal Team.  
    **No module picker** in the wizard — templates configure defaults; Modules live in Settings later.  
    **First workspace free** — never mention €19 here. Additional workspaces → Workspace Plan (€19/month).  
-   Code: `lib/platform/workspace-creation.ts` · `components/app-shell/WorkspaceCreateWizardModal.tsx` · `lib/workspace-create-open.ts`  
+   Roles on invite are **project roles**, never permanent account labels.  
+   Code: `lib/platform/workspace-creation.ts` · `lib/platform/workspace-setup.ts` · `WorkspaceCreateWizardModal` · `WorkspaceSetupSteps` · `OverviewPendingInvites` · `lib/workspace-create-open.ts`  
    Legacy `/create-workspace` → `/overview?create=1`
 3. **Phase 3 — Workspace Dashboard**  
-   Tagro Briefing, Projects, Activity, Decisions, Health, Team — only after wizard exists.
+   Tagro Briefing, Projects, Activity, Decisions, Health, Team — only after setup exists.
 
 Page-by-page after Phase 1: Overview → Wizard → Workspace Dashboard → Projects → Project Detail → Tasks → Tagro → Documents → Team.
 
@@ -43,7 +47,7 @@ Page-by-page after Phase 1: Overview → Wizard → Workspace Dashboard → Proj
 The primary rail item is **Overview** (`/overview`).
 
 - Without workspace: welcome + Create Workspace + explainer cards.
-- With workspace (later): same menu label — Tagro briefing, health, projects, activity.
+- With workspace: same menu label — pending invitations + later Tagro briefing, health, projects, activity.
 
 Never rename the menu when a workspace appears. Legacy `/home` redirects to `/overview`.
 
@@ -60,3 +64,4 @@ Never rename the menu when a workspace appears. Legacy `/home` redirects to `/ov
 2. Are we still in Phase 1 freeze — or has Phase 2/3 been explicitly started?
 3. Would this force a later nav rename? Prefer Overview-stable labels.
 4. Fake dashboards / KPIs / charts without a workspace? → stop.
+5. After workspace create — did we continue to first project (required) instead of dumping to Overview?

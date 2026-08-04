@@ -19,6 +19,7 @@ import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import {
   OPEN_WORKSPACE_CREATE_EVENT,
   emitWorkspaceCreated,
+  emitWorkspaceSetupDone,
 } from '@/lib/workspace-create-open'
 import {
   getTheme,
@@ -32,8 +33,10 @@ import {
   workspaceSubdomainPreview,
   type WorkspaceUseCaseId,
 } from '@/lib/platform/workspace-creation'
+import { WORKSPACE_SETUP_COPY as SETUP } from '@/lib/platform/workspace-setup'
+import WorkspaceSetupSteps from '@/components/app-shell/WorkspaceSetupSteps'
 
-type Step = 'form' | 'creating' | 'welcome' | 'plan'
+type Step = 'form' | 'creating' | 'welcome' | 'project' | 'invite' | 'plan'
 
 function resolveWizardTheme(mode: PanelThemeMode): 'light' | 'read' | 'dark' {
   if (mode === 'dark') return 'dark'
@@ -51,6 +54,9 @@ export default function WorkspaceCreateWizardModal() {
   const [checkingOwned, setCheckingOwned] = useState(false)
   const [fieldFocused, setFieldFocused] = useState(false)
   const [themeMode, setThemeMode] = useState<PanelThemeMode>(() => getTheme('client'))
+  const [workspaceId, setWorkspaceId] = useState('')
+  const [projectId, setProjectId] = useState<string | null>(null)
+  const [projectTitle, setProjectTitle] = useState<string | null>(null)
   const createStarted = useRef(false)
 
   const {
@@ -132,6 +138,9 @@ export default function WorkspaceCreateWizardModal() {
     setUseCase(null)
     setCreatingVisible(0)
     createStarted.current = false
+    setWorkspaceId('')
+    setProjectId(null)
+    setProjectTitle(null)
     setCheckingOwned(true)
     setThemeMode(getTheme('client'))
     setOpen(true)
@@ -154,7 +163,8 @@ export default function WorkspaceCreateWizardModal() {
   }
 
   function closeWizard() {
-    if (busy) return
+    /* First project is required — do not dismiss mid-setup. */
+    if (busy || step === 'project') return
     setVisible(false)
     window.setTimeout(() => {
       setOpen(false)
@@ -236,15 +246,17 @@ export default function WorkspaceCreateWizardModal() {
       const elapsed = Date.now() - startedAt
       await new Promise((r) => window.setTimeout(r, Math.max(0, 2000 - elapsed)))
       setCreatingVisible(COPY.creatingLines.length)
+      setWorkspaceId(result.workspace.id)
       setStep('welcome')
-      emitWorkspaceCreated(result.workspace.name)
+      emitWorkspaceCreated({
+        name: result.workspace.name,
+        id: result.workspace.id,
+      })
 
+      /* Short success, then continue into first project — never dump to Overview. */
       window.setTimeout(() => {
-        setVisible(false)
-        window.setTimeout(() => {
-          setOpen(false)
-          createStarted.current = false
-        }, 220)
+        createStarted.current = false
+        setStep('project')
       }, 1400)
     } catch {
       lineTimers.forEach(clearTimeout)
@@ -254,17 +266,34 @@ export default function WorkspaceCreateWizardModal() {
     }
   }
 
+  function finishSetup() {
+    emitWorkspaceSetupDone({
+      workspaceId: workspaceId || undefined,
+      projectId: projectId || undefined,
+      name: displayName || undefined,
+    })
+    setVisible(false)
+    window.setTimeout(() => {
+      setOpen(false)
+      createStarted.current = false
+    }, 220)
+  }
+
   if (!open || typeof document === 'undefined') return null
 
   const heroLead =
     step === 'plan' ? COPY.additionalTitle
     : step === 'creating' ? COPY.creatingTitle
-    : step === 'welcome' ? `${COPY.welcomePrefix} ${displayName || 'deinem Workspace'}.`
+    : step === 'welcome' ? SETUP.welcomeReady
+    : step === 'project' ? SETUP.projectTitle
+    : step === 'invite' ? SETUP.inviteTitle
     : COPY.nameTitle
 
   const heroRest =
     step === 'plan' ? COPY.additionalBody
     : step === 'form' ? COPY.nameTitleRest
+    : step === 'project' ? SETUP.projectTitleRest
+    : step === 'invite' ? SETUP.inviteTitleRest
     : ''
 
   return createPortal(
@@ -283,9 +312,9 @@ export default function WorkspaceCreateWizardModal() {
         <button
           type="button"
           className="wc-os-wordmark"
-          aria-label={busy ? 'Festag' : 'Schließen'}
+          aria-label={busy || step === 'project' ? 'Festag' : 'Schließen'}
           onClick={() => {
-            if (!busy) closeWizard()
+            if (!busy && step !== 'project') closeWizard()
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -443,6 +472,21 @@ export default function WorkspaceCreateWizardModal() {
                 />
               </div>
             </div>
+          ) : null}
+
+          {(step === 'project' || step === 'invite') && workspaceId ? (
+            <WorkspaceSetupSteps
+              mode={step === 'project' ? 'project' : 'invite'}
+              workspaceId={workspaceId}
+              projectId={projectId}
+              projectTitle={projectTitle}
+              onProjectCreated={(project) => {
+                setProjectId(project.id)
+                setProjectTitle(project.title)
+                setStep('invite')
+              }}
+              onDone={finishSetup}
+            />
           ) : null}
         </div>
       </div>
@@ -1024,6 +1068,156 @@ const WIZARD_CSS = `
   margin: 12px 0 0;
   font-size: 13.5px;
   color: #c45c5c;
+}
+
+.wc-flash {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  color: var(--mob-ink);
+}
+
+.wc-field-wrap--desc {
+  margin-bottom: 8px;
+}
+
+.wc-textarea {
+  width: 100%;
+  min-height: 72px;
+  max-block-size: 160px;
+  field-sizing: content;
+  resize: none !important;
+  padding: 12px 16px;
+  border-radius: var(--mob-field-radius);
+  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.15) !important;
+  background: transparent;
+  color: var(--mob-ink);
+  font-size: 15.5px;
+  line-height: 1.45;
+  font-family: inherit;
+  letter-spacing: var(--auth-tracking);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.wc-os[data-theme="dark"] .wc-textarea {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.wc-textarea:focus {
+  border-color: var(--mob-primary) !important;
+}
+
+.wc-invite-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.wc-invite-tab {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  background: transparent;
+  color: var(--mob-muted);
+  font-family: inherit;
+  font-size: 13.5px;
+  letter-spacing: var(--auth-tracking);
+  cursor: pointer;
+}
+
+.wc-invite-tab.is-on {
+  background: #fff;
+  color: var(--mob-ink);
+  border-color: rgba(30, 30, 32, 0.12);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.wc-os[data-theme="dark"] .wc-invite-tab.is-on {
+  background: rgba(186, 194, 210, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+.wc-people {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wc-people-row {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(30, 30, 32, 0.06);
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.wc-os[data-theme="dark"] .wc-people-row {
+  background: rgba(186, 194, 210, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.wc-people-name {
+  font-size: 14.5px;
+  color: var(--mob-ink);
+}
+
+.wc-people-handle {
+  font-size: 13px;
+  color: var(--mob-muted);
+}
+
+.wc-role-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+.wc-role-chip {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(30, 30, 32, 0.1);
+  background: transparent;
+  color: var(--mob-muted);
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: var(--auth-tracking);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wc-role-chip.is-on {
+  border-color: var(--mob-primary);
+  color: var(--mob-ink);
+  background: #fff;
+}
+
+.wc-os[data-theme="dark"] .wc-role-chip.is-on {
+  background: rgba(186, 194, 210, 0.1);
+}
+
+.wc-continue-slot--secondary {
+  margin-top: 12px;
+}
+
+.wc-continue-slot--secondary .mob-continue-btn.is-ready {
+  background: transparent !important;
+  color: var(--mob-muted) !important;
+  border: 1px solid rgba(30, 30, 32, 0.06) !important;
+  box-shadow: none !important;
 }
 
 @media (min-width: 769px) {

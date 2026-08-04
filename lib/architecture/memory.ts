@@ -24,15 +24,18 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     answer:
       'Der erste Workspace muss sich wie ein digitales Betriebssystem anfühlen, nicht wie ein Ordner. Oberfläche: sequentieller Popup-Slider auf Overview (nicht Full-Page). Name + Subdomain machen ihn real; Use-Case-Karten wählen eine Aufgabe. Module und €19 gehören nicht in den ersten Moment. Erster Workspace gratis; Zusatz-Workspaces → Workspace Plan.',
     decision:
-      'Phase 2 locked: popup slider Name → Use-case → Creating → Welcome. No module picker. First WS free. SSOT lib/platform/workspace-creation.ts + WorkspaceCreateWizardModal',
-    date: '2026-08-03',
-    version: '3.3',
+      'Phase 2: Name → Use-case → Creating → Ready → First Project (required) → Invite (username/email + ProjectRole) → Overview. No module picker. First WS free. SSOT workspace-creation + workspace-setup',
+    date: '2026-08-04',
+    version: '3.4',
     status: 'locked',
     related: [
       'docs/festag-os-workspace-phases.md',
       '.cursor/rules/festag-os-workspace-phases.mdc',
       'lib/platform/workspace-creation.ts',
+      'lib/platform/workspace-setup.ts',
       'components/app-shell/WorkspaceCreateWizardModal.tsx',
+      'components/app-shell/WorkspaceSetupSteps.tsx',
+      'components/app-shell/OverviewPendingInvites.tsx',
       'lib/workspace-create-open.ts',
     ],
   },

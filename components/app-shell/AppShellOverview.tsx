@@ -11,6 +11,7 @@ import {
   openWorkspaceCreateWizard,
   WORKSPACE_CREATED_EVENT,
 } from '@/lib/workspace-create-open'
+import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import { ArrowRight } from '@phosphor-icons/react'
 
 type Props = {
@@ -65,8 +66,9 @@ export default function AppShellOverview({ user }: Props) {
 
   useEffect(() => {
     function onCreated(e: Event) {
-      const name = (e as CustomEvent<{ name?: string }>).detail?.name
-      if (typeof name === 'string' && name.trim()) setWorkspaceName(name.trim())
+      const detail = (e as CustomEvent<{ name?: string }>).detail
+      const name = typeof detail?.name === 'string' ? detail.name.trim() : ''
+      if (name) setWorkspaceName(name)
     }
     window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
     return () => window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
@@ -89,7 +91,7 @@ export default function AppShellOverview({ user }: Props) {
         </p>
         <p className="fas-hero-support">
           {hasWorkspace
-            ? 'Your workspace is ready. Workspace dashboard modules arrive next.'
+            ? 'Dein Workspace organisiert Projekte, Menschen und Tagro.'
             : 'Create your first workspace to start building software with Tagro.'}
         </p>
         {!hasWorkspace ? (
@@ -98,6 +100,8 @@ export default function AppShellOverview({ user }: Props) {
           </button>
         ) : null}
       </section>
+
+      <OverviewPendingInvites />
 
       <div className="fas-cards">
         <article className="fas-card fas-assemble fas-assemble-d2">

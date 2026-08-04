@@ -23,6 +23,7 @@ import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hook
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 import { openWorkspaceCreateWizard, WORKSPACE_CREATED_EVENT } from '@/lib/workspace-create-open'
+import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
   user: UserProfile | null
@@ -44,6 +45,7 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const [helpOpen, setHelpOpen] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
   const helpTriggerRef = useRef<HTMLButtonElement>(null)
+  const { items: notifications, unread, markRead } = useNotifications({ limit: 12 })
 
   useEffect(() => {
     let alive = true
@@ -193,6 +195,7 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
                   }}
                 >
                   <Bell size={15} weight="regular" />
+                  {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
                 </button>
               </>
             ) : null}
@@ -223,13 +226,36 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
         ) : null}
 
         {notifOpen ? (
-          <div className="fas-popover fas-popover-left fas-ws-popover" role="dialog" aria-label="Benachrichtigungen">
-            <div className="fas-popover-title">Noch keine Benachrichtigungen.</div>
-            <p className="fas-popover-note">
-              {hasWorkspace
-                ? 'Updates von Tagro erscheinen hier.'
-                : 'Erstelle einen Workspace, um Updates von Tagro zu erhalten.'}
-            </p>
+          <div className="fas-popover fas-popover-left fas-ws-popover fas-notif-popover" role="dialog" aria-label="Benachrichtigungen">
+            {notifications.length === 0 ? (
+              <>
+                <div className="fas-popover-title">Noch keine Benachrichtigungen.</div>
+                <p className="fas-popover-note">
+                  Einladungen und Projekt-Updates erscheinen hier.
+                </p>
+              </>
+            ) : (
+              <ul className="fas-notif-list">
+                {notifications.map((n) => (
+                  <li key={n.id}>
+                    <button
+                      type="button"
+                      className={`fas-notif-card${n.read ? '' : ' is-unread'}`}
+                      onClick={() => {
+                        void markRead(n.id)
+                        if (n.link) window.location.href = n.link
+                        setNotifOpen(false)
+                      }}
+                    >
+                      <span className="fas-notif-card-title">{n.title}</span>
+                      <span className="fas-notif-card-body">
+                        {n.body || n.message || ''}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ) : null}
       </div>
