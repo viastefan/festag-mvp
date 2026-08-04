@@ -22,7 +22,7 @@ import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
-import { openWorkspaceCreateWizard, WORKSPACE_CREATED_EVENT } from '@/lib/workspace-create-open'
+import { openWorkspaceCreateWizard, openWorkspaceRename, WORKSPACE_CREATED_EVENT, WORKSPACE_RENAMED_EVENT } from '@/lib/workspace-create-open'
 import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
@@ -106,8 +106,19 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
         rememberWorkspaceName(name.trim())
       }
     }
+    function onRenamed(e: Event) {
+      const name = (e as CustomEvent<{ name?: string }>).detail?.name
+      if (typeof name === 'string' && name.trim()) {
+        setWorkspaceLabel(name.trim())
+        rememberWorkspaceName(name.trim())
+      }
+    }
     window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
-    return () => window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+    window.addEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+    return () => {
+      window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+      window.removeEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+    }
   }, [])
 
   useEffect(() => {
@@ -135,6 +146,11 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   function goCreateWorkspace() {
     setWsOpen(false)
     openWorkspaceCreateWizard()
+  }
+
+  function goRenameWorkspace() {
+    setWsOpen(false)
+    openWorkspaceRename({ name: hasWorkspace ? workspaceLabel : undefined })
   }
 
   function openSearch() {
@@ -221,6 +237,11 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
             ) : (
               <div className="fas-popover-title">Du hast noch keinen Workspace.</div>
             )}
+            {hasWorkspace ? (
+              <button type="button" className="fas-popover-item" onClick={goRenameWorkspace}>
+                Workspace umbenennen
+              </button>
+            ) : null}
             <button type="button" className="fas-popover-item" onClick={goCreateWorkspace}>
               <Plus size={14} weight="bold" />
               Workspace erstellen

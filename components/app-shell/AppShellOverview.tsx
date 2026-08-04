@@ -10,6 +10,7 @@ import { getRememberedWorkspaceName } from '@/lib/pending-workspace'
 import {
   openWorkspaceCreateWizard,
   WORKSPACE_CREATED_EVENT,
+  WORKSPACE_RENAMED_EVENT,
 } from '@/lib/workspace-create-open'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import { ArrowRight } from '@phosphor-icons/react'
@@ -70,8 +71,17 @@ export default function AppShellOverview({ user }: Props) {
       const name = typeof detail?.name === 'string' ? detail.name.trim() : ''
       if (name) setWorkspaceName(name)
     }
+    function onRenamed(e: Event) {
+      const detail = (e as CustomEvent<{ name?: string }>).detail
+      const name = typeof detail?.name === 'string' ? detail.name.trim() : ''
+      if (name) setWorkspaceName(name)
+    }
     window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
-    return () => window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+    window.addEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+    return () => {
+      window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
+      window.removeEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+    }
   }, [])
 
   function openDocs(path = '/docs') {
