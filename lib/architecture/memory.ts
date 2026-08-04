@@ -337,7 +337,7 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     decision:
       'Overview v5 · Workspace Board constellation + Project path fly-in · Tagro as inspector only · accept via /decide · suggest on enter',
     date: '2026-08-05',
-    version: '5.0',
+    version: '5.1',
     status: 'locked',
     related: [
       'docs/festag-decision-canvas.md',

@@ -1,15 +1,12 @@
 'use client'
 
 /**
- * Festag Workspace Board — Software Production Operating System surface.
- *
- * Level 1: Knowledge constellation (WHERE)
- * Level 2: Project decision path (WHY)
- *
- * Camera moves through knowledge — no page navigation theater.
+ * Festag Workspace Board — visual composition aligned to the product mock:
+ * radial Wissensraum + Entscheidungsfluss path with branch list + bottom Tagro insight.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Sparkle } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import { openNewProject } from '@/lib/new-project-open'
 import {
@@ -19,6 +16,7 @@ import {
 import {
   buildProjectPathView,
   buildWorkspaceConstellation,
+  edgePath,
   type BoardNode,
   type OverviewBoardInput,
   type ProjectPathView,
@@ -79,7 +77,7 @@ export default function WorkspaceBoard({
   )
 
   const [selected, setSelected] = useState<string | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pathLive, setPathLive] = useState<ProjectPathView | null>(null)
@@ -91,18 +89,19 @@ export default function WorkspaceBoard({
   const path =
     pathLive && pathLive.projectId === pathBase?.projectId ? pathLive : pathBase
 
+  const currentStepIndex = path?.steps.findIndex((s) => s.kind === 'current') ?? 0
+
   useEffect(() => {
     setFocusId(constellation.focusNodeId)
   }, [constellation.focusNodeId])
 
   useEffect(() => {
     setPathLive(null)
-    setSelected(pathBase?.topic?.recommendId || pathBase?.branches[0]?.id || null)
-    setSheetOpen(false)
+    setSelected(pathBase?.topic?.recommendId || pathBase?.branches.find((b) => b.recommended)?.id || pathBase?.branches[0]?.id || null)
+    setDetailOpen(false)
     setError(null)
   }, [pathBase?.projectId, pathBase?.topic?.id])
 
-  /* Enter project — camera fly, no page swap */
   function enterProject(nextProjectId: string | null, nodeId?: string) {
     if (level === 'flying') return
     if (nodeId) setFocusId(nodeId)
@@ -112,14 +111,14 @@ export default function WorkspaceBoard({
     window.setTimeout(() => {
       setLevel('project')
       setFly(null)
-    }, 520)
+    }, 560)
   }
 
   function leaveProject() {
     if (level !== 'project') return
     setFly('out')
     setLevel('flying')
-    setSheetOpen(false)
+    setDetailOpen(false)
     window.setTimeout(() => {
       setLevel('board')
       setProjectId(null)
@@ -134,18 +133,13 @@ export default function WorkspaceBoard({
       enterProject(null, node.id)
       return
     }
-    if (node.kind === 'decision' && node.projectId) {
-      enterProject(node.projectId, node.id)
-      return
-    }
     if (node.projectId) {
       enterProject(node.projectId, node.id)
-      return
     }
   }
 
   function zoomBy(delta: number) {
-    setScale((s) => Math.max(0.55, Math.min(2.4, Number((s + delta).toFixed(2)))))
+    setScale((s) => Math.max(0.55, Math.min(2.2, Number((s + delta).toFixed(2)))))
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -158,9 +152,10 @@ export default function WorkspaceBoard({
 
   function onPointerMove(e: React.PointerEvent) {
     if (!dragRef.current) return
-    const dx = e.clientX - dragRef.current.x
-    const dy = e.clientY - dragRef.current.y
-    setPan({ x: dragRef.current.panX + dx, y: dragRef.current.panY + dy })
+    setPan({
+      x: dragRef.current.panX + (e.clientX - dragRef.current.x),
+      y: dragRef.current.panY + (e.clientY - dragRef.current.y),
+    })
   }
 
   function onPointerUp() {
@@ -192,7 +187,12 @@ export default function WorkspaceBoard({
     const rebuilt = buildProjectPathView(nextInput, projectId)
     if (rebuilt) {
       setPathLive(rebuilt)
-      setSelected(rebuilt.topic?.recommendId || rebuilt.branches[0]?.id || null)
+      setSelected(
+        rebuilt.topic?.recommendId ||
+          rebuilt.branches.find((b) => b.recommended)?.id ||
+          rebuilt.branches[0]?.id ||
+          null,
+      )
     }
   }
 
@@ -206,6 +206,10 @@ export default function WorkspaceBoard({
     if (!path || busy) return
     const optionId = selected || path.topic?.recommendId || path.branches[0]?.id
     if (!optionId) return
+    if (optionId.startsWith('plan-')) {
+      setDetailOpen(false)
+      return
+    }
 
     if (path.topic?.kind === 'project' || path.projectId === 'first-project') {
       if (optionId === 'later') {
@@ -218,7 +222,7 @@ export default function WorkspaceBoard({
     }
 
     if (!path.topic?.decisionId) {
-      setSheetOpen(false)
+      setDetailOpen(false)
       return
     }
 
@@ -234,19 +238,23 @@ export default function WorkspaceBoard({
       setError('Die Empfehlung konnte nicht übernommen werden.')
       return
     }
-    setSheetOpen(false)
+    setDetailOpen(false)
     onDecided?.()
   }
 
   const showBoard = level === 'board' || fly !== null
   const showProject = level === 'project' || fly !== null
+  const selectableBranches = (path?.branches || []).filter(
+    (b) => !b.id.startsWith('plan-') || b.recommended,
+  )
+  const displayBranches = path?.branches || []
 
   return (
     <div
       className={[
         'fas-wb',
         `is-${level}`,
-        sheetOpen ? ' has-sheet' : '',
+        detailOpen ? ' has-detail' : '',
         dragging ? ' is-dragging' : '',
       ].join('')}
     >
@@ -254,7 +262,7 @@ export default function WorkspaceBoard({
         <OverviewPendingInvites />
       </div>
 
-      {/* ── Level 1: Workspace Board ── */}
+      {/* ── Level 1: Wissensraum ── */}
       <section
         className={`fas-wb-board${showBoard ? ' is-visible' : ''}${fly === 'in' ? ' is-exiting' : ''}${fly === 'out' ? ' is-entering' : ''}`}
         aria-hidden={level === 'project'}
@@ -264,12 +272,9 @@ export default function WorkspaceBoard({
         onPointerCancel={onPointerUp}
         onWheel={onWheel}
       >
-        <header className="fas-wb-board-head">
-          <p className="fas-wb-greet">
-            {greeting}, {firstName}.
-          </p>
-          <p className="fas-wb-status">{data.summary.calmLine}</p>
-        </header>
+        <p className="fas-wb-whisper">
+          {greeting}, {firstName}. {data.summary.calmLine}
+        </p>
 
         <div
           className="fas-wb-canvas"
@@ -283,12 +288,9 @@ export default function WorkspaceBoard({
               const b = constellation.nodes.find((n) => n.id === e.to)
               if (!a || !b) return null
               return (
-                <line
+                <path
                   key={e.id}
-                  x1={a.x}
-                  y1={a.y}
-                  x2={b.x}
-                  y2={b.y}
+                  d={edgePath(a.x, a.y, b.x, b.y)}
                   className="fas-wb-edge"
                 />
               )
@@ -296,7 +298,7 @@ export default function WorkspaceBoard({
           </svg>
 
           {constellation.nodes.map((node) => {
-            const active = focusId === node.id
+            const active = focusId === node.id || Boolean(node.center)
             return (
               <button
                 key={node.id}
@@ -305,6 +307,7 @@ export default function WorkspaceBoard({
                   'fas-wb-node',
                   KIND_CLASS[node.kind],
                   active ? ' is-active' : '',
+                  node.center ? ' is-center' : '',
                   node.attention ? ' is-attention' : '',
                 ].join('')}
                 style={{ left: `${node.x}%`, top: `${node.y}%` }}
@@ -313,36 +316,55 @@ export default function WorkspaceBoard({
                   onNodeActivate(node)
                 }}
               >
+                <span className="fas-wb-halo" aria-hidden />
                 <span className="fas-wb-dot" aria-hidden />
                 <span className="fas-wb-node-label">{node.label}</span>
-                {node.meta ? (
-                  <span className="fas-wb-node-meta">{node.meta}</span>
-                ) : null}
+                {node.meta ? <span className="fas-wb-node-meta">{node.meta}</span> : null}
               </button>
             )
           })}
         </div>
 
         <div className="fas-wb-board-foot">
-          <div className="fas-wb-zoom" role="group" aria-label="Zoom">
-            <button type="button" onClick={() => zoomBy(-0.12)} aria-label="Herauszoomen">
-              −
-            </button>
-            <span>{Math.round(scale * 100)}%</span>
-            <button type="button" onClick={() => zoomBy(0.12)} aria-label="Hineinzoomen">
-              +
-            </button>
-            <button
-              type="button"
-              className="fas-wb-zoom-reset"
-              onClick={() => {
-                setScale(1)
-                setPan({ x: 0, y: 0 })
-              }}
-            >
-              Reset
-            </button>
+          <div className="fas-wb-tools">
+            <div className="fas-wb-zoom" role="group" aria-label="Zoom">
+              <button type="button" onClick={() => zoomBy(-0.12)} aria-label="Herauszoomen">
+                −
+              </button>
+              <button type="button" onClick={() => zoomBy(0.12)} aria-label="Hineinzoomen">
+                +
+              </button>
+            </div>
+            <div className="fas-wb-minimap" aria-hidden>
+              <svg viewBox="0 0 100 70">
+                {constellation.edges.map((e) => {
+                  const a = constellation.nodes.find((n) => n.id === e.from)
+                  const b = constellation.nodes.find((n) => n.id === e.to)
+                  if (!a || !b) return null
+                  return (
+                    <line
+                      key={e.id}
+                      x1={a.x}
+                      y1={a.y * 0.7}
+                      x2={b.x}
+                      y2={b.y * 0.7}
+                      className="fas-wb-mm-edge"
+                    />
+                  )
+                })}
+                {constellation.nodes.map((n) => (
+                  <circle
+                    key={n.id}
+                    cx={n.x}
+                    cy={n.y * 0.7}
+                    r={n.center ? 2.2 : 1.1}
+                    className={`fas-wb-mm-dot${n.center ? ' is-on' : ''}`}
+                  />
+                ))}
+              </svg>
+            </div>
           </div>
+
           <ul className="fas-wb-legend" aria-label="Legende">
             <li>
               <span className="fas-wb-leg is-decision" />
@@ -350,7 +372,7 @@ export default function WorkspaceBoard({
             </li>
             <li>
               <span className="fas-wb-leg is-task" />
-              Arbeit
+              Aufgabe
             </li>
             <li>
               <span className="fas-wb-leg is-risk" />
@@ -360,110 +382,131 @@ export default function WorkspaceBoard({
               <span className="fas-wb-leg is-resource" />
               Ressource
             </li>
+            <li>
+              <span className="fas-wb-leg is-line" />
+              Abhängigkeit
+            </li>
           </ul>
         </div>
       </section>
 
-      {/* ── Level 2: Project path ── */}
+      {/* ── Level 2: Entscheidungsfluss ── */}
       <section
         className={`fas-wb-project${showProject ? ' is-visible' : ''}${fly === 'in' ? ' is-entering' : ''}${fly === 'out' ? ' is-exiting' : ''}`}
         aria-hidden={level === 'board'}
       >
         <header className="fas-wb-project-head">
           <button type="button" className="fas-wb-back" onClick={leaveProject}>
-            ← Workspace
+            ← Wissensraum
           </button>
-          <h1 className="fas-wb-project-title">{path?.projectTitle || 'Projekt'}</h1>
         </header>
 
-        <div className="fas-wb-path-stage">
-          <div className="fas-wb-path" aria-label="Projektpfad">
-            <svg className="fas-wb-path-line" viewBox="0 0 40 520" preserveAspectRatio="none" aria-hidden>
-              <path
-                d="M 20 8 C 18 80, 22 140, 20 200 S 16 320, 20 400 S 24 480, 20 512"
-                className="fas-wb-path-stroke"
-              />
-            </svg>
-
+        <div className="fas-wb-flow">
+          <div className="fas-wb-rail" aria-label="Projektpfad">
+            <div className="fas-wb-rail-line" aria-hidden />
             <ol className="fas-wb-steps">
-              {(path?.steps || []).map((step) => (
-                <li
-                  key={step.id}
-                  className={`fas-wb-step is-${step.kind}`}
-                >
-                  <span className="fas-wb-step-dot" aria-hidden />
+              {(path?.steps || []).map((step, idx) => (
+                <li key={step.id} className={`fas-wb-step is-${step.kind}`}>
+                  <span className="fas-wb-step-mark" aria-hidden>
+                    {step.kind === 'done' ? (
+                      <svg viewBox="0 0 16 16" width="10" height="10">
+                        <path
+                          d="M3.5 8.2l2.8 2.8 6.2-6.4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : null}
+                  </span>
                   <div className="fas-wb-step-copy">
                     <p className="fas-wb-step-label">{step.label}</p>
-                    {step.meta ? (
-                      <p className="fas-wb-step-meta">{step.meta}</p>
-                    ) : null}
+                    {step.meta ? <p className="fas-wb-step-meta">{step.meta}</p> : null}
                   </div>
+
+                  {/* Horizontal stem from current node into the branch column */}
+                  {step.kind === 'current' ? (
+                    <span className="fas-wb-stem" aria-hidden />
+                  ) : null}
+
+                  {/* Spacer so planned items after current keep vertical rhythm */}
+                  {idx === currentStepIndex ? <span className="fas-wb-step-anchor" /> : null}
                 </li>
               ))}
             </ol>
           </div>
 
-          <div className="fas-wb-branches" role="radiogroup" aria-label="Nächste Richtung">
-            {(path?.branches || []).map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                role="radio"
-                aria-checked={selected === b.id}
-                className={`fas-wb-branch${selected === b.id ? ' is-on' : ''}${b.recommended ? ' is-rec' : ''}`}
-                onClick={() => {
-                  setSelected(b.id)
-                  setSheetOpen(true)
-                }}
-              >
-                <span className="fas-wb-branch-dot" aria-hidden />
-                <span className="fas-wb-branch-body">
-                  <span className="fas-wb-branch-label">{b.label}</span>
-                  {b.recommended ? (
-                    <span className="fas-wb-branch-rec">Empfohlen</span>
-                  ) : b.hint ? (
-                    <span className="fas-wb-branch-hint">{b.hint}</span>
-                  ) : null}
-                </span>
-                <span className="fas-wb-branch-chev" aria-hidden>
-                  ›
-                </span>
-              </button>
-            ))}
+          <div
+            className="fas-wb-branch-col"
+            style={{
+              ['--wb-branch-top' as string]: `${Math.max(0, currentStepIndex) * 72 + 8}px`,
+            }}
+          >
+            <div className="fas-wb-branch-list" role="radiogroup" aria-label="Nächste Schritte">
+              {displayBranches.map((b) => {
+                const isDecision = !b.id.startsWith('plan-')
+                const on = selected === b.id
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    role={isDecision ? 'radio' : undefined}
+                    aria-checked={isDecision ? on : undefined}
+                    className={`fas-wb-branch${on ? ' is-on' : ''}${b.recommended ? ' is-rec' : ''}${!isDecision ? ' is-future' : ''}`}
+                    onClick={() => {
+                      if (!isDecision) return
+                      setSelected(b.id)
+                    }}
+                  >
+                    <span className="fas-wb-branch-dot" aria-hidden />
+                    <span className="fas-wb-branch-body">
+                      <span className="fas-wb-branch-label">{b.label}</span>
+                      {b.recommended ? (
+                        <span className="fas-wb-branch-rec">Empfohlene Entscheidung</span>
+                      ) : null}
+                    </span>
+                    <span className="fas-wb-branch-chev" aria-hidden>
+                      ›
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Tagro inspector — Apple-like, not SaaS */}
-        {(sheetOpen || (path?.topic && level === 'project')) && path ? (
-          <aside
-            className={`fas-wb-inspector${sheetOpen ? ' is-open' : ' is-peek'}`}
-            aria-label="Empfehlung"
-          >
-            <div className="fas-wb-inspector-handle" aria-hidden />
-            <p className="fas-wb-inspector-title">
-              {path.topic?.recommendLabel || path.branches.find((b) => b.recommended)?.label || 'Empfehlung'}
-            </p>
-            <p className="fas-wb-inspector-body">
-              {path.insight}
-            </p>
-            {path.topic?.reasons && path.topic.reasons.length > 1 ? (
-              <ul className="fas-wb-inspector-reasons">
-                {path.topic.reasons.slice(0, 3).map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-            ) : null}
-            {error ? (
-              <p className="fas-wb-inspector-error" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <div className="fas-wb-inspector-actions">
-              {!sheetOpen ? (
+        {/* Bottom Tagro Insight — matches mock */}
+        {path && level === 'project' ? (
+          <aside className={`fas-wb-insight${detailOpen ? ' is-open' : ''}`} aria-label="Tagro Insight">
+            <div className="fas-wb-insight-main">
+              <span className="fas-wb-insight-icon" aria-hidden>
+                <Sparkle size={16} weight="fill" />
+              </span>
+              <div className="fas-wb-insight-copy">
+                <p className="fas-wb-insight-k">Tagro Insight</p>
+                <p className="fas-wb-insight-text">{path.insight}</p>
+                {detailOpen && path.topic?.reasons && path.topic.reasons.length > 1 ? (
+                  <ul className="fas-wb-insight-reasons">
+                    {path.topic.reasons.slice(0, 3).map((r) => (
+                      <li key={r}>{r}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                {error ? (
+                  <p className="fas-wb-insight-error" role="alert">
+                    {error}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div className="fas-wb-insight-actions">
+              {!detailOpen ? (
                 <button
                   type="button"
-                  className="fas-wb-btn is-primary"
-                  onClick={() => setSheetOpen(true)}
+                  className="fas-wb-btn is-ghost"
+                  onClick={() => setDetailOpen(true)}
                 >
                   Details anzeigen
                 </button>
@@ -472,16 +515,16 @@ export default function WorkspaceBoard({
                   <button
                     type="button"
                     className="fas-wb-btn is-primary"
-                    disabled={busy}
+                    disabled={busy || !selectableBranches.some((b) => b.id === selected)}
                     onClick={() => void accept()}
                   >
                     {busy ? 'Wird übernommen…' : 'Empfehlung übernehmen'}
                   </button>
                   <button
                     type="button"
-                    className="fas-wb-btn"
+                    className="fas-wb-btn is-ghost"
                     disabled={busy}
-                    onClick={() => setSheetOpen(false)}
+                    onClick={() => setDetailOpen(false)}
                   >
                     Schließen
                   </button>
@@ -489,15 +532,6 @@ export default function WorkspaceBoard({
               )}
             </div>
           </aside>
-        ) : null}
-
-        {sheetOpen ? (
-          <button
-            type="button"
-            className="fas-wb-scrim"
-            aria-label="Schließen"
-            onClick={() => setSheetOpen(false)}
-          />
         ) : null}
       </section>
     </div>

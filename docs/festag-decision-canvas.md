@@ -39,4 +39,4 @@ Designed independently: gesture canvas, vertical path, recommendation as bottom 
 
 ## Architecture Memory
 
-`overview-tagro-core-interface` · v5.0
+`overview-tagro-core-interface` · v5.1

@@ -13,6 +13,14 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '5.1',
+    title: 'Workspace Board visual fidelity to mock',
+    summary:
+      'Radial constellation with center glow, organic edges, minimap + legend. Project view: vertical path with checks, stem into branch list, bottom Tagro Insight bar.',
+    date: '2026-08-05',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
     version: '5.0',
     title: 'Workspace Board — constellation + project path',
     summary:
