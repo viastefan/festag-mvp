@@ -15,7 +15,7 @@ Authentication → Onboarding → Overview (shell + empty states + Create Worksp
 
 Success criterion: the user understands Festag and knows the next step is creating a workspace.
 
-## Phase 2 (locked) — Workspace Creation + First Project Setup
+## Phase 2 (locked) — Workspace Creation
 
 Not a folder form. The user creates their **digital operating environment** via a calm full-screen flow on Festag OS Overview.
 
@@ -25,10 +25,11 @@ Create Workspace
 → How will you use this? (action cards)
 → Creating…
 → Your workspace is ready. (short success)
-→ Create your first project. (required — no skip)
-→ Invite your team. (@username or email + project role)
-→ Overview (Pending Invitations + notifications)
+→ Overview
 ```
+
+**First project is not part of workspace create.**  
+„Neues Projekt“ opens later as a **darkened popup** (`NewProjectModal`): Tagro reads name/description, chats, suggests collaborators, invites, and helps formulate — same flow as the classic backend.
 
 **Use cases (jobs, not category labels):**
 
@@ -41,11 +42,9 @@ Create Workspace
 
 **Do not** show module checkboxes, GitHub/CRM/Billing pickers, or €19 pricing on the first workspace.
 
-**Pricing:** first owned workspace is free. Creating an additional workspace surfaces the Workspace Plan (€19/month).
+**Pricing:** first owned workspace is free (Hobby). Creating an additional workspace surfaces the Workspace Plan (€19/month).
 
-**Invite roles** are project roles (`project_owner` · `developer` · `designer` · `client` · `viewer`) — never permanent account labels. Workspace Owner is not an invite chip.
-
-Code: `lib/platform/workspace-creation.ts` · `lib/platform/workspace-setup.ts` · `WorkspaceCreateWizardModal` · `WorkspaceSetupSteps` · `OverviewPendingInvites` · `POST /api/workspaces/first-project` · `POST /api/invites/project` · `GET /api/invites/pending` · `POST /api/invites/respond`.  
+Code: `lib/platform/workspace-creation.ts` · `lib/new-project-open.ts` · `WorkspaceCreateWizardModal` · `AppShellNewProjectHost` · `NewProjectModal` · `OverviewPendingInvites`.  
 Legacy `/create-workspace` redirects to `/overview?create=1`.
 
 ## Overview

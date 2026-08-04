@@ -1,10 +1,11 @@
 /**
- * Post–workspace-create setup — Phase 2b SSOT.
+ * Post–workspace helpers — invites + copy (project create lives in NewProjectModal).
  *
- * After a workspace exists: Welcome → First Project (required) → Invite → Overview.
- * Titles use AuthGlassyHero lead + muted rest — never a support <p>.
+ * Workspace create ends at Overview. „Neues Projekt“ opens the Tagro popup
+ * (darkened overlay): chat, Mitwirkende, Einladungen, Formulierung.
  *
  * @see lib/platform/workspace-creation.ts
+ * @see lib/new-project-open.ts
  * @see docs/festag-os-workspace-phases.md
  */
 
@@ -69,13 +70,16 @@ export function inviteLegacyToProjectRole(role: string | null | undefined): Proj
 
 export const WORKSPACE_SETUP_COPY = {
   welcomeReady: 'Dein Workspace ist bereit.',
-  projectTitle: 'Erstelle dein erstes Projekt.',
-  projectTitleRest: 'Projekte sind das Fundament jedes Workspace.',
+  /** Used by NewProjectModal / Projects empty — not in workspace wizard. */
+  projectTitle: 'Neues Projekt.',
+  projectTitleRest: 'Tagro liest deine Angaben und führt dich weiter.',
   projectNameLabel: 'Projektname',
   projectNamePlaceholder: 'Airport Website',
   projectDescLabel: 'Beschreibung (optional)',
   projectDescPlaceholder: 'Kurz, worum es geht…',
-  projectCreate: 'Projekt erstellen',
+  projectCreate: 'Mit Tagro fortfahren',
+  projectTagroHint:
+    'Tagro liest, was du eingibst — stellt Rückfragen, schlägt Mitwirkende vor, hilft beim Einladen und formuliert mit dir.',
   inviteTitle: 'Lade dein Team ein.',
   inviteTitleRest: 'Clients, Developer und Stakeholder arbeiten im Projekt zusammen.',
   inviteUsernameLabel: 'Festag-Nutzer',

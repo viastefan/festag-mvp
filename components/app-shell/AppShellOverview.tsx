@@ -12,7 +12,9 @@ import {
   openWorkspaceCreateWizard,
   WORKSPACE_CREATED_EVENT,
   WORKSPACE_RENAMED_EVENT,
+  WORKSPACE_SETUP_DONE_EVENT,
 } from '@/lib/workspace-create-open'
+import { PROJECT_CREATED_EVENT } from '@/lib/new-project-open'
 import { ArrowRight } from '@phosphor-icons/react'
 
 type Props = {
@@ -69,9 +71,13 @@ export default function AppShellOverview({ user }: Props) {
     }
     window.addEventListener(WORKSPACE_CREATED_EVENT, onChanged)
     window.addEventListener(WORKSPACE_RENAMED_EVENT, onChanged)
+    window.addEventListener(WORKSPACE_SETUP_DONE_EVENT, onChanged)
+    window.addEventListener(PROJECT_CREATED_EVENT, onChanged)
     return () => {
       window.removeEventListener(WORKSPACE_CREATED_EVENT, onChanged)
       window.removeEventListener(WORKSPACE_RENAMED_EVENT, onChanged)
+      window.removeEventListener(WORKSPACE_SETUP_DONE_EVENT, onChanged)
+      window.removeEventListener(PROJECT_CREATED_EVENT, onChanged)
     }
   }, [refresh])
 

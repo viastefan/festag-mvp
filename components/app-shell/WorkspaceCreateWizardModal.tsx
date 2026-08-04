@@ -35,10 +35,8 @@ import {
   workspaceSubdomainPreview,
   type WorkspaceUseCaseId,
 } from '@/lib/platform/workspace-creation'
-import { WORKSPACE_SETUP_COPY as SETUP } from '@/lib/platform/workspace-setup'
-import WorkspaceSetupSteps from '@/components/app-shell/WorkspaceSetupSteps'
 
-type Step = 'form' | 'creating' | 'welcome' | 'project' | 'invite' | 'plan'
+type Step = 'form' | 'creating' | 'welcome' | 'plan'
 
 function resolveWizardTheme(mode: PanelThemeMode): 'light' | 'read' | 'dark' {
   if (mode === 'dark') return 'dark'
@@ -57,8 +55,6 @@ export default function WorkspaceCreateWizardModal() {
   const [fieldFocused, setFieldFocused] = useState(false)
   const [themeMode, setThemeMode] = useState<PanelThemeMode>(() => getTheme('client'))
   const [workspaceId, setWorkspaceId] = useState('')
-  const [projectId, setProjectId] = useState<string | null>(null)
-  const [projectTitle, setProjectTitle] = useState<string | null>(null)
   const createStarted = useRef(false)
 
   const {
@@ -141,8 +137,6 @@ export default function WorkspaceCreateWizardModal() {
     setCreatingVisible(0)
     createStarted.current = false
     setWorkspaceId('')
-    setProjectId(null)
-    setProjectTitle(null)
     setCheckingOwned(true)
     setThemeMode(getTheme('client'))
     setOpen(true)
@@ -165,8 +159,7 @@ export default function WorkspaceCreateWizardModal() {
   }
 
   function closeWizard() {
-    /* First project is required — do not dismiss mid-setup. */
-    if (busy || step === 'project') return
+    if (busy) return
     setVisible(false)
     window.setTimeout(() => {
       setOpen(false)
@@ -255,10 +248,10 @@ export default function WorkspaceCreateWizardModal() {
         id: result.workspace.id,
       })
 
-      /* Short success, then continue into first project — never dump to Overview. */
+      /* Short success, then land on Overview — projects open via Tagro popup later. */
       window.setTimeout(() => {
         createStarted.current = false
-        setStep('project')
+        finishSetup()
       }, 1400)
     } catch {
       lineTimers.forEach(clearTimeout)
@@ -271,7 +264,6 @@ export default function WorkspaceCreateWizardModal() {
   function finishSetup() {
     emitWorkspaceSetupDone({
       workspaceId: workspaceId || undefined,
-      projectId: projectId || undefined,
       name: displayName || undefined,
     })
     setVisible(false)
@@ -286,16 +278,12 @@ export default function WorkspaceCreateWizardModal() {
   const heroLead =
     step === 'plan' ? COPY.additionalTitle
     : step === 'creating' ? COPY.creatingTitle
-    : step === 'welcome' ? SETUP.welcomeReady
-    : step === 'project' ? SETUP.projectTitle
-    : step === 'invite' ? SETUP.inviteTitle
+    : step === 'welcome' ? COPY.welcomeReady
     : COPY.nameTitle
 
   const heroRest =
     step === 'plan' ? COPY.additionalBody
     : step === 'form' ? COPY.nameTitleRest
-    : step === 'project' ? SETUP.projectTitleRest
-    : step === 'invite' ? SETUP.inviteTitleRest
     : ''
 
   return createPortal(
@@ -314,9 +302,9 @@ export default function WorkspaceCreateWizardModal() {
         <button
           type="button"
           className="wc-os-wordmark"
-          aria-label={busy || step === 'project' ? 'Festag' : 'Schließen'}
+          aria-label={busy ? 'Festag' : 'Schließen'}
           onClick={() => {
-            if (!busy && step !== 'project') closeWizard()
+            if (!busy) closeWizard()
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -486,21 +474,6 @@ export default function WorkspaceCreateWizardModal() {
                 />
               </div>
             </div>
-          ) : null}
-
-          {(step === 'project' || step === 'invite') && workspaceId ? (
-            <WorkspaceSetupSteps
-              mode={step === 'project' ? 'project' : 'invite'}
-              workspaceId={workspaceId}
-              projectId={projectId}
-              projectTitle={projectTitle}
-              onProjectCreated={(project) => {
-                setProjectId(project.id)
-                setProjectTitle(project.title)
-                setStep('invite')
-              }}
-              onDone={finishSetup}
-            />
           ) : null}
         </div>
       </div>

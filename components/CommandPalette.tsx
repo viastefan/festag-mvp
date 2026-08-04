@@ -68,7 +68,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-settings-privacy', group:'Navigation', label:'Datenschutz', href:'/settings/privacy', Icon: GearSix, keywords:['settings','export','gdpr','privacy','adaptive','okm'] },
 
   // Aktionen
-  { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/projects?new=1',        Icon: Plus,    keywords:['create','start'] },
+  { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/overview/projects?new=1',        Icon: Plus,    keywords:['create','start'] },
   { id:'act-new-task', group:'Aktionen',   label:'Neue Aufgabe anlegen',  href:'/tasks?new=1',           Icon: Kanban, keywords:['create','aufgabe','task'] },
   { id:'act-new-issue', group:'Aktionen',  label:'Neuen Vorfall anlegen', href:'/issues?new=1',          Icon: WarningOctagon, keywords:['create','bug','blocker','issue'] },
   { id:'act-new-objective', group:'Aktionen', label:'Neues Ziel anlegen', href:'/objectives?new=1', Icon: Flag, keywords:['create','okr','ziel','objective'] },

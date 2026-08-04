@@ -8,7 +8,7 @@
 import Link from 'next/link'
 import { ArrowRight, Headphones, FileText } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
-import { openWorkspaceCreateWizard } from '@/lib/workspace-create-open'
+import { openNewProject } from '@/lib/new-project-open'
 
 export type OverviewPayload = {
   workspace: { id: string; name: string }
@@ -130,8 +130,8 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
         {projects.length === 0 ? (
           <div className="fas-wo-empty">
             <p>No projects yet. Create your first project to give this workspace a center of gravity.</p>
-            <button type="button" className="fas-btn" onClick={() => openWorkspaceCreateWizard()}>
-              Continue setup
+            <button type="button" className="fas-btn" onClick={() => openNewProject()}>
+              Neues Projekt
             </button>
           </div>
         ) : (

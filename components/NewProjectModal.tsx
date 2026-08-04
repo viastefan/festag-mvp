@@ -910,6 +910,11 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
               {error && <p className="npm-error" role="alert">{error}</p>}
 
+              <p className="npm-tagro-hint">
+                Tagro liest, was du hier eingibst — stellt Rückfragen, schlägt Mitwirkende vor,
+                hilft beim Einladen und formuliert mit dir weiter.
+              </p>
+
               {pendingAssign && (
                 <div className="npm-pending-chip" role="status">
                   <Check size={14} weight="bold" />
@@ -1725,6 +1730,17 @@ const CSS = `
     font-size: 12.5px; font-weight: 500; line-height: 1.5;
   }
   .npm-error.in-chat { margin: 0 22px 10px; }
+  .npm-tagro-hint {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    color: #8891a0;
+  }
+  [data-theme="dark"] .npm-tagro-hint,
+  [data-theme="classic-dark"] .npm-tagro-hint {
+    color: rgba(245, 245, 247, 0.55);
+  }
 
   /* ---- Pending Assign Chip — zeigt was beim Finalize angewendet wird ---- */
   .npm-pending-chip {

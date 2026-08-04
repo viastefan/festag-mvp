@@ -3,6 +3,7 @@
  *
  * Surface: single calm form on Festag OS (`WorkspaceCreateWizardModal`).
  * Flow: Name + Nutzung → Creating… → Welcome → Overview
+ * First project opens later via darkened NewProjectModal (Tagro), not in this wizard.
  * No module picker in the wizard. Templates configure defaults; Modules live in Settings later.
  * First workspace is free. Additional workspaces require the Workspace Plan.
  * Titles: one AuthGlassyHero (lead + muted rest). Never a support <p> under the H1.
@@ -75,6 +76,7 @@ export const WORKSPACE_CREATION_COPY = {
   creatingTitle: 'Workspace wird erstellt…',
   creatingLines: ['Projekte', 'Tagro', 'Mitglieder'] as const,
   welcomePrefix: 'Willkommen bei',
+  welcomeReady: 'Dein Workspace ist bereit.',
   continue: 'Weiter',
   customizeLater: 'Später anpassen',
   /** Plan gate H1: bright lead + muted rest (one glassy title, no Zwischenüberschrift). */
