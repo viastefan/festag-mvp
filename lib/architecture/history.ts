@@ -13,6 +13,14 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '5.0',
+    title: 'Workspace Board — constellation + project path',
+    summary:
+      'Overview becomes a zoomable OS: Level 1 knowledge constellation (WHERE), Level 2 project decision path (WHY). Camera fly between levels. Tagro as inspector only. Mobile independent.',
+    date: '2026-08-05',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
     version: '4.3',
     title: 'Decision Canvas backend hardening',
     summary:

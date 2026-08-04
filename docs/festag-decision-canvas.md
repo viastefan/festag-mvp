@@ -1,45 +1,42 @@
-# Decision Canvas (Overview)
+# Workspace Board (Overview)
 
-Festag Overview is not a dashboard. It is a **Decision Canvas**.
+Festag Overview is a **Software Production Operating System** surface — not a dashboard.
 
 ## Law
 
-1. The center shows **exactly one** focus — never more.
-2. Never more than **one main ink path** at a time.
-3. Primary `#5B647D` only for focus, path, selection, status dot.
-4. Progress is the path animation — no spinner, no percentage.
-5. Accept writes through `POST /api/decisions/:id/decide`.
+1. Show me only what deserves my attention.
+2. Level 1 answers **WHERE ARE WE?** (knowledge constellation).
+3. Level 2 answers **WHY ARE WE HERE?** (project decision path).
+4. Navigation is a **camera**, not page switches.
+5. Tagro is never the hero — the decision is.
+6. Primary `#5B647D` only for focus / active path / recommendation.
+7. Paper `#F8F6F2`. Aeonik. Whitespace first.
 
-## Flow
+## Levels
 
 ```
-Calm (greeting + status + waiting pill)
-  → organic ink path grows
-  → focus question + options
-  → Apple recommendation sheet
-  → Explain popup on the path (optional)
-  → Accept / Review / later
-  → path retracts → calm
+Workspace Board (constellation)
+  → click project / decision node
+  → camera flies in
+  → Project View (path + one focus + inspector)
+  → accept recommendation
+  → path continues / back to board
 ```
 
 ## Backend
 
 | Piece | Location |
 |---|---|
-| Domain | `lib/overview/decision-canvas.ts` — match id/label, rank urgency, enrich reasons |
-| Overview API | `GET /api/workspaces/overview` — ranked `decisions[]` with options, reasons, explainSteps, needsSuggestion |
-| Suggest | `POST /api/decisions/:id/suggest` — recommends; generates + persists options when empty |
-| Accept | `POST /api/decisions/:id/decide` via `acceptDecisionRecommendation` (resolves external_id / label) |
-| UI | `components/app-shell/WorkspaceOverviewLive.tsx` — calls suggest on activate when needed |
-
-## Matching quirk
-
-`decisions.recommended_option` may be a **client label**, while options use `external_id` (`opt-1`). Matching tries external_id · uuid · client_label · label.
+| Board model | `lib/overview/workspace-board.ts` |
+| Decision domain | `lib/overview/decision-canvas.ts` |
+| Overview API | `GET /api/workspaces/overview` |
+| Suggest / Accept | `/api/decisions/:id/suggest` · `/decide` |
+| UI | `components/app-shell/WorkspaceBoard.tsx` |
 
 ## Mobile
 
-Designed separately: path ~upper 40%, decision center, recommendation as **bottom sheet**. Not a scaled desktop layout.
+Designed independently: gesture canvas, vertical path, recommendation as bottom sheet.
 
 ## Architecture Memory
 
-`overview-tagro-core-interface` · v4.3
+`overview-tagro-core-interface` · v5.0

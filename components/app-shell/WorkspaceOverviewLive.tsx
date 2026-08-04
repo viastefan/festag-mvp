@@ -1,10 +1,8 @@
 'use client'
 
 /**
- * Decision Canvas — Festag Overview.
- *
- * Show me only what deserves my attention.
- * Backend-backed: options, recommendation, reasons, explain steps, POST /decide.
+ * Legacy Decision Canvas UI — superseded by WorkspaceBoard (Overview v5).
+ * Payload types remain the SSOT for useWorkspaceOverview.
  */
 
 import { useEffect, useMemo, useState } from 'react'

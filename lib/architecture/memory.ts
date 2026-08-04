@@ -331,21 +331,20 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
   },
   {
     id: 'overview-tagro-core-interface',
-    question: 'Warum ist Overview ein Decision Canvas mit organischer Tintenlinie und Apple Sheet?',
+    question: 'Warum ist Overview ein zoomable Workspace Board mit Project Path?',
     answer:
-      'Show me only what deserves my attention. Calm: Greeting + Status + Waiting-Pill. Klick → organische Ink-Path. Dann die eine Frage mit echten Optionen aus dem Decision Engine. Rechts: Apple Sheet. Accept → POST /api/decisions/:id/decide. Overview API rankt nach Urgency, matched recommended_option über external_id/uuid/Label, liefert reasons + explainSteps + needsSuggestion. Bei leeren Legacy-Optionen erzeugt /suggest Optionen und persistiert sie. Mobile: Path oben, Bottom Sheet. Nie Dashboard, nie Chat, nie mehr als eine Hauptlinie.',
+      'Overview is a zoomable Software Production OS: Level 1 Workspace Board (calm constellation — WHERE) and Level 2 Project View (decision path — WHY). Camera flies between levels — no page theater. Tagro is never the hero; the current decision is. Inspector = Apple-like recommendation. One focus. Paper #F8F6F2 · primary #5B647D only for focus. Mobile designed independently (gesture canvas + vertical path + bottom sheet).',
     decision:
-      'Overview v4.3 · suggest generates options · label/id matching · urgency rank · ensureCanvasSuggestion on activate · accept resolves option ids',
-    date: '2026-08-04',
-    version: '4.3',
+      'Overview v5 · Workspace Board constellation + Project path fly-in · Tagro as inspector only · accept via /decide · suggest on enter',
+    date: '2026-08-05',
+    version: '5.0',
     status: 'locked',
     related: [
       'docs/festag-decision-canvas.md',
-      'components/app-shell/WorkspaceOverviewLive.tsx',
+      'components/app-shell/WorkspaceBoard.tsx',
+      'lib/overview/workspace-board.ts',
       'lib/overview/decision-canvas.ts',
       'app/api/workspaces/overview/route.ts',
-      'app/api/decisions/[id]/suggest/route.ts',
-      'app/api/decisions/[id]/decide/route.ts',
       'docs/festag-tagro-invisible-intelligence.md',
       'docs/festag-experience-constitution.md',
     ],

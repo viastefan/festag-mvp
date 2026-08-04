@@ -1,7 +1,7 @@
 'use client'
 
 import { appShellGreeting } from '@/components/app-shell/app-shell-nav'
-import WorkspaceOverviewLive from '@/components/app-shell/WorkspaceOverviewLive'
+import WorkspaceBoard from '@/components/app-shell/WorkspaceBoard'
 import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { getDisplayName, type UserProfile } from '@/lib/hooks/useUser'
 import { openWorkspaceCreateWizard } from '@/lib/workspace-create-open'
@@ -31,7 +31,7 @@ export default function AppShellOverview({ user }: Props) {
 
   if (load.status === 'ready') {
     return (
-      <WorkspaceOverviewLive
+      <WorkspaceBoard
         greeting={greet}
         firstName={firstName}
         data={load.data}
