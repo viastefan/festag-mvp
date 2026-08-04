@@ -1153,7 +1153,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 .tlc {
   --tlc-edge: rgba(91, 100, 125, 0.16);
   --tlc-edge-hot: rgba(91, 100, 125, 0.42);
-  --tlc-warm: rgba(180, 110, 90, 0.28);
+  --tlc-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   width: min(480px, 100%);
   aspect-ratio: 400 / 300;
@@ -1161,6 +1161,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   display: grid;
   place-items: center;
   overflow: visible;
+  contain: layout style;
 }
 .tlc-field {
   position: absolute;
@@ -1170,8 +1171,6 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
     radial-gradient(ellipse at 48% 42%, rgba(255,255,255,0.7), transparent 46%),
     radial-gradient(ellipse at 50% 54%, rgba(91, 100, 125, 0.09), transparent 72%);
   pointer-events: none;
-  filter: blur(1px);
-  animation: tlcField 10s ease-in-out infinite;
 }
 .tlc-svg {
   width: 100%;
@@ -1193,18 +1192,30 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   stroke: var(--tlc-edge);
   stroke-width: 1;
   stroke-linecap: round;
-  opacity: 0.9;
-  transition: stroke 0.28s ease, stroke-width 0.28s ease, opacity 0.28s ease;
+  transition: stroke 0.28s var(--tlc-ease), stroke-width 0.28s var(--tlc-ease);
 }
 .tlc-edge.is-hot {
   stroke: var(--tlc-edge-hot);
   stroke-width: 1.35;
-  opacity: 1;
 }
-.tlc-node-g {
+.tlc-node-scale,
+.tlc-core-scale {
   transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(1);
+  transition: transform 0.34s var(--tlc-ease);
 }
-.tlc-node-shadow {
+.tlc-node-scale.is-hot {
+  transform: scale(1.62);
+}
+.tlc-core-scale.is-hot {
+  transform: scale(1.28);
+}
+.tlc.has-hover .tlc-node-scale:not(.is-hot) {
+  transform: scale(0.9);
+}
+.tlc-node-shadow,
+.tlc-core-shadow {
   opacity: 0.55;
   pointer-events: none;
 }
@@ -1227,21 +1238,23 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   pointer-events: none;
 }
 .tlc-core-halo {
-  fill: rgba(91, 100, 125, 0.07);
-  animation: tlcCoreHalo 7s ease-in-out infinite;
+  fill: rgba(91, 100, 125, 0.08);
 }
 .tlc-core-ring {
   fill: none;
   stroke: rgba(91, 100, 125, 0.16);
   stroke-width: 1;
-  animation: tlcRing 8s ease-in-out infinite;
-}
-.tlc-core-shadow {
-  opacity: 0.65;
-  pointer-events: none;
 }
 .tlc-core-g.is-hot .tlc-core-halo {
   fill: rgba(91, 100, 125, 0.14);
+}
+/* Soft breath only while Tagro is speaking — idle stays static (perf) */
+.tlc[data-state="audio"] .tlc-core-halo,
+.tlc[data-state="speaking"] .tlc-core-halo {
+  animation: tlcCoreHalo 3.2s ease-in-out infinite;
+}
+.tlc[data-state="listening"] .tlc-core-halo {
+  animation: tlcCoreHalo 2.6s ease-in-out infinite;
 }
 
 .tlc[data-state="attention"] {
@@ -1262,23 +1275,11 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
     radial-gradient(ellipse at 48% 42%, rgba(255,255,255,0.55), transparent 46%),
     radial-gradient(ellipse at 50% 54%, rgba(180, 110, 90, 0.12), transparent 72%);
 }
-.tlc[data-state="audio"] .tlc-edge,
-.tlc[data-state="speaking"] .tlc-edge {
-  opacity: 1;
-}
-.tlc[data-state="audio"] .tlc-core-halo,
-.tlc[data-state="speaking"] .tlc-core-halo {
-  animation-duration: 3.2s;
-}
-.tlc[data-state="listening"] .tlc-core-halo {
-  animation-duration: 2.6s;
-}
 
 html[data-theme="dark"] .tlc,
 html[data-theme="classic-dark"] .tlc {
   --tlc-edge: rgba(186, 194, 210, 0.16);
   --tlc-edge-hot: rgba(186, 194, 210, 0.42);
-  --tlc-warm: rgba(210, 140, 120, 0.32);
 }
 html[data-theme="dark"] .tlc-field,
 html[data-theme="classic-dark"] .tlc-field {
@@ -1291,23 +1292,18 @@ html[data-theme="classic-dark"] .tlc-guide {
   stroke: rgba(186, 194, 210, 0.08);
 }
 
-@keyframes tlcField {
-  0%, 100% { opacity: 0.65; transform: scale(0.98); }
-  50% { opacity: 1; transform: scale(1.03); }
-}
 @keyframes tlcCoreHalo {
   0%, 100% { opacity: 0.4; transform: scale(0.94); }
   50% { opacity: 0.85; transform: scale(1.06); }
 }
-@keyframes tlcRing {
-  0%, 100% { opacity: 0.3; transform: scale(0.97); }
-  50% { opacity: 0.65; transform: scale(1.04); }
-}
 
 @media (prefers-reduced-motion: reduce) {
-  .tlc-field,
-  .tlc-core-halo,
-  .tlc-core-ring {
+  .tlc-node-scale,
+  .tlc-core-scale,
+  .tlc-edge {
+    transition: none !important;
+  }
+  .tlc-core-halo {
     animation: none !important;
   }
 }
