@@ -47,7 +47,8 @@ export default function AppShellNewProjectHost() {
       onCreated={(projectId) => {
         emitProjectCreated({ id: projectId })
         setOpen(false)
-        router.refresh()
+        if (projectId) router.push(`/project/${projectId}`)
+        else router.refresh()
       }}
     />
   )

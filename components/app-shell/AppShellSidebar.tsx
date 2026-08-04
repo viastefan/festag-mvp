@@ -11,6 +11,7 @@ import {
   GearSix,
   Bell,
   Question,
+  Check,
 } from '@phosphor-icons/react'
 import {
   APP_SHELL_PRIMARY_NAV,
@@ -22,6 +23,13 @@ import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hook
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 import { openWorkspaceCreateWizard, openWorkspaceRename, WORKSPACE_CREATED_EVENT, WORKSPACE_RENAMED_EVENT } from '@/lib/workspace-create-open'
+import {
+  emitWorkspaceSwitched,
+  getActiveWorkspaceId,
+  rememberActiveWorkspace,
+  WORKSPACE_SWITCHED_EVENT,
+} from '@/lib/active-workspace'
+import { listWorkspacesForUser, type WorkspaceListItem } from '@/lib/workspace/resolve'
 import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
@@ -87,7 +95,9 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const [workspaceLabel, setWorkspaceLabel] = useState(
     () => getRememberedWorkspaceName() || 'No workspace',
   )
-  const hasWorkspace = workspaceLabel !== 'No workspace'
+  const [workspaceId, setWorkspaceId] = useState<string | null>(() => getActiveWorkspaceId())
+  const [workspaces, setWorkspaces] = useState<WorkspaceListItem[]>([])
+  const hasWorkspace = workspaceLabel !== 'No workspace' || Boolean(workspaceId)
   const settingsActive =
     pathname === '/settings' ||
     pathname.startsWith('/settings/') ||
@@ -105,6 +115,42 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
   }, [])
+
+  const loadWorkspaces = useCallback(async () => {
+    try {
+      const supabase = createClient()
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) {
+        setWorkspaces([])
+        setWorkspaceLabel('No workspace')
+        setWorkspaceId(null)
+        return
+      }
+
+      const list = await listWorkspacesForUser(supabase as any, authUser.id)
+      setWorkspaces(list)
+
+      const preferred = getActiveWorkspaceId()
+      const active =
+        (preferred && list.find((w) => w.id === preferred)) ||
+        list[0] ||
+        null
+
+      if (active) {
+        setWorkspaceId(active.id)
+        setWorkspaceLabel(active.name)
+        rememberActiveWorkspace(active.id, active.name)
+        rememberWorkspaceName(active.name)
+      } else {
+        setWorkspaceId(null)
+        setWorkspaceLabel('No workspace')
+      }
+    } catch { /* best-effort */ }
+  }, [])
+
+  useEffect(() => {
+    void loadWorkspaces()
+  }, [loadWorkspaces, user?.id])
 
   const loadRecent = useCallback(async () => {
     try {
@@ -130,75 +176,41 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   }, [loadRecent, user?.id])
 
   useEffect(() => {
-    let alive = true
-    ;(async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        if (!alive || !authUser) return
-
-        const { data: owned } = await supabase
-          .from('workspaces')
-          .select('id, name')
-          .eq('primary_owner_id', authUser.id)
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle()
-
-        let name = typeof owned?.name === 'string' ? owned.name.trim() : ''
-
-        if (!name) {
-          const { data: member } = await supabase
-            .from('workspace_members')
-            .select('workspace_id')
-            .eq('user_id', authUser.id)
-            .limit(1)
-            .maybeSingle()
-          const wsId = member?.workspace_id
-          if (wsId) {
-            const { data: ws } = await supabase
-              .from('workspaces')
-              .select('name')
-              .eq('id', wsId)
-              .maybeSingle()
-            name = typeof ws?.name === 'string' ? ws.name.trim() : ''
-          }
-        }
-
-        if (!alive) return
-        if (name) {
-          setWorkspaceLabel(name)
-          rememberWorkspaceName(name)
-        } else {
-          setWorkspaceLabel('No workspace')
-        }
-      } catch { /* best-effort */ }
-    })()
-    return () => { alive = false }
-  }, [user?.id])
-
-  useEffect(() => {
     function onCreated(e: Event) {
-      const name = (e as CustomEvent<{ name?: string }>).detail?.name
-      if (typeof name === 'string' && name.trim()) {
-        setWorkspaceLabel(name.trim())
-        rememberWorkspaceName(name.trim())
+      const detail = (e as CustomEvent<{ name?: string; id?: string }>).detail
+      if (typeof detail?.id === 'string' && detail.id) {
+        rememberActiveWorkspace(detail.id, detail.name)
+        setWorkspaceId(detail.id)
       }
+      if (typeof detail?.name === 'string' && detail.name.trim()) {
+        setWorkspaceLabel(detail.name.trim())
+        rememberWorkspaceName(detail.name.trim())
+      }
+      void loadWorkspaces()
     }
     function onRenamed(e: Event) {
-      const name = (e as CustomEvent<{ name?: string }>).detail?.name
-      if (typeof name === 'string' && name.trim()) {
-        setWorkspaceLabel(name.trim())
-        rememberWorkspaceName(name.trim())
+      const detail = (e as CustomEvent<{ name?: string; id?: string }>).detail
+      if (typeof detail?.name === 'string' && detail.name.trim()) {
+        setWorkspaceLabel(detail.name.trim())
+        rememberWorkspaceName(detail.name.trim())
+        if (detail.id) rememberActiveWorkspace(detail.id, detail.name.trim())
       }
+      void loadWorkspaces()
+    }
+    function onSwitched(e: Event) {
+      const detail = (e as CustomEvent<{ name?: string; id?: string }>).detail
+      if (detail?.id) setWorkspaceId(detail.id)
+      if (detail?.name) setWorkspaceLabel(detail.name)
     }
     window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
     window.addEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+    window.addEventListener(WORKSPACE_SWITCHED_EVENT, onSwitched)
     return () => {
       window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
       window.removeEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+      window.removeEventListener(WORKSPACE_SWITCHED_EVENT, onSwitched)
     }
-  }, [])
+  }, [loadWorkspaces])
 
   useEffect(() => {
     if (!wsOpen && !notifOpen) return
@@ -229,7 +241,18 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
 
   function goRenameWorkspace() {
     setWsOpen(false)
-    openWorkspaceRename({ name: hasWorkspace ? workspaceLabel : undefined })
+    openWorkspaceRename({
+      workspaceId: workspaceId || undefined,
+      name: hasWorkspace ? workspaceLabel : undefined,
+    })
+  }
+
+  function switchWorkspace(ws: WorkspaceListItem) {
+    setWsOpen(false)
+    if (ws.id === workspaceId) return
+    emitWorkspaceSwitched({ id: ws.id, name: ws.name })
+    setWorkspaceId(ws.id)
+    setWorkspaceLabel(ws.name)
   }
 
   function openSearch() {
@@ -311,8 +334,28 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
 
         {wsOpen ? (
           <div className="fas-popover fas-popover-left fas-ws-popover" role="menu">
-            {hasWorkspace ? (
-              <div className="fas-popover-title">{workspaceLabel}</div>
+            {workspaces.length > 0 ? (
+              <div className="fas-ws-list" role="group" aria-label="Workspaces">
+                {workspaces.map((ws) => {
+                  const active = ws.id === workspaceId
+                  return (
+                    <button
+                      key={ws.id}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={active}
+                      className={`fas-popover-item fas-ws-switch-item${active ? ' is-active' : ''}`}
+                      onClick={() => switchWorkspace(ws)}
+                    >
+                      <span className="fas-ws-switch-mark" aria-hidden="true">
+                        {workspaceInitial(ws.name)}
+                      </span>
+                      <span className="fas-ws-switch-name">{ws.name}</span>
+                      {active ? <Check size={14} weight="bold" className="fas-ws-switch-check" aria-hidden /> : null}
+                    </button>
+                  )
+                })}
+              </div>
             ) : (
               <div className="fas-popover-title">Du hast noch keinen Workspace.</div>
             )}

@@ -8,6 +8,7 @@ import {
   rememberWorkspaceName,
   setPendingWorkspaceName,
 } from '@/lib/pending-workspace'
+import { rememberActiveWorkspace } from '@/lib/active-workspace'
 
 export type BootstrapWorkspaceResult =
   | { ok: true; workspace: { id: string; name: string; slug: string; region?: string } }
@@ -19,6 +20,8 @@ export async function bootstrapPersonalWorkspace(
     region?: 'eu' | 'us' | 'global'
     useCase?: string
     workspaceType?: string
+    /** Create another workspace instead of renaming the personal one. */
+    additional?: boolean
   } = {},
 ): Promise<BootstrapWorkspaceResult> {
   const name = normalizeWorkspaceName(rawName)
@@ -42,6 +45,7 @@ export async function bootstrapPersonalWorkspace(
         ...(opts.region ? { region: opts.region } : {}),
         ...(opts.useCase ? { useCase: opts.useCase } : {}),
         ...(opts.workspaceType ? { workspaceType: opts.workspaceType } : {}),
+        ...(opts.additional ? { additional: true } : {}),
       }),
       credentials: 'include',
     })
@@ -60,10 +64,12 @@ export async function bootstrapPersonalWorkspace(
     }
     clearPendingWorkspaceName()
     rememberWorkspaceName(name)
+    const id = String(data.workspace?.id || '')
+    if (id) rememberActiveWorkspace(id, name)
     return {
       ok: true,
       workspace: {
-        id: String(data.workspace?.id || ''),
+        id,
         name: String(data.workspace?.name || name),
         slug: String(data.workspace?.slug || ''),
         region: data.workspace?.region,

@@ -166,7 +166,7 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
                     <dd>{p.nextMilestone || '—'}</dd>
                   </div>
                 </dl>
-                <Link href={`/overview/projects`} className="fas-wo-project-open">
+                <Link href={`/project/${p.id}`} className="fas-wo-project-open">
                   Open Project
                   <ArrowRight size={13} weight="bold" />
                 </Link>
@@ -194,7 +194,7 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
                     {d.dueDate ? `, due ${formatDate(d.dueDate)}` : ''}
                   </p>
                 </div>
-                <Link href="/overview/inbox" className="fas-wo-btn">
+                <Link href={d.id ? `/decisions/${d.id}` : '/overview/inbox'} className="fas-wo-btn">
                   Review
                 </Link>
               </article>

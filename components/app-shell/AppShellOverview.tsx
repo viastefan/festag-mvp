@@ -15,6 +15,7 @@ import {
   WORKSPACE_SETUP_DONE_EVENT,
 } from '@/lib/workspace-create-open'
 import { PROJECT_CREATED_EVENT } from '@/lib/new-project-open'
+import { getActiveWorkspaceId, WORKSPACE_SWITCHED_EVENT } from '@/lib/active-workspace'
 import { ArrowRight } from '@phosphor-icons/react'
 
 type Props = {
@@ -34,7 +35,9 @@ export default function AppShellOverview({ user }: Props) {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch('/api/workspaces/overview', { cache: 'no-store' })
+      const wsId = getActiveWorkspaceId()
+      const qs = wsId ? `?workspaceId=${encodeURIComponent(wsId)}` : ''
+      const res = await fetch(`/api/workspaces/overview${qs}`, { cache: 'no-store' })
       if (!res.ok) {
         setLoad({ status: 'error' })
         return
@@ -73,11 +76,13 @@ export default function AppShellOverview({ user }: Props) {
     window.addEventListener(WORKSPACE_RENAMED_EVENT, onChanged)
     window.addEventListener(WORKSPACE_SETUP_DONE_EVENT, onChanged)
     window.addEventListener(PROJECT_CREATED_EVENT, onChanged)
+    window.addEventListener(WORKSPACE_SWITCHED_EVENT, onChanged)
     return () => {
       window.removeEventListener(WORKSPACE_CREATED_EVENT, onChanged)
       window.removeEventListener(WORKSPACE_RENAMED_EVENT, onChanged)
       window.removeEventListener(WORKSPACE_SETUP_DONE_EVENT, onChanged)
       window.removeEventListener(PROJECT_CREATED_EVENT, onChanged)
+      window.removeEventListener(WORKSPACE_SWITCHED_EVENT, onChanged)
     }
   }, [refresh])
 

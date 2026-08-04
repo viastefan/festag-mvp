@@ -22,6 +22,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useDragControls, type PanInfo } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { getActiveWorkspaceId } from '@/lib/active-workspace'
+import { resolveActiveWorkspaceId } from '@/lib/workspace/resolve'
 import {
   defaultDeliveryModelForWorkspaceMode,
   deliveryModelsForWorkspaceMode,
@@ -45,6 +47,18 @@ import {
 interface Props {
   onClose: () => void
   onCreated?: (projectId: string) => void
+}
+
+async function resolveWorkspaceIdForProjectCreate(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<string | null> {
+  const preferred = getActiveWorkspaceId()
+  try {
+    return await resolveActiveWorkspaceId(supabase as any, userId, null, preferred)
+  } catch {
+    return preferred
+  }
 }
 
 type DeliveryModel =
@@ -631,10 +645,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       const userId = sessionData.session?.user.id
       if (!userId) throw new Error('Bitte melde dich erneut an.')
       const projectTitleVal = title.trim() || 'Neues Projekt'
+      const workspaceId = await resolveWorkspaceIdForProjectCreate(supabase, userId)
       const { data: created, error: insErr } = await (supabase as any)
         .from('projects')
         .insert({
           user_id: userId,
+          ...(workspaceId ? { workspace_id: workspaceId } : {}),
           title: projectTitleVal,
           description: description.trim().slice(0, 1200) || null,
           status: 'planning',
@@ -679,19 +695,22 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       }))
       let projectId: string | undefined
       try {
+        const workspaceId = await resolveWorkspaceIdForProjectCreate(supabase, userId)
         const res = await fetch('/api/ai/decompose', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chatHistory: decomposerHistory, userId }),
+          body: JSON.stringify({ chatHistory: decomposerHistory, userId, workspaceId }),
         })
         const data = await res.json().catch(() => null)
         if (res.ok && typeof data?.projectId === 'string') projectId = data.projectId
       } catch { /* fall through */ }
 
       if (!projectId) {
+        const workspaceId = await resolveWorkspaceIdForProjectCreate(supabase, userId)
         const { data: created, error: insErr } = await (supabase as any)
           .from('projects')
           .insert({
             user_id: userId,
+            ...(workspaceId ? { workspace_id: workspaceId } : {}),
             title: suggestedTitle(),
             description: (tagroSummary || description.trim() || titleDraft).slice(0, 1200) || null,
             status: 'planning',
@@ -706,6 +725,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         scope_summary: (tagroSummary || description.trim()).slice(0, 1200),
         status: 'planning',
       }
+      const attachWs = await resolveWorkspaceIdForProjectCreate(supabase, userId)
+      if (attachWs) patch.workspace_id = attachWs
       await (supabase as any).from('projects').update(patch).eq('id', projectId)
 
       fetch('/api/projects/classify', {

@@ -1,7 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
+import {
+  listWorkspacesForUser,
+  resolveActiveWorkspaceId,
+} from '@/lib/workspace/resolve'
+import { readActiveWorkspaceIdFromCookie } from '@/lib/active-workspace'
 
 export const runtime = 'nodejs'
 
@@ -42,8 +47,9 @@ export type WorkspaceOverviewMember = {
 /**
  * GET /api/workspaces/overview
  * Calm operational snapshot for the Festag OS Overview page.
+ * Optional `?workspaceId=` (or cookie) selects the active workspace.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = createClient()
   const {
     data: { user },
@@ -51,15 +57,13 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const service = getServiceClient() || supabase
+  const preferred =
+    req.nextUrl.searchParams.get('workspaceId') ||
+    readActiveWorkspaceIdFromCookie(req.headers.get('cookie'))
+
+  const activeId = await resolveActiveWorkspaceId(service as any, user.id, null, preferred)
 
   let workspace: { id: string; name: string; domain: string } | null = null
-  const { data: owned } = await service
-    .from('workspaces')
-    .select('id, name, slug')
-    .eq('primary_owner_id', user.id)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
 
   function toDomain(name: string, slug?: string | null): string {
     const s = (typeof slug === 'string' && slug.trim()) || name
@@ -73,38 +77,33 @@ export async function GET() {
     return cleaned ? `${cleaned}.festag.app` : 'dein-workspace.festag.app'
   }
 
-  if (owned?.id) {
-    workspace = {
-      id: owned.id,
-      name: String(owned.name || 'Workspace'),
-      domain: toDomain(String(owned.name || ''), owned.slug),
-    }
-  } else {
-    const { data: membership } = await service
-      .from('workspace_members')
-      .select('workspace_id')
-      .eq('user_id', user.id)
-      .limit(1)
+  if (activeId) {
+    const { data: ws } = await service
+      .from('workspaces')
+      .select('id, name, slug')
+      .eq('id', activeId)
       .maybeSingle()
-    if (membership?.workspace_id) {
-      const { data: ws } = await service
-        .from('workspaces')
-        .select('id, name, slug')
-        .eq('id', membership.workspace_id)
-        .maybeSingle()
-      if (ws?.id) {
-        workspace = {
-          id: ws.id,
-          name: String(ws.name || 'Workspace'),
-          domain: toDomain(String(ws.name || ''), ws.slug),
-        }
+    if (ws?.id) {
+      workspace = {
+        id: ws.id,
+        name: String(ws.name || 'Workspace'),
+        domain: toDomain(String(ws.name || ''), ws.slug),
       }
     }
   }
 
   if (!workspace) {
-    return NextResponse.json({ ok: true, workspace: null })
+    return NextResponse.json({ ok: true, workspace: null, workspaces: [] })
   }
+
+  /* Soft-claim orphan projects owned by this user into the active workspace. */
+  try {
+    await service
+      .from('projects')
+      .update({ workspace_id: workspace.id })
+      .eq('user_id', user.id)
+      .is('workspace_id', null)
+  } catch { /* column / RLS */ }
 
   let projectsRaw: any[] = []
   {
@@ -434,9 +433,18 @@ export async function GET() {
           ? `${workspace.name} needs a few calm decisions today.`
           : `${workspace.name} is moving — keep momentum on active work.`
 
+  const workspaces = (await listWorkspacesForUser(service as any, user.id)).map((w) => ({
+    id: w.id,
+    name: w.name,
+    slug: w.slug,
+    isPersonal: w.isPersonal,
+    role: w.role,
+  }))
+
   return NextResponse.json({
     ok: true,
     workspace,
+    workspaces,
     summary: {
       activeProjects: projects.length,
       pendingDecisions: pendingDecisions.length,

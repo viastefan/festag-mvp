@@ -209,6 +209,7 @@ export default function WorkspaceCreateWizardModal() {
     const selected = getWorkspaceUseCase(useCase)
     if (!selected) return
 
+    let createAdditional = false
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -221,6 +222,7 @@ export default function WorkspaceCreateWizardModal() {
           setStep('plan')
           return
         }
+        createAdditional = (count ?? 0) >= 1
       }
     } catch { /* continue to create */ }
 
@@ -237,6 +239,7 @@ export default function WorkspaceCreateWizardModal() {
       const result = await bootstrapPersonalWorkspace(trimmed, {
         useCase: selected.id,
         workspaceType: selected.workspaceType,
+        additional: createAdditional,
       })
       if (!result.ok) {
         lineTimers.forEach(clearTimeout)

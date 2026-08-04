@@ -226,7 +226,49 @@ html[data-theme="read"] .fas-root {
   top: calc(100% + 4px);
   left: 0;
   right: auto;
-  min-width: 220px;
+  min-width: 240px;
+  max-width: min(300px, 90vw);
+}
+.fas-ws-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--fas-sep);
+}
+.fas-ws-switch-item {
+  justify-content: flex-start;
+  gap: 10px;
+}
+.fas-ws-switch-item.is-active {
+  background: var(--fas-nav-active);
+  color: var(--fas-nav-active-ink);
+}
+.fas-ws-switch-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  background: var(--fas-card);
+  border: 1px solid var(--fas-card-border);
+  color: var(--fas-ink);
+}
+.fas-ws-switch-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+.fas-ws-switch-check {
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 .fas-popover-note {
   margin: 0 8px 8px;

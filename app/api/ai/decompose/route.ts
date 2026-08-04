@@ -40,7 +40,7 @@ JSON-Schema:
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatHistory, userId } = await req.json()
+    const { chatHistory, userId, workspaceId: bodyWorkspaceId } = await req.json()
 
     // Build conversation summary for decomposition
     const chatText = (chatHistory ?? [])
@@ -76,12 +76,22 @@ export async function POST(req: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
+    let workspaceId: string | null =
+      typeof bodyWorkspaceId === 'string' && bodyWorkspaceId ? bodyWorkspaceId : null
+    if (!workspaceId) {
+      try {
+        const { resolveActiveWorkspaceId } = await import('@/lib/workspace/resolve')
+        workspaceId = await resolveActiveWorkspaceId(sb as any, userId)
+      } catch { /* optional */ }
+    }
+
     // Create project — only use guaranteed columns first
     const baseProject: Record<string, any> = {
       user_id: userId,
       title: decomposed.project_title ?? 'Neues Projekt',
       description: decomposed.scope_summary ?? null,
       status: 'intake',
+      ...(workspaceId ? { workspace_id: workspaceId } : {}),
     }
 
     // Try to insert with extended columns; fall back to base if columns missing

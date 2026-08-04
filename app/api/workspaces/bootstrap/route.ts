@@ -81,6 +81,8 @@ export async function POST(req: NextRequest) {
       region?: Region
       workspaceType?: string
       useCase?: string
+      /** Create another workspace instead of renaming the personal one. */
+      additional?: boolean
     } = {}
     try { body = await req.json() } catch { /* empty */ }
 
@@ -117,7 +119,8 @@ export async function POST(req: NextRequest) {
       .eq('is_personal', true)
       .maybeSingle()
 
-    const workspaceId = existing?.id as string | undefined
+    const createAdditional = body.additional === true && Boolean(existing?.id)
+    const workspaceId = createAdditional ? undefined : (existing?.id as string | undefined)
 
     const availability = await checkWorkspaceNameAvailability(sb, rawName, {
       excludeWorkspaceId: workspaceId ?? null,
@@ -144,7 +147,7 @@ export async function POST(req: NextRequest) {
       })
       return {
         ...withType,
-        sourced_from: 'create-workspace',
+        sourced_from: createAdditional ? 'create-workspace-additional' : 'create-workspace',
         ...(useCaseId ? { workspace_use_case: useCaseId } : {}),
       }
     }
@@ -206,45 +209,48 @@ export async function POST(req: NextRequest) {
         slug,
         region,
         primary_owner_id: user.id,
-        is_personal: true,
+        is_personal: !createAdditional,
         mode: legacyMode,
-        metadata: buildMetadata({ sourced_from: 'create-workspace' }),
+        metadata: buildMetadata({ sourced_from: createAdditional ? 'create-workspace-additional' : 'create-workspace' }),
       })
       .select('id, slug')
       .single()
     if (error) {
-      // Concurrent bootstrap for the same owner: treat existing personal ws as success.
-      const { data: raced } = await sb
-        .from('workspaces')
-        .select('id, slug, name, metadata')
-        .eq('primary_owner_id', user.id)
-        .eq('is_personal', true)
-        .maybeSingle()
-      if (raced?.id) {
-        const { error: updErr } = await sb
+      // Concurrent bootstrap for the same owner: treat existing personal ws as success
+      // only when we intended to create the first personal workspace.
+      if (!createAdditional) {
+        const { data: raced } = await sb
           .from('workspaces')
-          .update({
-            name,
-            slug,
-            region,
-            mode: legacyMode,
-            metadata: buildMetadata(raced.metadata),
-          })
-          .eq('id', raced.id)
-        if (updErr) {
-          const taken = /duplicate|unique|workspaces_slug/i.test(updErr.message)
+          .select('id, slug, name, metadata')
+          .eq('primary_owner_id', user.id)
+          .eq('is_personal', true)
+          .maybeSingle()
+        if (raced?.id) {
+          const { error: updErr } = await sb
+            .from('workspaces')
+            .update({
+              name,
+              slug,
+              region,
+              mode: legacyMode,
+              metadata: buildMetadata(raced.metadata),
+            })
+            .eq('id', raced.id)
+          if (updErr) {
+            const taken = /duplicate|unique|workspaces_slug/i.test(updErr.message)
+            return NextResponse.json({
+              ok: false,
+              reason: taken ? 'name_taken' : updErr.message,
+              message: taken ? 'Dieser Workspace-Name ist bereits vergeben.' : updErr.message,
+            }, { status: taken ? 409 : 500 })
+          }
+          invalidateWorkspaceNameCache(name)
+          await finishSideEffects(raced.id)
           return NextResponse.json({
-            ok: false,
-            reason: taken ? 'name_taken' : updErr.message,
-            message: taken ? 'Dieser Workspace-Name ist bereits vergeben.' : updErr.message,
-          }, { status: taken ? 409 : 500 })
+            ok: true,
+            workspace: { id: raced.id, name, slug, region, workspaceType },
+          })
         }
-        invalidateWorkspaceNameCache(name)
-        await finishSideEffects(raced.id)
-        return NextResponse.json({
-          ok: true,
-          workspace: { id: raced.id, name, slug, region, workspaceType },
-        })
       }
       const taken = /duplicate|unique|workspaces_slug/i.test(error.message)
       return NextResponse.json({
