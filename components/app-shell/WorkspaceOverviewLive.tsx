@@ -11,7 +11,7 @@ import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvite
 import { openNewProject } from '@/lib/new-project-open'
 
 export type OverviewPayload = {
-  workspace: { id: string; name: string }
+  workspace: { id: string; name: string; domain?: string }
   summary: {
     activeProjects: number
     pendingDecisions: number
@@ -82,6 +82,11 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
           {greeting}, {firstName}.
         </h1>
         <p className="fas-wo-calm">{summary.calmLine}</p>
+        {workspace.domain ? (
+          <p className="fas-wo-domain" title="Workspace-Domain">
+            {workspace.domain}
+          </p>
+        ) : null}
         <ul className="fas-wo-meta" aria-label="Workspace summary">
           <li>{summary.activeProjects} Active Project{summary.activeProjects === 1 ? '' : 's'}</li>
           <li>{summary.pendingDecisions} Pending Decision{summary.pendingDecisions === 1 ? '' : 's'}</li>

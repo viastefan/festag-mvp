@@ -73,10 +73,14 @@ export const WORKSPACE_CREATION_COPY = {
   useTitle: 'Wofür wird dieser Workspace genutzt?',
   /** Quiet plan note under the name field — never a second title. */
   hobbyHint: 'Im Hobby-Plan ist 1 Workspace gratis.',
+  /** Explains live subdomain under the name — calm, not a Zwischenüberschrift. */
+  domainLabel: 'Workspace-Domain',
+  domainHint: 'Diese Domain läuft auf deinem Workspace — zum Teilen, Einladen und Verknüpfen.',
   creatingTitle: 'Workspace wird erstellt…',
   creatingLines: ['Projekte', 'Tagro', 'Mitglieder'] as const,
   welcomePrefix: 'Willkommen bei',
   welcomeReady: 'Dein Workspace ist bereit.',
+  welcomeDomainLead: 'Erreichbar unter',
   continue: 'Weiter',
   customizeLater: 'Später anpassen',
   /** Plan gate H1: bright lead + muted rest (one glassy title, no Zwischenüberschrift). */

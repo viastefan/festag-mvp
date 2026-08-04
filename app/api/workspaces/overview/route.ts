@@ -52,17 +52,33 @@ export async function GET() {
 
   const service = getServiceClient() || supabase
 
-  let workspace: { id: string; name: string } | null = null
+  let workspace: { id: string; name: string; domain: string } | null = null
   const { data: owned } = await service
     .from('workspaces')
-    .select('id, name')
+    .select('id, name, slug')
     .eq('primary_owner_id', user.id)
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle()
 
+  function toDomain(name: string, slug?: string | null): string {
+    const s = (typeof slug === 'string' && slug.trim()) || name
+    const cleaned = s
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48)
+    return cleaned ? `${cleaned}.festag.app` : 'dein-workspace.festag.app'
+  }
+
   if (owned?.id) {
-    workspace = { id: owned.id, name: String(owned.name || 'Workspace') }
+    workspace = {
+      id: owned.id,
+      name: String(owned.name || 'Workspace'),
+      domain: toDomain(String(owned.name || ''), owned.slug),
+    }
   } else {
     const { data: membership } = await service
       .from('workspace_members')
@@ -73,10 +89,16 @@ export async function GET() {
     if (membership?.workspace_id) {
       const { data: ws } = await service
         .from('workspaces')
-        .select('id, name')
+        .select('id, name, slug')
         .eq('id', membership.workspace_id)
         .maybeSingle()
-      if (ws?.id) workspace = { id: ws.id, name: String(ws.name || 'Workspace') }
+      if (ws?.id) {
+        workspace = {
+          id: ws.id,
+          name: String(ws.name || 'Workspace'),
+          domain: toDomain(String(ws.name || ''), ws.slug),
+        }
+      }
     }
   }
 

@@ -219,6 +219,9 @@ export default function WorkspaceRenameSheet() {
           ) : null}
         </div>
         <span className={`wr-sub${displayName ? ' is-ready' : ''}`}>{subdomain}</span>
+        <p className="wr-domain-hint">
+          Diese Domain läuft auf deinem Workspace — zum Teilen und Verknüpfen.
+        </p>
 
         {error ? <p className="wr-error">{error}</p> : null}
 
@@ -339,11 +342,19 @@ const SHEET_CSS = `
 .wr-sub {
   display: block;
   margin-top: 10px;
-  font-size: 13.5px;
-  color: #8891a0;
-  opacity: 0.85;
+  font-size: 14.5px;
+  letter-spacing: -0.015em;
+  color: #5B647D;
+  opacity: 0.72;
+  word-break: break-all;
 }
 .wr-sub.is-ready { opacity: 1; }
+.wr-domain-hint {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #8891a0;
+}
 .wr-error {
   margin: 12px 0 0;
   font-size: 13.5px;

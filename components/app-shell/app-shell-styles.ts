@@ -839,6 +839,13 @@ html[data-theme="classic-dark"] .fas-wo-skeleton {
   line-height: 1.5;
   color: var(--fas-ink-muted);
 }
+.fas-wo-domain {
+  margin: -8px 0 18px;
+  font-size: 13.5px;
+  letter-spacing: -0.015em;
+  color: var(--fas-ink-faint);
+  word-break: break-all;
+}
 .fas-wo-meta {
   list-style: none;
   margin: 0;

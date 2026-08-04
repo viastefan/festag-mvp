@@ -359,6 +359,14 @@ export default function WorkspaceCreateWizardModal() {
             </ul>
           ) : null}
 
+          {step === 'welcome' && displayName ? (
+            <div className="wc-welcome-domain" aria-live="polite">
+              <p className="wc-welcome-domain-lead">{COPY.welcomeDomainLead}</p>
+              <p className="wc-welcome-domain-url">{workspaceSubdomainPreview(displayName)}</p>
+              <p className="wc-domain-hint">{COPY.domainHint}</p>
+            </div>
+          ) : null}
+
           {step === 'form' ? (
             <div className="wc-form">
               <div className="wc-field-wrap">
@@ -412,9 +420,13 @@ export default function WorkspaceCreateWizardModal() {
                     <UsernameCheckBadge status="taken" title={availabilityMsg || 'Vergeben'} />
                   ) : null}
                 </div>
-                <span className={`wc-subdomain${displayName ? ' is-ready' : ''}`}>
-                  {subdomain}
-                </span>
+                <div className={`wc-domain${displayName ? ' is-ready' : ''}`}>
+                  <span className="wc-domain-label">{COPY.domainLabel}</span>
+                  <span className="wc-subdomain" aria-live="polite">
+                    {subdomain}
+                  </span>
+                  <p className="wc-domain-hint">{COPY.domainHint}</p>
+                </div>
                 <p className="wc-hobby-hint">{COPY.hobbyHint}</p>
               </div>
 
@@ -784,22 +796,65 @@ const WIZARD_CSS = `
   box-shadow: inset 0 0 0 1px rgba(216, 96, 96, 0.32);
 }
 
-.wc-subdomain {
-  display: block;
-  margin-top: 10px;
-  font-size: 13.5px;
+.wc-domain {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wc-domain-label {
+  font-size: 12px;
   letter-spacing: var(--auth-tracking);
   color: var(--mob-muted);
-  opacity: 0.85;
+  opacity: 0.88;
 }
-.wc-subdomain.is-ready { opacity: 1; }
-
-.wc-hobby-hint {
-  margin: 8px 0 0;
+.wc-subdomain {
+  display: block;
+  font-size: 15px;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: var(--mob-ink);
+  opacity: 0.55;
+  font-variant-ligatures: none;
+  word-break: break-all;
+}
+.wc-domain.is-ready .wc-subdomain {
+  opacity: 0.92;
+  color: var(--mob-primary);
+}
+.wc-domain-hint {
+  margin: 2px 0 0;
   font-size: 13px;
   line-height: 1.45;
   letter-spacing: var(--auth-tracking);
   color: var(--mob-muted);
+}
+.wc-hobby-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: var(--auth-tracking);
+  color: var(--mob-muted);
+}
+.wc-welcome-domain {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.wc-welcome-domain-lead {
+  margin: 0;
+  font-size: 13px;
+  color: var(--mob-muted);
+  letter-spacing: var(--auth-tracking);
+}
+.wc-welcome-domain-url {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  color: var(--mob-primary);
+  word-break: break-all;
 }
 
 /* Two use-case cards — each holds a pair of options */
