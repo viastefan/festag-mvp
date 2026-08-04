@@ -1248,6 +1248,34 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   text-align: center;
   animation: fasDcIn 0.6s var(--dc-ease) both;
 }
+.fas-dc-invites {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 48px));
+}
+.fas-dc-invites:empty,
+.fas-dc-invites:not(:has(*)) {
+  display: none;
+}
+.fas-dc .fas-pending {
+  margin: 0;
+}
+.fas-dc .fas-pending-title {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--dc-muted);
+  margin-bottom: 10px;
+}
+.fas-dc .fas-pending-card {
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px rgba(20, 20, 20, 0.04);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+}
 @keyframes fasDcIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
