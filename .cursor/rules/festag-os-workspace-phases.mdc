@@ -22,10 +22,10 @@ Ship in this order — do not invent ahead:
    Auth → Onboarding → Overview shell (sidebar, empty states, Create Workspace CTA).  
    Goal: user understands Festag and that the next step is a workspace.
 2. **Phase 2 — Workspace Creation (locked)**  
-   Calm full-screen flow on Overview:
+   Calm popup with horizontal slides on Overview:
    ```
    Create Workspace → Name (+ subdomain)
-   → How will you use this? (action cards)
+   → How will you use this?
    → Creating… → Ready (short)
    → Overview
    ```

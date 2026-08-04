@@ -17,12 +17,12 @@ Success criterion: the user understands Festag and knows the next step is creati
 
 ## Phase 2 (locked) — Workspace Creation
 
-Not a folder form. The user creates their **digital operating environment** via a calm full-screen flow on Festag OS Overview.
+Not a folder form. The user creates their **digital operating environment** via a calm **popup with horizontal slides** on Festag OS Overview.
 
 ```
-Create Workspace
+Create Workspace (popup + slides)
 → Workspace Name (+ live subdomain)
-→ How will you use this? (action cards)
+→ How will you use this?
 → Creating…
 → Your workspace is ready. (short success)
 → Overview

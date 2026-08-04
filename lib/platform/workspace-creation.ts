@@ -1,8 +1,8 @@
 /**
  * Workspace Creation Wizard — Phase 2 SSOT.
  *
- * Surface: single calm form on Festag OS (`WorkspaceCreateWizardModal`).
- * Flow: Name + Nutzung → Creating… → Welcome → Overview
+ * Surface: popup slider on Festag OS (`WorkspaceCreateWizardModal`).
+ * Flow: Name → Nutzung (slides) → Creating… → Welcome → Overview
  * First project opens later via darkened NewProjectModal (Tagro), not in this wizard.
  * No module picker in the wizard. Templates configure defaults; Modules live in Settings later.
  * First workspace is free. Additional workspaces require the Workspace Plan.
@@ -67,10 +67,12 @@ export function workspaceSubdomainPreview(rawName: string): string {
 export const WORKSPACE_CREATION_COPY = {
   /** One glassy H1: dark lead + muted rest. No separate support <p>. */
   nameTitle: 'Erstelle deinen Workspace.',
-  nameTitleRest: 'Wähle einen Namen und wie du ihn nutzen willst.',
+  nameTitleRest: 'Wähle einen Namen — deine Domain entsteht live.',
   nameLabel: 'Workspace-Name',
   namePlaceholder: 'Aerobay',
   useTitle: 'Wofür wird dieser Workspace genutzt?',
+  useSlideTitle: 'Wofür nutzt du ihn?',
+  useSlideRest: 'Wähle, wie dieser Workspace arbeiten soll.',
   /** Quiet plan note under the name field — never a second title. */
   hobbyHint: 'Im Hobby-Plan ist 1 Workspace gratis.',
   /** Explains live subdomain under the name — calm, not a Zwischenüberschrift. */
