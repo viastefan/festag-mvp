@@ -23,7 +23,7 @@ export type WorkspaceOverviewState =
   | { status: 'ready'; data: OverviewPayload }
   | { status: 'error' }
 
-const CACHE_KEY = 'festag-os-overview-v4'
+const CACHE_KEY = 'festag-os-overview-v5'
 const CACHE_TTL_MS = 60_000
 
 type CacheEntry = {

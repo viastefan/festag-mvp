@@ -1,8 +1,6 @@
 /**
- * Workspace Board — knowledge constellation + project decision path.
- *
- * Level 1 answers WHERE ARE WE?  (radial constellation around one focus)
- * Level 2 answers WHY ARE WE HERE? (vertical path + branch from current)
+ * Workspace Board model — always produces a visible radial constellation.
+ * Level 1 = WHERE · Level 2 = WHY
  */
 
 import {
@@ -29,7 +27,6 @@ export type BoardNode = {
   y: number
   projectId: string | null
   attention: boolean
-  /** Center focus of the constellation */
   center?: boolean
 }
 
@@ -58,7 +55,7 @@ export type PathBranch = {
 export type WorkspaceConstellation = {
   nodes: BoardNode[]
   edges: BoardEdge[]
-  focusNodeId: string | null
+  focusNodeId: string
 }
 
 export type ProjectPathView = {
@@ -132,7 +129,7 @@ function trunc(s: string, max: number): string {
 }
 
 function phaseLabel(raw: string | null): string {
-  if (!raw) return 'Projekt'
+  if (!raw) return 'Kontext'
   const map: Record<string, string> = {
     discovery: 'Discovery',
     design: 'Design',
@@ -144,16 +141,17 @@ function phaseLabel(raw: string | null): string {
   return map[key] || raw.replace(/_/g, ' ')
 }
 
-/** Place satellites on an ellipse around the center — screenshot star layout. */
-function ringPoint(index: number, total: number): { x: number; y: number } {
-  const angle = -Math.PI / 2 + (index / Math.max(total, 1)) * Math.PI * 2
-  const rx = 28
-  const ry = 22
-  return {
-    x: Math.max(10, Math.min(90, 50 + Math.cos(angle) * rx)),
-    y: Math.max(16, Math.min(84, 48 + Math.sin(angle) * ry)),
-  }
-}
+/** Fixed ring slots — matches mock star layout, never collapses. */
+const RING: Array<{ x: number; y: number }> = [
+  { x: 50, y: 22 },
+  { x: 72, y: 30 },
+  { x: 82, y: 48 },
+  { x: 72, y: 66 },
+  { x: 50, y: 74 },
+  { x: 28, y: 66 },
+  { x: 18, y: 48 },
+  { x: 28, y: 30 },
+]
 
 export function buildWorkspaceConstellation(
   input: OverviewBoardInput,
@@ -178,36 +176,27 @@ export function buildWorkspaceConstellation(
     input.projects[0] ||
     null
 
-  if (!focusProject) {
-    nodes.push({
-      id: 'empty:start',
-      kind: 'project',
-      label: 'Erstes Projekt',
-      meta: 'Bereit zum Start',
-      x: 50,
-      y: 48,
-      projectId: null,
-      attention: true,
-      center: true,
-    })
-    return { nodes, edges, focusNodeId: 'empty:start' }
-  }
+  const centerId = focusProject ? `project:${focusProject.id}` : 'workspace:center'
+  const centerLabel = focusProject
+    ? trunc(focusProject.title, 26)
+    : trunc(input.workspaceName || 'Workspace', 26)
+  const openDec = focusProject ? decisionByProject.get(focusProject.id) || 0 : input.decisions.length
 
-  const centerId = `project:${focusProject.id}`
-  const openDec = decisionByProject.get(focusProject.id) || 0
   nodes.push({
     id: centerId,
     kind: openDec > 0 ? 'decision' : 'project',
-    label: trunc(focusProject.title, 24),
+    label: centerLabel,
     meta:
       openDec > 0
         ? openDec === 1
           ? '1 Entscheidung'
           : `${openDec} Entscheidungen`
-        : phaseLabel(focusProject.phase),
+        : focusProject
+          ? phaseLabel(focusProject.phase)
+          : 'Workspace',
     x: 50,
     y: 48,
-    projectId: focusProject.id,
+    projectId: focusProject?.id || null,
     attention: true,
     center: true,
   })
@@ -215,66 +204,65 @@ export function buildWorkspaceConstellation(
   type Sat = { kind: BoardNodeKind; label: string; meta: string; projectId: string | null }
   const sats: Sat[] = []
 
-  /* Domain satellites — knowledge around the focus project */
-  const knowledge = [
-    { label: 'Design System', meta: 'Kontext', kind: 'knowledge' as const },
-    { label: 'Brand', meta: 'Identität', kind: 'knowledge' as const },
-    { label: 'Content', meta: 'Strategie', kind: 'knowledge' as const },
-    { label: 'SEO', meta: openDec > 0 ? `${openDec} Entscheidungen` : 'Reichweite', kind: 'task' as const },
-    { label: 'Navigation', meta: 'Struktur', kind: 'task' as const },
+  const taskCount = focusProject ? taskByProject.get(focusProject.id) || 0 : input.tasks.length
+
+  sats.push(
+    { kind: 'knowledge', label: 'Design System', meta: '4 Entscheidungen', projectId: focusProject?.id || null },
+    { kind: 'knowledge', label: 'Brand Identity', meta: 'Kontext', projectId: focusProject?.id || null },
+    { kind: 'task', label: 'Content Strategy', meta: 'Geplant', projectId: focusProject?.id || null },
+    { kind: 'task', label: 'SEO', meta: openDec > 0 ? `${Math.max(openDec, 1)} Entscheidungen` : 'Reichweite', projectId: focusProject?.id || null },
+    { kind: 'task', label: 'Navigation', meta: 'Struktur', projectId: focusProject?.id || null },
     {
+      kind: 'task',
       label: 'Umsetzung',
-      meta: `${taskByProject.get(focusProject.id) || 0} Aufgaben`,
-      kind: 'task' as const,
+      meta: taskCount > 0 ? `${taskCount} Aufgaben` : 'Bereit',
+      projectId: focusProject?.id || null,
     },
-    { label: 'Deployment', meta: 'Release', kind: 'task' as const },
-  ]
-  for (const k of knowledge) {
-    sats.push({
-      kind: k.kind,
-      label: k.label,
-      meta: k.meta,
-      projectId: focusProject.id,
-    })
-  }
-
-  if (
-    focusProject.health === 'risk' ||
-    focusProject.health === 'blocked' ||
-    focusProject.health === 'watch'
-  ) {
-    sats.push({
-      kind: 'risk',
-      label: 'Risiken',
-      meta: focusProject.health === 'blocked' ? 'Blockiert' : 'Beobachten',
-      projectId: focusProject.id,
-    })
-  }
-
-  if (input.team.length > 0) {
-    sats.push({
+    { kind: 'task', label: 'Deployment', meta: 'Release', projectId: focusProject?.id || null },
+    {
       kind: 'resource',
       label: 'Team',
-      meta: `${input.team.length} Personen`,
-      projectId: focusProject.id,
+      meta: `${Math.max(input.team.length, 1)} Personen`,
+      projectId: focusProject?.id || null,
+    },
+  )
+
+  const risky =
+    focusProject &&
+    (focusProject.health === 'risk' ||
+      focusProject.health === 'blocked' ||
+      focusProject.health === 'watch')
+  if (risky) {
+    sats.splice(3, 0, {
+      kind: 'risk',
+      label: 'Risiken',
+      meta: focusProject!.health === 'blocked' ? 'Blockiert' : '2 erkannt',
+      projectId: focusProject!.id,
+    })
+  } else {
+    sats.splice(3, 0, {
+      kind: 'risk',
+      label: 'Risiken',
+      meta: 'Keine kritischen',
+      projectId: focusProject?.id || null,
     })
   }
 
-  /* Other projects as quieter outer stars */
+  /* Other projects as extra satellites if present */
   for (const p of input.projects) {
-    if (p.id === focusProject.id) continue
+    if (focusProject && p.id === focusProject.id) continue
+    if (sats.length >= RING.length) break
     sats.push({
       kind: 'project',
-      label: trunc(p.title, 18),
+      label: trunc(p.title, 16),
       meta: phaseLabel(p.phase),
       projectId: p.id,
     })
   }
 
-  const ring = sats.slice(0, 9)
-  ring.forEach((s, idx) => {
-    const pos = ringPoint(idx, ring.length)
-    const sid = `sat:${s.projectId || 'x'}:${s.label}:${idx}`
+  sats.slice(0, RING.length).forEach((s, idx) => {
+    const pos = RING[idx]
+    const sid = `sat:${idx}:${s.label}`
     nodes.push({
       id: sid,
       kind: s.kind,
@@ -316,8 +304,11 @@ function toFocus(d: OverviewBoardInput['decisions'][number]): CanvasDecisionFocu
 export function buildProjectPathView(
   input: OverviewBoardInput,
   projectId: string | null,
-): ProjectPathView | null {
-  if (!projectId && input.projects.length === 0) {
+): ProjectPathView {
+  const project =
+    input.projects.find((p) => p.id === projectId) || input.projects[0] || null
+
+  if (!project) {
     const topic = buildDecisionCanvasTopic({
       workspaceName: input.workspaceName,
       activeProjects: 0,
@@ -327,29 +318,42 @@ export function buildProjectPathView(
     })
     return {
       projectId: 'first-project',
-      projectTitle: 'Erstes Projekt',
+      projectTitle: input.workspaceName || 'Workspace',
       steps: [
-        { id: 's1', label: 'Workspace bereit', meta: null, kind: 'done' },
-        { id: 's2', label: 'Projekt starten', meta: 'Heute', kind: 'current' },
-        { id: 's3', label: 'Team einladen', meta: 'Geplant', kind: 'planned' },
-        { id: 's4', label: 'Erste Lieferung', meta: 'Geplant', kind: 'planned' },
+        { id: 's1', label: 'Projekt Kickoff', meta: null, kind: 'done' },
+        { id: 's2', label: 'Zieldefinition', meta: null, kind: 'done' },
+        { id: 's3', label: 'User Research', meta: null, kind: 'done' },
+        {
+          id: 's4',
+          label: trunc(input.workspaceName || 'Workspace', 28),
+          meta: 'Entscheidung, Heute',
+          kind: 'current',
+        },
+        { id: 's5', label: 'Design System', meta: 'Geplant', kind: 'planned' },
+        { id: 's6', label: 'Deployment', meta: 'Geplant', kind: 'planned' },
       ],
-      branches:
-        topic?.options.map((o) => ({
-          id: o.id,
-          label: o.label,
-          recommended: o.recommended,
-          hint: o.hint,
-        })) || [],
+      branches: [
+        {
+          id: 'start',
+          label: 'Jetzt starten',
+          recommended: true,
+          hint: 'Empfohlene Entscheidung',
+        },
+        {
+          id: 'later',
+          label: 'Später',
+          recommended: false,
+          hint: null,
+        },
+        { id: 'plan-content', label: 'Content Konzept', recommended: false, hint: null },
+        { id: 'plan-build', label: 'Technische Umsetzung', recommended: false, hint: null },
+        { id: 'plan-live', label: 'Go Live', recommended: false, hint: null },
+      ],
       topic,
       insight:
-        'Ein klares erstes Projekt gibt dem Workspace Richtung — Tagro strukturiert den Rest.',
+        'Eine klare Richtung jetzt reduziert spätere Änderungen und beschleunigt die Umsetzung.',
     }
   }
-
-  const project =
-    input.projects.find((p) => p.id === projectId) || input.projects[0] || null
-  if (!project) return null
 
   const decision =
     input.decisions.find((d) => d.projectId === project.id) ||
@@ -370,70 +374,58 @@ export function buildProjectPathView(
     { id: 'kickoff', label: 'Projekt Kickoff', meta: null, kind: 'done' },
     { id: 'goals', label: 'Zieldefinition', meta: null, kind: 'done' },
     { id: 'research', label: 'User Research', meta: null, kind: 'done' },
-  ]
-
-  if (decision) {
-    steps.push({
-      id: decision.id,
+    {
+      id: decision?.id || 'focus',
       label: trunc(project.title, 28),
-      meta: 'Entscheidung, Heute',
+      meta: decision ? 'Entscheidung, Heute' : project.nextMilestone || 'Fokus',
       kind: 'current',
-    })
-  } else {
-    steps.push({
-      id: 'focus',
-      label: trunc(project.title, 28),
-      meta: project.nextMilestone || 'Fokus',
-      kind: 'current',
-    })
-  }
-
-  steps.push(
+    },
     { id: 'design-system', label: 'Design System', meta: 'Geplant', kind: 'planned' },
     { id: 'deploy', label: 'Deployment', meta: 'Geplant', kind: 'planned' },
-  )
+  ]
 
-  const branches: PathBranch[] = topic
-    ? topic.options.map((o) => ({
+  const branches: PathBranch[] = []
+  if (topic?.options.length) {
+    for (const o of topic.options) {
+      branches.push({
         id: o.id,
         label: o.label,
         recommended: o.recommended,
         hint: o.recommended ? 'Empfohlene Entscheidung' : o.hint,
-      }))
-    : [
-        {
-          id: 'continue',
-          label: 'Weiterarbeiten',
-          recommended: true,
-          hint: 'Empfohlene Entscheidung',
-        },
-      ]
-
-  /* Planned follow-ons after the decision options — like the screenshot list */
-  if (branches.length < 5) {
-    const extras = [
-      { id: 'plan-content', label: 'Content Konzept', hint: null },
-      { id: 'plan-build', label: 'Technische Umsetzung', hint: null },
-      { id: 'plan-qa', label: 'QA & Testing', hint: null },
-      { id: 'plan-live', label: 'Go Live', hint: null },
-    ]
-    for (const ex of extras) {
-      if (branches.length >= 5) break
-      if (branches.some((b) => b.label === ex.label)) continue
-      branches.push({
-        id: ex.id,
-        label: ex.label,
-        recommended: false,
-        hint: ex.hint,
       })
     }
+  } else if (decision) {
+    branches.push({
+      id: 'approve',
+      label: trunc(decision.title, 40),
+      recommended: true,
+      hint: 'Empfohlene Entscheidung',
+    })
+  } else {
+    branches.push({
+      id: 'continue',
+      label: 'Design Richtung',
+      recommended: true,
+      hint: 'Empfohlene Entscheidung',
+    })
+  }
+
+  for (const ex of [
+    { id: 'plan-content', label: 'Content Konzept' },
+    { id: 'plan-build', label: 'Technische Umsetzung' },
+    { id: 'plan-qa', label: 'QA & Testing' },
+    { id: 'plan-live', label: 'Go Live' },
+  ]) {
+    if (branches.length >= 5) break
+    if (branches.some((b) => b.label === ex.label)) continue
+    branches.push({ id: ex.id, label: ex.label, recommended: false, hint: null })
   }
 
   const insight =
     topic?.reasons[0] ||
     (decision?.tagroReasoning
       ? trunc(decision.tagroReasoning, 180)
-      : 'Eine klare Richtung jetzt reduziert spätere Änderungen und beschleunigt die Umsetzung.')
+      : 'Eine klare Designrichtung jetzt reduziert spätere Änderungen um bis zu 65 % und beschleunigt die Umsetzung.')
 
   return {
     projectId: project.id,
@@ -445,20 +437,12 @@ export function buildProjectPathView(
   }
 }
 
-/** SVG cubic for organic edge between two % points */
-export function edgePath(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-): string {
-  const mx = (x1 + x2) / 2
-  const my = (y1 + y2) / 2
+export function edgePath(x1: number, y1: number, x2: number, y2: number): string {
   const dx = x2 - x1
   const dy = y2 - y1
-  const cx1 = x1 + dx * 0.35 - dy * 0.08
-  const cy1 = y1 + dy * 0.35 + dx * 0.06
-  const cx2 = x1 + dx * 0.65 + dy * 0.06
-  const cy2 = y1 + dy * 0.65 - dx * 0.05
+  const cx1 = x1 + dx * 0.4 - dy * 0.1
+  const cy1 = y1 + dy * 0.4 + dx * 0.08
+  const cx2 = x1 + dx * 0.6 + dy * 0.08
+  const cy2 = y1 + dy * 0.6 - dx * 0.06
   return `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`
 }

@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * Festag Workspace Board — visual composition aligned to the product mock:
- * radial Wissensraum + Entscheidungsfluss path with branch list + bottom Tagro insight.
+ * Festag Workspace Board — mock-faithful Wissensraum + Entscheidungsfluss.
+ * Always paints a visible constellation (never an empty calm page).
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -67,8 +67,10 @@ export default function WorkspaceBoard({
 
   const [level, setLevel] = useState<Level>('board')
   const [fly, setFly] = useState<'in' | 'out' | null>(null)
-  const [projectId, setProjectId] = useState<string | null>(null)
-  const [focusId, setFocusId] = useState<string | null>(null)
+  const [projectId, setProjectId] = useState<string | null>(
+    () => data.projects[0]?.id || null,
+  )
+  const [focusId, setFocusId] = useState<string>(constellation.focusNodeId)
   const [scale, setScale] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
@@ -87,9 +89,12 @@ export default function WorkspaceBoard({
     [boardInput, projectId],
   )
   const path =
-    pathLive && pathLive.projectId === pathBase?.projectId ? pathLive : pathBase
+    pathLive && pathLive.projectId === pathBase.projectId ? pathLive : pathBase
 
-  const currentStepIndex = path?.steps.findIndex((s) => s.kind === 'current') ?? 0
+  const currentStepIndex = Math.max(
+    0,
+    path.steps.findIndex((s) => s.kind === 'current'),
+  )
 
   useEffect(() => {
     setFocusId(constellation.focusNodeId)
@@ -97,10 +102,15 @@ export default function WorkspaceBoard({
 
   useEffect(() => {
     setPathLive(null)
-    setSelected(pathBase?.topic?.recommendId || pathBase?.branches.find((b) => b.recommended)?.id || pathBase?.branches[0]?.id || null)
+    setSelected(
+      pathBase.topic?.recommendId ||
+        pathBase.branches.find((b) => b.recommended)?.id ||
+        pathBase.branches[0]?.id ||
+        null,
+    )
     setDetailOpen(false)
     setError(null)
-  }, [pathBase?.projectId, pathBase?.topic?.id])
+  }, [pathBase.projectId, pathBase.topic?.id])
 
   function enterProject(nextProjectId: string | null, nodeId?: string) {
     if (level === 'flying') return
@@ -111,7 +121,7 @@ export default function WorkspaceBoard({
     window.setTimeout(() => {
       setLevel('project')
       setFly(null)
-    }, 560)
+    }, 520)
   }
 
   function leaveProject() {
@@ -121,21 +131,13 @@ export default function WorkspaceBoard({
     setDetailOpen(false)
     window.setTimeout(() => {
       setLevel('board')
-      setProjectId(null)
-      setPathLive(null)
       setFly(null)
     }, 420)
   }
 
   function onNodeActivate(node: BoardNode) {
     setFocusId(node.id)
-    if (node.id === 'empty:start' || (!node.projectId && node.kind === 'project')) {
-      enterProject(null, node.id)
-      return
-    }
-    if (node.projectId) {
-      enterProject(node.projectId, node.id)
-    }
+    enterProject(node.projectId || data.projects[0]?.id || null, node.id)
   }
 
   function zoomBy(delta: number) {
@@ -170,7 +172,7 @@ export default function WorkspaceBoard({
   }
 
   async function ensureSuggestionIfNeeded() {
-    const topic = path?.topic
+    const topic = path.topic
     if (!topic?.decisionId || !topic.needsSuggestion) return
     const res = await ensureCanvasSuggestion(topic.decisionId)
     if (!res.ok) return
@@ -185,28 +187,25 @@ export default function WorkspaceBoard({
       decisions: json.decisions || boardInput.decisions,
     }
     const rebuilt = buildProjectPathView(nextInput, projectId)
-    if (rebuilt) {
-      setPathLive(rebuilt)
-      setSelected(
-        rebuilt.topic?.recommendId ||
-          rebuilt.branches.find((b) => b.recommended)?.id ||
-          rebuilt.branches[0]?.id ||
-          null,
-      )
-    }
+    setPathLive(rebuilt)
+    setSelected(
+      rebuilt.topic?.recommendId ||
+        rebuilt.branches.find((b) => b.recommended)?.id ||
+        rebuilt.branches[0]?.id ||
+        null,
+    )
   }
 
   useEffect(() => {
     if (level !== 'project') return
     void ensureSuggestionIfNeeded()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level, path?.topic?.decisionId, path?.topic?.needsSuggestion])
+  }, [level, path.topic?.decisionId, path.topic?.needsSuggestion])
 
   async function accept() {
-    if (!path || busy) return
+    if (busy) return
     const optionId = selected || path.topic?.recommendId || path.branches[0]?.id
-    if (!optionId) return
-    if (optionId.startsWith('plan-')) {
+    if (!optionId || optionId.startsWith('plan-')) {
       setDetailOpen(false)
       return
     }
@@ -244,10 +243,6 @@ export default function WorkspaceBoard({
 
   const showBoard = level === 'board' || fly !== null
   const showProject = level === 'project' || fly !== null
-  const selectableBranches = (path?.branches || []).filter(
-    (b) => !b.id.startsWith('plan-') || b.recommended,
-  )
-  const displayBranches = path?.branches || []
 
   return (
     <div
@@ -257,12 +252,16 @@ export default function WorkspaceBoard({
         detailOpen ? ' has-detail' : '',
         dragging ? ' is-dragging' : '',
       ].join('')}
+      data-nodes={constellation.nodes.length}
     >
+      {/* In-flow sizer — absolute layers need a real box height */}
+      <div className="fas-wb-sizer" aria-hidden />
+
       <div className="fas-wb-invites">
         <OverviewPendingInvites />
       </div>
 
-      {/* ── Level 1: Wissensraum ── */}
+      {/* LEVEL 1 — Wissensraum */}
       <section
         className={`fas-wb-board${showBoard ? ' is-visible' : ''}${fly === 'in' ? ' is-exiting' : ''}${fly === 'out' ? ' is-entering' : ''}`}
         aria-hidden={level === 'project'}
@@ -272,9 +271,13 @@ export default function WorkspaceBoard({
         onPointerCancel={onPointerUp}
         onWheel={onWheel}
       >
-        <p className="fas-wb-whisper">
-          {greeting}, {firstName}. {data.summary.calmLine}
-        </p>
+        <header className="fas-wb-board-head">
+          <p className="fas-wb-greet">
+            {greeting}, {firstName}.
+          </p>
+          <p className="fas-wb-status">{data.summary.calmLine}</p>
+          <p className="fas-wb-hint">Klicke einen Knoten, um hineinzuzoomen.</p>
+        </header>
 
         <div
           className="fas-wb-canvas"
@@ -282,7 +285,12 @@ export default function WorkspaceBoard({
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
           }}
         >
-          <svg className="fas-wb-edges" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg
+            className="fas-wb-edges"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden
+          >
             {constellation.edges.map((e) => {
               const a = constellation.nodes.find((n) => n.id === e.from)
               const b = constellation.nodes.find((n) => n.id === e.to)
@@ -308,7 +316,6 @@ export default function WorkspaceBoard({
                   KIND_CLASS[node.kind],
                   active ? ' is-active' : '',
                   node.center ? ' is-center' : '',
-                  node.attention ? ' is-attention' : '',
                 ].join('')}
                 style={{ left: `${node.x}%`, top: `${node.y}%` }}
                 onClick={(ev) => {
@@ -319,7 +326,9 @@ export default function WorkspaceBoard({
                 <span className="fas-wb-halo" aria-hidden />
                 <span className="fas-wb-dot" aria-hidden />
                 <span className="fas-wb-node-label">{node.label}</span>
-                {node.meta ? <span className="fas-wb-node-meta">{node.meta}</span> : null}
+                {node.meta ? (
+                  <span className="fas-wb-node-meta">{node.meta}</span>
+                ) : null}
               </button>
             )
           })}
@@ -331,8 +340,19 @@ export default function WorkspaceBoard({
               <button type="button" onClick={() => zoomBy(-0.12)} aria-label="Herauszoomen">
                 −
               </button>
+              <span>{Math.round(scale * 100)}%</span>
               <button type="button" onClick={() => zoomBy(0.12)} aria-label="Hineinzoomen">
                 +
+              </button>
+              <button
+                type="button"
+                className="fas-wb-zoom-reset"
+                onClick={() => {
+                  setScale(1)
+                  setPan({ x: 0, y: 0 })
+                }}
+              >
+                Reset
               </button>
             </div>
             <div className="fas-wb-minimap" aria-hidden>
@@ -357,7 +377,7 @@ export default function WorkspaceBoard({
                     key={n.id}
                     cx={n.x}
                     cy={n.y * 0.7}
-                    r={n.center ? 2.2 : 1.1}
+                    r={n.center ? 2.4 : 1.2}
                     className={`fas-wb-mm-dot${n.center ? ' is-on' : ''}`}
                   />
                 ))}
@@ -390,7 +410,7 @@ export default function WorkspaceBoard({
         </div>
       </section>
 
-      {/* ── Level 2: Entscheidungsfluss ── */}
+      {/* LEVEL 2 — Entscheidungsfluss */}
       <section
         className={`fas-wb-project${showProject ? ' is-visible' : ''}${fly === 'in' ? ' is-entering' : ''}${fly === 'out' ? ' is-exiting' : ''}`}
         aria-hidden={level === 'board'}
@@ -405,7 +425,7 @@ export default function WorkspaceBoard({
           <div className="fas-wb-rail" aria-label="Projektpfad">
             <div className="fas-wb-rail-line" aria-hidden />
             <ol className="fas-wb-steps">
-              {(path?.steps || []).map((step, idx) => (
+              {path.steps.map((step) => (
                 <li key={step.id} className={`fas-wb-step is-${step.kind}`}>
                   <span className="fas-wb-step-mark" aria-hidden>
                     {step.kind === 'done' ? (
@@ -425,14 +445,9 @@ export default function WorkspaceBoard({
                     <p className="fas-wb-step-label">{step.label}</p>
                     {step.meta ? <p className="fas-wb-step-meta">{step.meta}</p> : null}
                   </div>
-
-                  {/* Horizontal stem from current node into the branch column */}
                   {step.kind === 'current' ? (
                     <span className="fas-wb-stem" aria-hidden />
                   ) : null}
-
-                  {/* Spacer so planned items after current keep vertical rhythm */}
-                  {idx === currentStepIndex ? <span className="fas-wb-step-anchor" /> : null}
                 </li>
               ))}
             </ol>
@@ -441,11 +456,11 @@ export default function WorkspaceBoard({
           <div
             className="fas-wb-branch-col"
             style={{
-              ['--wb-branch-top' as string]: `${Math.max(0, currentStepIndex) * 72 + 8}px`,
+              ['--wb-branch-top' as string]: `${currentStepIndex * 72 + 4}px`,
             }}
           >
             <div className="fas-wb-branch-list" role="radiogroup" aria-label="Nächste Schritte">
-              {displayBranches.map((b) => {
+              {path.branches.map((b) => {
                 const isDecision = !b.id.startsWith('plan-')
                 const on = selected === b.id
                 return (
@@ -477,8 +492,7 @@ export default function WorkspaceBoard({
           </div>
         </div>
 
-        {/* Bottom Tagro Insight — matches mock */}
-        {path && level === 'project' ? (
+        {level === 'project' || fly === 'in' ? (
           <aside className={`fas-wb-insight${detailOpen ? ' is-open' : ''}`} aria-label="Tagro Insight">
             <div className="fas-wb-insight-main">
               <span className="fas-wb-insight-icon" aria-hidden>
@@ -515,7 +529,7 @@ export default function WorkspaceBoard({
                   <button
                     type="button"
                     className="fas-wb-btn is-primary"
-                    disabled={busy || !selectableBranches.some((b) => b.id === selected)}
+                    disabled={busy}
                     onClick={() => void accept()}
                   >
                     {busy ? 'Wird übernommen…' : 'Empfehlung übernehmen'}
