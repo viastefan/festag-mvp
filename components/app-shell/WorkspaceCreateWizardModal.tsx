@@ -30,7 +30,6 @@ import {
 import {
   WORKSPACE_CREATION_COPY as COPY,
   WORKSPACE_USE_CASES,
-  WORKSPACE_USE_CASE_GROUPS,
   getWorkspaceUseCase,
   workspaceSubdomainPreview,
   type WorkspaceUseCaseId,
@@ -49,7 +48,7 @@ function resolveWizardTheme(mode: PanelThemeMode): 'light' | 'read' | 'dark' {
 export default function WorkspaceCreateWizardModal() {
   const [open, setOpen] = useState(false)
   const [visible, setVisible] = useState(false)
-  const [step, setStep] = useState<Step>('form')
+  const [step, setStep] = useState<Step>('name')
   const [useCase, setUseCase] = useState<WorkspaceUseCaseId | null>(null)
   const [error, setError] = useState('')
   const [creatingVisible, setCreatingVisible] = useState(0)
@@ -457,50 +456,41 @@ export default function WorkspaceCreateWizardModal() {
                 />
               </div>
               <div className="wc-form">
-                <div className="wc-ws-groups" role="listbox" aria-label={COPY.useTitle}>
-                  {WORKSPACE_USE_CASE_GROUPS.map((group, gi) => (
-                    <div
-                      key={group.id}
-                      className="wc-ws-group"
-                      style={{ ['--i' as string]: gi }}
-                    >
-                      {group.cases.map((caseId) => {
-                        const card = WORKSPACE_USE_CASES.find((c) => c.id === caseId)
-                        if (!card) return null
-                        const on = useCase === card.id
-                        return (
-                          <div
-                            key={card.id}
-                            role="option"
-                            aria-selected={on}
-                            tabIndex={0}
-                            className={`wc-ws-row${on ? ' is-on' : ''}`}
-                            onClick={() => {
-                              setError('')
-                              setUseCase(card.id)
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                setUseCase(card.id)
-                              }
-                            }}
-                          >
-                            <span className="wc-ws-card-copy">
-                              <span className="wc-ws-card-title">{card.title}</span>
-                              <span className="wc-ws-card-body">{card.description}</span>
-                            </span>
-                            <FestagToggle
-                              on={on}
-                              label={`${card.title} auswählen`}
-                              stopPropagation
-                              onChange={() => setUseCase(card.id)}
-                            />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ))}
+                <div className="wc-ws-list" role="listbox" aria-label={COPY.useTitle}>
+                  {WORKSPACE_USE_CASES.map((card, i) => {
+                    const on = useCase === card.id
+                    return (
+                      <div
+                        key={card.id}
+                        role="option"
+                        aria-selected={on}
+                        tabIndex={0}
+                        className={`wc-ws-row${on ? ' is-on' : ''}`}
+                        style={{ ['--i' as string]: i }}
+                        onClick={() => {
+                          setError('')
+                          setUseCase(card.id)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            setUseCase(card.id)
+                          }
+                        }}
+                      >
+                        <span className="wc-ws-card-copy">
+                          <span className="wc-ws-card-title">{card.title}</span>
+                          <span className="wc-ws-card-body">{card.description}</span>
+                        </span>
+                        <FestagToggle
+                          on={on}
+                          label={`${card.title} auswählen`}
+                          stopPropagation
+                          onChange={() => setUseCase(card.id)}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
                 {error && step === 'use' ? <p className="wc-error">{error}</p> : null}
                 <div className="wc-continue-slot">
@@ -604,9 +594,9 @@ const WIZARD_CSS = `
   --wc-wash-bottom: #F3EFE4;
   --wc-mark-filter: brightness(0) saturate(100%);
   --wc-mark-opacity: 0.9;
-  --wc-gutter: 22px;
-  --wc-content-max: 400px;
-  --wc-panel-radius: 8px;
+  --wc-gutter: 32px;
+  --wc-content-max: 480px;
+  --wc-panel-radius: 12px;
 
   position: fixed;
   inset: 0;
@@ -614,7 +604,7 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+  padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
   color: var(--mob-ink);
   font-family: 'Aeonik', system-ui, sans-serif;
@@ -646,8 +636,8 @@ const WIZARD_CSS = `
 .wc-os-panel {
   position: relative;
   z-index: 1;
-  width: min(100%, 440px);
-  max-height: min(860px, calc(100dvh - 32px));
+  width: min(100%, 560px);
+  max-height: min(900px, calc(100dvh - 48px));
   display: flex;
   flex-direction: column;
   border-radius: var(--wc-panel-radius);
@@ -708,7 +698,7 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px 4px;
+  padding: 18px 20px 8px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -800,13 +790,13 @@ const WIZARD_CSS = `
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 8px var(--wc-gutter) 24px;
+  padding: 12px var(--wc-gutter) 32px;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  min-height: 360px;
+  min-height: 420px;
 }
 
 .wc-os-stage {
@@ -1046,54 +1036,42 @@ const WIZARD_CSS = `
   word-break: break-all;
 }
 
-/* Two use-case cards — each holds a pair of options */
-.wc-ws-groups {
-  margin-top: 0;
+/* Four individual use-case toggles — one choice each, never paired cards */
+.wc-ws-list {
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-inline: 3px;
+  gap: 10px;
   box-sizing: border-box;
-}
-
-.wc-ws-group {
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.10) !important;
-  background: #FFFFFF;
-  overflow: hidden;
-  box-sizing: border-box;
-  animation: wcCardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
-  animation-delay: calc(0.1s + var(--i, 0) * 70ms);
 }
 
 .wc-ws-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
   text-align: left;
-  min-height: 64px;
-  padding: 14px 14px;
-  border: none !important;
-  background: transparent;
+  min-height: 76px;
+  padding: 18px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(30, 30, 32, 0.10) !important;
+  background: #FFFFFF;
   color: var(--mob-ink);
   cursor: pointer;
   box-sizing: border-box;
-  transition: background .18s ease;
-}
-
-.wc-ws-row + .wc-ws-row {
-  border-top: 1px solid rgba(30, 30, 32, 0.08) !important;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  animation: wcCardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
+  animation-delay: calc(0.08s + var(--i, 0) * 55ms);
 }
 
 .wc-ws-row:hover:not(.is-on) {
-  background: rgba(30, 30, 32, 0.025);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(30, 30, 32, 0.14) !important;
 }
 
 .wc-ws-row.is-on {
   background: rgba(91, 100, 125, 0.06);
+  border-color: rgba(91, 100, 125, 0.28) !important;
 }
 
 .wc-ws-row:focus,
@@ -1102,18 +1080,17 @@ const WIZARD_CSS = `
   box-shadow: none !important;
 }
 
-.wc-os[data-theme="dark"] .wc-ws-group {
+.wc-os[data-theme="dark"] .wc-ws-row {
   background: rgba(186, 194, 210, 0.06);
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
-.wc-os[data-theme="dark"] .wc-ws-row + .wc-ws-row {
-  border-top-color: rgba(255, 255, 255, 0.08) !important;
-}
 .wc-os[data-theme="dark"] .wc-ws-row:hover:not(.is-on) {
   background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16) !important;
 }
 .wc-os[data-theme="dark"] .wc-ws-row.is-on {
   background: rgba(91, 100, 125, 0.18);
+  border-color: rgba(91, 100, 125, 0.42) !important;
 }
 
 .wc-ws-card-copy {
@@ -1121,19 +1098,19 @@ const WIZARD_CSS = `
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .wc-ws-card-title {
-  font-size: 15px;
-  line-height: 1.25;
+  font-size: 15.5px;
+  line-height: 1.3;
   letter-spacing: var(--auth-tracking);
   color: var(--mob-ink);
 }
 
 .wc-ws-card-body {
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 13.5px;
+  line-height: 1.45;
   letter-spacing: var(--auth-tracking);
   color: var(--mob-muted);
 }
@@ -1143,6 +1120,7 @@ const WIZARD_CSS = `
 .wc-os .wc-ws-row .ft-toggle {
   border-radius: 9999px !important;
   overflow: hidden !important;
+  flex-shrink: 0;
 }
 
 @keyframes wcCardIn {
@@ -1173,7 +1151,7 @@ const WIZARD_CSS = `
 
 .wc-continue-slot {
   min-height: var(--mob-control-h);
-  margin-top: 24px;
+  margin-top: 28px;
   width: 100%;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -1579,27 +1557,28 @@ const WIZARD_CSS = `
     flex-shrink: 0;
   }
 
-  .wc-ws-groups {
+  .wc-ws-list {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-inline: 0;
-    gap: 10px;
+    gap: 8px;
+    margin-top: 4px;
     margin-bottom: 4px;
   }
 
   .wc-ws-row {
-    min-height: 56px;
-    padding: 12px;
+    min-height: 64px;
+    padding: 14px 16px;
+    border-radius: 8px;
   }
 
   .wc-ws-card-title {
-    font-size: 14.5px;
+    font-size: 15px;
   }
 
   .wc-ws-card-body {
-    font-size: 12.5px;
+    font-size: 13px;
   }
 
   .wc-domain-hint,

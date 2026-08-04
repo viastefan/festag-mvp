@@ -91,18 +91,6 @@ export const WORKSPACE_CREATION_COPY = {
   additionalBack: 'Zurück zur Übersicht',
 } as const
 
-/** Two visual groups on the create form — not one tall stack of four. */
-export const WORKSPACE_USE_CASE_GROUPS = [
-  {
-    id: 'client-work',
-    cases: ['clients', 'agency'] as const satisfies readonly WorkspaceUseCaseId[],
-  },
-  {
-    id: 'own-product',
-    cases: ['product', 'internal'] as const satisfies readonly WorkspaceUseCaseId[],
-  },
-] as const
-
 export const WORKSPACE_PLAN = {
   id: 'workspace',
   priceMonthlyEur: 19,
