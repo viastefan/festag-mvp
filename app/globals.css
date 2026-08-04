@@ -1474,16 +1474,28 @@ input[type="reset"],
   border-radius: var(--button-radius) !important;
 }
 
-/* Compact surfaces: popup/menu/sidebar controls stay crisp instead of pill-shaped. */
+/* Compact surfaces: popup/menu/sidebar controls stay crisp instead of pill-shaped.
+   Do NOT match fas-root state classes (is-sidebar-collapsed / is-sidebar-peek) —
+   those wrap the whole OS and would flatten Living Network circles to 6px. */
 :where(
   [class*="menu"],
   [class*="popover"],
   [class*="dropdown"],
-  [class*="sidebar"],
+  .fas-sidebar,
   [class^="sb-"],
   .festag-popup-surface
-) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item):not(.ft-toggle) {
+) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item):not(.ft-toggle):not(.tln-core):not(.tln-node):not(.fas-ln-mic) {
   border-radius: 6px !important;
+}
+
+/* Living Network — perfect circles (beat any leftover control radius). */
+button.tln-core,
+.tln-core,
+button.tln-node .tln-node-orb,
+.tln-node-orb,
+button.fas-ln-mic,
+.fas-ln-mic {
+  border-radius: 50% !important;
 }
 
 /* Festag mini switch — full pill (beat global 6px button radius). */

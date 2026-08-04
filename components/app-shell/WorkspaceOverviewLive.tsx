@@ -10,7 +10,6 @@ import Link from 'next/link'
 import {
   Check,
   Microphone,
-  MicrophoneSlash,
   Sparkle,
   UploadSimple,
   X,
@@ -147,21 +146,8 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
 
   const [active, setActive] = useState<NetworkActive>(derivedActive)
   const [panelDismissed, setPanelDismissed] = useState(false)
-  const [listening, setListening] = useState(false)
+  const [listening, setListening] = useState(() => Boolean(derivedActive))
   const [statusKey, setStatusKey] = useState(0)
-
-  useEffect(() => {
-    if (!panelDismissed) setActive(derivedActive)
-  }, [derivedActive, panelDismissed])
-
-  useEffect(() => {
-    setStatusKey((k) => k + 1)
-  }, [summary.pendingDecisions, summary.activeProjects, focusDecision?.id])
-
-  const status = useMemo(
-    () => buildStatusLines(greeting, firstName, data),
-    [greeting, firstName, data],
-  )
 
   const panelKind: PanelKind =
     panelDismissed
@@ -171,6 +157,25 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
         : active?.kind === 'project' && summary.activeProjects === 0
           ? 'project'
           : null
+
+  useEffect(() => {
+    if (!panelDismissed) setActive(derivedActive)
+  }, [derivedActive, panelDismissed])
+
+  useEffect(() => {
+    setStatusKey((k) => k + 1)
+  }, [summary.pendingDecisions, summary.activeProjects, focusDecision?.id])
+
+  useEffect(() => {
+    if (panelKind) setListening(true)
+  }, [panelKind])
+
+  const status = useMemo(
+    () => buildStatusLines(greeting, firstName, data),
+    [greeting, firstName, data],
+  )
+
+  const voiceOn = listening
 
   function dismissPanel() {
     setPanelDismissed(true)
@@ -208,7 +213,7 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
   }
 
   return (
-    <div className={`fas-ln${panelKind ? ' has-panel' : ''}${listening ? ' is-listening' : ''}`}>
+    <div className={`fas-ln${panelKind ? ' has-panel' : ''}${voiceOn ? ' is-listening' : ''}`}>
       <OverviewPendingInvites />
 
       <div className="fas-ln-stage">
@@ -336,32 +341,30 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
 
         <div className="fas-ln-voice">
           <div className="fas-ln-voice-row">
-            <div className={`fas-ln-wave${listening ? ' is-on' : ''}`} aria-hidden>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <span key={`l${i}`} style={{ ['--i' as string]: i }} />
-              ))}
+            <div className={`fas-ln-wave${voiceOn ? ' is-on' : ''}`} aria-hidden>
+              <svg viewBox="0 0 88 28" preserveAspectRatio="none">
+                <path d="M0 14 C6 14 8 6 14 6 S22 22 28 22 36 6 44 6 52 22 58 22 66 6 72 6 80 14 88 14" />
+                <path d="M0 14 C5 14 9 10 14 10 S23 18 28 18 37 10 44 10 53 18 58 18 67 10 74 10 82 14 88 14" opacity="0.45" />
+              </svg>
             </div>
             <button
               type="button"
-              className={`fas-ln-mic${listening ? ' is-on' : ''}`}
-              aria-pressed={listening}
-              aria-label={listening ? 'Zuhören beenden' : 'Tagro zuhören'}
+              className={`fas-ln-mic${voiceOn ? ' is-on' : ''}`}
+              aria-pressed={voiceOn}
+              aria-label={voiceOn ? 'Zuhören beenden' : 'Tagro zuhören'}
               onClick={() => setListening((v) => !v)}
             >
-              {listening ? (
-                <MicrophoneSlash size={20} weight="fill" />
-              ) : (
-                <Microphone size={20} weight="fill" />
-              )}
+              <Microphone size={20} weight="fill" />
             </button>
-            <div className={`fas-ln-wave${listening ? ' is-on' : ''}`} aria-hidden>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <span key={`r${i}`} style={{ ['--i' as string]: 9 - i }} />
-              ))}
+            <div className={`fas-ln-wave${voiceOn ? ' is-on' : ''}`} aria-hidden>
+              <svg viewBox="0 0 88 28" preserveAspectRatio="none">
+                <path d="M0 14 C6 14 8 22 14 22 S22 6 28 6 36 22 44 22 52 6 58 6 66 22 72 22 80 14 88 14" />
+                <path d="M0 14 C5 14 9 18 14 18 S23 10 28 10 37 18 44 18 53 10 58 10 67 18 74 18 82 14 88 14" opacity="0.45" />
+              </svg>
             </div>
           </div>
           <p className="fas-ln-voice-label">
-            {listening ? 'Tagro hört zu' : 'Tagro'}
+            {voiceOn ? 'Tagro hört zu' : 'Tagro'}
           </p>
         </div>
 

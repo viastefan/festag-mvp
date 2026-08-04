@@ -2,8 +2,8 @@
 
 /**
  * Tagro Living Network — Overview identity (mock-faithful).
- * Center Tagro orb · peripheral icon nodes · faint idle spokes ·
- * one blue active path when context requires attention.
+ * Circular Tagro core · ring of icon nodes · faint idle spokes ·
+ * one blue active path + glow when context needs attention.
  */
 
 import { useMemo } from 'react'
@@ -43,26 +43,26 @@ type Props = {
 
 type NodeDef = {
   kind: NetworkNodeKind
-  /** angle in degrees, 0 = east, CCW */
+  /** degrees — 0 = east, CCW */
   angle: number
   radius: number
   Icon: typeof FolderSimple
 }
 
-/** Ring layout matching Living Network mock */
+/** Polar ring — matches Living Network mock composition */
 const NODES: NodeDef[] = [
-  { kind: 'automation', angle: -70, radius: 38, Icon: Lightning },
-  { kind: 'document', angle: -130, radius: 40, Icon: FileText },
-  { kind: 'github', angle: -170, radius: 36, Icon: GithubLogo },
-  { kind: 'developer', angle: 155, radius: 39, Icon: Code },
-  { kind: 'client', angle: 115, radius: 37, Icon: User },
-  { kind: 'deployment', angle: 70, radius: 40, Icon: RocketLaunch },
-  { kind: 'project', angle: 25, radius: 38, Icon: FolderSimple },
-  { kind: 'decision', angle: -15, radius: 39, Icon: CheckCircle },
+  { kind: 'document', angle: -145, radius: 34, Icon: FileText },
+  { kind: 'github', angle: -105, radius: 36, Icon: GithubLogo },
+  { kind: 'automation', angle: -55, radius: 33, Icon: Lightning },
+  { kind: 'decision', angle: -8, radius: 35, Icon: CheckCircle },
+  { kind: 'project', angle: 32, radius: 36, Icon: FolderSimple },
+  { kind: 'deployment', angle: 78, radius: 34, Icon: RocketLaunch },
+  { kind: 'client', angle: 128, radius: 35, Icon: User },
+  { kind: 'developer', angle: 175, radius: 33, Icon: Code },
 ]
 
 const CX = 50
-const CY = 46
+const CY = 44
 
 function polar(angleDeg: number, radius: number) {
   const rad = (angleDeg * Math.PI) / 180
@@ -105,6 +105,17 @@ export default function TagroLivingNetwork({
       <div className="tln-grid" aria-hidden />
 
       <svg className="tln-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden>
+        <defs>
+          <filter id="tln-glow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="1.4" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Idle spokes to every node */}
         <g className="tln-spokes">
           {placed.map((node) => {
             const hot = active?.kind === node.kind
@@ -120,18 +131,21 @@ export default function TagroLivingNetwork({
             )
           })}
         </g>
+
+        {/* Active blue path drawn on top */}
         {activeNode ? (
           <line
-            key={`hot-${active?.kind}`}
             className="tln-link"
             x1={CX}
             y1={CY}
             x2={activeNode.x}
             y2={activeNode.y}
+            filter="url(#tln-glow)"
           />
         ) : null}
       </svg>
 
+      {/* Perfect circle core — div, not button geometry */}
       <button
         type="button"
         className="tln-core"
@@ -139,14 +153,16 @@ export default function TagroLivingNetwork({
         aria-label="Tagro"
         onClick={() => onCoreActivate?.()}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="tln-core-mark"
-          src="/brand/festag-mark-fluid.png?v=20260731"
-          alt=""
-          width={28}
-          height={28}
-        />
+        <span className="tln-core-disc" aria-hidden>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="tln-core-mark"
+            src="/brand/festag-mark-fluid.png?v=20260731"
+            alt=""
+            width={30}
+            height={30}
+          />
+        </span>
       </button>
 
       {placed.map((node) => {
@@ -164,7 +180,7 @@ export default function TagroLivingNetwork({
           >
             {isHot ? <span className="tln-node-glow" aria-hidden /> : null}
             <span className="tln-node-orb">
-              <Icon size={isHot ? 16 : 14} weight={isHot ? 'fill' : 'regular'} />
+              <Icon size={isHot ? 15 : 13} weight={isHot ? 'fill' : 'regular'} />
             </span>
           </button>
         )
@@ -174,7 +190,7 @@ export default function TagroLivingNetwork({
         <div
           className="tln-label"
           style={{
-            left: `${Math.min(activeNode.x + 5.5, 82)}%`,
+            left: `${Math.min(activeNode.x + 6, 84)}%`,
             top: `${activeNode.y}%`,
           }}
         >

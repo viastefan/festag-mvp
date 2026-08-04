@@ -1200,29 +1200,29 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   justify-items: stretch;
 }
 
-/* Network canvas — square-ish, centered */
+/* Network canvas — centered living graph */
 .tln {
   position: relative;
-  width: min(560px, 100%);
-  aspect-ratio: 1 / 0.92;
-  max-height: min(520px, 58vh);
+  width: min(620px, 100%);
+  aspect-ratio: 1 / 0.9;
+  max-height: min(560px, 62vh);
   margin: 0 auto;
   overflow: visible;
 }
 .fas-ln.has-panel .tln {
   margin: 0;
   width: 100%;
-  max-width: 580px;
+  max-width: 620px;
 }
 .fas-ln-network { width: 100%; height: 100%; }
 
 .tln-grid {
   position: absolute;
-  inset: -4%;
-  border-radius: 24px;
-  background-image: radial-gradient(circle, var(--ln-border) 1px, transparent 1px);
-  background-size: 16px 16px;
-  opacity: 0.85;
+  inset: -6%;
+  border-radius: 28px;
+  background-image: radial-gradient(circle, #E9E6E1 1.1px, transparent 1.1px);
+  background-size: 8px 8px;
+  opacity: 0.9;
   pointer-events: none;
 }
 
@@ -1236,64 +1236,76 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   z-index: 1;
 }
 .tln-spoke {
-  stroke: var(--ln-spoke);
-  stroke-width: 1px;
+  stroke: #DAD6D2;
+  stroke-width: 1.15px;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
   opacity: 0.95;
-  transition: opacity 0.4s var(--ln-ease), stroke 0.4s var(--ln-ease);
+  transition: opacity 0.45s var(--ln-ease), stroke 0.45s var(--ln-ease);
 }
 .tln-spoke.is-hot {
   opacity: 0;
 }
 .tln.is-active .tln-spoke:not(.is-hot) {
-  opacity: 0.55;
+  opacity: 0.62;
 }
 .tln-link {
   stroke: var(--ln-primary);
-  stroke-width: 1.75px;
+  stroke-width: 2px;
   stroke-linecap: round;
   fill: none;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 180;
-  stroke-dashoffset: 180;
-  animation: tlnLinkGrow 0.7s var(--ln-ease) forwards;
-  filter: drop-shadow(0 0 3px rgba(91, 100, 125, 0.35));
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: tlnLinkGrow 0.65s var(--ln-ease) forwards;
 }
 @keyframes tlnLinkGrow {
   to { stroke-dashoffset: 0; }
 }
 
-/* Central Tagro — perfect circle */
+/* Central Tagro — hit target wraps a forced disc */
 .tln-core {
   position: absolute;
   z-index: 5;
-  width: 72px !important;
-  height: 72px !important;
-  min-width: 72px !important;
-  min-height: 72px !important;
+  width: 84px !important;
+  height: 84px !important;
+  min-width: 84px !important;
+  min-height: 84px !important;
+  max-width: 84px !important;
+  max-height: 84px !important;
   margin: 0 !important;
   padding: 0 !important;
-  border: 1px solid var(--ln-border) !important;
+  border: none !important;
   border-radius: 50% !important;
-  background: #FFFFFF !important;
-  box-shadow: var(--ln-shadow), 0 2px 8px rgba(20, 20, 20, 0.04) !important;
+  background: transparent !important;
+  box-shadow: none !important;
   transform: translate(-50%, -50%);
   display: grid !important;
   place-items: center;
   cursor: pointer;
+  overflow: visible !important;
+}
+.tln-core-disc {
+  width: 76px;
+  height: 76px;
+  border-radius: 50% !important;
+  border: 1px solid var(--ln-border);
+  background: #FFFFFF;
+  box-shadow: 0 10px 30px rgba(20, 20, 20, 0.06), 0 2px 8px rgba(20, 20, 20, 0.03);
+  display: grid;
+  place-items: center;
   transition: box-shadow 0.28s var(--ln-ease), transform 0.28s var(--ln-ease);
 }
-.tln-core:hover {
-  box-shadow: 0 14px 36px rgba(20, 20, 20, 0.08) !important;
-  transform: translate(-50%, -50%) scale(1.03);
+.tln-core:hover .tln-core-disc {
+  box-shadow: 0 16px 40px rgba(20, 20, 20, 0.1);
+  transform: scale(1.03);
 }
 .tln-core-mark {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   filter: brightness(0) saturate(100%);
-  opacity: 0.9;
+  opacity: 0.88;
   pointer-events: none;
 }
 
@@ -1308,36 +1320,37 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   box-shadow: none !important;
   transform: translate(-50%, -50%);
   cursor: pointer;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   transition: opacity 0.4s var(--ln-ease);
+  overflow: visible !important;
 }
 .tln-node-glow {
   position: absolute;
-  inset: -6px;
+  inset: -10px;
   border-radius: 50%;
-  background: rgba(91, 100, 125, 0.18);
-  filter: blur(6px);
+  background: rgba(91, 100, 125, 0.28);
+  filter: blur(8px);
   animation: tlnGlow 2.4s ease-in-out infinite;
   pointer-events: none;
 }
 @keyframes tlnGlow {
-  0%, 100% { opacity: 0.55; transform: scale(0.92); }
-  50% { opacity: 1; transform: scale(1.05); }
+  0%, 100% { opacity: 0.5; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
 .tln-node-orb {
   position: relative;
   z-index: 1;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border-radius: 50% !important;
-  border: 1px solid var(--ln-border);
-  background: #F3F0EB;
-  color: rgba(20, 20, 20, 0.4);
+  border: 1px solid #E9E6E1;
+  background: #ECE8E3;
+  color: rgba(20, 20, 20, 0.45);
   transition:
     background 0.35s var(--ln-ease),
     color 0.35s var(--ln-ease),
@@ -1347,15 +1360,17 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
     border-color 0.35s var(--ln-ease);
 }
 .tln-node.is-dim {
-  opacity: 0.42;
+  opacity: 0.48;
 }
 .tln-node.is-hot .tln-node-orb {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   color: #FFFFFF;
   background: var(--ln-primary);
   border-color: transparent;
-  box-shadow: 0 0 0 6px rgba(91, 100, 125, 0.14), 0 8px 20px rgba(91, 100, 125, 0.25);
+  box-shadow:
+    0 0 0 8px rgba(91, 100, 125, 0.16),
+    0 10px 24px rgba(91, 100, 125, 0.28);
   animation: tlnNodeArrive 0.5s var(--ln-ease) both;
 }
 @keyframes tlnNodeArrive {
@@ -1650,19 +1665,21 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  min-width: 260px;
+  min-width: 280px;
 }
 .fas-ln-voice-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
 }
 .fas-ln-mic {
   width: 52px !important;
   height: 52px !important;
   min-width: 52px !important;
   min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 1px solid var(--ln-border) !important;
@@ -1675,6 +1692,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   box-shadow: var(--ln-shadow) !important;
   transition: transform 0.2s var(--ln-ease), background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
+  overflow: hidden !important;
 }
 .fas-ln-mic:hover {
   transform: scale(1.05);
@@ -1685,35 +1703,39 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   border-color: transparent !important;
   box-shadow: 0 0 0 7px rgba(91, 100, 125, 0.14), 0 8px 22px rgba(91, 100, 125, 0.22) !important;
 }
+/* SVG sine waveforms — mock-faithful, not bar equalizer */
 .fas-ln-wave {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  height: 24px;
-  width: 72px;
+  width: 88px;
+  height: 28px;
   pointer-events: none;
-  opacity: 0.28;
+  opacity: 0.35;
+  color: rgba(91, 100, 125, 0.55);
+  transition: opacity 0.3s ease;
 }
-.fas-ln-wave span {
+.fas-ln-wave svg {
+  width: 100%;
+  height: 100%;
   display: block;
-  width: 2.5px;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(91, 100, 125, 0.55);
+}
+.fas-ln-wave path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .fas-ln.is-listening .fas-ln-wave,
 .fas-ln-wave.is-on {
-  opacity: 1;
+  opacity: 0.85;
+  color: rgba(91, 100, 125, 0.7);
 }
-.fas-ln.is-listening .fas-ln-wave span,
-.fas-ln-wave.is-on span {
-  animation: fasLnWave 1s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * 0.05s);
+.fas-ln.is-listening .fas-ln-wave path,
+.fas-ln-wave.is-on path {
+  animation: fasLnWaveDraw 1.8s ease-in-out infinite;
 }
-@keyframes fasLnWave {
-  0%, 100% { height: 5px; opacity: 0.35; }
-  50% { height: 20px; opacity: 1; }
+@keyframes fasLnWaveDraw {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
 }
 .fas-ln-voice-label {
   margin: 0;
@@ -1740,9 +1762,10 @@ html[data-theme="dark"] .fas-main:has(.fas-ln),
 html[data-theme="classic-dark"] .fas-main:has(.fas-ln) {
   background: #0C0D12 !important;
 }
-html[data-theme="dark"] .tln-core,
-html[data-theme="classic-dark"] .tln-core {
-  background: #1A1A1E !important;
+html[data-theme="dark"] .tln-core-disc,
+html[data-theme="classic-dark"] .tln-core-disc {
+  background: #1A1A1E;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 html[data-theme="dark"] .tln-core-mark,
 html[data-theme="classic-dark"] .tln-core-mark {
@@ -1753,6 +1776,7 @@ html[data-theme="dark"] .tln-node-orb,
 html[data-theme="classic-dark"] .tln-node-orb {
   background: rgba(26, 26, 30, 0.9);
   color: rgba(230, 232, 238, 0.45);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 html[data-theme="dark"] .fas-ln-mic:not(.is-on),
 html[data-theme="classic-dark"] .fas-ln-mic:not(.is-on) {
@@ -1767,8 +1791,8 @@ html[data-theme="classic-dark"] .fas-ln-mic:not(.is-on) {
   .tln-label,
   .fas-ln-panel,
   .fas-ln-status,
-  .fas-ln-wave.is-on span,
-  .fas-ln.is-listening .fas-ln-wave span {
+  .fas-ln-wave.is-on path,
+  .fas-ln.is-listening .fas-ln-wave path {
     animation: none !important;
   }
   .tln-link { stroke-dashoffset: 0; }
