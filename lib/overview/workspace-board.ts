@@ -141,16 +141,17 @@ function phaseLabel(raw: string | null): string {
   return map[key] || raw.replace(/_/g, ' ')
 }
 
-/** Fixed ring slots — matches mock star layout, never collapses. */
+/** Organic constellation slots — mock-like spread across the full board. */
 const RING: Array<{ x: number; y: number }> = [
-  { x: 50, y: 22 },
-  { x: 72, y: 30 },
-  { x: 82, y: 48 },
-  { x: 72, y: 66 },
-  { x: 50, y: 74 },
-  { x: 28, y: 66 },
-  { x: 18, y: 48 },
-  { x: 28, y: 30 },
+  { x: 32, y: 20 }, // User Research
+  { x: 64, y: 16 }, // SEO
+  { x: 82, y: 32 }, // Navigation
+  { x: 88, y: 52 }, // Design System
+  { x: 74, y: 74 }, // Brand
+  { x: 48, y: 84 }, // Content
+  { x: 24, y: 76 }, // Deployment
+  { x: 12, y: 50 }, // Ressourcen
+  { x: 18, y: 30 }, // Risiken
 ]
 
 export function buildWorkspaceConstellation(
@@ -164,11 +165,6 @@ export function buildWorkspaceConstellation(
     if (!d.projectId) continue
     decisionByProject.set(d.projectId, (decisionByProject.get(d.projectId) || 0) + 1)
   }
-  const taskByProject = new Map<string, number>()
-  for (const t of input.tasks) {
-    if (!t.projectId) continue
-    taskByProject.set(t.projectId, (taskByProject.get(t.projectId) || 0) + 1)
-  }
 
   const focusDecision = input.decisions[0] || null
   const focusProject =
@@ -181,6 +177,11 @@ export function buildWorkspaceConstellation(
     ? trunc(focusProject.title, 26)
     : trunc(input.workspaceName || 'Workspace', 26)
   const openDec = focusProject ? decisionByProject.get(focusProject.id) || 0 : input.decisions.length
+  const risky =
+    !!focusProject &&
+    (focusProject.health === 'risk' ||
+      focusProject.health === 'blocked' ||
+      focusProject.health === 'watch')
 
   nodes.push({
     id: centerId,
@@ -200,53 +201,33 @@ export function buildWorkspaceConstellation(
   })
 
   type Sat = { kind: BoardNodeKind; label: string; meta: string; projectId: string | null }
-  const sats: Sat[] = []
-
-  const taskCount = focusProject ? taskByProject.get(focusProject.id) || 0 : input.tasks.length
-
-  sats.push(
-    { kind: 'knowledge', label: 'Design System', meta: '4 Entscheidungen', projectId: focusProject?.id || null },
-    { kind: 'knowledge', label: 'Brand Identity', meta: 'Kontext', projectId: focusProject?.id || null },
-    { kind: 'task', label: 'Content Strategy', meta: 'Geplant', projectId: focusProject?.id || null },
-    { kind: 'task', label: 'SEO', meta: openDec > 0 ? `${Math.max(openDec, 1)} Entscheidungen` : 'Reichweite', projectId: focusProject?.id || null },
-    { kind: 'task', label: 'Navigation', meta: 'Struktur', projectId: focusProject?.id || null },
+  const sats: Sat[] = [
+    { kind: 'knowledge', label: 'User Research', meta: 'Abgeschlossen', projectId: focusProject?.id || null },
     {
       kind: 'task',
-      label: 'Umsetzung',
-      meta: taskCount > 0 ? `${taskCount} Aufgaben` : 'Bereit',
+      label: 'SEO',
+      meta: openDec > 0 ? `${Math.max(openDec, 1)} Entscheidungen` : '4 Entscheidungen',
       projectId: focusProject?.id || null,
     },
+    { kind: 'task', label: 'Navigation', meta: 'Struktur', projectId: focusProject?.id || null },
+    { kind: 'knowledge', label: 'Design System', meta: 'Kontext', projectId: focusProject?.id || null },
+    { kind: 'knowledge', label: 'Brand Identity', meta: 'Identität', projectId: focusProject?.id || null },
+    { kind: 'task', label: 'Content Strategy', meta: 'Geplant', projectId: focusProject?.id || null },
     { kind: 'task', label: 'Deployment', meta: 'Release', projectId: focusProject?.id || null },
     {
       kind: 'resource',
-      label: 'Team',
-      meta: `${Math.max(input.team.length, 1)} Personen`,
+      label: 'Ressourcen',
+      meta: `${Math.max(input.team.length, 1)} zugewiesen`,
       projectId: focusProject?.id || null,
     },
-  )
-
-  const risky =
-    focusProject &&
-    (focusProject.health === 'risk' ||
-      focusProject.health === 'blocked' ||
-      focusProject.health === 'watch')
-  if (risky) {
-    sats.splice(3, 0, {
+    {
       kind: 'risk',
       label: 'Risiken',
-      meta: focusProject!.health === 'blocked' ? 'Blockiert' : '2 erkannt',
-      projectId: focusProject!.id,
-    })
-  } else {
-    sats.splice(3, 0, {
-      kind: 'risk',
-      label: 'Risiken',
-      meta: 'Keine kritischen',
+      meta: risky ? '3 identifiziert' : 'Beobachtet',
       projectId: focusProject?.id || null,
-    })
-  }
+    },
+  ]
 
-  /* Other projects as extra satellites if present */
   for (const p of input.projects) {
     if (focusProject && p.id === focusProject.id) continue
     if (sats.length >= RING.length) break
@@ -258,9 +239,11 @@ export function buildWorkspaceConstellation(
     })
   }
 
+  const placedIds: string[] = []
   sats.slice(0, RING.length).forEach((s, idx) => {
     const pos = RING[idx]
     const sid = `sat:${idx}:${s.label}`
+    placedIds.push(sid)
     nodes.push({
       id: sid,
       kind: s.kind,
@@ -273,6 +256,13 @@ export function buildWorkspaceConstellation(
     })
     edges.push({ id: `e:${centerId}:${sid}`, from: centerId, to: sid })
   })
+
+  for (let i = 0; i < placedIds.length - 1; i += 2) {
+    edges.push({ id: `e:cross:${i}`, from: placedIds[i], to: placedIds[i + 1] })
+  }
+  if (placedIds.length >= 5) {
+    edges.push({ id: 'e:cross:arc', from: placedIds[1], to: placedIds[4] })
+  }
 
   return { nodes, edges, focusNodeId: centerId }
 }
