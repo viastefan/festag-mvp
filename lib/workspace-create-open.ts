@@ -1,10 +1,13 @@
-/** Open / signal Festag OS workspace creation, rename, and setup. */
+/** Open / signal Festag OS workspace creation, rename, manage, and setup. */
 
 export const OPEN_WORKSPACE_CREATE_EVENT = 'festag:open-workspace-create'
 export const OPEN_WORKSPACE_RENAME_EVENT = 'festag:open-workspace-rename'
+export const OPEN_WORKSPACE_MANAGE_EVENT = 'festag:open-workspace-manage'
 export const WORKSPACE_CREATED_EVENT = 'festag:workspace-created'
 export const WORKSPACE_SETUP_DONE_EVENT = 'festag:workspace-setup-done'
 export const WORKSPACE_RENAMED_EVENT = 'festag:workspace-renamed'
+export const WORKSPACE_DELETED_EVENT = 'festag:workspace-deleted'
+export const WORKSPACE_UPDATED_EVENT = 'festag:workspace-updated'
 
 export type WorkspaceCreatedDetail = {
   name: string
@@ -16,6 +19,13 @@ export type WorkspaceRenameDetail = {
   name?: string
 }
 
+export type WorkspaceManageDetail = {
+  workspaceId?: string
+  name?: string
+  /** Optional section to focus: name | icon | template | delete */
+  section?: 'name' | 'icon' | 'template' | 'delete'
+}
+
 export function openWorkspaceCreateWizard() {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new CustomEvent(OPEN_WORKSPACE_CREATE_EVENT))
@@ -24,6 +34,11 @@ export function openWorkspaceCreateWizard() {
 export function openWorkspaceRename(detail: WorkspaceRenameDetail = {}) {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new CustomEvent(OPEN_WORKSPACE_RENAME_EVENT, { detail }))
+}
+
+export function openWorkspaceManage(detail: WorkspaceManageDetail = {}) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent(OPEN_WORKSPACE_MANAGE_EVENT, { detail }))
 }
 
 export function emitWorkspaceCreated(detail: WorkspaceCreatedDetail | string) {
@@ -39,6 +54,25 @@ export function emitWorkspaceRenamed(detail: { name: string; id?: string }) {
   if (typeof window === 'undefined') return
   window.dispatchEvent(
     new CustomEvent(WORKSPACE_RENAMED_EVENT, { detail }),
+  )
+}
+
+export function emitWorkspaceDeleted(detail: { id: string; name?: string }) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(
+    new CustomEvent(WORKSPACE_DELETED_EVENT, { detail }),
+  )
+}
+
+export function emitWorkspaceUpdated(detail: {
+  id: string
+  name?: string
+  symbol?: unknown
+  useCase?: string
+}) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(
+    new CustomEvent(WORKSPACE_UPDATED_EVENT, { detail }),
   )
 }
 

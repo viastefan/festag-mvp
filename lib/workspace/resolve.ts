@@ -27,7 +27,7 @@ export async function resolveWorkspaceIdsForUser(
   const ids = new Set<string>()
 
   const [{ data: owned }, { data: memberships }] = await Promise.all([
-    sb.from('workspaces').select('id').eq('primary_owner_id', userId),
+    sb.from('workspaces').select('id').eq('primary_owner_id', userId).is('deleted_at', null),
     sb.from('workspace_members').select('workspace_id').eq('user_id', userId),
   ])
 
@@ -66,6 +66,7 @@ export async function resolveActiveWorkspaceId(
     .select('id')
     .eq('primary_owner_id', userId)
     .eq('is_personal', true)
+    .is('deleted_at', null)
     .maybeSingle()
   if (personal?.id) return personal.id
 
@@ -73,6 +74,7 @@ export async function resolveActiveWorkspaceId(
     .from('workspaces')
     .select('id')
     .eq('primary_owner_id', userId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle()
@@ -84,7 +86,16 @@ export async function resolveActiveWorkspaceId(
     .eq('user_id', userId)
     .limit(1)
     .maybeSingle()
-  return membership?.workspace_id ?? null
+  if (membership?.workspace_id) {
+    const { data: stillActive } = await sb
+      .from('workspaces')
+      .select('id')
+      .eq('id', membership.workspace_id)
+      .is('deleted_at', null)
+      .maybeSingle()
+    if (stillActive?.id) return stillActive.id
+  }
+  return null
 }
 
 export type WorkspaceListItem = {
@@ -104,8 +115,9 @@ export async function listWorkspacesForUser(
 
   const { data: owned } = await sb
     .from('workspaces')
-    .select('id, name, slug, is_personal, created_at')
+    .select('id, name, slug, is_personal, created_at, metadata')
     .eq('primary_owner_id', userId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: true })
 
   for (const row of (owned as any[] | null) ?? []) {
@@ -133,6 +145,7 @@ export async function listWorkspacesForUser(
       .from('workspaces')
       .select('id, name, slug, is_personal')
       .in('id', memberIds)
+      .is('deleted_at', null)
     for (const row of (memberWs as any[] | null) ?? []) {
       if (!row?.id) continue
       byId.set(row.id, {

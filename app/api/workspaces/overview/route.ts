@@ -91,6 +91,7 @@ export async function GET(req: NextRequest) {
       .from('workspaces')
       .select('id, name, slug')
       .eq('id', activeId)
+      .is('deleted_at', null)
       .maybeSingle()
     if (ws?.id) {
       workspace = {

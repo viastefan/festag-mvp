@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
     .from('workspaces')
     .select('id, name, slug, primary_owner_id')
     .eq('id', workspaceId)
+    .is('deleted_at', null)
     .maybeSingle()
 
   if (!ws?.id || ws.primary_owner_id !== user.id) {

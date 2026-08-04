@@ -7,6 +7,7 @@ import AppShellTopBar from '@/components/app-shell/AppShellTopBar'
 import AppShellAccountPanel from '@/components/app-shell/AppShellAccountPanel'
 import WorkspaceCreateWizardModal from '@/components/app-shell/WorkspaceCreateWizardModal'
 import WorkspaceRenameSheet from '@/components/app-shell/WorkspaceRenameSheet'
+import WorkspaceManageModal from '@/components/app-shell/WorkspaceManageModal'
 import AppShellNewProjectHost from '@/components/app-shell/AppShellNewProjectHost'
 import { APP_SHELL_STYLES } from '@/components/app-shell/app-shell-styles'
 import CommandPalette from '@/components/CommandPalette'
@@ -49,6 +50,7 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
         <CommandPalette theme="portal" />
         <WorkspaceCreateWizardModal />
         <WorkspaceRenameSheet />
+        <WorkspaceManageModal />
         <AppShellNewProjectHost />
       </div>
     )
@@ -70,6 +72,7 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
       <AppShellAccountPanel user={user} />
       <WorkspaceCreateWizardModal />
       <WorkspaceRenameSheet />
+      <WorkspaceManageModal />
       <AppShellNewProjectHost />
     </div>
   )

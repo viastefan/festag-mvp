@@ -22,14 +22,17 @@ import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
-import { openWorkspaceCreateWizard, openWorkspaceRename, WORKSPACE_CREATED_EVENT, WORKSPACE_RENAMED_EVENT } from '@/lib/workspace-create-open'
+import { openWorkspaceCreateWizard, openWorkspaceManage, openWorkspaceRename, WORKSPACE_CREATED_EVENT, WORKSPACE_DELETED_EVENT, WORKSPACE_RENAMED_EVENT, WORKSPACE_UPDATED_EVENT } from '@/lib/workspace-create-open'
 import {
   emitWorkspaceSwitched,
   getActiveWorkspaceId,
   rememberActiveWorkspace,
+  clearActiveWorkspaceId,
   WORKSPACE_SWITCHED_EVENT,
 } from '@/lib/active-workspace'
 import { listWorkspacesForUser, type WorkspaceListItem } from '@/lib/workspace/resolve'
+import { loadSymbol, onSymbolChange, type WorkspaceSymbolPrefs } from '@/lib/workspace-symbol'
+import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
@@ -97,6 +100,9 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   )
   const [workspaceId, setWorkspaceId] = useState<string | null>(() => getActiveWorkspaceId())
   const [workspaces, setWorkspaces] = useState<WorkspaceListItem[]>([])
+  const [symbol, setSymbol] = useState<WorkspaceSymbolPrefs>(() =>
+    loadSymbol(getActiveWorkspaceId() || getRememberedWorkspaceName() || 'festag'),
+  )
   const hasWorkspace =
     Boolean(workspaceId) ||
     (workspaceLabel !== 'Kein Workspace' && workspaceLabel !== 'No workspace')
@@ -143,9 +149,11 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
         setWorkspaceLabel(active.name)
         rememberActiveWorkspace(active.id, active.name)
         rememberWorkspaceName(active.name)
+        setSymbol(loadSymbol(active.id))
       } else {
         setWorkspaceId(null)
         setWorkspaceLabel('Kein Workspace')
+        clearActiveWorkspaceId()
       }
     } catch { /* best-effort */ }
   }, [])
@@ -178,11 +186,18 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   }, [loadRecent, user?.id])
 
   useEffect(() => {
+    return onSymbolChange((key, prefs) => {
+      if (key === workspaceId) setSymbol(prefs)
+    })
+  }, [workspaceId])
+
+  useEffect(() => {
     function onCreated(e: Event) {
       const detail = (e as CustomEvent<{ name?: string; id?: string }>).detail
       if (typeof detail?.id === 'string' && detail.id) {
         rememberActiveWorkspace(detail.id, detail.name)
         setWorkspaceId(detail.id)
+        setSymbol(loadSymbol(detail.id))
       }
       if (typeof detail?.name === 'string' && detail.name.trim()) {
         setWorkspaceLabel(detail.name.trim())
@@ -199,20 +214,40 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
       }
       void loadWorkspaces()
     }
+    function onDeleted() {
+      clearActiveWorkspaceId()
+      setWorkspaceId(null)
+      setWorkspaceLabel('Kein Workspace')
+      void loadWorkspaces()
+    }
+    function onUpdated(e: Event) {
+      const detail = (e as CustomEvent<{ id?: string; symbol?: WorkspaceSymbolPrefs }>).detail
+      if (detail?.id && detail.id === workspaceId && detail.symbol) {
+        setSymbol(detail.symbol)
+      }
+      void loadWorkspaces()
+    }
     function onSwitched(e: Event) {
       const detail = (e as CustomEvent<{ name?: string; id?: string }>).detail
-      if (detail?.id) setWorkspaceId(detail.id)
+      if (detail?.id) {
+        setWorkspaceId(detail.id)
+        setSymbol(loadSymbol(detail.id))
+      }
       if (detail?.name) setWorkspaceLabel(detail.name)
     }
     window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
     window.addEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+    window.addEventListener(WORKSPACE_DELETED_EVENT, onDeleted)
+    window.addEventListener(WORKSPACE_UPDATED_EVENT, onUpdated)
     window.addEventListener(WORKSPACE_SWITCHED_EVENT, onSwitched)
     return () => {
       window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
       window.removeEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+      window.removeEventListener(WORKSPACE_DELETED_EVENT, onDeleted)
+      window.removeEventListener(WORKSPACE_UPDATED_EVENT, onUpdated)
       window.removeEventListener(WORKSPACE_SWITCHED_EVENT, onSwitched)
     }
-  }, [loadWorkspaces])
+  }, [loadWorkspaces, workspaceId])
 
   useEffect(() => {
     if (!wsOpen && !notifOpen) return
@@ -249,12 +284,22 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
     })
   }
 
+  function goManageWorkspace(section?: 'name' | 'icon' | 'template' | 'delete') {
+    setWsOpen(false)
+    openWorkspaceManage({
+      workspaceId: workspaceId || undefined,
+      name: hasWorkspace ? workspaceLabel : undefined,
+      section,
+    })
+  }
+
   function switchWorkspace(ws: WorkspaceListItem) {
     setWsOpen(false)
     if (ws.id === workspaceId) return
     emitWorkspaceSwitched({ id: ws.id, name: ws.name })
     setWorkspaceId(ws.id)
     setWorkspaceLabel(ws.name)
+    setSymbol(loadSymbol(ws.id))
   }
 
   function openSearch() {
@@ -284,7 +329,16 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
             }}
           >
             <span className="fas-ws-mark" aria-hidden="true">
-              {workspaceInitial(workspaceLabel)}
+              {hasWorkspace ? (
+                <WorkspaceSymbol
+                  variant={symbol.variant}
+                  scheme={symbol.scheme}
+                  seed={symbol.seed}
+                  size={28}
+                />
+              ) : (
+                workspaceInitial(workspaceLabel)
+              )}
             </span>
             {!collapsed ? (
               <span className="fas-ws-copy">
@@ -362,9 +416,14 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
               <div className="fas-popover-title">Du hast noch keinen Workspace.</div>
             )}
             {hasWorkspace ? (
-              <button type="button" className="fas-popover-item" onClick={goRenameWorkspace}>
-                Workspace umbenennen
-              </button>
+              <>
+                <button type="button" className="fas-popover-item" onClick={() => goManageWorkspace()}>
+                  Workspace verwalten
+                </button>
+                <button type="button" className="fas-popover-item" onClick={goRenameWorkspace}>
+                  Workspace umbenennen
+                </button>
+              </>
             ) : null}
             <button type="button" className="fas-popover-item" onClick={goCreateWorkspace}>
               <Plus size={14} weight="bold" />

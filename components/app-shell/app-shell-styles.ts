@@ -195,9 +195,10 @@ html[data-theme="classic-dark"] .fas-sidebar {
   font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--fas-ink);
-  background: var(--fas-card);
-  border: 1px solid var(--fas-card-border);
-  box-shadow: var(--fas-card-shadow);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .fas-sidebar-utils {
@@ -807,6 +808,89 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   max-width: 460px;
   font-size: 15px;
   line-height: 1.55;
+  color: var(--fas-ink-muted);
+}
+
+/* Premium empty onboarding — no fake projects/stats */
+.fas-onboard {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 28px 0 64px;
+}
+.fas-onboard-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+.fas-onboard-greet {
+  margin: 0;
+  font-size: 15px;
+  color: var(--fas-ink-muted);
+  letter-spacing: -0.01em;
+}
+.fas-onboard-title {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 36px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 400;
+  color: var(--fas-ink);
+}
+.fas-onboard-body {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--fas-ink-muted);
+}
+.fas-onboard-cta { margin-top: 6px; }
+.fas-onboard-status {
+  margin: 0;
+  font-size: 13.5px;
+  color: #B42318;
+}
+.fas-onboard-steps {
+  list-style: none;
+  margin: 0 0 36px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fas-onboard-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 16px;
+  border-radius: 12px;
+  background: var(--fas-card);
+  border: 1px solid var(--fas-card-border);
+  box-shadow: var(--fas-card-shadow);
+}
+.fas-onboard-step-n {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--fas-ink);
+  background: var(--fas-nav-active);
+}
+.fas-onboard-step-title {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+  color: var(--fas-ink);
+}
+.fas-onboard-step-copy {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
   color: var(--fas-ink-muted);
 }
 

@@ -10,6 +10,8 @@ import {
   WORKSPACE_CREATED_EVENT,
   WORKSPACE_RENAMED_EVENT,
   WORKSPACE_SETUP_DONE_EVENT,
+  WORKSPACE_DELETED_EVENT,
+  WORKSPACE_UPDATED_EVENT,
 } from '@/lib/workspace-create-open'
 import { PROJECT_CREATED_EVENT } from '@/lib/new-project-open'
 import type { OverviewPayload } from '@/components/app-shell/WorkspaceOverviewLive'
@@ -72,12 +74,16 @@ export function useWorkspaceOverview(): {
     window.addEventListener(WORKSPACE_SETUP_DONE_EVENT, onChanged)
     window.addEventListener(PROJECT_CREATED_EVENT, onChanged)
     window.addEventListener(WORKSPACE_SWITCHED_EVENT, onChanged)
+    window.addEventListener(WORKSPACE_DELETED_EVENT, onChanged)
+    window.addEventListener(WORKSPACE_UPDATED_EVENT, onChanged)
     return () => {
       window.removeEventListener(WORKSPACE_CREATED_EVENT, onChanged)
       window.removeEventListener(WORKSPACE_RENAMED_EVENT, onChanged)
       window.removeEventListener(WORKSPACE_SETUP_DONE_EVENT, onChanged)
       window.removeEventListener(PROJECT_CREATED_EVENT, onChanged)
       window.removeEventListener(WORKSPACE_SWITCHED_EVENT, onChanged)
+      window.removeEventListener(WORKSPACE_DELETED_EVENT, onChanged)
+      window.removeEventListener(WORKSPACE_UPDATED_EVENT, onChanged)
     }
   }, [refresh])
 
