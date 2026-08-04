@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -30,6 +30,57 @@ type Props = {
   onToggleCollapse: () => void
 }
 
+type RecentItem = {
+  id: string
+  label: string
+  href: string
+  age: string
+}
+
+const RECENT_EXPAND_KEY = 'festag-os-recent-expanded'
+
+function truncateLabel(text: string, max = 34) {
+  const t = text.trim().replace(/\s+/g, ' ')
+  if (t.length <= max) return t
+  return `${t.slice(0, max - 2).trimEnd()}..`
+}
+
+function fmtRecentAge(iso?: string | null): string {
+  if (!iso) return ''
+  const t = new Date(iso).getTime()
+  if (!Number.isFinite(t)) return ''
+  const diff = Date.now() - t
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'jetzt'
+  if (mins < 60) return `${mins}m`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d`
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+function workspaceInitial(name: string): string {
+  const clean = name.replace(/^No workspace$/i, '').trim()
+  if (!clean) return 'F'
+  return clean.charAt(0).toUpperCase()
+}
+
+function readExpanded(key: string, fallback: boolean): boolean {
+  try {
+    const v = localStorage.getItem(key)
+    if (v === '0') return false
+    if (v === '1') return true
+  } catch { /* noop */ }
+  return fallback
+}
+
+function writeExpanded(key: string, value: boolean) {
+  try {
+    localStorage.setItem(key, value ? '1' : '0')
+  } catch { /* noop */ }
+}
+
 export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: Props) {
   const pathname = usePathname() || '/overview'
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
@@ -45,9 +96,38 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const [wsOpen, setWsOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [recent, setRecent] = useState<RecentItem[]>([])
+  const [recentExpanded, setRecentExpanded] = useState(true)
   const headerRef = useRef<HTMLDivElement>(null)
   const helpTriggerRef = useRef<HTMLButtonElement>(null)
   const { items: notifications, unread, markRead } = useNotifications({ limit: 12 })
+
+  useEffect(() => {
+    setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
+  }, [])
+
+  const loadRecent = useCallback(async () => {
+    try {
+      const res = await fetch('/api/portal/recent-executed', { credentials: 'include' })
+      if (!res.ok) return
+      const data = await res.json().catch(() => null)
+      const rows = Array.isArray(data?.items) ? data.items : []
+      setRecent(
+        rows.map((c: { id: string; label: string; href: string; at?: string }) => ({
+          id: c.id,
+          label: truncateLabel(c.label),
+          href: c.href,
+          age: fmtRecentAge(c.at),
+        })),
+      )
+    } catch {
+      /* keep previous */
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadRecent()
+  }, [loadRecent, user?.id])
 
   useEffect(() => {
     let alive = true
@@ -156,6 +236,8 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
     window.dispatchEvent(new CustomEvent('open-command-palette'))
   }
 
+  const activeRecentId = recent.find((r) => pathname === r.href || pathname.startsWith(`${r.href.split('?')[0]}/`))?.id
+
   return (
     <aside
       className={`fas-sidebar${collapsed ? ' is-collapsed' : ''}`}
@@ -176,17 +258,15 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
               setWsOpen((v) => !v)
             }}
           >
-            {collapsed ? (
-              <span className="fas-ws-mark" aria-hidden="true">WS</span>
-            ) : (
+            <span className="fas-ws-mark" aria-hidden="true">
+              {workspaceInitial(workspaceLabel)}
+            </span>
+            {!collapsed ? (
               <span className="fas-ws-copy">
-                <span className="fas-ws-text">
-                  <span className="fas-ws-label">Workspace</span>
-                  <span className="fas-ws-value">{workspaceLabel}</span>
-                </span>
+                <span className="fas-ws-value">{workspaceLabel}</span>
                 <CaretDown size={6} weight="bold" className="fas-ws-caret" aria-hidden />
               </span>
-            )}
+            ) : null}
           </button>
 
           <div className="fas-sidebar-utils">
@@ -320,6 +400,51 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
           })}
         </div>
       </nav>
+
+      {!collapsed ? (
+        <div className="fas-recent">
+          <button
+            type="button"
+            className="fas-recent-head"
+            aria-expanded={recentExpanded}
+            onClick={() => {
+              setRecentExpanded((v) => {
+                const next = !v
+                writeExpanded(RECENT_EXPAND_KEY, next)
+                return next
+              })
+            }}
+          >
+            <span>Zuletzt ausgeführt</span>
+            <CaretDown
+              size={10}
+              weight="bold"
+              className={`fas-recent-caret${recentExpanded ? ' is-open' : ''}`}
+              aria-hidden
+            />
+          </button>
+          <div className={`fas-recent-body${recentExpanded ? ' is-open' : ''}`}>
+            <div className="fas-recent-list" role="list">
+              {recent.length === 0 ? (
+                <p className="fas-recent-empty">Tagro-Chats und Entscheidungen erscheinen hier.</p>
+              ) : (
+                recent.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    role="listitem"
+                    className={`fas-recent-item${activeRecentId === item.id ? ' is-active' : ''}`}
+                    title={item.label}
+                  >
+                    <span className="fas-recent-text">{item.label}</span>
+                    {item.age ? <span className="fas-recent-age">{item.age}</span> : null}
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="fas-sidebar-footer">
         <Link
