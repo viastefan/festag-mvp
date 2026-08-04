@@ -331,19 +331,18 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
   },
   {
     id: 'overview-tagro-core-interface',
-    question: 'Warum ist Overview ein Decision Canvas mit einer Linie — nicht Dashboard oder Netzwerk?',
+    question: 'Warum ist Overview ein Decision Canvas mit organischer Tintenlinie und Apple Sheet?',
     answer:
-      'Die Mitte zeigt immer genau das, worüber gerade gesprochen wird — nie mehr. Calm: Greeting + Status. Klick öffnet die Frage in der Mitte mit Optionen. Genau eine Hauptlinie wächst (Gedanke → Verbindung). Rechts erscheint eine kleine Empfehlungskarte (Tagro empfiehlt / Warum? / Übernehmen / Selbst entscheiden). Warum? öffnet ein Popup direkt an der Linie. Erledigte Entscheidung: Linie zieht sich zurück, Mitte wird ruhig, nächste Sache erscheint. Nie mehr als eine Hauptlinie. Nie Tagro als Mittelpunkt. Nie KPI-Karten. Flow: Gedanke → Verbindung → Erklärung → Aktion → Fertig.',
+      'Show me only what deserves my attention. Calm: Greeting + Status + Waiting-Pill. Klick → eine organische Ink-Path wächst (Progress = Bewegung, kein Spinner). Dann erscheint die eine Frage mit Optionen. Rechts: Apple Floating Sheet (weiß, 20px radius, keine blauen Buttons) mit Empfehlung / Begründung / Übernehmen / Alternativen / Erklären. Erklären öffnet Popup an der Path. Mobile: Path oben ~40%, Entscheidung Mitte, Sheet als Bottom Sheet — nicht skaliertes Desktop. Nie Dashboard, nie Chat, nie mehr als eine Hauptlinie. Primary #5B647D nur für Fokus.',
     decision:
-      'Overview = one focus · one ink line · one recommend card · Warum on the line · no orb/network/dashboard · paper Read Mode · v4.0',
+      'Overview v4.1 · calm waiting pill · organic ink path · focus question · Apple sheet (no blue CTAs) · explain on path · mobile bottom sheet · one line max',
     date: '2026-08-04',
-    version: '4.0',
+    version: '4.1',
     status: 'locked',
     related: [
       'components/app-shell/WorkspaceOverviewLive.tsx',
       'docs/festag-tagro-invisible-intelligence.md',
       'docs/festag-experience-constitution.md',
-      'docs/festag-create-project-flow.md',
     ],
   },
 ]

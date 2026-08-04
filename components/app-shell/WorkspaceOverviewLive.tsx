@@ -1,15 +1,15 @@
 'use client'
 
 /**
- * Decision Canvas — Overview identity (v4).
+ * Decision Canvas — Festag Overview (v4.1)
  *
- * Law: The center shows exactly what is being talked about. Never more.
- * Never more than one main ink line at a time.
- * Flow: Thought → Connection → Explanation → Action → Done.
+ * Show me only what deserves my attention.
+ * One focus · one organic ink path · one recommendation sheet.
+ * Not a dashboard. Not a chatbot. Not PM software.
  */
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Microphone } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import { openNewProject } from '@/lib/new-project-open'
@@ -82,20 +82,24 @@ type Props = {
   data: OverviewPayload
 }
 
-/** calm = empty thought · focus = center question · recommend = line + card */
-type Phase = 'calm' | 'focus' | 'line' | 'recommend' | 'done'
+/** calm → path grows → focus revealed → sheet → retract */
+type Phase = 'calm' | 'path' | 'focus' | 'sheet' | 'retract'
 
-type Option = { id: string; label: string }
+type Option = { id: string; label: string; hint?: string }
+
+type ExplainStep = { n: number; label: string }
 
 type FocusTopic = {
   kind: 'decision' | 'project'
   id: string
+  eyebrow: string
   question: string
   options: Option[]
   recommendId: string
   recommendLabel: string
   reasons: string[]
-  whyCompare: { title: string; points: string[] }
+  explainTitle: string
+  explainSteps: ExplainStep[]
   href?: string
 }
 
@@ -104,26 +108,25 @@ function buildTopic(data: OverviewPayload): FocusTopic | null {
     return {
       kind: 'project',
       id: 'first-project',
+      eyebrow: 'Nächster Schritt',
       question: 'Bereit für dein erstes Projekt?',
       options: [
-        { id: 'start', label: 'Jetzt starten' },
-        { id: 'later', label: 'Später' },
+        { id: 'start', label: 'Jetzt starten', hint: 'Tagro strukturiert den Rest.' },
+        { id: 'later', label: 'Später', hint: 'Workspace bleibt ruhig.' },
       ],
       recommendId: 'start',
       recommendLabel: 'Jetzt starten',
       reasons: [
-        'Tagro strukturiert Name, Aufgaben und nächste Schritte.',
-        'Du bleibst in einem Workspace — keine zweite App.',
-        'Einladung und Freigaben kommen danach von selbst.',
+        'Tagro strukturiert Name und nächste Schritte.',
+        'Ein Workspace — keine zweite App.',
+        'Einladungen und Freigaben folgen von selbst.',
       ],
-      whyCompare: {
-        title: 'Warum jetzt',
-        points: [
-          'Ohne Projekt bleibt der Workspace leer.',
-          'Tagro braucht einen ersten Kontext, um zu lernen.',
-          'Dauert nur einen Moment.',
-        ],
-      },
+      explainTitle: 'So geht es weiter',
+      explainSteps: [
+        { n: 1, label: 'Projekt benennen' },
+        { n: 2, label: 'Tagro strukturiert Aufgaben' },
+        { n: 3, label: 'Team einladen' },
+      ],
     }
   }
 
@@ -137,26 +140,25 @@ function buildTopic(data: OverviewPayload): FocusTopic | null {
     return {
       kind: 'decision',
       id: d.id,
-      question: 'Welches Design soll verwendet werden?',
+      eyebrow: 'Entscheidung',
+      question: 'Welches Design soll die primäre Richtung werden?',
       options: [
-        { id: 'minimal', label: 'Modern Minimal' },
-        { id: 'corporate', label: 'Elegant Corporate' },
+        { id: 'minimal', label: 'Modern Minimal', hint: 'Klar, zeitlos, hohe Conversion.' },
+        { id: 'corporate', label: 'Elegant Corporate', hint: 'Seriös, vertraut, etabliert.' },
       ],
       recommendId: 'minimal',
       recommendLabel: 'Modern Minimal',
       reasons: [
-        'Konsistenter Markenauftritt',
+        'Besser an deine Marke angepasst',
         'Schnellere Umsetzung',
-        'Höhere Conversion',
+        'Höhere langfristige Konsistenz',
       ],
-      whyCompare: {
-        title: 'Vergleich',
-        points: [
-          'Modern Minimal: +35 % schnellere Entwicklung',
-          '2 Komponenten weniger',
-          'Passt zur Marke',
-        ],
-      },
+      explainTitle: 'Umsetzung',
+      explainSteps: [
+        { n: 1, label: 'Richtung festlegen' },
+        { n: 2, label: 'Komponenten angleichen' },
+        { n: 3, label: 'Freigabe an Client' },
+      ],
       href: `/decisions/${d.id}`,
     }
   }
@@ -165,10 +167,11 @@ function buildTopic(data: OverviewPayload): FocusTopic | null {
     return {
       kind: 'decision',
       id: d.id,
+      eyebrow: 'Entscheidung',
       question: 'Neue Homepage veröffentlichen?',
       options: [
-        { id: 'approve', label: 'Freigeben' },
-        { id: 'changes', label: 'Änderungen anfordern' },
+        { id: 'approve', label: 'Freigeben', hint: 'Live gehen.' },
+        { id: 'changes', label: 'Änderungen anfordern', hint: 'Feedback zurück an das Team.' },
       ],
       recommendId: 'approve',
       recommendLabel: 'Freigeben',
@@ -177,14 +180,12 @@ function buildTopic(data: OverviewPayload): FocusTopic | null {
         'Keine kritischen Issues',
         'Bereit für Deployment',
       ],
-      whyCompare: {
-        title: 'Status',
-        points: [
-          'Qualitätsprüfung abgeschlossen',
-          'Performance validiert',
-          'SEO & Inhalte geprüft',
-        ],
-      },
+      explainTitle: 'Veröffentlichung',
+      explainSteps: [
+        { n: 1, label: 'Qualitätsprüfung' },
+        { n: 2, label: 'Performance validieren' },
+        { n: 3, label: 'Deployment starten' },
+      ],
       href: `/decisions/${d.id}`,
     }
   }
@@ -192,10 +193,11 @@ function buildTopic(data: OverviewPayload): FocusTopic | null {
   return {
     kind: 'decision',
     id: d.id,
+    eyebrow: 'Entscheidung',
     question: d.title.endsWith('?') ? d.title : `${d.title}?`,
     options: [
-      { id: 'approve', label: 'Übernehmen' },
-      { id: 'changes', label: 'Selbst entscheiden' },
+      { id: 'approve', label: 'Übernehmen', hint: 'Tagro führt den nächsten Schritt aus.' },
+      { id: 'changes', label: 'Anpassen', hint: 'Du behältst die Kontrolle.' },
     ],
     recommendId: 'approve',
     recommendLabel: 'Übernehmen',
@@ -204,159 +206,178 @@ function buildTopic(data: OverviewPayload): FocusTopic | null {
       'Keine Blocker erkannt',
       'Nächster Schritt ist klar',
     ],
-    whyCompare: {
-      title: 'Kontext',
-      points: [
-        d.projectTitle ? `Projekt: ${d.projectTitle}` : 'Workspace-Entscheidung',
-        'Tagro hat den Verlauf geprüft',
-        'Du bestätigst — Festag führt aus',
-      ],
-    },
+    explainTitle: d.projectTitle || 'Kontext',
+    explainSteps: [
+      { n: 1, label: 'Kontext prüfen' },
+      { n: 2, label: 'Empfehlung bestätigen' },
+      { n: 3, label: 'Ausführung' },
+    ],
     href: `/decisions/${d.id}`,
   }
 }
 
+/** Organic ink path — one curve, never a graph */
+const INK_PATH =
+  'M 40 48 C 120 40, 200 72, 280 110 S 420 168, 520 188'
+
 export default function WorkspaceOverviewLive({ greeting, firstName, data }: Props) {
+  const router = useRouter()
   const topic = useMemo(() => buildTopic(data), [data])
   const [phase, setPhase] = useState<Phase>('calm')
   const [selected, setSelected] = useState<string | null>(null)
-  const [whyOpen, setWhyOpen] = useState(false)
+  const [explainOpen, setExplainOpen] = useState(false)
   const [listening, setListening] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
-  /* Reset when the underlying topic changes */
   useEffect(() => {
     setPhase('calm')
     setSelected(null)
-    setWhyOpen(false)
+    setExplainOpen(false)
+    setSheetOpen(false)
   }, [topic?.id])
 
   const lead = `${greeting}, ${firstName}.`
 
-  const calmBody = useMemo(() => {
-    if (!topic) {
-      if (data.summary.calmLine) return [data.summary.calmLine]
-      return [`Alles in ${data.workspace.name} läuft ruhig.`]
+  const calmLine = useMemo(() => {
+    if (topic?.kind === 'project') {
+      return `In ${data.workspace.name} läuft noch alles ruhig.`
     }
-    if (topic.kind === 'project') {
-      return [
-        `In ${data.workspace.name} läuft noch alles ruhig.`,
-        'Das erste Projekt wartet.',
-      ]
-    }
-    return [
-      'Alles läuft ruhig.',
-      data.summary.pendingDecisions === 1
-        ? 'Eine Entscheidung wartet.'
-        : `${data.summary.pendingDecisions} Entscheidungen warten.`,
-    ]
+    if (data.summary.calmLine) return data.summary.calmLine
+    return 'Alles läuft ruhig.'
   }, [topic, data])
 
-  function openFocus() {
+  const waitingLabel = useMemo(() => {
+    if (!topic) return null
+    if (topic.kind === 'project') return 'Erstes Projekt wartet'
+    if (data.summary.pendingDecisions === 1) return 'Eine Entscheidung wartet'
+    return `${data.summary.pendingDecisions} Entscheidungen warten`
+  }, [topic, data.summary.pendingDecisions])
+
+  function activate() {
     if (!topic || phase !== 'calm') return
-    setPhase('focus')
     setSelected(topic.recommendId)
-    /* Thought → connection → card */
-    window.setTimeout(() => setPhase('line'), 280)
-    window.setTimeout(() => setPhase('recommend'), 720)
+    setPhase('path')
+    window.setTimeout(() => setPhase('focus'), 900)
+    window.setTimeout(() => {
+      setPhase('sheet')
+      setSheetOpen(true)
+    }, 1300)
   }
 
-  function closeFocus() {
-    setWhyOpen(false)
-    setPhase('done')
+  function retract(then?: () => void) {
+    setExplainOpen(false)
+    setSheetOpen(false)
+    setPhase('retract')
     window.setTimeout(() => {
       setPhase('calm')
       setSelected(null)
-    }, 420)
+      then?.()
+    }, 550)
   }
 
-  function takeRecommendation() {
+  function acceptRecommendation() {
     if (!topic) return
     setSelected(topic.recommendId)
     if (topic.kind === 'project') {
-      openNewProject()
-      closeFocus()
+      retract(() => openNewProject())
       return
     }
     if (topic.href) {
-      window.location.assign(topic.href)
+      retract(() => router.push(topic.href!))
       return
     }
-    closeFocus()
+    retract()
   }
 
-  function decideYourself() {
-    setWhyOpen(false)
-    /* Human stays with the question — no second card push */
+  function reviewAlternatives() {
+    setExplainOpen(false)
+    /* Stay on focus — human picks; sheet stays available on desktop */
     setPhase('focus')
+    setSheetOpen(true)
   }
 
-  const showFocus = phase === 'focus' || phase === 'line' || phase === 'recommend'
-  const showLine = phase === 'line' || phase === 'recommend'
-  const showCard = phase === 'recommend'
-  const isCalm = phase === 'calm' || phase === 'done'
+  const showPath = phase === 'path' || phase === 'focus' || phase === 'sheet'
+  const showFocus = phase === 'focus' || phase === 'sheet'
+  const showSheet = (phase === 'sheet' || (phase === 'focus' && sheetOpen)) && Boolean(topic)
+  const isRetracting = phase === 'retract'
+  const isCalm = phase === 'calm' || isRetracting
 
   return (
     <div
-      className={`fas-dc${listening ? ' is-listening' : ''}${showCard ? ' has-card' : ''}`}
+      className={[
+        'fas-dc',
+        showSheet ? ' has-sheet' : '',
+        showPath ? ' is-active' : '',
+        isRetracting ? ' is-retracting' : '',
+        listening ? ' is-listening' : '',
+      ].join('')}
       data-phase={phase}
     >
       <div className="fas-dc-invites">
         <OverviewPendingInvites />
       </div>
 
-      {/* One main ink line — never more than one */}
-      {showLine ? (
-        <div className="fas-dc-thread" aria-hidden>
-          <span className="fas-dc-thread-origin" />
-          <span className="fas-dc-thread-line" />
-          {whyOpen ? (
-            <span className="fas-dc-thread-node">
-              <span className="fas-dc-why-pop">
-                <p className="fas-dc-why-title">{topic?.whyCompare.title}</p>
-                <ul className="fas-dc-why-list">
-                  {topic?.whyCompare.points.map((p) => (
-                    <li key={p}>{p}</li>
-                  ))}
-                </ul>
-              </span>
-            </span>
-          ) : (
-            <button
-              type="button"
-              className="fas-dc-thread-hotspot"
-              aria-label="Warum"
-              onClick={() => setWhyOpen(true)}
-            />
-          )}
-          <span className="fas-dc-thread-end" />
+      {/* Organic ink path — movement IS the progress */}
+      <svg
+        className={`fas-dc-ink${showPath ? ' is-on' : ''}${isRetracting ? ' is-out' : ''}`}
+        viewBox="0 0 560 240"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden
+      >
+        <path className="fas-dc-ink-track" d={INK_PATH} />
+        <path className="fas-dc-ink-flow" d={INK_PATH} />
+        <circle className="fas-dc-ink-start" cx="40" cy="48" r="3.5" />
+        <circle className="fas-dc-ink-focus" cx="520" cy="188" r="5" />
+      </svg>
+
+      {explainOpen && topic ? (
+        <div className="fas-dc-explain" role="dialog" aria-label={topic.explainTitle}>
+          <p className="fas-dc-explain-title">{topic.explainTitle}</p>
+          <ol className="fas-dc-explain-steps">
+            {topic.explainSteps.map((s, i) => (
+              <li key={s.n}>
+                <span className="fas-dc-explain-n">{s.n}</span>
+                <span className="fas-dc-explain-label">{s.label}</span>
+                {i < topic.explainSteps.length - 1 ? (
+                  <span className="fas-dc-explain-arrow" aria-hidden>
+                    ↓
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+          <button
+            type="button"
+            className="fas-dc-explain-close"
+            onClick={() => setExplainOpen(false)}
+          >
+            Schließen
+          </button>
         </div>
       ) : null}
 
       <div className="fas-dc-stage">
         <div className="fas-dc-center">
           {isCalm ? (
-            <button
-              type="button"
-              className="fas-dc-calm"
-              onClick={openFocus}
-              disabled={!topic}
-              aria-label={topic ? 'Entscheidung öffnen' : undefined}
-            >
-              <p className="fas-dc-title">{lead}</p>
-              {calmBody.map((line) => (
-                <p key={line} className="fas-dc-support">
-                  {line}
-                </p>
-              ))}
-              {topic ? (
-                <span className="fas-dc-hint">Tippen, um fortzufahren</span>
+            <div className="fas-dc-calm">
+              <p className="fas-dc-greet">{lead}</p>
+              <p className="fas-dc-status">{calmLine}</p>
+              {waitingLabel ? (
+                <button type="button" className="fas-dc-waiting" onClick={activate}>
+                  <span className="fas-dc-waiting-dot" aria-hidden />
+                  {waitingLabel}
+                  <span className="fas-dc-waiting-chev" aria-hidden>
+                    ›
+                  </span>
+                </button>
               ) : null}
-            </button>
+            </div>
           ) : null}
 
           {showFocus && topic ? (
             <div className="fas-dc-focus" key={topic.id}>
-              <h1 className="fas-dc-title">{topic.question}</h1>
+              <p className="fas-dc-eyebrow">{topic.eyebrow}</p>
+              <h1 className="fas-dc-question">{topic.question}</h1>
               <div className="fas-dc-options" role="radiogroup" aria-label="Optionen">
                 {topic.options.map((opt) => (
                   <label
@@ -368,10 +389,19 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
                       name="fas-dc-opt"
                       value={opt.id}
                       checked={selected === opt.id}
-                      onChange={() => setSelected(opt.id)}
+                      onChange={() => {
+                        setSelected(opt.id)
+                        setSheetOpen(true)
+                        setPhase('sheet')
+                      }}
                     />
                     <span className="fas-dc-radio" aria-hidden />
-                    <span className="fas-dc-option-label">{opt.label}</span>
+                    <span className="fas-dc-option-body">
+                      <span className="fas-dc-option-label">{opt.label}</span>
+                      {opt.hint ? (
+                        <span className="fas-dc-option-hint">{opt.hint}</span>
+                      ) : null}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -379,65 +409,68 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
           ) : null}
         </div>
 
-        {showCard && topic ? (
-          <aside className="fas-dc-card" aria-label="Tagro Empfehlung">
-            <p className="fas-dc-card-kicker">Tagro empfiehlt</p>
-            <p className="fas-dc-card-pick">{topic.recommendLabel}</p>
+        {showSheet && topic ? (
+          <aside className="fas-dc-sheet" aria-label="Tagro Empfehlung">
+            <div className="fas-dc-sheet-handle" aria-hidden />
+            <p className="fas-dc-sheet-kicker">Tagro Empfehlung</p>
+            <p className="fas-dc-sheet-pick">{topic.recommendLabel}</p>
 
-            <button
-              type="button"
-              className="fas-dc-card-why"
-              onClick={() => setWhyOpen((v) => !v)}
-              aria-expanded={whyOpen}
-            >
-              Warum?
-            </button>
-
-            <ul className="fas-dc-card-reasons">
+            <p className="fas-dc-sheet-section">Begründung</p>
+            <ul className="fas-dc-sheet-reasons">
               {topic.reasons.map((r) => (
                 <li key={r}>{r}</li>
               ))}
             </ul>
 
-            <div className="fas-dc-card-rule" aria-hidden />
-
-            <div className="fas-dc-card-actions">
+            <div className="fas-dc-sheet-actions">
               <button
                 type="button"
-                className="fas-dc-card-btn is-primary"
-                onClick={takeRecommendation}
+                className="fas-dc-sheet-btn is-accept"
+                onClick={acceptRecommendation}
               >
                 Empfehlung übernehmen
               </button>
-              {topic.kind === 'decision' && topic.href ? (
-                <Link
-                  href={topic.href}
-                  className="fas-dc-card-btn"
-                  onClick={() => setWhyOpen(false)}
-                >
-                  Selbst entscheiden
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  className="fas-dc-card-btn"
-                  onClick={() => {
-                    if (topic.kind === 'project' && selected === 'later') {
-                      closeFocus()
-                      return
-                    }
-                    decideYourself()
-                  }}
-                >
-                  Selbst entscheiden
-                </button>
-              )}
+              <button
+                type="button"
+                className="fas-dc-sheet-btn"
+                onClick={reviewAlternatives}
+              >
+                Alternativen prüfen
+              </button>
+              <button
+                type="button"
+                className="fas-dc-sheet-btn"
+                onClick={() => setExplainOpen((v) => !v)}
+              >
+                Entscheidung erklären
+              </button>
             </div>
           </aside>
         ) : null}
       </div>
 
+      {/* Mobile backdrop for bottom sheet */}
+      {showSheet ? (
+        <button
+          type="button"
+          className="fas-dc-sheet-scrim"
+          aria-label="Schließen"
+          onClick={() => {
+            setSheetOpen(false)
+            setExplainOpen(false)
+            if (phase === 'sheet') setPhase('focus')
+          }}
+        />
+      ) : null}
+
       <div className="fas-dc-dock">
+        <div className={`fas-dc-wave${listening ? ' is-on' : ''}`} aria-hidden>
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
         <button
           type="button"
           className={`fas-dc-mic${listening ? ' is-on' : ''}`}
@@ -445,9 +478,15 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
           aria-label={listening ? 'Zuhören beenden' : 'Tagro zuhören'}
           onClick={() => setListening((v) => !v)}
         >
-          <Microphone size={18} weight="fill" />
+          <Microphone size={16} weight="fill" />
         </button>
-        <span className="fas-dc-dock-label">{listening ? 'Tagro hört zu' : 'Tagro'}</span>
+        <p className="fas-dc-dock-label">
+          {listening
+            ? 'Tagro hört zu'
+            : showPath
+              ? 'Tagro analysiert den Kontext…'
+              : 'Tagro'}
+        </p>
       </div>
     </div>
   )

@@ -13,10 +13,18 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '4.1',
+    title: 'Decision Canvas — organic ink + Apple sheet + mobile bottom sheet',
+    summary:
+      'Calm waiting pill opens an organic ink path (progress = motion). Focus question + options. White Apple recommendation sheet without blue CTAs. Explain popup on the path. Mobile redesigned: path upper zone, bottom sheet — not scaled desktop.',
+    date: '2026-08-04',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
     version: '4.0',
     title: 'Decision Canvas — one focus, one line',
     summary:
-      'Overview law: center shows only the current thought. Click opens the question. One ink line grows. Compact recommend card on the right. Warum? pops on the line. Done retracts the line. Never more than one main line. No orb, no dashboard.',
+      'Overview law: center shows only the current thought. Click opens the question. One ink line grows. Compact recommend card on the right. Warum? pops on the line. Done retracts the line. Never more than one main line. No orb, no dashboard. Superseded by 4.1 sheet + mobile.',
     date: '2026-08-04',
     memoryIds: ['overview-tagro-core-interface'],
   },
