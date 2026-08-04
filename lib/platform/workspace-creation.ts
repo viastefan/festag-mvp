@@ -70,6 +70,8 @@ export const WORKSPACE_CREATION_COPY = {
   nameLabel: 'Workspace-Name',
   namePlaceholder: 'Aerobay',
   useTitle: 'Wofür wird dieser Workspace genutzt?',
+  /** Quiet plan note under the name field — never a second title. */
+  hobbyHint: 'Im Hobby-Plan ist 1 Workspace gratis.',
   creatingTitle: 'Workspace wird erstellt…',
   creatingLines: ['Projekte', 'Tagro', 'Mitglieder'] as const,
   welcomePrefix: 'Willkommen bei',
@@ -81,9 +83,22 @@ export const WORKSPACE_CREATION_COPY = {
   additionalBack: 'Zurück zur Übersicht',
 } as const
 
+/** Two visual groups on the create form — not one tall stack of four. */
+export const WORKSPACE_USE_CASE_GROUPS = [
+  {
+    id: 'client-work',
+    cases: ['clients', 'agency'] as const satisfies readonly WorkspaceUseCaseId[],
+  },
+  {
+    id: 'own-product',
+    cases: ['product', 'internal'] as const satisfies readonly WorkspaceUseCaseId[],
+  },
+] as const
+
 export const WORKSPACE_PLAN = {
   id: 'workspace',
   priceMonthlyEur: 19,
-  /** First owned workspace is always free. */
+  /** First owned workspace is always free (Hobby). */
   firstWorkspaceFree: true,
+  hobbyPlanLabel: 'Hobby',
 } as const

@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
+import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import FestagToggle, { FESTAG_TOGGLE_CSS } from '@/components/ui/FestagToggle'
 import { createClient } from '@/lib/supabase/client'
@@ -29,6 +30,7 @@ import {
 import {
   WORKSPACE_CREATION_COPY as COPY,
   WORKSPACE_USE_CASES,
+  WORKSPACE_USE_CASE_GROUPS,
   getWorkspaceUseCase,
   workspaceSubdomainPreview,
   type WorkspaceUseCaseId,
@@ -414,52 +416,64 @@ export default function WorkspaceCreateWizardModal() {
                     </span>
                   ) : null}
                   {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
-                  {availability === 'available' && displayName ? (
-                    <span className="wc-badge wc-badge--ok" title="Verfügbar">✓</span>
+                  {availability === 'checking' && displayName ? (
+                    <UsernameCheckBadge status="checking" title="Wird geprüft…" />
+                  ) : availability === 'available' && displayName ? (
+                    <UsernameCheckBadge status="available" title="Verfügbar" />
                   ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
-                    <span className="wc-badge wc-badge--bad" title={availabilityMsg || 'Vergeben'}>✕</span>
+                    <UsernameCheckBadge status="taken" title={availabilityMsg || 'Vergeben'} />
                   ) : null}
                 </div>
                 <span className={`wc-subdomain${displayName ? ' is-ready' : ''}`}>
                   {subdomain}
                 </span>
+                <p className="wc-hobby-hint">{COPY.hobbyHint}</p>
               </div>
 
-              <div className="wc-ws-list" role="listbox" aria-label={COPY.useTitle}>
-                {WORKSPACE_USE_CASES.map((card, i) => {
-                  const on = useCase === card.id
-                  return (
-                    <div
-                      key={card.id}
-                      role="option"
-                      aria-selected={on}
-                      tabIndex={0}
-                      className={`wc-ws-card${on ? ' is-on' : ''}`}
-                      style={{ ['--i' as string]: i }}
-                      onClick={() => {
-                        setError('')
-                        setUseCase(card.id)
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          setUseCase(card.id)
-                        }
-                      }}
-                    >
-                      <span className="wc-ws-card-copy">
-                        <span className="wc-ws-card-title">{card.title}</span>
-                        <span className="wc-ws-card-body">{card.description}</span>
-                      </span>
-                      <FestagToggle
-                        on={on}
-                        label={`${card.title} auswählen`}
-                        stopPropagation
-                        onChange={() => setUseCase(card.id)}
-                      />
-                    </div>
-                  )
-                })}
+              <div className="wc-ws-groups" role="listbox" aria-label={COPY.useTitle}>
+                {WORKSPACE_USE_CASE_GROUPS.map((group, gi) => (
+                  <div
+                    key={group.id}
+                    className="wc-ws-group"
+                    style={{ ['--i' as string]: gi }}
+                  >
+                    {group.cases.map((caseId) => {
+                      const card = WORKSPACE_USE_CASES.find((c) => c.id === caseId)
+                      if (!card) return null
+                      const on = useCase === card.id
+                      return (
+                        <div
+                          key={card.id}
+                          role="option"
+                          aria-selected={on}
+                          tabIndex={0}
+                          className={`wc-ws-row${on ? ' is-on' : ''}`}
+                          onClick={() => {
+                            setError('')
+                            setUseCase(card.id)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              setUseCase(card.id)
+                            }
+                          }}
+                        >
+                          <span className="wc-ws-card-copy">
+                            <span className="wc-ws-card-title">{card.title}</span>
+                            <span className="wc-ws-card-body">{card.description}</span>
+                          </span>
+                          <FestagToggle
+                            on={on}
+                            label={`${card.title} auswählen`}
+                            stopPropagation
+                            onChange={() => setUseCase(card.id)}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
               </div>
 
               {error ? <p className="wc-error">{error}</p> : null}
@@ -780,8 +794,22 @@ const WIZARD_CSS = `
   font-size: 13px;
   color: var(--mob-muted);
 }
-.wc-badge--ok { color: var(--mob-ink); }
-.wc-badge--bad { color: #c45c5c; }
+.wc-badge--ok { color: #2E9B52; }
+.wc-badge--bad { color: #A65B56; }
+
+/* Soft green check — match auth UsernameCheckBadge inside the wizard */
+.wc-os .uc-badge--available {
+  background: rgba(46, 155, 82, 0.10);
+  color: #2E9B52;
+}
+.wc-os[data-theme="dark"] .uc-badge--available {
+  background: rgba(46, 155, 82, 0.14);
+  color: #3dba66;
+}
+.wc-os[data-theme="dark"] .uc-badge--taken {
+  color: #D86060;
+  box-shadow: inset 0 0 0 1px rgba(216, 96, 96, 0.32);
+}
 
 .wc-subdomain {
   display: block;
@@ -793,17 +821,37 @@ const WIZARD_CSS = `
 }
 .wc-subdomain.is-ready { opacity: 1; }
 
-/* Use-case cards — onboarding workspace cards, taller for support line */
-.wc-ws-list {
+.wc-hobby-hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: var(--auth-tracking);
+  color: var(--mob-muted);
+}
+
+/* Two use-case cards — each holds a pair of options */
+.wc-ws-groups {
   margin-top: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   padding-inline: 3px;
   box-sizing: border-box;
 }
 
-.wc-ws-card {
+.wc-ws-group {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.15) !important;
+  background: #FFFFFF;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: wcCardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
+  animation-delay: calc(0.1s + var(--i, 0) * 70ms);
+}
+
+.wc-ws-row {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -811,51 +859,44 @@ const WIZARD_CSS = `
   text-align: left;
   min-height: 64px;
   padding: 14px 14px;
-  border-radius: 10px;
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.15) !important;
-  background: #FFFFFF;
-  box-shadow: none;
+  border: none !important;
+  background: transparent;
   color: var(--mob-ink);
   cursor: pointer;
   box-sizing: border-box;
-  transition:
-    border-color .18s ease,
-    border-width .18s ease,
-    background .2s ease,
-    opacity .2s ease;
-  animation: wcCardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
-  animation-delay: calc(0.1s + var(--i, 0) * 48ms);
-  opacity: 0.92;
+  transition: background .18s ease;
 }
 
-.wc-ws-card:hover:not(.is-on) {
-  border-color: rgba(30, 30, 32, 0.20) !important;
-  opacity: 1;
+.wc-ws-row + .wc-ws-row {
+  border-top: 1px solid rgba(30, 30, 32, 0.08) !important;
 }
 
-.wc-ws-card.is-on {
-  border-width: var(--mob-stroke-focus) !important;
-  border-color: var(--mob-primary) !important;
-  background: var(--mob-card-bg-on);
-  opacity: 1;
+.wc-ws-row:hover:not(.is-on) {
+  background: rgba(30, 30, 32, 0.025);
 }
 
-.wc-ws-card:focus,
-.wc-ws-card:focus-visible {
+.wc-ws-row.is-on {
+  background: rgba(91, 100, 125, 0.06);
+}
+
+.wc-ws-row:focus,
+.wc-ws-row:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
 
-.wc-os[data-theme="dark"] .wc-ws-card {
+.wc-os[data-theme="dark"] .wc-ws-group {
   background: rgba(186, 194, 210, 0.06);
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
-.wc-os[data-theme="dark"] .wc-ws-card:hover:not(.is-on) {
-  border-color: rgba(255, 255, 255, 0.18) !important;
+.wc-os[data-theme="dark"] .wc-ws-row + .wc-ws-row {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
 }
-.wc-os[data-theme="dark"] .wc-ws-card.is-on {
-  border-color: var(--mob-primary) !important;
-  background: var(--mob-card-bg-on);
+.wc-os[data-theme="dark"] .wc-ws-row:hover:not(.is-on) {
+  background: rgba(255, 255, 255, 0.04);
+}
+.wc-os[data-theme="dark"] .wc-ws-row.is-on {
+  background: rgba(91, 100, 125, 0.18);
 }
 
 .wc-ws-card-copy {
@@ -882,7 +923,7 @@ const WIZARD_CSS = `
 
 .wc-os .ft-toggle,
 .wc-os button.ft-toggle,
-.wc-os .wc-ws-card .ft-toggle {
+.wc-os .wc-ws-row .ft-toggle {
   border-radius: 9999px !important;
   overflow: hidden !important;
 }
