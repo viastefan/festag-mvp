@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * Tagro Living Network — Overview identity (mock-faithful).
- * Circular Tagro core · ring of icon nodes · faint idle spokes ·
- * one blue active path + glow when context needs attention.
+ * @deprecated Overview identity is Decision Canvas (v3.9).
+ * Kept for reference / possible future constellation views.
+ * Do not mount on /overview.
  */
 
 import { useMemo } from 'react'
@@ -43,13 +43,11 @@ type Props = {
 
 type NodeDef = {
   kind: NetworkNodeKind
-  /** degrees — 0 = east, CCW */
   angle: number
   radius: number
   Icon: typeof FolderSimple
 }
 
-/** Polar ring — matches Living Network mock composition */
 const NODES: NodeDef[] = [
   { kind: 'document', angle: -145, radius: 34, Icon: FileText },
   { kind: 'github', angle: -105, radius: 36, Icon: GithubLogo },
@@ -72,6 +70,7 @@ function polar(angleDeg: number, radius: number) {
   }
 }
 
+/** @deprecated */
 export default function TagroLivingNetwork({
   active,
   className = '',
@@ -79,14 +78,9 @@ export default function TagroLivingNetwork({
   onCoreActivate,
 }: Props) {
   const placed = useMemo(
-    () =>
-      NODES.map((n) => ({
-        ...n,
-        ...polar(n.angle, n.radius),
-      })),
+    () => NODES.map((n) => ({ ...n, ...polar(n.angle, n.radius) })),
     [],
   )
-
   const activeNode = useMemo(
     () => (active ? placed.find((n) => n.kind === active.kind) : null),
     [active, placed],
@@ -95,57 +89,8 @@ export default function TagroLivingNetwork({
   return (
     <div
       className={`tln${active ? ' is-active' : ' is-idle'} ${className}`.trim()}
-      data-active={active?.kind || 'none'}
-      aria-label={
-        active
-          ? `Tagro verbunden mit ${active.label}`
-          : 'Tagro Living Network — ruhig'
-      }
+      aria-label="Deprecated Living Network"
     >
-      <div className="tln-grid" aria-hidden />
-
-      <svg className="tln-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden>
-        <defs>
-          <filter id="tln-glow" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="1.4" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Idle spokes to every node */}
-        <g className="tln-spokes">
-          {placed.map((node) => {
-            const hot = active?.kind === node.kind
-            return (
-              <line
-                key={`spoke-${node.kind}`}
-                className={`tln-spoke${hot ? ' is-hot' : ''}`}
-                x1={CX}
-                y1={CY}
-                x2={node.x}
-                y2={node.y}
-              />
-            )
-          })}
-        </g>
-
-        {/* Active blue path drawn on top */}
-        {activeNode ? (
-          <line
-            className="tln-link"
-            x1={CX}
-            y1={CY}
-            x2={activeNode.x}
-            y2={activeNode.y}
-            filter="url(#tln-glow)"
-          />
-        ) : null}
-      </svg>
-
-      {/* Perfect circle core — div, not button geometry */}
       <button
         type="button"
         className="tln-core"
@@ -153,18 +98,8 @@ export default function TagroLivingNetwork({
         aria-label="Tagro"
         onClick={() => onCoreActivate?.()}
       >
-        <span className="tln-core-disc" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="tln-core-mark"
-            src="/brand/festag-mark-fluid.png?v=20260731"
-            alt=""
-            width={30}
-            height={30}
-          />
-        </span>
+        <span className="tln-core-disc" aria-hidden />
       </button>
-
       {placed.map((node) => {
         const isHot = active?.kind === node.kind
         const Icon = node.Icon
@@ -172,30 +107,23 @@ export default function TagroLivingNetwork({
           <button
             key={node.kind}
             type="button"
-            className={`tln-node${isHot ? ' is-hot' : ''}${active && !isHot ? ' is-dim' : ''}`}
+            className={`tln-node${isHot ? ' is-hot' : ''}`}
             style={{ left: `${node.x}%`, top: `${node.y}%` }}
             aria-label={node.kind}
-            aria-pressed={isHot}
             onClick={() => onNodeActivate?.(node.kind)}
           >
-            {isHot ? <span className="tln-node-glow" aria-hidden /> : null}
             <span className="tln-node-orb">
-              <Icon size={isHot ? 15 : 13} weight={isHot ? 'fill' : 'regular'} />
+              <Icon size={14} weight="regular" />
             </span>
           </button>
         )
       })}
-
       {active && activeNode ? (
         <div
           className="tln-label"
-          style={{
-            left: `${Math.min(activeNode.x + 6, 84)}%`,
-            top: `${activeNode.y}%`,
-          }}
+          style={{ left: `${activeNode.x + 6}%`, top: `${activeNode.y}%` }}
         >
           <p className="tln-label-title">{active.label}</p>
-          {active.sublabel ? <p className="tln-label-sub">{active.sublabel}</p> : null}
         </div>
       ) : null}
     </div>

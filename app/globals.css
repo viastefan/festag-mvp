@@ -1484,17 +1484,19 @@ input[type="reset"],
   .fas-sidebar,
   [class^="sb-"],
   .festag-popup-surface
-) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item):not(.ft-toggle):not(.tln-core):not(.tln-node):not(.fas-ln-mic) {
+) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item):not(.ft-toggle):not(.tln-core):not(.tln-node):not(.fas-ln-mic):not(.fas-dc-mic):not(.fas-dc-choice) {
   border-radius: 6px !important;
 }
 
-/* Living Network — perfect circles (beat any leftover control radius). */
+/* Living Network / Decision Canvas — perfect circles (beat any leftover control radius). */
 button.tln-core,
 .tln-core,
 button.tln-node .tln-node-orb,
 .tln-node-orb,
 button.fas-ln-mic,
-.fas-ln-mic {
+.fas-ln-mic,
+button.fas-dc-mic,
+.fas-dc-mic {
   border-radius: 50% !important;
 }
 

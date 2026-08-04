@@ -13,10 +13,18 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '3.9',
+    title: 'Overview as Decision Canvas',
+    summary:
+      'Replaced Living Network orb with Decision Canvas on paper Read Mode. Decision is the hero; 1px ink line for attention; floating panels without borders; primary blue only for meaning; transparent 72px sidebar.',
+    date: '2026-08-04',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
     version: '3.8',
     title: 'Overview as Tagro Operating Interface',
     summary:
-      'Overview redesigned as Living Network: idle silence with disconnected nodes, blue connection grows on context, one floating decision panel, status + voice footer. No continuous animation. No KPI widgets.',
+      'Overview redesigned as Living Network: idle silence with disconnected nodes, blue connection grows on context, one floating decision panel, status + voice footer. No continuous animation. No KPI widgets. Superseded by 3.9 Decision Canvas.',
     date: '2026-08-04',
     memoryIds: ['overview-tagro-core-interface'],
   },

@@ -1,25 +1,15 @@
 'use client'
 
 /**
- * Festag Overview — Living Network operating interface.
- * Not a dashboard. Not a chatbot. Tagro IS the interface.
+ * Decision Canvas — Overview identity.
+ * The decision is the hero. Not Tagro. Not a network. Not a dashboard.
+ * Silence is default. Every motion means attention is deserved.
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import {
-  Check,
-  Microphone,
-  Sparkle,
-  UploadSimple,
-  X,
-} from '@phosphor-icons/react'
+import { Microphone, X } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
-import TagroLivingNetwork, {
-  deriveNetworkActive,
-  type NetworkActive,
-  type NetworkNodeKind,
-} from '@/components/app-shell/TagroLivingNetwork'
 import { openNewProject } from '@/lib/new-project-open'
 
 export type OverviewPayload = {
@@ -90,235 +80,252 @@ type Props = {
   data: OverviewPayload
 }
 
-type PanelKind = 'decision' | 'project' | null
+/** Canvas breath: calm → ink → decision hero → dissolve */
+type CanvasPhase = 'calm' | 'ink' | 'decision' | 'project' | 'dissolve'
 
-function buildStatusLines(
+type Choice = { id: string; label: string }
+
+function buildCalmCopy(
   greeting: string,
   firstName: string,
   data: OverviewPayload,
-): { lead: string; body: string } {
+): { lead: string; lines: string[] } {
   const lead = `${greeting}, ${firstName}.`
   if (data.summary.activeProjects === 0) {
     return {
       lead,
-      body: `In ${data.workspace.name} wartet noch das erste Projekt.`,
+      lines: [
+        `In ${data.workspace.name} läuft noch alles ruhig.`,
+        'Das erste Projekt wartet auf dich.',
+      ],
     }
   }
-  const focus = data.decisions[0]
-  if (focus) {
-    const project = focus.projectTitle || data.briefing?.projectTitle || 'Dein Projekt'
+  if (data.summary.pendingDecisions > 0) {
     return {
       lead,
-      body: `${project} ist bereit für deine Freigabe. Eine Entscheidung steht aus.`,
+      lines: [
+        'Everything is running smoothly.',
+        data.summary.pendingDecisions === 1
+          ? 'One approval is waiting.'
+          : `${data.summary.pendingDecisions} approvals are waiting.`,
+      ],
     }
   }
   if (data.summary.calmLine) {
-    return { lead, body: data.summary.calmLine }
+    return { lead, lines: [data.summary.calmLine] }
   }
   return {
     lead,
-    body: `Alles in ${data.workspace.name} läuft ruhig.`,
+    lines: [`Alles in ${data.workspace.name} läuft ruhig.`],
   }
 }
 
-const DECISION_STEPS = [
-  { id: 'q', label: 'Qualitätsprüfung abschließen', done: true },
-  { id: 'p', label: 'Performance validieren', done: true },
-  { id: 's', label: 'SEO & Inhalte prüfen', done: true },
-  { id: 'd', label: 'Veröffentlichung starten', done: false },
-] as const
+function decisionPrompt(title: string): string {
+  if (/design/i.test(title)) return 'Choose the primary design direction.'
+  if (/homepage|startseite/i.test(title)) return 'Freigeben oder Änderungen anfordern.'
+  return 'Wähle die Richtung, die Tagro als Nächstes ausführen soll.'
+}
+
+function decisionChoices(title: string): Choice[] {
+  if (/design/i.test(title)) {
+    return [
+      { id: 'a', label: 'Modern Minimal' },
+      { id: 'b', label: 'Elegant Corporate' },
+    ]
+  }
+  return [
+    { id: 'approve', label: 'Freigeben' },
+    { id: 'changes', label: 'Änderungen anfordern' },
+  ]
+}
 
 export default function WorkspaceOverviewLive({ greeting, firstName, data }: Props) {
-  const { workspace, summary, projects, decisions } = data
-  const riskCount = projects.filter((p) => p.health === 'risk' || p.health === 'blocked').length
+  const { workspace, summary, decisions } = data
   const focusDecision = decisions[0] || null
+  const needsFirstProject = summary.activeProjects === 0
+  const hasDecision = Boolean(focusDecision) && summary.pendingDecisions > 0
 
-  const derivedActive = useMemo(
-    () =>
-      deriveNetworkActive({
-        pendingDecisions: summary.pendingDecisions,
-        decisionTitle: focusDecision?.title || null,
-        activeProjects: summary.activeProjects,
-        riskCount,
-      }),
-    [summary.pendingDecisions, summary.activeProjects, focusDecision?.title, riskCount],
-  )
-
-  const [active, setActive] = useState<NetworkActive>(derivedActive)
-  const [panelDismissed, setPanelDismissed] = useState(false)
-  const [listening, setListening] = useState(() => Boolean(derivedActive))
-  const [statusKey, setStatusKey] = useState(0)
-
-  const panelKind: PanelKind =
-    panelDismissed
-      ? null
-      : active?.kind === 'decision' && focusDecision
-        ? 'decision'
-        : active?.kind === 'project' && summary.activeProjects === 0
-          ? 'project'
-          : null
-
-  useEffect(() => {
-    if (!panelDismissed) setActive(derivedActive)
-  }, [derivedActive, panelDismissed])
-
-  useEffect(() => {
-    setStatusKey((k) => k + 1)
-  }, [summary.pendingDecisions, summary.activeProjects, focusDecision?.id])
-
-  useEffect(() => {
-    if (panelKind) setListening(true)
-  }, [panelKind])
-
-  const status = useMemo(
-    () => buildStatusLines(greeting, firstName, data),
+  const calm = useMemo(
+    () => buildCalmCopy(greeting, firstName, data),
     [greeting, firstName, data],
   )
 
-  const voiceOn = listening
+  const [phase, setPhase] = useState<CanvasPhase>(() =>
+    needsFirstProject ? 'project' : hasDecision ? 'ink' : 'calm',
+  )
+  const [panelOpen, setPanelOpen] = useState(() => needsFirstProject || hasDecision)
+  const [selected, setSelected] = useState<string | null>(null)
+  const [listening, setListening] = useState(false)
+  const [statusKey, setStatusKey] = useState(0)
+
+  useEffect(() => {
+    setStatusKey((k) => k + 1)
+    if (needsFirstProject) {
+      setPhase('project')
+      setPanelOpen(true)
+      return
+    }
+    if (hasDecision) {
+      setPhase('ink')
+      setPanelOpen(true)
+      const t = window.setTimeout(() => setPhase('decision'), 700)
+      return () => window.clearTimeout(t)
+    }
+    setPhase('calm')
+    setPanelOpen(false)
+    setSelected(null)
+  }, [needsFirstProject, hasDecision, focusDecision?.id, summary.activeProjects])
+
+  const choices = focusDecision ? decisionChoices(focusDecision.title) : []
+  const prompt = focusDecision ? decisionPrompt(focusDecision.title) : ''
 
   function dismissPanel() {
-    setPanelDismissed(true)
-    setActive(null)
+    setPhase('dissolve')
+    setPanelOpen(false)
+    setSelected(null)
+    window.setTimeout(() => setPhase('calm'), 480)
   }
 
-  function onNodeActivate(kind: NetworkNodeKind) {
-    if (kind === 'decision' && focusDecision) {
-      setPanelDismissed(false)
-      setActive({
-        kind: 'decision',
-        label: focusDecision.title,
-        sublabel: 'Entscheidung erforderlich',
-      })
-      return
-    }
-    if (kind === 'project' && summary.activeProjects === 0) {
-      setPanelDismissed(false)
-      setActive({
-        kind: 'project',
-        label: 'Erstes Projekt',
-        sublabel: 'Bereit zum Start',
-      })
-      return
-    }
-    /* Idle nodes: soft focus only, no panel clutter */
-    setActive({
-      kind,
-      label: kind.charAt(0).toUpperCase() + kind.slice(1),
-      sublabel: 'Kein offener Kontext',
-    })
-    window.setTimeout(() => {
-      setActive(panelDismissed ? null : derivedActive)
-    }, 1600)
+  function onSelectChoice(id: string) {
+    setSelected(id)
   }
+
+  const showHero = phase === 'decision' && focusDecision
+  const showProjectHero = phase === 'project' && needsFirstProject
+  const showInk = phase === 'ink'
+  const showDots = phase === 'calm' || phase === 'ink' || phase === 'dissolve'
 
   return (
-    <div className={`fas-ln${panelKind ? ' has-panel' : ''}${voiceOn ? ' is-listening' : ''}`}>
+    <div
+      className={`fas-dc${panelOpen ? ' has-panel' : ''}${listening ? ' is-listening' : ''}`}
+      data-phase={phase}
+    >
       <OverviewPendingInvites />
 
-      <div className="fas-ln-stage">
-        <TagroLivingNetwork
-          active={active}
-          className="fas-ln-network"
-          onNodeActivate={onNodeActivate}
-          onCoreActivate={() => setListening((v) => !v)}
-        />
+      <div className="fas-dc-stage">
+        <div className="fas-dc-canvas" aria-live="polite">
+          {/* Breath marks — almost invisible when calm */}
+          {showDots ? (
+            <div className={`fas-dc-breath${phase === 'ink' ? ' is-ink' : ''}`} aria-hidden>
+              <span />
+              <span />
+              <span />
+            </div>
+          ) : null}
 
-        {panelKind === 'decision' && focusDecision ? (
-          <aside className="fas-ln-panel" aria-label="Entscheidung">
-            <div className="fas-ln-panel-top">
-              <span className="fas-ln-panel-dot" aria-hidden />
-              <p className="fas-ln-panel-status">Entscheidung erforderlich</p>
+          {/* Ink line — Apple Intelligence quiet: 1px primary, soft, no glow */}
+          {showInk ? <div className="fas-dc-ink" aria-hidden /> : null}
+
+          {phase === 'calm' || phase === 'ink' || phase === 'dissolve' ? (
+            <div key={`calm-${statusKey}`} className="fas-dc-calm">
+              <p className="fas-dc-calm-lead">{calm.lead}</p>
+              {calm.lines.map((line) => (
+                <p key={line} className="fas-dc-calm-line">
+                  {line}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          {showHero ? (
+            <div key={focusDecision!.id} className="fas-dc-hero">
+              <h1 className="fas-dc-hero-title">{focusDecision!.title}</h1>
+              <p className="fas-dc-hero-prompt">{prompt}</p>
+              <div className="fas-dc-ink fas-dc-ink--hero" aria-hidden />
+              <div className="fas-dc-choices" role="group" aria-label="Optionen">
+                {choices.map((c, i) => (
+                  <div key={c.id} className="fas-dc-choice-wrap">
+                    {i > 0 ? <span className="fas-dc-or">or</span> : null}
+                    <button
+                      type="button"
+                      className={`fas-dc-choice${selected === c.id ? ' is-selected' : ''}`}
+                      onClick={() => onSelectChoice(c.id)}
+                    >
+                      {c.label}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {showProjectHero ? (
+            <div className="fas-dc-hero">
+              <h1 className="fas-dc-hero-title">Erstes Projekt</h1>
+              <p className="fas-dc-hero-prompt">
+                Tagro strukturiert es, sobald du startest — in {workspace.name}.
+              </p>
+              <div className="fas-dc-ink fas-dc-ink--hero" aria-hidden />
+              <div className="fas-dc-choices">
+                <button
+                  type="button"
+                  className="fas-dc-choice is-selected"
+                  onClick={() => openNewProject()}
+                >
+                  Neues Projekt
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {panelOpen && showHero && focusDecision ? (
+          <aside className="fas-dc-panel" aria-label="Entscheidung">
+            <div className="fas-dc-panel-top">
+              <span className="fas-dc-panel-dot" aria-hidden />
+              <p className="fas-dc-panel-status">Wartet auf dich</p>
               <button
                 type="button"
-                className="fas-ln-panel-close"
+                className="fas-dc-panel-close"
                 aria-label="Schließen"
                 onClick={dismissPanel}
               >
                 <X size={16} weight="light" />
               </button>
             </div>
-
-            <h2 className="fas-ln-panel-title">{focusDecision.title}</h2>
-            <p className="fas-ln-panel-lead">
-              {/homepage|startseite/i.test(focusDecision.title)
-                ? 'Tagro empfiehlt, die neue Homepage zu veröffentlichen.'
-                : `Tagro empfiehlt, „${focusDecision.title}“ freizugeben.`}
-            </p>
-
-            <div className="fas-ln-rec">
-              <span className="fas-ln-rec-ico" aria-hidden>
-                <Sparkle size={14} weight="fill" />
-              </span>
-              <div>
-                <p className="fas-ln-rec-title">Freigeben</p>
-                <p className="fas-ln-rec-body">
-                  Alle Ziele wurden erreicht. Keine kritischen Issues.
-                </p>
-              </div>
-            </div>
-
-            <p className="fas-ln-steps-label">Wie Tagro vorgehen würde</p>
-            <ul className="fas-ln-steps">
-              {DECISION_STEPS.map((step) => (
-                <li key={step.id} className={step.done ? 'is-done' : 'is-pending'}>
-                  <span className="fas-ln-step-ico" aria-hidden>
-                    {step.done ? (
-                      <Check size={14} weight="bold" />
-                    ) : (
-                      <UploadSimple size={14} weight="regular" />
-                    )}
-                  </span>
-                  <span className="fas-ln-step-label">{step.label}</span>
-                  {!step.done ? (
-                    <span className="fas-ln-step-badge">Wartet auf Entscheidung</span>
-                  ) : null}
-                </li>
+            <h2 className="fas-dc-panel-title">{focusDecision.title}</h2>
+            <p className="fas-dc-panel-lead">{prompt}</p>
+            <div className="fas-dc-panel-actions">
+              {choices.map((c) => (
+                <Link
+                  key={c.id}
+                  href={
+                    focusDecision.id
+                      ? `/decisions/${focusDecision.id}`
+                      : '/overview/inbox'
+                  }
+                  className={`fas-dc-panel-btn${selected === c.id || (!selected && c.id === choices[0]?.id) ? ' is-primary' : ''}`}
+                  onClick={() => onSelectChoice(c.id)}
+                >
+                  {c.label}
+                </Link>
               ))}
-            </ul>
-
-            <div className="fas-ln-actions">
-              <Link
-                href={focusDecision.id ? `/decisions/${focusDecision.id}` : '/overview/inbox'}
-                className="fas-ln-btn fas-ln-btn--primary"
-              >
-                Freigeben
-              </Link>
-              <Link
-                href={focusDecision.id ? `/decisions/${focusDecision.id}` : '/overview/inbox'}
-                className="fas-ln-btn fas-ln-btn--ghost"
-              >
-                Änderungen anfordern
-              </Link>
             </div>
-            <p className="fas-ln-panel-foot">
-              Diese Entscheidung wird das Deployment starten.
-            </p>
           </aside>
         ) : null}
 
-        {panelKind === 'project' ? (
-          <aside className="fas-ln-panel" aria-label="Projekt">
-            <div className="fas-ln-panel-top">
-              <span className="fas-ln-panel-dot" aria-hidden />
-              <p className="fas-ln-panel-status">Bereit</p>
+        {panelOpen && showProjectHero ? (
+          <aside className="fas-dc-panel" aria-label="Projekt">
+            <div className="fas-dc-panel-top">
+              <span className="fas-dc-panel-dot" aria-hidden />
+              <p className="fas-dc-panel-status">Bereit</p>
               <button
                 type="button"
-                className="fas-ln-panel-close"
+                className="fas-dc-panel-close"
                 aria-label="Schließen"
                 onClick={dismissPanel}
               >
                 <X size={16} weight="light" />
               </button>
             </div>
-            <h2 className="fas-ln-panel-title">Erstelle dein erstes Projekt</h2>
-            <p className="fas-ln-panel-lead">
-              Tagro strukturiert es, sobald du startest — in {workspace.name}.
+            <h2 className="fas-dc-panel-title">Erstelle dein erstes Projekt</h2>
+            <p className="fas-dc-panel-lead">
+              Ein Name reicht. Tagro strukturiert den Rest.
             </p>
-            <div className="fas-ln-actions">
+            <div className="fas-dc-panel-actions">
               <button
                 type="button"
-                className="fas-ln-btn fas-ln-btn--primary"
+                className="fas-dc-panel-btn is-primary"
                 onClick={() => openNewProject()}
               >
                 Neues Projekt
@@ -328,47 +335,36 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
         ) : null}
       </div>
 
-      <footer className="fas-ln-footer">
-        <div key={statusKey} className="fas-ln-status" aria-live="polite">
-          <p className="fas-ln-status-lead">{status.lead}</p>
-          <p className="fas-ln-status-body">{status.body}</p>
-          <div className="fas-ln-status-dots" aria-hidden>
-            <span className="is-on" />
-            <span />
-            <span />
-          </div>
+      <footer className="fas-dc-footer">
+        <div className="fas-dc-status" aria-live="polite">
+          {showHero || showProjectHero ? (
+            <>
+              <p className="fas-dc-status-lead">{calm.lead}</p>
+              <p className="fas-dc-status-body">
+                {showProjectHero
+                  ? `In ${workspace.name} wartet noch das erste Projekt.`
+                  : calm.lines[calm.lines.length - 1]}
+              </p>
+            </>
+          ) : (
+            <p className="fas-dc-status-quiet">Festag</p>
+          )}
         </div>
 
-        <div className="fas-ln-voice">
-          <div className="fas-ln-voice-row">
-            <div className={`fas-ln-wave${voiceOn ? ' is-on' : ''}`} aria-hidden>
-              <svg viewBox="0 0 88 28" preserveAspectRatio="none">
-                <path d="M0 14 C6 14 8 6 14 6 S22 22 28 22 36 6 44 6 52 22 58 22 66 6 72 6 80 14 88 14" />
-                <path d="M0 14 C5 14 9 10 14 10 S23 18 28 18 37 10 44 10 53 18 58 18 67 10 74 10 82 14 88 14" opacity="0.45" />
-              </svg>
-            </div>
-            <button
-              type="button"
-              className={`fas-ln-mic${voiceOn ? ' is-on' : ''}`}
-              aria-pressed={voiceOn}
-              aria-label={voiceOn ? 'Zuhören beenden' : 'Tagro zuhören'}
-              onClick={() => setListening((v) => !v)}
-            >
-              <Microphone size={20} weight="fill" />
-            </button>
-            <div className={`fas-ln-wave${voiceOn ? ' is-on' : ''}`} aria-hidden>
-              <svg viewBox="0 0 88 28" preserveAspectRatio="none">
-                <path d="M0 14 C6 14 8 22 14 22 S22 6 28 6 36 22 44 22 52 6 58 6 66 22 72 22 80 14 88 14" />
-                <path d="M0 14 C5 14 9 18 14 18 S23 10 28 10 37 18 44 18 53 10 58 10 67 18 74 18 82 14 88 14" opacity="0.45" />
-              </svg>
-            </div>
-          </div>
-          <p className="fas-ln-voice-label">
-            {voiceOn ? 'Tagro hört zu' : 'Tagro'}
-          </p>
+        <div className="fas-dc-voice">
+          <button
+            type="button"
+            className={`fas-dc-mic${listening ? ' is-on' : ''}`}
+            aria-pressed={listening}
+            aria-label={listening ? 'Zuhören beenden' : 'Tagro zuhören'}
+            onClick={() => setListening((v) => !v)}
+          >
+            <Microphone size={18} weight="fill" />
+          </button>
+          <p className="fas-dc-voice-label">{listening ? 'Tagro hört zu' : 'Tagro'}</p>
         </div>
 
-        <div className="fas-ln-footer-spacer" aria-hidden />
+        <div className="fas-dc-footer-spacer" aria-hidden />
       </footer>
     </div>
   )

@@ -331,17 +331,16 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
   },
   {
     id: 'overview-tagro-core-interface',
-    question: 'Warum ist Overview kein Dashboard, sondern Tagro als Interface?',
+    question: 'Warum ist Overview kein Dashboard, sondern ein Decision Canvas?',
     answer:
-      'SaaS-Dashboards machen Festag austauschbar. Overview ist das Living Network: zentrierter Tagro-Knoten, periphere Nodes (Decision, Project, GitHub, …) im Idle getrennt. Nur bei Kontext wächst eine Primary-Blue-Verbindung und ein Floating-Panel. Status unten links, Voice unten Mitte. Keine KPI-Karten. Silence und Whitespace sind Features. Sidebar default collapsed icon rail.',
+      'SaaS-Dashboards und sichtbare AI-Netzwerke machen Festag austauschbar. Overview ist ein Decision Canvas auf Read-Mode-Papier (#F8F6F2, Noise, Rasterpunkte, Lichtverlauf). Keine Kugel, kein permanentes Netzwerk. Idle = ruhiger Text + fast unsichtbare Punkte. Aufmerksamkeit = 1px Primary-Blue-Tintenlinie (kein Glow). Die Entscheidung selbst ist der Hero (Titel + Optionen). Floating Panels ohne harte Borders. Primary Blue nur für Bedeutung. Sidebar 72px transparent, Icons schweben. Satz: Das Interface ist so ruhig, dass jede Bewegung Bedeutung hat.',
     decision:
-      'Overview = Tagro Living Network · idle silence · context connection grows · one floating panel · status + voice footer · no KPI/widgets · collapsed sidebar · v3.8',
+      'Overview = Decision Canvas · paper Read Mode · decision is hero · ink line 1px #5B647D · no orb/network · floating panels · blue only for meaning · transparent 72px sidebar · v3.9',
     date: '2026-08-04',
-    version: '3.8',
+    version: '3.9',
     status: 'locked',
     related: [
       'docs/festag-create-project-flow.md',
-      'components/app-shell/TagroLivingNetwork.tsx',
       'components/app-shell/WorkspaceOverviewLive.tsx',
       'docs/festag-tagro-invisible-intelligence.md',
       'docs/festag-experience-constitution.md',
