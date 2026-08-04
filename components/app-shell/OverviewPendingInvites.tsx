@@ -145,7 +145,7 @@ const PENDING_CSS = `
   flex-direction: column;
   gap: 16px;
   padding: 18px 18px 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid rgba(15, 23, 42, 0.06);
   background: rgba(255, 255, 255, 0.72);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -183,7 +183,7 @@ html[data-theme="dark"] .fas-pending-card {
 .fas-pending-btn {
   height: 40px;
   padding: 0 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid rgba(30, 30, 32, 0.08);
   background: #fff;
   color: #1e1e20;

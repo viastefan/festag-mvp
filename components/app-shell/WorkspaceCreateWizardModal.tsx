@@ -501,11 +501,11 @@ const WIZARD_CSS = `
   --mob-muted: #8891a0;
   --mob-primary: #5B647D;
   --mob-caret: #5B647D;
-  --mob-stroke-idle: 2px;
-  --mob-stroke-focus: 2px;
+  --mob-stroke-idle: 1px;
+  --mob-stroke-focus: 1px;
   --mob-card-bg-on: #FFFFFF;
   --mob-control-h: 46px;
-  --mob-field-radius: 8px;
+  --mob-field-radius: 4px;
   --auth-tracking: 0.01em;
   --auth-tracking-display: 0.006em;
   --wc-canvas: #FBF7EE;
@@ -693,14 +693,14 @@ const WIZARD_CSS = `
   height: var(--mob-control-h);
   padding: 0 40px 0 16px;
   border-radius: var(--mob-field-radius);
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.15) !important;
+  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.10) !important;
   background: transparent;
   box-sizing: border-box;
   transition: border-color .18s ease, border-width .18s ease;
 }
 
 .wc-field-shell:hover {
-  border-color: rgba(30, 30, 32, 0.20) !important;
+  border-color: rgba(30, 30, 32, 0.14) !important;
 }
 
 .wc-field-shell.has-value,
@@ -870,8 +870,8 @@ const WIZARD_CSS = `
 .wc-ws-group {
   display: flex;
   flex-direction: column;
-  border-radius: 12px;
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.15) !important;
+  border-radius: 8px;
+  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.10) !important;
   background: #FFFFFF;
   overflow: hidden;
   box-sizing: border-box;
@@ -999,7 +999,7 @@ const WIZARD_CSS = `
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid rgba(30, 30, 32, 0.08);
   background: #ffffff;
   color: #1e1e20;
@@ -1104,7 +1104,7 @@ const WIZARD_CSS = `
   gap: 12px;
   min-height: 46px;
   padding: 0 14px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.08);
   font-size: 15px;
   letter-spacing: var(--auth-tracking);
@@ -1157,7 +1157,7 @@ const WIZARD_CSS = `
   resize: none !important;
   padding: 12px 16px;
   border-radius: var(--mob-field-radius);
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.15) !important;
+  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.10) !important;
   background: transparent;
   color: var(--mob-ink);
   font-size: 15.5px;
@@ -1185,7 +1185,7 @@ const WIZARD_CSS = `
 .wc-invite-tab {
   flex: 1;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid rgba(30, 30, 32, 0.08);
   background: transparent;
   color: var(--mob-muted);
@@ -1224,7 +1224,7 @@ const WIZARD_CSS = `
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid rgba(30, 30, 32, 0.06);
   background: #fff;
   cursor: pointer;
@@ -1257,7 +1257,7 @@ const WIZARD_CSS = `
 .wc-role-chip {
   height: 34px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid rgba(30, 30, 32, 0.1);
   background: transparent;
   color: var(--mob-muted);

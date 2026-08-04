@@ -430,8 +430,8 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               height: 36px;
               padding: 0 12px;
               gap: 8px;
-              border-radius: 8px;
-              border: 2px solid rgba(30, 30, 32, 0.15);
+              border-radius: 4px;
+              border: 1px solid rgba(30, 30, 32, 0.12);
               background: transparent;
               box-shadow: none;
               box-sizing: border-box;
@@ -445,7 +445,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search,
             [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search {
               background: transparent;
-              border-color: rgba(255, 255, 255, 0.15);
+              border-color: rgba(255, 255, 255, 0.10);
             }
             [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search:focus-within,
             [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search:focus-within {
@@ -494,7 +494,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               margin: 0 8px;
               padding: 0 12px;
               min-height: 32px;
-              border-radius: 8px;
+              border-radius: 4px;
               color: var(--portal-nav-item, #3F3F3F);
               font-size: 13.5px;
               letter-spacing: 0.009em;
@@ -546,8 +546,8 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; letter-spacing: 0.01em; }
             .cp-portal .cp-search-wrap { padding: 0 20px 16px; }
             .cp-portal .cp-search {
-              border-radius: 8px;
-              border: 2px solid rgba(30, 30, 32, 0.15);
+              border-radius: 4px;
+              border: 1px solid rgba(30, 30, 32, 0.12);
               background-color: transparent;
               background-image: none;
               box-shadow: none;
@@ -562,7 +562,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search,
             [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search {
               background: transparent;
-              border-color: rgba(255, 255, 255, 0.15);
+              border-color: rgba(255, 255, 255, 0.10);
               box-shadow: none;
             }
             [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within,
@@ -573,7 +573,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             .cp-portal .cp-row {
               margin: 0 10px;
-              border-radius: 10px;
+              border-radius: 6px;
             }
             .cp-portal .cp-foot {
               font-size: 10.5px;
@@ -625,7 +625,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             .cp-close {
               width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
-              border: 0; border-radius: 8px; background: transparent; color: var(--fp-muted);
+              border: 0; border-radius: 4px; background: transparent; color: var(--fp-muted);
               cursor: pointer; transition: background .12s, color .12s;
             }
             .cp-close:hover { background: var(--fp-hover); color: var(--fp-text); }
@@ -637,7 +637,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             .cp-search {
               display: flex; align-items: center; gap: 10px;
               height: 40px; padding: 0 14px;
-              border: 1px solid var(--fp-inp-border); border-radius: 8px;
+              border: 1px solid var(--fp-inp-border); border-radius: 4px;
               background: var(--fp-inp);
               transition: border-color .12s, box-shadow .12s, background .12s;
             }
@@ -663,7 +663,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               padding: 11px 22px; background: transparent; border: 0; cursor: pointer;
               font-family: inherit; text-align: left; color: var(--fp-text);
               transition: background .08s;
-              border-radius: 8px;
+              border-radius: 4px;
             }
             .cp-row:hover, .cp-row.active { background: var(--fp-hover); }
             .cp-row-icon {

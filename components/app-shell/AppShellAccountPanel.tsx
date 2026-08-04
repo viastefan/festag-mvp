@@ -360,7 +360,7 @@ html[data-theme="classic-dark"] .fas-account-art-fade {
   width: 100%;
   text-align: left;
   padding: 16px 16px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid var(--fas-popover-border, rgba(30, 30, 32, 0.08));
   background: color-mix(in srgb, var(--fas-nav-hover, rgba(30,30,32,0.06)) 70%, transparent);
   color: inherit;
@@ -380,7 +380,7 @@ html[data-theme="classic-dark"] .fas-account-art-fade {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--fas-btn-bg, #ffffff);
   border: 1px solid var(--fas-btn-border, rgba(30, 30, 32, 0.08));
   box-shadow: var(--fas-btn-shadow, 0 1px 2px rgba(0,0,0,0.04));
@@ -427,7 +427,7 @@ html[data-theme="classic-dark"] .fas-account-create-icon {
 .fas-account-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 6px;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -473,7 +473,7 @@ html[data-theme="classic-dark"] .fas-account-create-icon {
   width: 100%;
   padding: 11px 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
   color: var(--fas-ink);
   font-size: 14px;

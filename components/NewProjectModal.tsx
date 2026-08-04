@@ -1655,7 +1655,7 @@ const CSS = `
     width: 100%;
     display: flex; flex-direction: column; gap: 3px;
     padding: 11px 12px;
-    border: 0; background: transparent; border-radius: 12px;
+    border: 0; background: transparent; border-radius: 8px;
     text-align: left; cursor: pointer;
     color: #2A3032;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -1726,7 +1726,7 @@ const CSS = `
     margin: 0; padding: 10px 14px;
     background: color-mix(in srgb, #ef4444 10%, transparent);
     color: #d44b4b;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 12.5px; font-weight: 500; line-height: 1.5;
   }
   .npm-error.in-chat { margin: 0 22px 10px; }
@@ -1910,7 +1910,7 @@ const CSS = `
   .npm-visualizer i {
     width: 2px; height: 22px;
     background: #F0F2F5;
-    border-radius: 12px;
+    border-radius: 8px;
     transform-origin: center;
     transform: scaleY(0);
     opacity: 0;
@@ -2219,7 +2219,7 @@ const CSS = `
   .npm-steps li {
     display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center;
     padding: 8px 12px;
-    border-radius: 10px;
+    border-radius: 6px;
     background: color-mix(in srgb, var(--surface-2) 35%, transparent);
     font-size: 12.5px; font-weight: 500; letter-spacing: 0;
     color: var(--text-muted);

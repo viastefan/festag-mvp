@@ -200,10 +200,10 @@ export const AUTH_GLASSY_HERO_CSS = `
     height: var(--al-hero-display-lh, 1.15em);
     line-height: var(--al-hero-display-lh, 1.15em);
     vertical-align: top;
-    will-change: transform, opacity;
+    will-change: transform, opacity, filter;
     backface-visibility: hidden;
     -webkit-font-smoothing: antialiased;
-    animation: alGwordIn .58s cubic-bezier(.16, 1, .3, 1) both;
+    animation: alGwordIn .68s cubic-bezier(.16, 1, .3, 1) both;
     animation-delay: calc(var(--i, 0) * 32ms);
   }
   /* Instant / soft handoff — same metrics, no rise. */
@@ -248,11 +248,11 @@ export const AUTH_GLASSY_HERO_CSS = `
   .al-root.al-soft-enter[data-auth-step="codeEntry"] .al-gword-inner,
   .al-root.al-soft-mode[data-auth-step="sso"] .al-gword-inner,
   .al-root.al-soft-enter[data-auth-step="sso"] .al-gword-inner {
-    animation: alGwordIn 0.48s cubic-bezier(.16, 1, .3, 1) both !important;
+    animation: alGwordIn 0.56s cubic-bezier(.16, 1, .3, 1) both !important;
     animation-delay: calc(var(--i, 0) * 22ms) !important;
     opacity: 0;
     transform: translate3d(0, 110%, 0);
-    filter: none !important;
+    filter: blur(10px);
   }
   .al-root.al-soft-mode[data-auth-step="codeEntry"] .al-gword--settled .al-gword-inner,
   .al-root.al-soft-enter[data-auth-step="codeEntry"] .al-gword--settled .al-gword-inner,
@@ -280,21 +280,26 @@ export const AUTH_GLASSY_HERO_CSS = `
   .al-root.onb-sand-dark .al-gword-inner.al-hero-gray {
     color: #8B909A;
   }
-  /* Rise only — no blur (blur caused subpixel “schief” settle on some GPUs). */
+  /* Rise from below + Linear-style soft blur → sharp settle. */
   @keyframes alGwordIn {
     from {
       opacity: 0;
-      transform: translate3d(0, 110%, 0);
+      transform: translate3d(0, 112%, 0);
+      filter: blur(10px);
+    }
+    55% {
+      filter: blur(2.5px);
     }
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
+      filter: blur(0);
     }
   }
   /* Code / SSO title — slightly snappier rise after Weiter. */
   .al-root[data-auth-step="codeEntry"] .al-gword-inner,
   .al-root[data-auth-step="sso"] .al-gword-inner {
-    animation-duration: 0.46s;
+    animation-duration: 0.54s;
     animation-delay: calc(var(--i, 0) * 22ms);
   }
 
@@ -303,33 +308,43 @@ export const AUTH_GLASSY_HERO_CSS = `
     display: block;
     width: 100%;
     margin-top: 4px;
-    animation: alHeroSecondaryIn .52s cubic-bezier(.22, 1, .36, 1) both;
+    animation: alHeroSecondaryIn .58s cubic-bezier(.22, 1, .36, 1) both;
     animation-delay: .14s;
   }
   @keyframes alHeroSecondaryIn {
     from {
       opacity: 0;
-      transform: translate3d(0, 10px, 0);
+      transform: translate3d(0, 12px, 0);
+      filter: blur(8px);
+    }
+    60% {
+      filter: blur(2px);
     }
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
+      filter: blur(0);
     }
   }
 
   /* Form stack — soft assemble, same language as onboarding content */
   .al-signin:not(.al-signin--out) > .al-content:not(.animating) {
-    animation: alContentAssemble .52s cubic-bezier(.22, 1, .36, 1) both;
+    animation: alContentAssemble .58s cubic-bezier(.22, 1, .36, 1) both;
     animation-delay: .12s;
   }
   @keyframes alContentAssemble {
     from {
       opacity: 0;
-      transform: translate3d(0, 14px, 0);
+      transform: translate3d(0, 16px, 0);
+      filter: blur(10px);
+    }
+    55% {
+      filter: blur(2.5px);
     }
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
+      filter: blur(0);
     }
   }
 

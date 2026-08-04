@@ -399,7 +399,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-control-radius: 6px;
   --festag-control-radius-sm: 6px;
   --festag-control-radius-lg: 8px;
-  --festag-input-radius: 8px;
+  --festag-input-radius: 4px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   /* Soft white CTAs on sand. */
@@ -2268,7 +2268,7 @@ html[data-theme-surface="dev"][data-theme="read"] {
   --festag-control-radius: 6px;
   --festag-control-radius-sm: 6px;
   --festag-control-radius-lg: 8px;
-  --festag-input-radius: 8px;
+  --festag-input-radius: 4px;
   --festag-btn-dark-bg: #ffffff;
   --festag-btn-dark-bg-hover: #F7F6F2;
   --festag-btn-dark-bg-active: #F0EEE6;

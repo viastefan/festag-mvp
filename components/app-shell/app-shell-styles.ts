@@ -25,13 +25,13 @@ export const APP_SHELL_STYLES = `
   --fas-sidebar-collapsed-w: 64px;
   --festag-sidebar-width: var(--fas-sidebar-w);
   --fas-topbar-h: 52px;
-  --fas-radius: 10px;
-  --fas-radius-btn: 6px;
+  --fas-radius: 8px;
+  --fas-radius-btn: 4px;
   --fas-btn-bg: #ffffff;
   --fas-btn-bg-hover: #fafafa;
   --fas-btn-bg-active: #f5f5f6;
   --fas-btn-fg: #1e1e20;
-  --fas-btn-border: rgba(30, 30, 32, 0.08);
+  --fas-btn-border: rgba(30, 30, 32, 0.06);
   --fas-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --fas-popover: #ffffff;
   --fas-popover-border: rgba(30, 30, 32, 0.08);
@@ -137,7 +137,7 @@ html[data-theme="read"] .fas-root {
   margin: 2px 4px;
   padding: 2px 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   color: var(--fas-ink);
   font: inherit;
@@ -225,7 +225,7 @@ html[data-theme="read"] .fas-root {
   justify-content: center;
   position: relative;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   color: var(--fas-ink-muted);
   cursor: pointer;
@@ -282,7 +282,7 @@ html[data-theme="read"] .fas-root {
   gap: 4px;
   text-align: left;
   padding: 12px 12px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
@@ -351,7 +351,7 @@ html[data-theme="read"] .fas-root {
   width: 40px;
   height: 40px;
   padding: 0;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .fas-nav {
@@ -467,7 +467,7 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
   justify-content: center;
   height: 28px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: none;
   background: var(--fas-nav-active);
   color: var(--fas-ink);
@@ -550,7 +550,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   right: 0;
   min-width: 220px;
   padding: 8px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--fas-popover);
   border: 1px solid var(--fas-popover-border);
   box-shadow: var(--fas-popover-shadow);
@@ -599,15 +599,26 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 
 /* Assemble motion */
 @keyframes fasAssemble {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(10px);
+  }
+  55% {
+    filter: blur(2.5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
 }
 @keyframes fasPop {
-  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); filter: blur(6px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 .fas-assemble {
-  animation: fasAssemble 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fasAssemble 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .fas-assemble-d1 { animation-delay: 0.06s; }
 .fas-assemble-d2 { animation-delay: 0.14s; }
@@ -812,7 +823,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 .fas-wo-skeleton {
   height: 12px;
   width: 180px;
-  border-radius: 6px;
+  border-radius: 4px;
   background: rgba(30, 30, 32, 0.06);
   animation: fasAssemble 1.2s ease infinite alternate;
 }
@@ -865,7 +876,7 @@ html[data-theme="classic-dark"] .fas-wo-skeleton {
   padding: 28px 28px 24px;
   background: var(--fas-card);
   border: 1px solid var(--fas-card-border);
-  border-radius: 14px;
+  border-radius: 8px;
   box-shadow: var(--fas-card-shadow);
 }
 .fas-wo-briefing-title {
@@ -1014,7 +1025,7 @@ html[data-theme="classic-dark"] .fas-wo-skeleton {
   padding: 18px 18px 16px;
   background: var(--fas-card);
   border: 1px solid var(--fas-card-border);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: var(--fas-card-shadow);
   display: flex;
   flex-direction: column;
@@ -1103,7 +1114,7 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--fas-card-border);
   background: var(--fas-card);
 }

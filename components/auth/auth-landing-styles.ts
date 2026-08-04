@@ -37,14 +37,15 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Optical center — same column as form, aligned under the viewport middle. */
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
-          /* Auth geometry — serious soft rects (6px), not pills. */
-          --festag-auth-radius:6px;
-          --festag-auth-radius-sm:6px;
+          /* Auth geometry — tighter soft rects (4px), not pills. */
+          --festag-auth-radius:4px;
+          --festag-auth-radius-sm:4px;
           --festag-auth-radius-lg:8px;
           --festag-control-radius:var(--festag-auth-radius);
           --festag-control-radius-sm:var(--festag-auth-radius-sm);
           --festag-control-radius-lg:var(--festag-auth-radius-lg);
-          --festag-input-radius:8px;
+          --festag-input-radius:4px;
+          --festag-stroke-control:1px;
           /* Canonical control height — Login email, Register, onboarding fields, Weiter. */
           --festag-input-height:46px;
           --festag-email-input-height:46px;

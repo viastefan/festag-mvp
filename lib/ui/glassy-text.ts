@@ -1,10 +1,10 @@
 /**
  * Shared glassy text dissolve + workspace assemble.
- * Soft blur + opacity, never a hard cut. No full-screen loader gate.
+ * Linear-style: rise from below with soft blur → sharp settle. Never a hard cut.
  */
 
 export const FESTAG_GLASSY_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
-export const FESTAG_GLASSY_ENTER_MS = 560
+export const FESTAG_GLASSY_ENTER_MS = 640
 export const FESTAG_GLASSY_EXIT_MS = 420
 /** One-shot shell assemble after login (nav → plate → content). */
 export const FESTAG_ASSEMBLE_MS = 720
@@ -14,9 +14,12 @@ export const FESTAG_GLASSY_TEXT_CSS = `
 @keyframes festagGlassyIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
-    filter: blur(5px);
+    transform: translateY(14px);
+    filter: blur(12px);
     letter-spacing: -0.01em;
+  }
+  55% {
+    filter: blur(3px);
   }
   to {
     opacity: 1;
@@ -33,15 +36,18 @@ export const FESTAG_GLASSY_TEXT_CSS = `
   }
   to {
     opacity: 0;
-    transform: translateY(-6px);
-    filter: blur(5px);
+    transform: translateY(-8px);
+    filter: blur(8px);
   }
 }
 @keyframes festagAssembleIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
-    filter: blur(4px);
+    transform: translateY(14px);
+    filter: blur(10px);
+  }
+  60% {
+    filter: blur(2.5px);
   }
   to {
     opacity: 1;
@@ -62,13 +68,13 @@ export const FESTAG_GLASSY_TEXT_CSS = `
 
 /* Direct workspace entry — interface builds itself, no white loader. */
 .portal-app-shell.portal-assemble .portal-app-nav-col {
-  animation: festagAssembleIn 480ms ${FESTAG_GLASSY_EASE} both;
+  animation: festagAssembleIn 520ms ${FESTAG_GLASSY_EASE} both;
 }
 .portal-app-shell.portal-assemble .portal-app-main {
-  animation: festagAssembleIn 540ms ${FESTAG_GLASSY_EASE} 70ms both;
+  animation: festagAssembleIn 580ms ${FESTAG_GLASSY_EASE} 70ms both;
 }
 .portal-app-shell.portal-assemble .portal-app-main > * {
-  animation: festagAssembleIn 500ms ${FESTAG_GLASSY_EASE} 140ms both;
+  animation: festagAssembleIn 540ms ${FESTAG_GLASSY_EASE} 140ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {

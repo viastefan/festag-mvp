@@ -1,5 +1,5 @@
 ---
-description: Festag dark CTAs — warm bone ready, quiet idle ghosts, 8px auth
+description: Festag dark CTAs — warm bone ready, quiet idle ghosts, 4px auth
 alwaysApply: true
 ---
 
@@ -10,7 +10,7 @@ Dark mode: **no colored button fills** on auth. Ready = warm bone; idle = quiet 
 ## Auth geometry
 
 ```css
-border-radius: 6px; /* serious soft rect — not pills */
+border-radius: 4px; /* tighter soft rect — not pills */
 height: 40px;       /* inputs 42px */
 ```
 
@@ -43,5 +43,6 @@ Hover `#DDD9D2` / active `#D0CBC3`.
 - Bright white idle icons
 - Full-pill `999px` on auth CTAs/inputs
 - Drop auth radius back to marketing pills without an explicit ask
+- Thick 2px strokes on auth controls — stay at `1px` hairlines
 
 Portal dark primaries may still use soft cool-white `#F0F2F5` where not on auth chrome.

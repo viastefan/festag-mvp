@@ -303,7 +303,7 @@ const SHEET_CSS = `
   align-items: center;
   height: 46px;
   padding: 0 40px 0 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 2px solid rgba(30, 30, 32, 0.15);
   background: transparent;
 }
@@ -366,6 +366,6 @@ const SHEET_CSS = `
 .wr-sheet .mob-continue-btn {
   width: 100%;
   height: 46px;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 `

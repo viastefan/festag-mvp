@@ -26,8 +26,8 @@ export const AUTH_CARET = '#5B647D'
 export const AUTH_STROKE = AUTH_CARET
 export const AUTH_CARET_SELECTION = 'rgba(91, 100, 125, 0.28)'
 /** Idle hairline width; focus/filled stay the same weight (color carries the state). */
-export const AUTH_STROKE_WIDTH_IDLE = '2px'
-export const AUTH_STROKE_WIDTH_FOCUS = '2px'
+export const AUTH_STROKE_WIDTH_IDLE = '1px'
+export const AUTH_STROKE_WIDTH_FOCUS = '1px'
 /**
  * Auth dark canvas — Primary Dusk (same OS foundation as mobile onboarding).
  * Deeper than flat Night OLED so auth feels cinematic, not like a login card.

@@ -11,8 +11,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     /* Primary blue stroke — same as AUTH_STROKE / Login fields. */
     --mob-primary: #5B647D;
     --mob-caret: #5B647D;
-    --mob-stroke-idle: 2px;
-    --mob-stroke-focus: 2px;
+    --mob-stroke-idle: 1px;
+    --mob-stroke-focus: 1px;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
     --mob-card-bg-on: #FFFFFF;
     --mob-card-border: rgba(30, 30, 32, 0.04);
@@ -28,8 +28,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-content-max: 380px;
     /* Canonical control height — Login email / Register / onboarding fields + Weiter. */
     --mob-control-h: 46px;
-    --mob-radius: 6px;
-    --mob-field-radius: 8px;
+    --mob-radius: 4px;
+    --mob-field-radius: 4px;
     --mob-dot-idle: rgba(26, 25, 23, 0.15);
     --mob-dot-done: rgba(26, 25, 23, 0.35);
     --mob-dot-active: rgba(26, 25, 23, 0.85);
@@ -319,7 +319,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-profile-avatar {
     width: var(--mob-control-h, 46px);
     height: var(--mob-control-h, 46px);
-    border-radius: 8px;
+    border-radius: 4px;
     /* Same language as .mob-profile-field — stroke only, no fill plate */
     border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15);
     background: transparent;
@@ -403,7 +403,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     height: var(--mob-control-h, 46px);
     min-height: var(--mob-control-h, 46px);
     max-height: var(--mob-control-h, 46px);
-    border-radius: 8px;
+    border-radius: 4px;
     border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15);
     background: transparent;
     box-sizing: border-box;
@@ -454,7 +454,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: none;
     padding: 0 14px;
     border: none !important;
-    border-radius: 6px;
+    border-radius: 4px;
     background: transparent !important;
     background-color: transparent !important;
     color: var(--mob-ink);
@@ -668,7 +668,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     min-height: var(--mob-control-h, 46px);
     height: auto;
     padding: 12px 14px;
-    border-radius: 10px;
+    border-radius: 8px;
     /* Idle matches Name field soft stroke; selected = Name focus stroke */
     border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15) !important;
     background: #FFFFFF;
@@ -786,7 +786,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid rgba(30, 30, 32, 0.08);
     background: #ffffff;
     color: #1e1e20;
@@ -915,7 +915,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-intent-shell {
     position: relative;
-    border-radius: var(--mob-field-radius, 8px);
+    border-radius: var(--mob-field-radius, 4px);
     /* Same idle/focus strokes as Login email / Position field. */
     border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15) !important;
     box-shadow: none !important;
@@ -1092,7 +1092,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     min-height: 46px;
     max-height: 46px;
     padding: 0 14px;
-    border-radius: 8px;
+    border-radius: 4px;
     /* Always 2px — selected only changes color (no L/R clip). */
     border: 2px solid var(--mob-card-border) !important;
     background: #FFFFFF;
@@ -1204,7 +1204,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     min-height: var(--mob-control-h, 46px);
     max-height: var(--mob-control-h, 46px);
     padding: 0 12px 0 12px;
-    border-radius: 8px;
+    border-radius: 4px;
     /* Same idle/selected strokes as Name field + Workspace cards */
     border: var(--mob-stroke-idle, 2px) solid rgba(30, 30, 32, 0.15) !important;
     background: #FFFFFF;
