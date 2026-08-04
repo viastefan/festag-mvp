@@ -467,25 +467,27 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
         ) : null}
       </div>
 
-      <nav className="fas-nav">
-        {APP_SHELL_PRIMARY_NAV.map((item) => {
-          const Icon = item.icon
-          const active = isAppShellNavActive(pathname, item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`fas-nav-link${active ? ' is-active' : ''}`}
-              aria-current={active ? 'page' : undefined}
-              title={collapsed ? item.label : undefined}
-            >
-              <Icon size={16} weight="light" />
-              {!collapsed ? <span>{item.label}</span> : null}
-            </Link>
-          )
-        })}
+      <nav className="fas-nav" aria-label="Workspace">
+        <div className="fas-nav-group">
+          {APP_SHELL_PRIMARY_NAV.map((item) => {
+            const Icon = item.icon
+            const active = isAppShellNavActive(pathname, item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`fas-nav-link${active ? ' is-active' : ''}`}
+                aria-current={active ? 'page' : undefined}
+                title={collapsed ? item.label : undefined}
+              >
+                <Icon size={16} weight="light" />
+                {!collapsed ? <span>{item.label}</span> : null}
+              </Link>
+            )
+          })}
+        </div>
 
-        <div className="fas-nav-after-group">
+        <div className="fas-nav-group fas-nav-after-group">
           {APP_SHELL_SECONDARY_NAV.map((item) => {
             const Icon = item.icon
             const active = isAppShellNavActive(pathname, item.href)
