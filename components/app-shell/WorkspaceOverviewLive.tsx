@@ -14,6 +14,8 @@ import { openNewProject } from '@/lib/new-project-open'
 import {
   acceptDecisionRecommendation,
   buildDecisionCanvasTopic,
+  enrichDecisionFocus,
+  ensureCanvasSuggestion,
   type DecisionCanvasTopic,
 } from '@/lib/overview/decision-canvas'
 
@@ -38,6 +40,7 @@ export type OverviewDecision = {
   }>
   reasons?: string[]
   explainSteps?: Array<{ n: number; label: string }>
+  needsSuggestion?: boolean
 }
 
 export type OverviewPayload = {
@@ -115,35 +118,44 @@ export default function WorkspaceOverviewLive({
 }: Props) {
   const focusDecision = data.decisions[0] || null
 
-  const topic = useMemo(
-    () =>
-      buildDecisionCanvasTopic({
-        workspaceName: data.workspace.name,
-        activeProjects: data.summary.activeProjects,
-        pendingDecisions: data.summary.pendingDecisions,
-        calmLine: data.summary.calmLine,
-        focus: focusDecision
-          ? {
-              id: focusDecision.id,
-              title: focusDecision.title,
-              summary: focusDecision.summary || null,
-              projectId: focusDecision.projectId,
-              projectTitle: focusDecision.projectTitle,
-              urgency: focusDecision.urgency,
-              dueDate: focusDecision.dueDate,
-              responseType: focusDecision.responseType || null,
-              decisionType: focusDecision.decisionType || null,
-              recommendedOptionId: focusDecision.recommendedOptionId || null,
-              recommendationReason: focusDecision.recommendationReason || null,
-              tagroReasoning: focusDecision.tagroReasoning || null,
-              options: focusDecision.options || [],
-              explainSteps: focusDecision.explainSteps || [],
-              reasons: focusDecision.reasons || [],
-            }
-          : null,
-      }),
-    [data, focusDecision],
-  )
+  const topic = useMemo(() => {
+    const focus = focusDecision
+      ? enrichDecisionFocus({
+          id: focusDecision.id,
+          title: focusDecision.title,
+          summary: focusDecision.summary || null,
+          projectId: focusDecision.projectId,
+          projectTitle: focusDecision.projectTitle,
+          urgency: focusDecision.urgency,
+          dueDate: focusDecision.dueDate,
+          responseType: focusDecision.responseType || null,
+          decisionType: focusDecision.decisionType || null,
+          recommendedOptionId: focusDecision.recommendedOptionId || null,
+          recommendationReason: focusDecision.recommendationReason || null,
+          tagroReasoning: focusDecision.tagroReasoning || null,
+          options: focusDecision.options || [],
+        })
+      : null
+
+    /* Prefer server-enriched reasons/explain when present */
+    if (focus && focusDecision) {
+      if (focusDecision.reasons?.length) focus.reasons = focusDecision.reasons
+      if (focusDecision.explainSteps?.length) {
+        focus.explainSteps = focusDecision.explainSteps
+      }
+      if (typeof focusDecision.needsSuggestion === 'boolean') {
+        focus.needsSuggestion = focusDecision.needsSuggestion
+      }
+    }
+
+    return buildDecisionCanvasTopic({
+      workspaceName: data.workspace.name,
+      activeProjects: data.summary.activeProjects,
+      pendingDecisions: data.summary.pendingDecisions,
+      calmLine: data.summary.calmLine,
+      focus,
+    })
+  }, [data, focusDecision])
 
   const [phase, setPhase] = useState<Phase>('calm')
   const [selected, setSelected] = useState<string | null>(null)
@@ -152,6 +164,9 @@ export default function WorkspaceOverviewLive({
   const [sheetOpen, setSheetOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [liveTopic, setLiveTopic] = useState<DecisionCanvasTopic | null>(null)
+
+  const activeTopic = liveTopic && liveTopic.id === topic?.id ? liveTopic : topic
 
   useEffect(() => {
     setPhase('calm')
@@ -159,11 +174,12 @@ export default function WorkspaceOverviewLive({
     setExplainOpen(false)
     setSheetOpen(false)
     setError(null)
+    setLiveTopic(null)
   }, [topic?.id])
 
   const lead = `${greeting}, ${firstName}.`
 
-  function activate() {
+  async function activate() {
     if (!topic || phase !== 'calm') return
     setSelected(topic.recommendId)
     setError(null)
@@ -173,6 +189,56 @@ export default function WorkspaceOverviewLive({
       setPhase('sheet')
       setSheetOpen(true)
     }, 1400)
+
+    /* Harden recommendation while the path draws */
+    if (topic.kind === 'decision' && topic.decisionId && topic.needsSuggestion) {
+      const decisionId = topic.decisionId
+      void ensureCanvasSuggestion(decisionId).then(async (res) => {
+        if (!res.ok) return
+        try {
+          const wsId = data.workspace.id
+          const qs = wsId ? `?workspaceId=${encodeURIComponent(wsId)}` : ''
+          const overview = await fetch(`/api/workspaces/overview${qs}`, {
+            cache: 'no-store',
+          })
+          if (!overview.ok) return
+          const json = await overview.json()
+          const next = (json?.decisions || []).find((d: OverviewDecision) => d.id === decisionId)
+          if (!next) return
+          const focus = enrichDecisionFocus({
+            id: next.id,
+            title: next.title,
+            summary: next.summary || null,
+            projectId: next.projectId,
+            projectTitle: next.projectTitle,
+            urgency: next.urgency,
+            dueDate: next.dueDate,
+            responseType: next.responseType || null,
+            decisionType: next.decisionType || null,
+            recommendedOptionId: next.recommendedOptionId || null,
+            recommendationReason: next.recommendationReason || null,
+            tagroReasoning: next.tagroReasoning || null,
+            options: next.options || [],
+          })
+          if (next.reasons?.length) focus.reasons = next.reasons
+          if (next.explainSteps?.length) focus.explainSteps = next.explainSteps
+          focus.needsSuggestion = false
+          const rebuilt = buildDecisionCanvasTopic({
+            workspaceName: data.workspace.name,
+            activeProjects: data.summary.activeProjects,
+            pendingDecisions: data.summary.pendingDecisions,
+            calmLine: data.summary.calmLine,
+            focus,
+          })
+          if (rebuilt) {
+            setLiveTopic(rebuilt)
+            setSelected(rebuilt.recommendId)
+          }
+        } catch {
+          /* keep synthetic topic */
+        }
+      })
+    }
   }
 
   function retract(then?: () => void) {
@@ -187,11 +253,11 @@ export default function WorkspaceOverviewLive({
   }
 
   async function acceptRecommendation() {
-    if (!topic || busy) return
-    const optionId = selected || topic.recommendId
+    if (!activeTopic || busy) return
+    const optionId = selected || activeTopic.recommendId
     if (!optionId) return
 
-    if (topic.kind === 'project') {
+    if (activeTopic.kind === 'project') {
       if (optionId === 'later') {
         retract()
         return
@@ -200,13 +266,13 @@ export default function WorkspaceOverviewLive({
       return
     }
 
-    if (!topic.decisionId) return
+    if (!activeTopic.decisionId) return
     setBusy(true)
     setError(null)
     const result = await acceptDecisionRecommendation({
-      decisionId: topic.decisionId,
+      decisionId: activeTopic.decisionId,
       optionId,
-      responseType: focusDecision?.responseType,
+      responseType: focusDecision?.responseType || activeTopic.responseType,
     })
     setBusy(false)
     if (!result.ok) {
@@ -230,7 +296,7 @@ export default function WorkspaceOverviewLive({
 
   const showPath = phase === 'path' || phase === 'focus' || phase === 'sheet'
   const showFocus = phase === 'focus' || phase === 'sheet'
-  const showSheet = Boolean(topic) && (phase === 'sheet' || (phase === 'focus' && sheetOpen))
+  const showSheet = Boolean(activeTopic) && (phase === 'sheet' || (phase === 'focus' && sheetOpen))
   const isRetracting = phase === 'retract'
   const isCalm = phase === 'calm' || isRetracting
 
@@ -261,8 +327,8 @@ export default function WorkspaceOverviewLive({
         <circle className="fas-dc-ink-focus" cx="520" cy="186" r="5.5" />
       </svg>
 
-      {explainOpen && topic ? (
-        <ExplainPopup topic={topic} onClose={() => setExplainOpen(false)} />
+      {explainOpen && activeTopic ? (
+        <ExplainPopup topic={activeTopic} onClose={() => setExplainOpen(false)} />
       ) : null}
 
       <div className="fas-dc-stage">
@@ -271,12 +337,12 @@ export default function WorkspaceOverviewLive({
             <div className="fas-dc-calm">
               <p className="fas-dc-greet">{lead}</p>
               <p className="fas-dc-status">
-                {topic?.calmStatus || data.summary.calmLine || 'Alles läuft ruhig.'}
+                {activeTopic?.calmStatus || data.summary.calmLine || 'Alles läuft ruhig.'}
               </p>
-              {topic ? (
-                <button type="button" className="fas-dc-waiting" onClick={activate}>
+              {activeTopic ? (
+                <button type="button" className="fas-dc-waiting" onClick={() => void activate()}>
                   <span className="fas-dc-waiting-dot" aria-hidden />
-                  {topic.waitingLabel}
+                  {activeTopic.waitingLabel}
                   <span className="fas-dc-waiting-chev" aria-hidden>
                     ›
                   </span>
@@ -285,12 +351,12 @@ export default function WorkspaceOverviewLive({
             </div>
           ) : null}
 
-          {showFocus && topic ? (
-            <div className="fas-dc-focus" key={topic.id}>
-              <p className="fas-dc-eyebrow">{topic.eyebrow}</p>
-              <h1 className="fas-dc-question">{topic.question}</h1>
+          {showFocus && activeTopic ? (
+            <div className="fas-dc-focus" key={`${activeTopic.id}-${activeTopic.recommendId || 'x'}`}>
+              <p className="fas-dc-eyebrow">{activeTopic.eyebrow}</p>
+              <h1 className="fas-dc-question">{activeTopic.question}</h1>
               <div className="fas-dc-options" role="radiogroup" aria-label="Optionen">
-                {topic.options.map((opt) => (
+                {activeTopic.options.map((opt) => (
                   <label
                     key={opt.id}
                     className={`fas-dc-option${selected === opt.id ? ' is-on' : ''}`}
@@ -316,15 +382,15 @@ export default function WorkspaceOverviewLive({
           ) : null}
         </div>
 
-        {showSheet && topic ? (
+        {showSheet && activeTopic ? (
           <aside className="fas-dc-sheet" aria-label="Tagro Empfehlung">
             <div className="fas-dc-sheet-handle" aria-hidden />
             <p className="fas-dc-sheet-kicker">Tagro Empfehlung</p>
-            <p className="fas-dc-sheet-pick">{topic.recommendLabel}</p>
+            <p className="fas-dc-sheet-pick">{activeTopic.recommendLabel}</p>
 
             <p className="fas-dc-sheet-section">Begründung</p>
             <ul className="fas-dc-sheet-reasons">
-              {topic.reasons.map((r) => (
+              {activeTopic.reasons.map((r) => (
                 <li key={r}>{r}</li>
               ))}
             </ul>

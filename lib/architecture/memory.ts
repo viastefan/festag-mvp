@@ -333,17 +333,19 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     id: 'overview-tagro-core-interface',
     question: 'Warum ist Overview ein Decision Canvas mit organischer Tintenlinie und Apple Sheet?',
     answer:
-      'Show me only what deserves my attention. Calm: Greeting + Status + Waiting-Pill. Klick → organische Ink-Path (Progress = Bewegung). Dann die eine Frage mit echten Optionen aus dem Decision Engine. Rechts: Apple Sheet ohne blaue Buttons. Erklären öffnet Popup an der Path. Accept → POST /api/decisions/:id/decide. Overview API liefert options, reasons, explainSteps. Mobile: Path oben, Bottom Sheet — nicht skaliertes Desktop. Nie Dashboard, nie Chat, nie mehr als eine Hauptlinie.',
+      'Show me only what deserves my attention. Calm: Greeting + Status + Waiting-Pill. Klick → organische Ink-Path. Dann die eine Frage mit echten Optionen aus dem Decision Engine. Rechts: Apple Sheet. Accept → POST /api/decisions/:id/decide. Overview API rankt nach Urgency, matched recommended_option über external_id/uuid/Label, liefert reasons + explainSteps + needsSuggestion. Bei leeren Legacy-Optionen erzeugt /suggest Optionen und persistiert sie. Mobile: Path oben, Bottom Sheet. Nie Dashboard, nie Chat, nie mehr als eine Hauptlinie.',
     decision:
-      'Overview v4.2 · enriched overview API · accept via POST /decide · organic ink · Apple sheet · mobile bottom sheet · one focus one line',
+      'Overview v4.3 · suggest generates options · label/id matching · urgency rank · ensureCanvasSuggestion on activate · accept resolves option ids',
     date: '2026-08-04',
-    version: '4.2',
+    version: '4.3',
     status: 'locked',
     related: [
       'docs/festag-decision-canvas.md',
       'components/app-shell/WorkspaceOverviewLive.tsx',
       'lib/overview/decision-canvas.ts',
       'app/api/workspaces/overview/route.ts',
+      'app/api/decisions/[id]/suggest/route.ts',
+      'app/api/decisions/[id]/decide/route.ts',
       'docs/festag-tagro-invisible-intelligence.md',
       'docs/festag-experience-constitution.md',
     ],

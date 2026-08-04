@@ -86,6 +86,35 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
     }
   }
 
+  /* Resolve option id/label → canonical external_id (or uuid) for Decision Canvas */
+  if (
+    responseValue &&
+    'selected_option_id' in responseValue &&
+    responseValue.selected_option_id
+  ) {
+    const rawId = String(responseValue.selected_option_id).trim()
+    const { data: optRows } = await (supa as any)
+      .from('decision_options')
+      .select('id, external_id, label, client_label')
+      .eq('decision_id', d.id)
+    if (optRows?.length) {
+      const n = rawId.toLowerCase()
+      const hit =
+        optRows.find((o: any) => String(o.external_id || '').toLowerCase() === n) ||
+        optRows.find((o: any) => String(o.id).toLowerCase() === n) ||
+        optRows.find(
+          (o: any) =>
+            String(o.client_label || '').toLowerCase() === n ||
+            String(o.label || '').toLowerCase() === n,
+        )
+      if (hit) {
+        responseValue = {
+          selected_option_id: String(hit.external_id || hit.id),
+        }
+      }
+    }
+  }
+
   if (!responseValue) {
     return NextResponse.json({
       error: 'response_value missing or does not match response_type',

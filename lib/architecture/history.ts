@@ -13,6 +13,14 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '4.3',
+    title: 'Decision Canvas backend hardening',
+    summary:
+      'Suggest generates and persists options for legacy empty decisions. Overview ranks by urgency, matches recommended_option across id/label, flags needsSuggestion. Canvas calls /suggest on activate and rebuilds topic. Decide resolves option ids/labels to external_id.',
+    date: '2026-08-04',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
     version: '4.2',
     title: 'Decision Canvas wired to decision engine',
     summary:

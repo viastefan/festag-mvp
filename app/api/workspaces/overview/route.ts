@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
-import { enrichDecisionFocus } from '@/lib/overview/decision-canvas'
+import { mapDecisionRowToOverview, rankDecisionsForCanvas } from '@/lib/overview/decision-canvas'
 import {
   listWorkspacesForUser,
   resolveActiveWorkspaceId,
@@ -55,6 +55,7 @@ export type WorkspaceOverviewDecision = {
   options: WorkspaceOverviewDecisionOption[]
   reasons: string[]
   explainSteps: Array<{ n: number; label: string }>
+  needsSuggestion?: boolean
 }
 
 export type WorkspaceOverviewActivity = {
@@ -176,7 +177,7 @@ export async function GET(req: NextRequest) {
       ? service
           .from('decisions')
           .select(
-            'id, title, client_title, client_summary, project_id, urgency, due_date, created_at, status, response_type, decision_type, recommended_option, tagro_recommendation_reason, tagro_reasoning, options_json',
+            'id, title, client_title, client_summary, project_id, urgency, due_date, created_at, status, response_type, decision_type, recommended_option, tagro_recommendation_reason, tagro_reasoning, impact_summary, options_json',
           )
           .in('project_id', projectIds)
           .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
@@ -327,7 +328,8 @@ export async function GET(req: NextRequest) {
   }
 
   /* Load options for the top open decisions — Decision Canvas needs real labels */
-  const topDecisionIds = (decisions || []).slice(0, 8).map((d: any) => d.id as string)
+  const rankedDecisions = rankDecisionsForCanvas(decisions || [])
+  const topDecisionIds = rankedDecisions.slice(0, 8).map((d: any) => d.id as string)
   const optionsByDecision = new Map<string, any[]>()
   if (topDecisionIds.length > 0) {
     const { data: optRows } = await service
@@ -344,51 +346,13 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const pendingDecisions: WorkspaceOverviewDecision[] = (decisions || [])
+  const pendingDecisions: WorkspaceOverviewDecision[] = rankedDecisions
     .slice(0, 8)
     .map((d: any) => {
-      const fromTable = optionsByDecision.get(d.id) || []
-      let options: WorkspaceOverviewDecisionOption[] = fromTable.map((o: any) => ({
-        id: String(o.external_id || o.id),
-        label: String(o.client_label || o.label || 'Option'),
-        hint:
-          typeof o.description === 'string' && o.description.trim()
-            ? o.description.trim()
-            : null,
-        recommended: Boolean(o.recommended_by_tagro),
-        handoffSteps: o.implications_json?.external_handoff?.steps,
-      }))
-
-      if (options.length === 0 && Array.isArray(d.options_json)) {
-        options = d.options_json
-          .filter((o: any) => o && (o.id || o.label))
-          .map((o: any) => ({
-            id: String(o.id || o.label),
-            label: String(o.label || o.id || 'Option'),
-            hint: typeof o.hint === 'string' ? o.hint : null,
-            recommended: String(o.id) === String(d.recommended_option),
-          }))
-      }
-
-      const enriched = enrichDecisionFocus({
-        id: d.id,
-        title: String(d.client_title || d.title || 'Entscheidung'),
-        summary: typeof d.client_summary === 'string' ? d.client_summary : null,
-        projectId: d.project_id || null,
+      const enriched = mapDecisionRowToOverview({
+        decision: d,
+        optionRows: optionsByDecision.get(d.id) || [],
         projectTitle: (d.project_id && titleById.get(d.project_id)) || 'Projekt',
-        urgency: typeof d.urgency === 'string' ? d.urgency : null,
-        dueDate: d.due_date || null,
-        responseType: typeof d.response_type === 'string' ? d.response_type : null,
-        decisionType: typeof d.decision_type === 'string' ? d.decision_type : null,
-        recommendedOptionId:
-          typeof d.recommended_option === 'string' ? d.recommended_option : null,
-        recommendationReason:
-          typeof d.tagro_recommendation_reason === 'string'
-            ? d.tagro_recommendation_reason
-            : null,
-        tagroReasoning:
-          typeof d.tagro_reasoning === 'string' ? d.tagro_reasoning : null,
-        options,
       })
 
       return {
@@ -412,6 +376,7 @@ export async function GET(req: NextRequest) {
         })),
         reasons: enriched.reasons,
         explainSteps: enriched.explainSteps,
+        needsSuggestion: enriched.needsSuggestion,
       }
     })
 
@@ -541,12 +506,14 @@ export async function GET(req: NextRequest) {
   if (!briefing && projects.length > 0) {
     const top = projects[0]
     const lines = [
-      top.phase ? `Current phase: ${formatPhase(top.phase)}.` : null,
-      top.progress > 0 ? `Progress at ${top.progress}%.` : 'Project is ready to move forward.',
-      top.nextMilestone ? `Next milestone: ${top.nextMilestone}.` : null,
+      top.phase ? `Aktuelle Phase: ${formatPhase(top.phase)}.` : null,
+      top.progress > 0 ? `Fortschritt bei ${top.progress} %.` : 'Das Projekt ist bereit, weiterzugehen.',
+      top.nextMilestone ? `Nächster Meilenstein: ${top.nextMilestone}.` : null,
       pendingDecisions.length > 0
-        ? `${pendingDecisions.length} decision${pendingDecisions.length === 1 ? '' : 's'} still need attention.`
-        : 'No open decisions right now.',
+        ? pendingDecisions.length === 1
+          ? 'Eine Entscheidung wartet noch.'
+          : `${pendingDecisions.length} Entscheidungen warten noch.`
+        : 'Keine offenen Entscheidungen.',
     ].filter(Boolean) as string[]
     briefing = {
       projectTitle: top.title,

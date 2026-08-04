@@ -26,10 +26,15 @@ Calm (greeting + status + waiting pill)
 
 | Piece | Location |
 |---|---|
-| Domain | `lib/overview/decision-canvas.ts` |
-| Overview API | `GET /api/workspaces/overview` — rich `decisions[]` with options, reasons, explainSteps |
-| Accept | `POST /api/decisions/:id/decide` via `acceptDecisionRecommendation` |
-| UI | `components/app-shell/WorkspaceOverviewLive.tsx` |
+| Domain | `lib/overview/decision-canvas.ts` — match id/label, rank urgency, enrich reasons |
+| Overview API | `GET /api/workspaces/overview` — ranked `decisions[]` with options, reasons, explainSteps, needsSuggestion |
+| Suggest | `POST /api/decisions/:id/suggest` — recommends; generates + persists options when empty |
+| Accept | `POST /api/decisions/:id/decide` via `acceptDecisionRecommendation` (resolves external_id / label) |
+| UI | `components/app-shell/WorkspaceOverviewLive.tsx` — calls suggest on activate when needed |
+
+## Matching quirk
+
+`decisions.recommended_option` may be a **client label**, while options use `external_id` (`opt-1`). Matching tries external_id · uuid · client_label · label.
 
 ## Mobile
 
@@ -37,4 +42,4 @@ Designed separately: path ~upper 40%, decision center, recommendation as **botto
 
 ## Architecture Memory
 
-`overview-tagro-core-interface` · v4.2
+`overview-tagro-core-interface` · v4.3
