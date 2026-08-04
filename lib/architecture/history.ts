@@ -13,10 +13,18 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '4.0',
+    title: 'Decision Canvas — one focus, one line',
+    summary:
+      'Overview law: center shows only the current thought. Click opens the question. One ink line grows. Compact recommend card on the right. Warum? pops on the line. Done retracts the line. Never more than one main line. No orb, no dashboard.',
+    date: '2026-08-04',
+    memoryIds: ['overview-tagro-core-interface'],
+  },
+  {
     version: '3.9',
     title: 'Overview as Decision Canvas',
     summary:
-      'Replaced Living Network orb with Decision Canvas on paper Read Mode. Decision is the hero; 1px ink line for attention; floating panels without borders; primary blue only for meaning; transparent 72px sidebar.',
+      'Replaced Living Network orb with Decision Canvas on paper Read Mode. Superseded by 4.0 one-focus / one-line law.',
     date: '2026-08-04',
     memoryIds: ['overview-tagro-core-interface'],
   },

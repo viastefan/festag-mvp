@@ -331,19 +331,19 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
   },
   {
     id: 'overview-tagro-core-interface',
-    question: 'Warum ist Overview kein Dashboard, sondern ein Decision Canvas?',
+    question: 'Warum ist Overview ein Decision Canvas mit einer Linie — nicht Dashboard oder Netzwerk?',
     answer:
-      'SaaS-Dashboards und sichtbare AI-Netzwerke machen Festag austauschbar. Overview ist ein Decision Canvas auf Read-Mode-Papier (#F8F6F2, Noise, Rasterpunkte, Lichtverlauf). Keine Kugel, kein permanentes Netzwerk. Idle = ruhiger Text + fast unsichtbare Punkte. Aufmerksamkeit = 1px Primary-Blue-Tintenlinie (kein Glow). Die Entscheidung selbst ist der Hero (Titel + Optionen). Floating Panels ohne harte Borders. Primary Blue nur für Bedeutung. Sidebar 72px transparent, Icons schweben. Satz: Das Interface ist so ruhig, dass jede Bewegung Bedeutung hat.',
+      'Die Mitte zeigt immer genau das, worüber gerade gesprochen wird — nie mehr. Calm: Greeting + Status. Klick öffnet die Frage in der Mitte mit Optionen. Genau eine Hauptlinie wächst (Gedanke → Verbindung). Rechts erscheint eine kleine Empfehlungskarte (Tagro empfiehlt / Warum? / Übernehmen / Selbst entscheiden). Warum? öffnet ein Popup direkt an der Linie. Erledigte Entscheidung: Linie zieht sich zurück, Mitte wird ruhig, nächste Sache erscheint. Nie mehr als eine Hauptlinie. Nie Tagro als Mittelpunkt. Nie KPI-Karten. Flow: Gedanke → Verbindung → Erklärung → Aktion → Fertig.',
     decision:
-      'Overview = Decision Canvas · paper Read Mode · decision is hero · ink line 1px #5B647D · no orb/network · floating panels · blue only for meaning · transparent 72px sidebar · v3.9',
+      'Overview = one focus · one ink line · one recommend card · Warum on the line · no orb/network/dashboard · paper Read Mode · v4.0',
     date: '2026-08-04',
-    version: '3.9',
+    version: '4.0',
     status: 'locked',
     related: [
-      'docs/festag-create-project-flow.md',
       'components/app-shell/WorkspaceOverviewLive.tsx',
       'docs/festag-tagro-invisible-intelligence.md',
       'docs/festag-experience-constitution.md',
+      'docs/festag-create-project-flow.md',
     ],
   },
 ]

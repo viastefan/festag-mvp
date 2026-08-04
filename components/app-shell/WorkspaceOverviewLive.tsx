@@ -1,12 +1,14 @@
 'use client'
 
 /**
- * Decision Canvas — Overview.
- * One composition. The decision (or next step) is the hero.
- * No network. No orb. No duplicate panels. No dashboard.
+ * Decision Canvas — Overview identity (v4).
+ *
+ * Law: The center shows exactly what is being talked about. Never more.
+ * Never more than one main ink line at a time.
+ * Flow: Thought → Connection → Explanation → Action → Done.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Microphone } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
@@ -80,157 +82,358 @@ type Props = {
   data: OverviewPayload
 }
 
-type Mode = 'calm' | 'project' | 'decision'
+/** calm = empty thought · focus = center question · recommend = line + card */
+type Phase = 'calm' | 'focus' | 'line' | 'recommend' | 'done'
 
-type Choice = {
+type Option = { id: string; label: string }
+
+type FocusTopic = {
+  kind: 'decision' | 'project'
   id: string
-  label: string
+  question: string
+  options: Option[]
+  recommendId: string
+  recommendLabel: string
+  reasons: string[]
+  whyCompare: { title: string; points: string[] }
   href?: string
-  onClick?: () => void
 }
 
-function decisionPrompt(title: string): string {
-  if (/design/i.test(title)) return 'Wähle die Designrichtung.'
-  if (/homepage|startseite/i.test(title)) return 'Freigeben oder Änderungen anfordern.'
-  return 'Wähle, wie es weitergeht.'
-}
-
-function decisionChoices(title: string, decisionId: string): Choice[] {
-  const href = decisionId ? `/decisions/${decisionId}` : '/overview/inbox'
-  if (/design/i.test(title)) {
-    return [
-      { id: 'a', label: 'Modern Minimal', href },
-      { id: 'b', label: 'Elegant Corporate', href },
-    ]
+function buildTopic(data: OverviewPayload): FocusTopic | null {
+  if (data.summary.activeProjects === 0) {
+    return {
+      kind: 'project',
+      id: 'first-project',
+      question: 'Bereit für dein erstes Projekt?',
+      options: [
+        { id: 'start', label: 'Jetzt starten' },
+        { id: 'later', label: 'Später' },
+      ],
+      recommendId: 'start',
+      recommendLabel: 'Jetzt starten',
+      reasons: [
+        'Tagro strukturiert Name, Aufgaben und nächste Schritte.',
+        'Du bleibst in einem Workspace — keine zweite App.',
+        'Einladung und Freigaben kommen danach von selbst.',
+      ],
+      whyCompare: {
+        title: 'Warum jetzt',
+        points: [
+          'Ohne Projekt bleibt der Workspace leer.',
+          'Tagro braucht einen ersten Kontext, um zu lernen.',
+          'Dauert nur einen Moment.',
+        ],
+      },
+    }
   }
-  return [
-    { id: 'approve', label: 'Freigeben', href },
-    { id: 'changes', label: 'Änderungen anfordern', href },
-  ]
+
+  const d = data.decisions[0]
+  if (!d || data.summary.pendingDecisions <= 0) return null
+
+  const isDesign = /design/i.test(d.title)
+  const isHome = /homepage|startseite/i.test(d.title)
+
+  if (isDesign) {
+    return {
+      kind: 'decision',
+      id: d.id,
+      question: 'Welches Design soll verwendet werden?',
+      options: [
+        { id: 'minimal', label: 'Modern Minimal' },
+        { id: 'corporate', label: 'Elegant Corporate' },
+      ],
+      recommendId: 'minimal',
+      recommendLabel: 'Modern Minimal',
+      reasons: [
+        'Konsistenter Markenauftritt',
+        'Schnellere Umsetzung',
+        'Höhere Conversion',
+      ],
+      whyCompare: {
+        title: 'Vergleich',
+        points: [
+          'Modern Minimal: +35 % schnellere Entwicklung',
+          '2 Komponenten weniger',
+          'Passt zur Marke',
+        ],
+      },
+      href: `/decisions/${d.id}`,
+    }
+  }
+
+  if (isHome) {
+    return {
+      kind: 'decision',
+      id: d.id,
+      question: 'Neue Homepage veröffentlichen?',
+      options: [
+        { id: 'approve', label: 'Freigeben' },
+        { id: 'changes', label: 'Änderungen anfordern' },
+      ],
+      recommendId: 'approve',
+      recommendLabel: 'Freigeben',
+      reasons: [
+        'Qualität und Performance sind geprüft',
+        'Keine kritischen Issues',
+        'Bereit für Deployment',
+      ],
+      whyCompare: {
+        title: 'Status',
+        points: [
+          'Qualitätsprüfung abgeschlossen',
+          'Performance validiert',
+          'SEO & Inhalte geprüft',
+        ],
+      },
+      href: `/decisions/${d.id}`,
+    }
+  }
+
+  return {
+    kind: 'decision',
+    id: d.id,
+    question: d.title.endsWith('?') ? d.title : `${d.title}?`,
+    options: [
+      { id: 'approve', label: 'Übernehmen' },
+      { id: 'changes', label: 'Selbst entscheiden' },
+    ],
+    recommendId: 'approve',
+    recommendLabel: 'Übernehmen',
+    reasons: [
+      'Passt zum aktuellen Projektstand',
+      'Keine Blocker erkannt',
+      'Nächster Schritt ist klar',
+    ],
+    whyCompare: {
+      title: 'Kontext',
+      points: [
+        d.projectTitle ? `Projekt: ${d.projectTitle}` : 'Workspace-Entscheidung',
+        'Tagro hat den Verlauf geprüft',
+        'Du bestätigst — Festag führt aus',
+      ],
+    },
+    href: `/decisions/${d.id}`,
+  }
 }
 
 export default function WorkspaceOverviewLive({ greeting, firstName, data }: Props) {
-  const { workspace, summary, decisions } = data
-  const focusDecision = decisions[0] || null
-  const [listening, setListening] = useState(false)
+  const topic = useMemo(() => buildTopic(data), [data])
+  const [phase, setPhase] = useState<Phase>('calm')
   const [selected, setSelected] = useState<string | null>(null)
+  const [whyOpen, setWhyOpen] = useState(false)
+  const [listening, setListening] = useState(false)
 
-  const mode: Mode = useMemo(() => {
-    if (summary.activeProjects === 0) return 'project'
-    if (focusDecision && summary.pendingDecisions > 0) return 'decision'
-    return 'calm'
-  }, [summary.activeProjects, summary.pendingDecisions, focusDecision])
+  /* Reset when the underlying topic changes */
+  useEffect(() => {
+    setPhase('calm')
+    setSelected(null)
+    setWhyOpen(false)
+  }, [topic?.id])
 
   const lead = `${greeting}, ${firstName}.`
 
-  const calmLines = useMemo(() => {
-    if (mode === 'project') {
+  const calmBody = useMemo(() => {
+    if (!topic) {
+      if (data.summary.calmLine) return [data.summary.calmLine]
+      return [`Alles in ${data.workspace.name} läuft ruhig.`]
+    }
+    if (topic.kind === 'project') {
       return [
-        `In ${workspace.name} läuft noch alles ruhig.`,
-        'Das erste Projekt wartet auf dich.',
+        `In ${data.workspace.name} läuft noch alles ruhig.`,
+        'Das erste Projekt wartet.',
       ]
     }
-    if (mode === 'decision') {
-      return [
-        'Alles läuft ruhig.',
-        summary.pendingDecisions === 1
-          ? 'Eine Freigabe wartet.'
-          : `${summary.pendingDecisions} Freigaben warten.`,
-      ]
-    }
-    if (summary.calmLine) return [summary.calmLine]
-    return [`Alles in ${workspace.name} läuft ruhig.`]
-  }, [mode, workspace.name, summary.pendingDecisions, summary.calmLine])
+    return [
+      'Alles läuft ruhig.',
+      data.summary.pendingDecisions === 1
+        ? 'Eine Entscheidung wartet.'
+        : `${data.summary.pendingDecisions} Entscheidungen warten.`,
+    ]
+  }, [topic, data])
 
-  const choices: Choice[] = useMemo(() => {
-    if (mode === 'project') {
-      return [{ id: 'new', label: 'Neues Projekt', onClick: () => openNewProject() }]
-    }
-    if (mode === 'decision' && focusDecision) {
-      return decisionChoices(focusDecision.title, focusDecision.id)
-    }
-    return []
-  }, [mode, focusDecision])
+  function openFocus() {
+    if (!topic || phase !== 'calm') return
+    setPhase('focus')
+    setSelected(topic.recommendId)
+    /* Thought → connection → card */
+    window.setTimeout(() => setPhase('line'), 280)
+    window.setTimeout(() => setPhase('recommend'), 720)
+  }
 
-  const heroTitle = mode === 'decision' && focusDecision ? focusDecision.title : null
-  const heroPrompt =
-    mode === 'decision' && focusDecision
-      ? decisionPrompt(focusDecision.title)
-      : mode === 'project'
-        ? null
-        : null
+  function closeFocus() {
+    setWhyOpen(false)
+    setPhase('done')
+    window.setTimeout(() => {
+      setPhase('calm')
+      setSelected(null)
+    }, 420)
+  }
 
-  const needsAttention = mode !== 'calm'
+  function takeRecommendation() {
+    if (!topic) return
+    setSelected(topic.recommendId)
+    if (topic.kind === 'project') {
+      openNewProject()
+      closeFocus()
+      return
+    }
+    if (topic.href) {
+      window.location.assign(topic.href)
+      return
+    }
+    closeFocus()
+  }
+
+  function decideYourself() {
+    setWhyOpen(false)
+    /* Human stays with the question — no second card push */
+    setPhase('focus')
+  }
+
+  const showFocus = phase === 'focus' || phase === 'line' || phase === 'recommend'
+  const showLine = phase === 'line' || phase === 'recommend'
+  const showCard = phase === 'recommend'
+  const isCalm = phase === 'calm' || phase === 'done'
 
   return (
-    <div className={`fas-dc${listening ? ' is-listening' : ''}`} data-mode={mode}>
+    <div
+      className={`fas-dc${listening ? ' is-listening' : ''}${showCard ? ' has-card' : ''}`}
+      data-phase={phase}
+    >
       <div className="fas-dc-invites">
         <OverviewPendingInvites />
       </div>
 
-      <div className="fas-dc-canvas">
-        {/* Idle breath — almost invisible */}
-        <div className={`fas-dc-breath${needsAttention ? ' is-awake' : ''}`} aria-hidden>
-          <span />
-          <span />
-          <span />
+      {/* One main ink line — never more than one */}
+      {showLine ? (
+        <div className="fas-dc-thread" aria-hidden>
+          <span className="fas-dc-thread-origin" />
+          <span className="fas-dc-thread-line" />
+          {whyOpen ? (
+            <span className="fas-dc-thread-node">
+              <span className="fas-dc-why-pop">
+                <p className="fas-dc-why-title">{topic?.whyCompare.title}</p>
+                <ul className="fas-dc-why-list">
+                  {topic?.whyCompare.points.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+              </span>
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="fas-dc-thread-hotspot"
+              aria-label="Warum"
+              onClick={() => setWhyOpen(true)}
+            />
+          )}
+          <span className="fas-dc-thread-end" />
+        </div>
+      ) : null}
+
+      <div className="fas-dc-stage">
+        <div className="fas-dc-center">
+          {isCalm ? (
+            <button
+              type="button"
+              className="fas-dc-calm"
+              onClick={openFocus}
+              disabled={!topic}
+              aria-label={topic ? 'Entscheidung öffnen' : undefined}
+            >
+              <p className="fas-dc-title">{lead}</p>
+              {calmBody.map((line) => (
+                <p key={line} className="fas-dc-support">
+                  {line}
+                </p>
+              ))}
+              {topic ? (
+                <span className="fas-dc-hint">Tippen, um fortzufahren</span>
+              ) : null}
+            </button>
+          ) : null}
+
+          {showFocus && topic ? (
+            <div className="fas-dc-focus" key={topic.id}>
+              <h1 className="fas-dc-title">{topic.question}</h1>
+              <div className="fas-dc-options" role="radiogroup" aria-label="Optionen">
+                {topic.options.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className={`fas-dc-option${selected === opt.id ? ' is-on' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="fas-dc-opt"
+                      value={opt.id}
+                      checked={selected === opt.id}
+                      onChange={() => setSelected(opt.id)}
+                    />
+                    <span className="fas-dc-radio" aria-hidden />
+                    <span className="fas-dc-option-label">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        {mode === 'decision' && heroTitle ? (
-          <div className="fas-dc-block">
-            <h1 className="fas-dc-title">{heroTitle}</h1>
-            {heroPrompt ? <p className="fas-dc-support">{heroPrompt}</p> : null}
-          </div>
-        ) : (
-          <div className="fas-dc-block">
-            <p className="fas-dc-title">{lead}</p>
-            {calmLines.map((line) => (
-              <p key={line} className="fas-dc-support">
-                {line}
-              </p>
-            ))}
-          </div>
-        )}
+        {showCard && topic ? (
+          <aside className="fas-dc-card" aria-label="Tagro Empfehlung">
+            <p className="fas-dc-card-kicker">Tagro empfiehlt</p>
+            <p className="fas-dc-card-pick">{topic.recommendLabel}</p>
 
-        {/* Ink — only when attention is deserved */}
-        {needsAttention ? <div className="fas-dc-ink" aria-hidden /> : null}
+            <button
+              type="button"
+              className="fas-dc-card-why"
+              onClick={() => setWhyOpen((v) => !v)}
+              aria-expanded={whyOpen}
+            >
+              Warum?
+            </button>
 
-        {choices.length > 0 ? (
-          <div className="fas-dc-choices" role="group" aria-label="Nächster Schritt">
-            {choices.map((c, i) => {
-              const isOn = selected === c.id || (selected === null && i === 0 && mode === 'project')
-              const className = `fas-dc-choice${isOn ? ' is-on' : ''}`
-              if (c.href) {
-                return (
-                  <div key={c.id} className="fas-dc-choice-row">
-                    {i > 0 ? <span className="fas-dc-or">oder</span> : null}
-                    <Link
-                      href={c.href}
-                      className={className}
-                      onClick={() => setSelected(c.id)}
-                    >
-                      {c.label}
-                    </Link>
-                  </div>
-                )
-              }
-              return (
-                <div key={c.id} className="fas-dc-choice-row">
-                  {i > 0 ? <span className="fas-dc-or">oder</span> : null}
-                  <button
-                    type="button"
-                    className={className}
-                    onClick={() => {
-                      setSelected(c.id)
-                      c.onClick?.()
-                    }}
-                  >
-                    {c.label}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
+            <ul className="fas-dc-card-reasons">
+              {topic.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+
+            <div className="fas-dc-card-rule" aria-hidden />
+
+            <div className="fas-dc-card-actions">
+              <button
+                type="button"
+                className="fas-dc-card-btn is-primary"
+                onClick={takeRecommendation}
+              >
+                Empfehlung übernehmen
+              </button>
+              {topic.kind === 'decision' && topic.href ? (
+                <Link
+                  href={topic.href}
+                  className="fas-dc-card-btn"
+                  onClick={() => setWhyOpen(false)}
+                >
+                  Selbst entscheiden
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="fas-dc-card-btn"
+                  onClick={() => {
+                    if (topic.kind === 'project' && selected === 'later') {
+                      closeFocus()
+                      return
+                    }
+                    decideYourself()
+                  }}
+                >
+                  Selbst entscheiden
+                </button>
+              )}
+            </div>
+          </aside>
         ) : null}
       </div>
 
