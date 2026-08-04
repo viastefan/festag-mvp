@@ -29,7 +29,7 @@ Create Workspace (popup + slides)
 ```
 
 **First project is not part of workspace create.**  
-„Neues Projekt“ opens later as a **darkened popup** (`NewProjectModal`): Tagro reads name/description, chats, suggests collaborators, invites, and helps formulate — same flow as the classic backend.
+„Neues Projekt“ opens later as a **darkened popup** (`NewProjectModal` — Tagro Intent Intake): one intelligent input (voice, files, drag-and-drop). Tagro detects intent (project, bug, feature, invite, question, briefing), shows an editable draft, and writes only after the human confirms.
 
 **Use cases (jobs, not category labels):**
 
@@ -44,7 +44,7 @@ Create Workspace (popup + slides)
 
 **Pricing:** first owned workspace is free (Hobby). Creating an additional workspace surfaces the Workspace Plan (€19/month).
 
-Code: `lib/platform/workspace-creation.ts` · `lib/new-project-open.ts` · `WorkspaceCreateWizardModal` · `AppShellNewProjectHost` · `NewProjectModal` · `OverviewPendingInvites`.  
+Code: `lib/platform/workspace-creation.ts` · `lib/new-project-open.ts` · `lib/tagro/intent-intake.ts` · `WorkspaceCreateWizardModal` · `AppShellNewProjectHost` · `NewProjectModal` · `OverviewPendingInvites`.  
 Legacy `/create-workspace` redirects to `/overview?create=1`.
 
 ## Overview

@@ -22,11 +22,11 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     id: 'workspace-creation-as-os',
     question: 'Warum ist Workspace-Erstellung kein Name→Template→Module-Wizard?',
     answer:
-      'Der erste Workspace muss sich wie ein digitales Betriebssystem anfühlen, nicht wie ein Ordner. Oberfläche: sequentieller Popup-Slider auf Overview (nicht Full-Page). Name + Subdomain machen ihn real; Use-Case-Karten wählen eine Aufgabe. Module und €19 gehören nicht in den ersten Moment. Erster Workspace gratis (Hobby); Zusatz-Workspaces → Workspace Plan. Erstes Projekt ist kein Wizard-Schritt — „Neues Projekt“ öffnet später NewProjectModal (verdunkeltes Overlay) mit Tagro-Chat, Mitwirkenden, Einladen und Formulieren.',
+      'Der erste Workspace muss sich wie ein digitales Betriebssystem anfühlen, nicht wie ein Ordner. Oberfläche: sequentieller Popup-Slider auf Overview (nicht Full-Page). Name + Subdomain machen ihn real; Use-Case-Karten wählen eine Aufgabe. Module und €19 gehören nicht in den ersten Moment. Erster Workspace gratis (Hobby); Zusatz-Workspaces → Workspace Plan. Erstes Projekt ist kein Wizard-Schritt — „Neues Projekt“ öffnet später Tagro Intent Intake (NewProjectModal): ein Freitext-Input, Draft-Preview, Mensch bestätigt.',
     decision:
-      'Phase 2: Name → Use-case → Creating → Ready → Overview. No first-project/invite in wizard. New project = NewProjectModal via openNewProject(). No module picker. First WS free. SSOT workspace-creation + new-project-open',
+      'Phase 2: Name → Use-case → Creating → Ready → Overview. No first-project/invite in wizard. New work = Tagro Intent Intake via openNewProject(). No module picker. First WS free. SSOT workspace-creation + new-project-open + intent-intake',
     date: '2026-08-04',
-    version: '3.5',
+    version: '3.6',
     status: 'locked',
     related: [
       'docs/festag-os-workspace-phases.md',
@@ -34,11 +34,30 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
       'lib/platform/workspace-creation.ts',
       'lib/platform/workspace-setup.ts',
       'lib/new-project-open.ts',
+      'lib/tagro/intent-intake.ts',
       'components/app-shell/WorkspaceCreateWizardModal.tsx',
       'components/app-shell/AppShellNewProjectHost.tsx',
       'components/NewProjectModal.tsx',
       'components/app-shell/OverviewPendingInvites.tsx',
       'lib/workspace-create-open.ts',
+    ],
+  },
+  {
+    id: 'tagro-intent-intake',
+    question: 'Warum ist Projekterstellung kein Create-Project-Formular?',
+    answer:
+      'Festag ist kein PM-Tool. Nutzer beschreiben Ziele in einem Input. Tagro erkennt Intent (neues Projekt, Bug, Feature, Frage, Einladung, Status) und zeigt einen editierbaren Draft. Speichern erst nach Bestätigung. Voice, Dateien und Drag-and-Drop gehören zum Intake — nicht separate Formularfelder für Projekt vs Task vs Bug.',
+    decision:
+      'NewProjectModal = Intent Intake. APIs: /api/tagro/intent-intake (draft) + /api/tagro/intent-confirm (write). Human confirms always.',
+    date: '2026-08-04',
+    version: '1.0',
+    status: 'locked',
+    related: [
+      'lib/tagro/intent-intake.ts',
+      'components/NewProjectModal.tsx',
+      'app/api/tagro/intent-intake/route.ts',
+      'app/api/tagro/intent-confirm/route.ts',
+      'docs/festag-tagro-invisible-intelligence.md',
     ],
   },
   {

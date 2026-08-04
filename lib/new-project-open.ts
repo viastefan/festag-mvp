@@ -1,4 +1,4 @@
-/** Open Festag OS / Workspace „Neues Projekt“ popup (Tagro create flow). */
+/** Open Festag OS / Workspace „Neues Projekt“ popup (Tagro Intent Intake). */
 
 export const OPEN_NEW_PROJECT_EVENT = 'festag:open-new-project'
 export const PROJECT_CREATED_EVENT = 'festag:project-created'

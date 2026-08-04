@@ -13,6 +13,14 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '3.6',
+    title: 'Tagro Intent Intake',
+    summary:
+      'Project creation is no longer a form. One intelligent input → Tagro detects intent → editable draft → human confirms. APIs intent-intake + intent-confirm.',
+    date: '2026-08-04',
+    memoryIds: ['tagro-intent-intake', 'workspace-creation-as-os'],
+  },
+  {
     version: '3.1',
     title: 'Build Onboarding v2',
     summary:

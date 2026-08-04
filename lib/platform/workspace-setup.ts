@@ -1,11 +1,12 @@
 /**
- * Post–workspace helpers — invites + copy (project create lives in NewProjectModal).
+ * Post–workspace helpers — invites + copy (intent intake lives in NewProjectModal).
  *
- * Workspace create ends at Overview. „Neues Projekt“ opens the Tagro popup
- * (darkened overlay): chat, Mitwirkende, Einladungen, Formulierung.
+ * Workspace create ends at Overview. „Neues Projekt“ opens Tagro Intent Intake:
+ * one intelligent input → draft (project / task / invite / answer / briefing) → confirm.
  *
  * @see lib/platform/workspace-creation.ts
  * @see lib/new-project-open.ts
+ * @see lib/tagro/intent-intake.ts
  * @see docs/festag-os-workspace-phases.md
  */
 
@@ -71,15 +72,15 @@ export function inviteLegacyToProjectRole(role: string | null | undefined): Proj
 export const WORKSPACE_SETUP_COPY = {
   welcomeReady: 'Dein Workspace ist bereit.',
   /** Used by NewProjectModal / Projects empty — not in workspace wizard. */
-  projectTitle: 'Neues Projekt.',
-  projectTitleRest: 'Tagro liest deine Angaben und führt dich weiter.',
-  projectNameLabel: 'Projektname',
+  projectTitle: 'What would you like to build or update?',
+  projectTitleRest: '',
+  projectNameLabel: 'Project Name',
   projectNamePlaceholder: 'Airport Website',
-  projectDescLabel: 'Beschreibung (optional)',
-  projectDescPlaceholder: 'Kurz, worum es geht…',
-  projectCreate: 'Mit Tagro fortfahren',
+  projectDescLabel: 'Summary',
+  projectDescPlaceholder: 'I want to build a booking platform for my hotel.',
+  projectCreate: 'Continue with Tagro',
   projectTagroHint:
-    'Tagro liest, was du eingibst — stellt Rückfragen, schlägt Mitwirkende vor, hilft beim Einladen und formuliert mit dir.',
+    'Describe what you need. Tagro turns it into a project, task, invite, or briefing draft — you confirm before anything is saved.',
   inviteTitle: 'Lade dein Team ein.',
   inviteTitleRest: 'Clients, Developer und Stakeholder arbeiten im Projekt zusammen.',
   inviteUsernameLabel: 'Festag-Nutzer',

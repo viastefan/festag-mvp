@@ -32,8 +32,8 @@ Ship in this order — do not invent ahead:
    Use-case cards (jobs, not categories): Build for Clients · Run an Agency · Build a Product · Internal Team.  
    **No module picker** in the wizard — templates configure defaults; Modules live in Settings later.  
    **First workspace free (Hobby)** — never mention €19 here. Additional workspaces → Workspace Plan (€19/month).  
-   **No first-project step in the wizard.** „Neues Projekt“ opens later as darkened `NewProjectModal` (Tagro chat, Mitwirkende, Einladen, Formulieren).  
-   Code: `lib/platform/workspace-creation.ts` · `lib/new-project-open.ts` · `WorkspaceCreateWizardModal` · `AppShellNewProjectHost` · `NewProjectModal` · `lib/workspace-create-open.ts`  
+  **No first-project step in the wizard.** „Neues Projekt“ opens later as darkened `NewProjectModal` (Tagro Intent Intake: one input → draft → confirm).  
+  Code: `lib/platform/workspace-creation.ts` · `lib/new-project-open.ts` · `lib/tagro/intent-intake.ts` · `WorkspaceCreateWizardModal` · `AppShellNewProjectHost` · `NewProjectModal` · `lib/workspace-create-open.ts`
    Legacy `/create-workspace` → `/overview?create=1`
 3. **Phase 3 — Workspace Dashboard**  
    Tagro Briefing, Projects, Activity, Decisions, Health, Team — only after a workspace exists.

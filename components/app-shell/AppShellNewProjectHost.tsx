@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Host for NewProjectModal on Festag OS — darkened overlay + Tagro chat flow.
+ * Host for NewProjectModal on Festag OS — darkened overlay + Tagro Intent Intake.
  * Opens only when the user chooses „Neues Projekt“, never during workspace create.
  */
 
