@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * Tagro Living Network — Overview visual identity.
- * Idle = silence (disconnected nodes). Motion only when context requires it.
- * Spec: docs / mock Living Network Interface.
+ * Tagro Living Network — Overview identity (mock-faithful).
+ * Center Tagro orb · peripheral icon nodes · faint idle spokes ·
+ * one blue active path when context requires attention.
  */
 
 import { useMemo } from 'react'
@@ -43,25 +43,34 @@ type Props = {
 
 type NodeDef = {
   kind: NetworkNodeKind
-  x: number
-  y: number
+  /** angle in degrees, 0 = east, CCW */
+  angle: number
+  radius: number
   Icon: typeof FolderSimple
 }
 
-/** Organic scatter matching Living Network mock */
+/** Ring layout matching Living Network mock */
 const NODES: NodeDef[] = [
-  { kind: 'document', x: 24, y: 26, Icon: FileText },
-  { kind: 'github', x: 16, y: 48, Icon: GithubLogo },
-  { kind: 'developer', x: 26, y: 70, Icon: Code },
-  { kind: 'client', x: 44, y: 80, Icon: User },
-  { kind: 'decision', x: 74, y: 36, Icon: CheckCircle },
-  { kind: 'project', x: 82, y: 56, Icon: FolderSimple },
-  { kind: 'deployment', x: 70, y: 76, Icon: RocketLaunch },
-  { kind: 'automation', x: 60, y: 20, Icon: Lightning },
+  { kind: 'automation', angle: -70, radius: 38, Icon: Lightning },
+  { kind: 'document', angle: -130, radius: 40, Icon: FileText },
+  { kind: 'github', angle: -170, radius: 36, Icon: GithubLogo },
+  { kind: 'developer', angle: 155, radius: 39, Icon: Code },
+  { kind: 'client', angle: 115, radius: 37, Icon: User },
+  { kind: 'deployment', angle: 70, radius: 40, Icon: RocketLaunch },
+  { kind: 'project', angle: 25, radius: 38, Icon: FolderSimple },
+  { kind: 'decision', angle: -15, radius: 39, Icon: CheckCircle },
 ]
 
-const CX = 48
+const CX = 50
 const CY = 46
+
+function polar(angleDeg: number, radius: number) {
+  const rad = (angleDeg * Math.PI) / 180
+  return {
+    x: CX + Math.cos(rad) * radius,
+    y: CY + Math.sin(rad) * radius,
+  }
+}
 
 export default function TagroLivingNetwork({
   active,
@@ -69,15 +78,19 @@ export default function TagroLivingNetwork({
   onNodeActivate,
   onCoreActivate,
 }: Props) {
-  const activeNode = useMemo(
-    () => (active ? NODES.find((n) => n.kind === active.kind) : null),
-    [active],
+  const placed = useMemo(
+    () =>
+      NODES.map((n) => ({
+        ...n,
+        ...polar(n.angle, n.radius),
+      })),
+    [],
   )
 
-  const line = useMemo(() => {
-    if (!activeNode) return null
-    return { x1: CX, y1: CY, x2: activeNode.x, y2: activeNode.y }
-  }, [activeNode])
+  const activeNode = useMemo(
+    () => (active ? placed.find((n) => n.kind === active.kind) : null),
+    [active, placed],
+  )
 
   return (
     <div
@@ -91,15 +104,30 @@ export default function TagroLivingNetwork({
     >
       <div className="tln-grid" aria-hidden />
 
-      <svg className="tln-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-        {line ? (
+      <svg className="tln-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden>
+        <g className="tln-spokes">
+          {placed.map((node) => {
+            const hot = active?.kind === node.kind
+            return (
+              <line
+                key={`spoke-${node.kind}`}
+                className={`tln-spoke${hot ? ' is-hot' : ''}`}
+                x1={CX}
+                y1={CY}
+                x2={node.x}
+                y2={node.y}
+              />
+            )
+          })}
+        </g>
+        {activeNode ? (
           <line
-            key={`${active?.kind}-${active?.label}`}
+            key={`hot-${active?.kind}`}
             className="tln-link"
-            x1={line.x1}
-            y1={line.y1}
-            x2={line.x2}
-            y2={line.y2}
+            x1={CX}
+            y1={CY}
+            x2={activeNode.x}
+            y2={activeNode.y}
           />
         ) : null}
       </svg>
@@ -116,12 +144,12 @@ export default function TagroLivingNetwork({
           className="tln-core-mark"
           src="/brand/festag-mark-fluid.png?v=20260731"
           alt=""
-          width={26}
-          height={26}
+          width={28}
+          height={28}
         />
       </button>
 
-      {NODES.map((node) => {
+      {placed.map((node) => {
         const isHot = active?.kind === node.kind
         const Icon = node.Icon
         return (
@@ -134,12 +162,9 @@ export default function TagroLivingNetwork({
             aria-pressed={isHot}
             onClick={() => onNodeActivate?.(node.kind)}
           >
+            {isHot ? <span className="tln-node-glow" aria-hidden /> : null}
             <span className="tln-node-orb">
-              <Icon
-                className="tln-node-icon"
-                size={isHot ? 15 : 13}
-                weight={isHot ? 'fill' : 'regular'}
-              />
+              <Icon size={isHot ? 16 : 14} weight={isHot ? 'fill' : 'regular'} />
             </span>
           </button>
         )
@@ -149,7 +174,7 @@ export default function TagroLivingNetwork({
         <div
           className="tln-label"
           style={{
-            left: `${Math.min(activeNode.x + 6.5, 84)}%`,
+            left: `${Math.min(activeNode.x + 5.5, 82)}%`,
             top: `${activeNode.y}%`,
           }}
         >
