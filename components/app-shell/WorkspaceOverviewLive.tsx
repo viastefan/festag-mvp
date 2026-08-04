@@ -2,8 +2,7 @@
 
 /**
  * Festag OS Overview — Tagro is the interface.
- * Living core → briefing → contextual panel → secondary work (projects).
- * Audio briefing syncs the living core (not a chat bubble).
+ * Living core (signal nodes) → Spotify-style lyrics briefing → context panel → projects.
  */
 
 import { useEffect, useMemo, useState } from 'react'
@@ -11,9 +10,11 @@ import Link from 'next/link'
 import { ArrowRight, Headphones, Pause, Play, Square, X } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import TagroLivingCore, {
+  buildTagroSignals,
   deriveTagroLivingState,
   type TagroLivingState,
 } from '@/components/app-shell/TagroLivingCore'
+import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { openNewProject } from '@/lib/new-project-open'
 
@@ -123,7 +124,7 @@ function buildBriefingParagraphs(
 }
 
 export default function WorkspaceOverviewLive({ greeting, firstName, data }: Props) {
-  const { workspace, summary, projects, decisions } = data
+  const { workspace, summary, projects, decisions, activity, team, tasks } = data
   const livingState = useMemo(
     () =>
       deriveTagroLivingState({
@@ -139,6 +140,21 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
   const paragraphs = useMemo(
     () => buildBriefingParagraphs(greeting, firstName, data),
     [greeting, firstName, data],
+  )
+
+  const signals = useMemo(
+    () =>
+      buildTagroSignals({
+        workspaceName: workspace.name,
+        summary,
+        projects,
+        tasks,
+        decisions,
+        activity,
+        team,
+        briefingProject: data.briefing?.projectTitle || null,
+      }),
+    [workspace.name, summary, projects, tasks, decisions, activity, team, data.briefing?.projectTitle],
   )
 
   const audio = useStatusReportPlayback({ sentences: paragraphs })
@@ -165,7 +181,6 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
 
   const focusDecision = decisions[0] || null
   const visibleProjects = projects.slice(0, 3)
-  const activeLine = audio.displayActiveIndex
   const audioLabel = audio.playing && !audio.paused
     ? 'Pausieren'
     : audio.paused
@@ -178,41 +193,29 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
 
       <div className="fas-tagro-canvas">
         <section className="fas-tagro-stage" aria-label="Tagro">
-          <button
-            type="button"
-            className={`fas-tagro-core-hit${audio.speaking ? ' is-live' : ''}`}
-            onClick={() => {
-              if (!audio.supported) return
-              audio.toggle()
-            }}
-            aria-label={audio.supported ? audioLabel : 'Audio-Briefing nicht verfügbar'}
-            disabled={!audio.supported || paragraphs.length === 0}
-          >
-            <TagroLivingCore state={vizState} className="fas-tagro-core" />
-          </button>
+          <div className="fas-tagro-core-wrap">
+            <TagroLivingCore
+              state={vizState}
+              className="fas-tagro-core"
+              signals={signals}
+              onCoreActivate={() => {
+                if (!audio.supported || paragraphs.length === 0) return
+                audio.toggle()
+              }}
+            />
+          </div>
 
-          <div className="fas-tagro-briefing" aria-live="polite">
-            {paragraphs.map((line, i) => {
-              const Tag = i === 0 ? 'h1' : 'p'
-              const active = activeLine === i
-              const dim = audio.speaking && activeLine >= 0 && !active
-              return (
-                <Tag
-                  key={`${i}-${line}`}
-                  className={
-                    i === 0
-                      ? `fas-tagro-greet${active ? ' is-speaking' : ''}${dim ? ' is-dim' : ''}`
-                      : `fas-tagro-line${active ? ' is-speaking' : ''}${dim ? ' is-dim' : ''}`
-                  }
-                  onClick={() => {
-                    if (!audio.supported) return
-                    if (audio.speaking) audio.speakFrom(i)
-                  }}
-                >
-                  {line}
-                </Tag>
-              )
-            })}
+          <div className="fas-tagro-lyrics-host" aria-live="polite">
+            <h1 className="sr-only">{paragraphs[0]}</h1>
+            <BriefingLyricsFlow
+              sentences={paragraphs}
+              activeIndex={audio.displayActiveIndex}
+              activeWordIndex={audio.activeWordIndex}
+              autoScroll={audio.autoScroll}
+              animating={audio.playing && !audio.paused}
+              onUserScroll={audio.takeScrollControl}
+              className="fas-tagro-lyrics"
+            />
           </div>
 
           <div className="fas-tagro-audio">

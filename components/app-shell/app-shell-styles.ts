@@ -1161,6 +1161,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   margin: 0 auto;
   display: grid;
   place-items: center;
+  overflow: visible;
 }
 .tlc-glow {
   position: absolute;
@@ -1324,74 +1325,270 @@ html[data-theme="classic-dark"] .tlc-glow {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 28px;
-  padding: 20px 12px 8px;
+  gap: 22px;
+  padding: 12px 12px 8px;
+}
+.fas-tagro-core-wrap {
+  width: min(440px, 94vw);
+  position: relative;
+}
+.fas-tagro-core {
+  width: 100%;
 }
 .fas-tagro-core-hit {
-  display: block;
+  display: none;
+}
+
+/* Living-core signal chips + hover popover */
+.tlc-hits {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tlc-anchor {
+  display: contents;
+}
+.tlc-hit {
+  position: absolute;
+  width: 28px;
+  height: 28px;
   margin: 0;
   padding: 0;
   border: none;
-  background: transparent;
-  cursor: pointer;
   border-radius: 50%;
-  -webkit-tap-highlight-color: transparent;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 2;
 }
-.fas-tagro-core-hit:disabled {
-  cursor: default;
+.tlc-hit.is-core {
+  width: 44px;
+  height: 44px;
 }
-.fas-tagro-core-hit:focus,
-.fas-tagro-core-hit:focus-visible {
+.tlc-hit:focus,
+.tlc-hit:focus-visible {
   outline: none;
   box-shadow: none;
 }
-.fas-tagro-core {
-  width: min(380px, 86vw);
-  pointer-events: none;
-}
-.fas-tagro-briefing {
-  max-width: 520px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: fasAssemble 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.fas-tagro-greet {
-  margin: 0;
-  font-size: clamp(28px, 3.4vw, 36px);
-  line-height: 1.18;
-  letter-spacing: -0.03em;
-  font-weight: 400;
-  color: var(--fas-ink);
-  cursor: default;
-  transition: opacity 0.35s ease, color 0.35s ease;
-}
-.fas-tagro-line {
-  margin: 0;
-  font-size: 16.5px;
-  line-height: 1.55;
-  letter-spacing: -0.015em;
+.tlc-chip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(30, 30, 32, 0.06);
   color: var(--fas-ink-muted);
-  cursor: default;
-  transition: opacity 0.35s ease, color 0.35s ease;
-  animation: fasAssemble 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  font-size: 10.5px;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: auto;
+  z-index: 3;
+  opacity: 0.78;
+  transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
-.fas-tagro-line:nth-child(2) { animation-delay: 0.05s; }
-.fas-tagro-line:nth-child(3) { animation-delay: 0.1s; }
-.fas-tagro-line:nth-child(4) { animation-delay: 0.15s; }
-.fas-tagro-line:nth-child(5) { animation-delay: 0.2s; }
-.fas-tagro.is-audio .fas-tagro-greet,
-.fas-tagro.is-audio .fas-tagro-line {
-  cursor: pointer;
-}
-.fas-tagro-greet.is-dim,
-.fas-tagro-line.is-dim {
-  opacity: 0.34;
-}
-.fas-tagro-greet.is-speaking,
-.fas-tagro-line.is-speaking {
+.tlc-chip.is-hot,
+.tlc-hit.is-hot + .tlc-chip {
   opacity: 1;
   color: var(--fas-ink);
+  background: rgba(255, 255, 255, 0.92);
+}
+.tlc-chip-count {
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(91, 100, 125, 0.12);
+  color: var(--fas-ink);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.tlc-node.is-hot {
+  filter: brightness(1.08);
+}
+.tlc-node.is-attention {
+  stroke: rgba(91, 100, 125, 0.35);
+  stroke-width: 1.5;
+}
+.tlc-node.is-risk {
+  stroke: rgba(180, 110, 90, 0.45);
+  stroke-width: 1.5;
+}
+.tlc-pop {
+  position: absolute;
+  z-index: 8;
+  transform: translate(-50%, calc(-100% - 18px));
+  pointer-events: none;
+  width: min(220px, 70vw);
+}
+.tlc-pop-card {
+  pointer-events: auto;
+  padding: 12px 14px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+  text-align: left;
+  animation: fasPanelIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tlc-pop-spark {
+  display: block;
+  width: 64px;
+  height: 28px;
+  margin-bottom: 6px;
+}
+.tlc-pop-spark-line {
+  stroke: rgba(91, 100, 125, 0.45);
+}
+.tlc-pop-spark-line.is-risk { stroke: rgba(180, 110, 90, 0.55); }
+.tlc-pop-spark-line.is-attention { stroke: rgba(91, 100, 125, 0.62); }
+.tlc-pop-spark-dot {
+  fill: rgba(91, 100, 125, 0.55);
+}
+.tlc-pop-spark-dot.is-risk { fill: rgba(180, 110, 90, 0.7); }
+.tlc-pop-title {
+  margin: 0;
+  font-size: 13.5px;
+  letter-spacing: -0.015em;
+  color: var(--fas-ink);
+}
+.tlc-pop-body {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--fas-ink-muted);
+}
+.tlc-pop-link {
+  display: inline-flex;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--fas-ink);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.tlc-pop-link:hover { opacity: 0.72; }
+html[data-theme="dark"] .tlc-chip,
+html[data-theme="classic-dark"] .tlc-chip {
+  background: rgba(26, 26, 30, 0.78);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(230, 232, 238, 0.62);
+}
+html[data-theme="dark"] .tlc-chip.is-hot,
+html[data-theme="classic-dark"] .tlc-chip.is-hot {
+  background: rgba(26, 26, 30, 0.95);
+  color: #E6E8EE;
+}
+html[data-theme="dark"] .tlc-pop-card,
+html[data-theme="classic-dark"] .tlc-pop-card {
+  background: rgba(26, 26, 30, 0.96);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Spotify-style briefing lyrics (shared BriefingLyricsFlow) */
+.fas-tagro-lyrics-host {
+  width: min(520px, 100%);
+  --fas-lyrics-ink: var(--fas-ink);
+  --fas-lyrics-muted: #8891a0;
+}
+.fas-tagro-lyrics.wsb-lyrics-mask,
+.fas-tagro-lyrics-host .wsb-lyrics-mask {
+  width: 100%;
+}
+.fas-tagro-lyrics-host .wsb-lyrics-stage {
+  position: relative;
+  min-height: 168px;
+  max-height: 220px;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 78%, transparent 100%);
+}
+.fas-tagro-lyrics-host .wsb-lyrics-stage--manual {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.fas-tagro-lyrics-host .wsb-lyrics-track {
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  padding: 28px 8px;
+  text-align: center;
+}
+.fas-tagro-lyrics-host .wsb-prose {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fas-tagro-lyrics-host .wsb-prose-line {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+}
+.fas-tagro-lyrics-host .wsb-prose-sentence:first-child .wsb-prose-line {
+  font-size: clamp(26px, 3.2vw, 34px);
+  letter-spacing: -0.03em;
+}
+.fas-tagro-lyrics-host .wsb-prose-word {
+  display: inline;
+  font-weight: 400;
+  color: var(--fas-lyrics-muted);
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1), color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fas-tagro-lyrics-host .wsb-lyrics-stage--idle .wsb-prose-word--lead {
+  color: var(--fas-lyrics-ink);
+  opacity: 0.92;
+}
+.fas-tagro-lyrics-host .wsb-lyrics-stage--idle .wsb-prose-word--future {
+  color: var(--fas-lyrics-muted);
+  opacity: 0.42;
+}
+.fas-tagro-lyrics-host .wsb-prose-word--future,
+.fas-tagro-lyrics-host .wsb-prose-word--adjacent {
+  color: var(--fas-lyrics-muted);
+  opacity: 0.34;
+}
+.fas-tagro-lyrics-host .wsb-prose-word--past {
+  color: var(--fas-lyrics-muted);
+  opacity: 0.48;
+}
+.fas-tagro-lyrics-host .wsb-prose-word--active.wsb-prose-word--pending {
+  color: var(--fas-lyrics-muted);
+  opacity: 0.4;
+}
+.fas-tagro-lyrics-host .wsb-prose-word--active.wsb-prose-word--spoken,
+.fas-tagro-lyrics-host .wsb-prose-word--active.wsb-prose-word--current {
+  color: var(--fas-lyrics-ink);
+  opacity: 1;
+}
+.fas-tagro-lyrics-host .wsb-lyrics-stage--live .wsb-prose-word--past {
+  color: var(--fas-lyrics-muted);
+  opacity: 0.42;
+}
+.fas-tagro .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fas-tagro-briefing {
+  display: none;
+}
+.fas-tagro-greet,
+.fas-tagro-line {
+  display: none;
 }
 
 .fas-tagro-audio {
