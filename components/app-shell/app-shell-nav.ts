@@ -1,7 +1,6 @@
 /**
- * Pre-workspace Festag OS Shell — navigation SSOT.
- * Account-level chrome before any workspace exists.
- * Overview stays the same label with or without a workspace later.
+ * Festag OS Shell — navigation SSOT.
+ * Tagro never appears in the sidebar — it lives throughout the OS.
  */
 
 import type { Icon } from '@phosphor-icons/react'
@@ -10,9 +9,10 @@ import {
   FolderSimple,
   CheckSquare,
   Tray,
-  SquaresFour,
   FileText,
+  UsersThree,
   Pulse,
+  SquaresFour,
 } from '@phosphor-icons/react'
 
 export type AppShellNavItem = {
@@ -29,20 +29,23 @@ export const APP_SHELL_PRIMARY_NAV: AppShellNavItem[] = [
   { href: '/overview/inbox', label: 'Inbox', icon: Tray },
 ]
 
-/** Quiet group — Workspaces */
+/**
+ * Legacy workspace list route — kept for deep links / switcher,
+ * not shown in the main rail (workspace switcher owns that).
+ */
 export const APP_SHELL_WORKSPACE_NAV: AppShellNavItem[] = [
   { href: '/overview/workspaces', label: 'Workspaces', icon: SquaresFour },
 ]
 
-/** Secondary — Documents / Activity (Settings lives as footer word) */
+/** Secondary — Documents / Team / Activity */
 export const APP_SHELL_SECONDARY_NAV: AppShellNavItem[] = [
   { href: '/overview/documents', label: 'Documents', icon: FileText },
+  { href: '/overview/team', label: 'Team', icon: UsersThree },
   { href: '/overview/activity', label: 'Activity', icon: Pulse },
 ]
 
 export const APP_SHELL_ALL_NAV: AppShellNavItem[] = [
   ...APP_SHELL_PRIMARY_NAV,
-  ...APP_SHELL_WORKSPACE_NAV,
   ...APP_SHELL_SECONDARY_NAV,
 ]
 

@@ -14,7 +14,6 @@ import {
 } from '@phosphor-icons/react'
 import {
   APP_SHELL_PRIMARY_NAV,
-  APP_SHELL_WORKSPACE_NAV,
   APP_SHELL_SECONDARY_NAV,
   isAppShellNavActive,
 } from '@/components/app-shell/app-shell-nav'
@@ -301,25 +300,6 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
             </Link>
           )
         })}
-
-        <div className="fas-nav-group">
-          {APP_SHELL_WORKSPACE_NAV.map((item) => {
-            const Icon = item.icon
-            const active = isAppShellNavActive(pathname, item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`fas-nav-link${active ? ' is-active' : ''}`}
-                aria-current={active ? 'page' : undefined}
-                title={collapsed ? item.label : undefined}
-              >
-                <Icon size={16} weight="light" />
-                {!collapsed ? <span>{item.label}</span> : null}
-              </Link>
-            )
-          })}
-        </div>
 
         <div className="fas-nav-after-group">
           {APP_SHELL_SECONDARY_NAV.map((item) => {

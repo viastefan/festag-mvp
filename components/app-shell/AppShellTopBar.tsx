@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Moon, Sun } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
+import { Bell, MagnifyingGlass, Moon, Sun } from '@phosphor-icons/react'
 import { toggleAccountPanel } from '@/lib/account-panel-open'
 import { getTheme, setTheme, parseThemeEventDetail, type PanelThemeMode } from '@/lib/theme'
 import { getInitials, type UserProfile } from '@/lib/hooks/useUser'
+import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
   user: UserProfile | null
@@ -12,6 +13,9 @@ type Props = {
 
 export default function AppShellTopBar({ user }: Props) {
   const [themeMode, setThemeMode] = useState<PanelThemeMode>('light')
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
+  const { items: notifications, unread, markRead } = useNotifications({ limit: 10 })
 
   useEffect(() => {
     setThemeMode(getTheme('client'))
@@ -25,6 +29,15 @@ export default function AppShellTopBar({ user }: Props) {
     window.addEventListener('festag-theme', onTheme)
     return () => window.removeEventListener('festag-theme', onTheme)
   }, [])
+
+  useEffect(() => {
+    if (!notifOpen) return
+    function onDoc(e: MouseEvent) {
+      if (!notifRef.current?.contains(e.target as Node)) setNotifOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [notifOpen])
 
   function toggleTheme() {
     const next: PanelThemeMode = themeMode === 'dark' ? 'light' : 'dark'
@@ -40,6 +53,56 @@ export default function AppShellTopBar({ user }: Props) {
       <div className="fas-topbar-left" />
 
       <div className="fas-topbar-right">
+        <button
+          type="button"
+          className="fas-icon-btn"
+          aria-label="Search"
+          onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+        >
+          <MagnifyingGlass size={16} weight="light" />
+        </button>
+
+        <div className="fas-topbar-notif" ref={notifRef}>
+          <button
+            type="button"
+            className="fas-icon-btn"
+            aria-label="Notifications"
+            aria-expanded={notifOpen}
+            onClick={() => setNotifOpen((v) => !v)}
+          >
+            <Bell size={16} weight="light" />
+            {unread > 0 ? <span className="fas-notif-dot" aria-hidden /> : null}
+          </button>
+          {notifOpen ? (
+            <div className="fas-popover fas-notif-popover" role="dialog" aria-label="Notifications">
+              {notifications.length === 0 ? (
+                <p className="fas-notif-empty">No notifications yet.</p>
+              ) : (
+                <ul className="fas-notif-list">
+                  {notifications.map((n) => (
+                    <li key={n.id}>
+                      <button
+                        type="button"
+                        className="fas-notif-card"
+                        onClick={() => {
+                          void markRead(n.id)
+                          if (n.link) window.location.href = n.link
+                          setNotifOpen(false)
+                        }}
+                      >
+                        <span className="fas-notif-card-title">{n.title}</span>
+                        <span className="fas-notif-card-body">
+                          {n.body || n.message || ''}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+        </div>
+
         <button
           type="button"
           className="fas-icon-btn"

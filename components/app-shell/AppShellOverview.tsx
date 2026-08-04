@@ -1,117 +1,122 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { appShellGreeting } from '@/components/app-shell/app-shell-nav'
 import AppShellWorkflow from '@/components/app-shell/AppShellWorkflow'
+import WorkspaceOverviewLive, {
+  type OverviewPayload,
+} from '@/components/app-shell/WorkspaceOverviewLive'
 import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { getDisplayName, type UserProfile } from '@/lib/hooks/useUser'
-import { createClient } from '@/lib/supabase/client'
-import { getRememberedWorkspaceName } from '@/lib/pending-workspace'
 import {
   openWorkspaceCreateWizard,
   WORKSPACE_CREATED_EVENT,
   WORKSPACE_RENAMED_EVENT,
 } from '@/lib/workspace-create-open'
-import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import { ArrowRight } from '@phosphor-icons/react'
 
 type Props = {
   user: UserProfile | null
 }
 
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'empty' }
+  | { status: 'ready'; data: OverviewPayload }
+  | { status: 'error' }
+
 export default function AppShellOverview({ user }: Props) {
   const firstName = getDisplayName(user) || 'there'
   const greet = appShellGreeting()
-  const [workspaceName, setWorkspaceName] = useState<string | null>(
-    () => getRememberedWorkspaceName(),
-  )
+  const [load, setLoad] = useState<LoadState>({ status: 'loading' })
 
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        if (!alive || !authUser) return
-
-        const { data: owned } = await supabase
-          .from('workspaces')
-          .select('name')
-          .eq('primary_owner_id', authUser.id)
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle()
-
-        let name = typeof owned?.name === 'string' ? owned.name.trim() : ''
-        if (!name) {
-          const { data: member } = await supabase
-            .from('workspace_members')
-            .select('workspace_id')
-            .eq('user_id', authUser.id)
-            .limit(1)
-            .maybeSingle()
-          if (member?.workspace_id) {
-            const { data: ws } = await supabase
-              .from('workspaces')
-              .select('name')
-              .eq('id', member.workspace_id)
-              .maybeSingle()
-            name = typeof ws?.name === 'string' ? ws.name.trim() : ''
-          }
-        }
-        if (alive) setWorkspaceName(name || null)
-      } catch { /* best-effort */ }
-    })()
-    return () => { alive = false }
-  }, [user?.id])
-
-  useEffect(() => {
-    function onCreated(e: Event) {
-      const detail = (e as CustomEvent<{ name?: string }>).detail
-      const name = typeof detail?.name === 'string' ? detail.name.trim() : ''
-      if (name) setWorkspaceName(name)
-    }
-    function onRenamed(e: Event) {
-      const detail = (e as CustomEvent<{ name?: string }>).detail
-      const name = typeof detail?.name === 'string' ? detail.name.trim() : ''
-      if (name) setWorkspaceName(name)
-    }
-    window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
-    window.addEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
-    return () => {
-      window.removeEventListener(WORKSPACE_CREATED_EVENT, onCreated)
-      window.removeEventListener(WORKSPACE_RENAMED_EVENT, onRenamed)
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch('/api/workspaces/overview', { cache: 'no-store' })
+      if (!res.ok) {
+        setLoad({ status: 'error' })
+        return
+      }
+      const json = await res.json()
+      if (!json?.workspace?.id) {
+        setLoad({ status: 'empty' })
+        return
+      }
+      setLoad({
+        status: 'ready',
+        data: {
+          workspace: json.workspace,
+          summary: json.summary,
+          briefing: json.briefing,
+          projects: json.projects || [],
+          decisions: json.decisions || [],
+          activity: json.activity || [],
+          team: json.team || [],
+        },
+      })
+    } catch {
+      setLoad({ status: 'error' })
     }
   }, [])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh, user?.id])
+
+  useEffect(() => {
+    function onChanged() {
+      void refresh()
+    }
+    window.addEventListener(WORKSPACE_CREATED_EVENT, onChanged)
+    window.addEventListener(WORKSPACE_RENAMED_EVENT, onChanged)
+    return () => {
+      window.removeEventListener(WORKSPACE_CREATED_EVENT, onChanged)
+      window.removeEventListener(WORKSPACE_RENAMED_EVENT, onChanged)
+    }
+  }, [refresh])
 
   function openDocs(path = '/docs') {
     navigateLeavingAuthChrome(path)
   }
 
-  const hasWorkspace = Boolean(workspaceName)
+  if (load.status === 'loading') {
+    return (
+      <div className="fas-home fas-wo-loading" aria-busy="true">
+        <div className="fas-wo-skeleton" />
+      </div>
+    )
+  }
 
+  if (load.status === 'ready') {
+    return (
+      <WorkspaceOverviewLive
+        greeting={greet}
+        firstName={firstName}
+        data={load.data}
+      />
+    )
+  }
+
+  /* Empty / soft — onboarding path: never feel abandoned */
   return (
     <div className="fas-home">
       <section className="fas-hero fas-assemble">
         <h1 className="fas-hero-greet">
           {greet}, {firstName}.
         </h1>
-        <p className="fas-hero-title">
-          {hasWorkspace ? workspaceName : 'Welcome to Festag.'}
-        </p>
+        <p className="fas-hero-title">Welcome to Festag.</p>
         <p className="fas-hero-support">
-          {hasWorkspace
-            ? 'Dein Workspace organisiert Projekte, Menschen und Tagro.'
-            : 'Create your first workspace to start building software with Tagro.'}
+          Create your first workspace to start building software with Tagro.
         </p>
-        {!hasWorkspace ? (
-          <button type="button" className="fas-btn" onClick={() => openWorkspaceCreateWizard()}>
-            Workspace erstellen
-          </button>
+        <button type="button" className="fas-btn" onClick={() => openWorkspaceCreateWizard()}>
+          Create workspace
+        </button>
+        {load.status === 'error' ? (
+          <p className="fas-hero-support" style={{ marginTop: 14 }}>
+            Couldn&apos;t load your workspace. Try creating one, or refresh.
+          </p>
         ) : null}
       </section>
-
-      <OverviewPendingInvites />
 
       <div className="fas-cards">
         <article className="fas-card fas-assemble fas-assemble-d2">

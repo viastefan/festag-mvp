@@ -799,6 +799,412 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   line-height: 1.4;
 }
 
+/* ── Workspace Overview (operational) ── */
+.fas-wo {
+  max-width: 920px;
+  margin: 0 auto;
+  padding-top: 28px;
+  padding-bottom: 64px;
+}
+.fas-wo-loading {
+  padding-top: 48px;
+}
+.fas-wo-skeleton {
+  height: 12px;
+  width: 180px;
+  border-radius: 6px;
+  background: rgba(30, 30, 32, 0.06);
+  animation: fasAssemble 1.2s ease infinite alternate;
+}
+html[data-theme="dark"] .fas-wo-skeleton,
+html[data-theme="classic-dark"] .fas-wo-skeleton {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fas-wo-hero {
+  margin-bottom: 40px;
+}
+.fas-wo-greet {
+  margin: 0 0 10px;
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 400;
+  color: var(--fas-ink);
+}
+.fas-wo-calm {
+  margin: 0 0 18px;
+  max-width: 520px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--fas-ink-muted);
+}
+.fas-wo-meta {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.fas-wo-meta li {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: var(--fas-ink-faint);
+}
+
+.fas-wo-briefing {
+  margin-bottom: 44px;
+  padding: 28px 28px 24px;
+  background: var(--fas-card);
+  border: 1px solid var(--fas-card-border);
+  border-radius: 14px;
+  box-shadow: var(--fas-card-shadow);
+}
+.fas-wo-briefing-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--fas-ink-muted);
+}
+.fas-wo-briefing-project {
+  margin: 0 0 16px;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  font-weight: 400;
+  color: var(--fas-ink);
+}
+.fas-wo-briefing-lines {
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fas-wo-briefing-lines li {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--fas-ink);
+  letter-spacing: -0.01em;
+  padding-left: 14px;
+  position: relative;
+}
+.fas-wo-briefing-lines li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--fas-ink-faint);
+}
+.fas-wo-briefing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fas-wo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--fas-radius-btn);
+  border: 1px solid var(--fas-btn-border) !important;
+  background: var(--fas-btn-bg) !important;
+  color: var(--fas-btn-fg) !important;
+  box-shadow: var(--fas-btn-shadow);
+  font-size: 13.5px;
+  font-family: inherit;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s ease, box-shadow 0.14s ease;
+}
+.fas-wo-btn:hover {
+  background: var(--fas-btn-bg-hover) !important;
+}
+.fas-wo-btn:active {
+  background: var(--fas-btn-bg-active) !important;
+  box-shadow: none;
+}
+.fas-wo-btn--quiet,
+.fas-wo-btn:disabled {
+  background: transparent !important;
+  box-shadow: none;
+  color: var(--fas-ink-muted) !important;
+  border-color: var(--fas-sep) !important;
+  cursor: default;
+  opacity: 0.85;
+}
+
+.fas-wo-section {
+  margin-bottom: 40px;
+}
+.fas-wo-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.fas-wo-section-title {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  font-weight: 400;
+  color: var(--fas-ink);
+}
+.fas-wo-section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fas-ink-muted);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.fas-wo-section-link:hover { color: var(--fas-ink); }
+.fas-wo-quiet {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fas-ink-muted);
+}
+.fas-wo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 0;
+}
+.fas-wo-empty p {
+  margin: 0;
+  max-width: 420px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--fas-ink-muted);
+}
+
+.fas-wo-project-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 720px) {
+  .fas-wo-project-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.fas-wo-project {
+  padding: 18px 18px 16px;
+  background: var(--fas-card);
+  border: 1px solid var(--fas-card-border);
+  border-radius: 12px;
+  box-shadow: var(--fas-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fas-wo-project-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fas-wo-project-name {
+  margin: 0;
+  font-size: 15.5px;
+  letter-spacing: -0.015em;
+  font-weight: 400;
+  color: var(--fas-ink);
+}
+.fas-wo-health {
+  flex-shrink: 0;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  color: var(--fas-ink-muted);
+  padding-top: 2px;
+}
+.fas-wo-health--risk,
+.fas-wo-health--blocked {
+  color: var(--fas-ink);
+}
+.fas-wo-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(30, 30, 32, 0.06);
+  overflow: hidden;
+}
+html[data-theme="dark"] .fas-wo-progress,
+html[data-theme="classic-dark"] .fas-wo-progress {
+  background: rgba(255, 255, 255, 0.08);
+}
+.fas-wo-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--fas-ink-faint);
+}
+.fas-wo-project-meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.fas-wo-project-meta dt {
+  font-size: 11.5px;
+  color: var(--fas-ink-faint);
+  margin: 0 0 2px;
+}
+.fas-wo-project-meta dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fas-ink);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fas-wo-project-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--fas-ink);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.fas-wo-project-open:hover { opacity: 0.72; }
+
+.fas-wo-decision-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fas-wo-decision {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--fas-card-border);
+  background: var(--fas-card);
+}
+.fas-wo-decision-title {
+  margin: 0 0 4px;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  font-weight: 400;
+  color: var(--fas-ink);
+}
+.fas-wo-decision-meta {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--fas-ink-muted);
+}
+
+.fas-wo-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+}
+@media (min-width: 860px) {
+  .fas-wo-split {
+    grid-template-columns: 1.4fr 0.9fr;
+    gap: 40px;
+  }
+}
+
+.fas-wo-activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.fas-wo-activity-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fas-sep);
+}
+.fas-wo-activity-row:last-child { border-bottom: none; }
+.fas-wo-activity-dot {
+  width: 6px;
+  height: 6px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--fas-ink-faint);
+  flex-shrink: 0;
+}
+.fas-wo-activity-title {
+  margin: 0 0 3px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--fas-ink);
+}
+.fas-wo-activity-meta {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--fas-ink-muted);
+}
+
+.fas-wo-team {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fas-wo-team-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fas-wo-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(30, 30, 32, 0.06);
+}
+.fas-wo-avatar--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  letter-spacing: -0.02em;
+  color: var(--fas-ink);
+}
+.fas-wo-team-name {
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--fas-ink);
+}
+
+.fas-topbar-notif {
+  position: relative;
+}
+.fas-notif-empty {
+  margin: 8px 10px;
+  font-size: 13px;
+  color: var(--fas-ink-muted);
+}
+.fas-assemble-d5 { animation-delay: 0.38s; }
+
 /* ── Module empty ── */
 .fas-empty {
   max-width: 420px;
@@ -905,5 +1311,10 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   .fas-hero-greet,
   .fas-hero-title { font-size: 24px; }
   .fas-cards { grid-template-columns: 1fr; }
+  .fas-wo { padding-top: 12px; }
+  .fas-wo-greet { font-size: 26px; }
+  .fas-wo-briefing { padding: 22px 18px 18px; }
+  .fas-wo-briefing-project { font-size: 22px; }
+  .fas-wo-decision { flex-direction: column; align-items: flex-start; }
 }
 `.replace(/\s+/g, ' ').trim()
