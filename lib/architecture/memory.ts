@@ -289,6 +289,23 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     status: 'locked',
     related: ['.cursor/rules/festag-architect-ai.mdc'],
   },
+  {
+    id: 'overview-tagro-core-interface',
+    question: 'Warum ist Overview kein Dashboard, sondern Tagro als Interface?',
+    answer:
+      'SaaS-Dashboards (KPIs, Karten-Grids) machen Festag austauschbar. Overview soll sich wie ein lebendiger Arbeitsraum anfühlen: Tagro Living Core erklärt den Workspace-Zustand, Briefing ist die Oberfläche, Context Panels erscheinen nur bei Bedarf, Projekte sind sekundär. Projects/Tasks/Documents bleiben produktiv und klar — hybrid, nicht Theater auf jeder Route.',
+    decision:
+      'Overview = Tagro Core Interface · collapsed icon rail default · contextual right panel · max 3 projects · no KPI cards',
+    date: '2026-08-04',
+    version: '3.1',
+    status: 'evolving',
+    related: [
+      'components/app-shell/TagroLivingCore.tsx',
+      'components/app-shell/WorkspaceOverviewLive.tsx',
+      'docs/festag-tagro-invisible-intelligence.md',
+      'docs/festag-experience-constitution.md',
+    ],
+  },
 ]
 
 export function getArchitectureMemory(id: string): ArchitectureMemoryEntry | undefined {

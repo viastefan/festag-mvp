@@ -39,6 +39,8 @@ type Props = {
   user: UserProfile | null
   collapsed: boolean
   onToggleCollapse: () => void
+  onPeekEnter?: () => void
+  onPeekLeave?: () => void
 }
 
 type RecentItem = {
@@ -92,7 +94,13 @@ function writeExpanded(key: string, value: boolean) {
   } catch { /* noop */ }
 }
 
-export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: Props) {
+export default function AppShellSidebar({
+  user,
+  collapsed,
+  onToggleCollapse,
+  onPeekEnter,
+  onPeekLeave,
+}: Props) {
   const pathname = usePathname() || '/overview'
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
   const [workspaceLabel, setWorkspaceLabel] = useState(
@@ -337,6 +345,8 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
       className={`fas-sidebar${collapsed ? ' is-collapsed' : ''}`}
       aria-label="Festag navigation"
       data-collapsed={collapsed ? '1' : '0'}
+      onMouseEnter={onPeekEnter}
+      onMouseLeave={onPeekLeave}
     >
       <div className="fas-sidebar-top" ref={headerRef}>
         <div className="fas-sidebar-header">
