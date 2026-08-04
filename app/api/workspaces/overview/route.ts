@@ -20,6 +20,15 @@ export type WorkspaceOverviewProject = {
   nextMilestone: string | null
 }
 
+export type WorkspaceOverviewTask = {
+  id: string
+  title: string
+  status: string | null
+  projectId: string | null
+  projectTitle: string
+  updatedAt: string | null
+}
+
 export type WorkspaceOverviewDecision = {
   id: string
   title: string
@@ -147,8 +156,10 @@ export async function GET(req: NextRequest) {
         .in('status', ['open', 'in_progress', 'triage']),
       service
         .from('tasks')
-        .select('id, project_id, status')
-        .in('project_id', projectIds),
+        .select('id, project_id, title, status, updated_at')
+        .in('project_id', projectIds)
+        .order('updated_at', { ascending: false })
+        .limit(80),
       service
         .from('milestones')
         .select('id, project_id, title, due_date, status')
@@ -232,6 +243,37 @@ export async function GET(req: NextRequest) {
 
   const titleById = new Map(projects.map((p) => [p.id, p.title]))
 
+  const DONE_TASK = new Set(['done', 'completed', 'closed', 'cancelled', 'erledigt'])
+  const openTasks: WorkspaceOverviewTask[] = []
+  {
+    /* Reuse the progress task query if present — otherwise fetch once. */
+    let taskRows: any[] = []
+    if (projectIds.length > 0) {
+      const { data } = await service
+        .from('tasks')
+        .select('id, project_id, title, status, updated_at')
+        .in('project_id', projectIds)
+        .order('updated_at', { ascending: false })
+        .limit(60)
+      taskRows = data || []
+    }
+    for (const t of taskRows) {
+      const st = String(t.status || '').toLowerCase()
+      if (DONE_TASK.has(st)) continue
+      const title = typeof t.title === 'string' ? t.title.trim() : ''
+      if (!title) continue
+      openTasks.push({
+        id: t.id,
+        title,
+        status: typeof t.status === 'string' ? t.status : null,
+        projectId: t.project_id || null,
+        projectTitle: (t.project_id && titleById.get(t.project_id)) || 'Projekt',
+        updatedAt: t.updated_at || null,
+      })
+      if (openTasks.length >= 40) break
+    }
+  }
+
   let pendingDecisions: WorkspaceOverviewDecision[] = []
   if (projectIds.length > 0) {
     const { data: decRows } = await service
@@ -259,7 +301,7 @@ export async function GET(req: NextRequest) {
       .select('*')
       .in('project_id', projectIds)
       .order('created_at', { ascending: false })
-      .limit(12)
+      .limit(40)
 
     activity = (feed || []).map((row: any) => ({
       id: row.id,
@@ -454,6 +496,7 @@ export async function GET(req: NextRequest) {
     },
     briefing,
     projects,
+    tasks: openTasks,
     decisions: pendingDecisions,
     activity,
     team,

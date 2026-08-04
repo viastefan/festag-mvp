@@ -660,6 +660,11 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   gap: 6px;
   min-width: 0;
 }
+@media (min-width: 769px) {
+  .fas-topbar-dup {
+    display: none !important;
+  }
+}
 
 .fas-ws-switch {
   display: none;
@@ -1363,6 +1368,202 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   color: var(--fas-ink-muted);
 }
 .fas-assemble-d5 { animation-delay: 0.38s; }
+
+/* ── Module pages (rail) ── */
+.fas-module {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 8px 0 48px;
+}
+.fas-module-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.fas-module-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 400;
+  color: var(--fas-ink);
+}
+.fas-module-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.fas-module-body {
+  min-width: 0;
+}
+.fas-module-block + .fas-module-block {
+  margin-top: 28px;
+}
+.fas-module-sub {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--fas-ink-muted);
+  letter-spacing: -0.01em;
+}
+.fas-module-lead-inline {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fas-ink-muted);
+}
+.fas-module-foot {
+  margin: 20px 0 0;
+}
+
+.fas-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fas-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--fas-card);
+  border: 1px solid var(--fas-card-border);
+  box-shadow: var(--fas-card-shadow);
+}
+.fas-list-row.is-unread {
+  border-color: rgba(91, 100, 125, 0.22);
+}
+.fas-list-row--btn {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.fas-list-row--btn.is-active {
+  background: var(--fas-nav-active);
+}
+.fas-list-row + .fas-list-row,
+.fas-list > li + li {
+  margin-top: 0;
+}
+.fas-list--feed .fas-list-row {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 6px;
+  min-height: 44px;
+  padding: 8px 6px;
+}
+.fas-list--feed .fas-list-row:hover {
+  background: var(--fas-nav-hover);
+}
+.fas-list-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fas-ink-muted);
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+.fas-list-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.fas-list-title {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--fas-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fas-list-meta {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--fas-ink-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fas-list-action {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--fas-ink);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.12s ease;
+}
+.fas-list-action:hover {
+  background: var(--fas-nav-hover);
+}
+
+.fas-team-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+.fas-team-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px;
+  border-radius: 10px;
+  background: var(--fas-card);
+  border: 1px solid var(--fas-card-border);
+  box-shadow: var(--fas-card-shadow);
+}
+.fas-team-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.fas-team-avatar--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fas-nav-active);
+  color: var(--fas-ink);
+  font-size: 12px;
+}
+.fas-team-copy { min-width: 0; }
+.fas-team-name {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: -0.015em;
+  color: var(--fas-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fas-team-role {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--fas-ink-muted);
+}
+
+.fas-btn--ghost {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 1px solid var(--fas-btn-border) !important;
+}
 
 /* ── Module empty ── */
 .fas-empty {

@@ -12,6 +12,13 @@ import { openNewProject } from '@/lib/new-project-open'
 
 export type OverviewPayload = {
   workspace: { id: string; name: string; domain?: string }
+  workspaces?: Array<{
+    id: string
+    name: string
+    slug?: string | null
+    isPersonal?: boolean
+    role?: string | null
+  }>
   summary: {
     activeProjects: number
     pendingDecisions: number
@@ -33,6 +40,14 @@ export type OverviewPayload = {
     health: 'healthy' | 'watch' | 'risk' | 'blocked'
     status: string | null
     nextMilestone: string | null
+  }>
+  tasks?: Array<{
+    id: string
+    title: string
+    status: string | null
+    projectId: string | null
+    projectTitle: string
+    updatedAt: string | null
   }>
   decisions: Array<{
     id: string
@@ -58,10 +73,10 @@ export type OverviewPayload = {
 }
 
 const HEALTH_LABEL: Record<OverviewPayload['projects'][number]['health'], string> = {
-  healthy: 'Healthy',
-  watch: 'Needs attention',
-  risk: 'At risk',
-  blocked: 'Blocked',
+  healthy: 'Stabil',
+  watch: 'Aufmerksamkeit',
+  risk: 'Risiko',
+  blocked: 'Blockiert',
 }
 
 type Props = {
@@ -87,14 +102,26 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
             {workspace.domain}
           </p>
         ) : null}
-        <ul className="fas-wo-meta" aria-label="Workspace summary">
-          <li>{summary.activeProjects} Active Project{summary.activeProjects === 1 ? '' : 's'}</li>
-          <li>{summary.pendingDecisions} Pending Decision{summary.pendingDecisions === 1 ? '' : 's'}</li>
-          <li>{summary.teamMembers} Team Member{summary.teamMembers === 1 ? '' : 's'}</li>
+        <ul className="fas-wo-meta" aria-label="Workspace-Zusammenfassung">
+          <li>
+            {summary.activeProjects === 1
+              ? '1 aktives Projekt'
+              : `${summary.activeProjects} aktive Projekte`}
+          </li>
+          <li>
+            {summary.pendingDecisions === 1
+              ? '1 offene Entscheidung'
+              : `${summary.pendingDecisions} offene Entscheidungen`}
+          </li>
+          <li>
+            {summary.teamMembers === 1
+              ? '1 Teammitglied'
+              : `${summary.teamMembers} Teammitglieder`}
+          </li>
           {summary.nextMilestone ? (
-            <li>Next Milestone: {summary.nextMilestone}</li>
+            <li>Nächster Meilenstein: {summary.nextMilestone}</li>
           ) : (
-            <li>No upcoming milestone</li>
+            <li>Kein Meilenstein geplant</li>
           )}
         </ul>
       </section>
@@ -102,7 +129,7 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
       {briefing ? (
         <section className="fas-wo-briefing fas-assemble fas-assemble-d1" aria-labelledby="fas-wo-briefing-title">
           <h2 id="fas-wo-briefing-title" className="fas-wo-briefing-title">
-            Today&apos;s Briefing
+            Briefing für heute
           </h2>
           <p className="fas-wo-briefing-project">{briefing.projectTitle}</p>
           <ul className="fas-wo-briefing-lines">
@@ -111,13 +138,20 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
             ))}
           </ul>
           <div className="fas-wo-briefing-actions">
-            <button type="button" className="fas-wo-btn fas-wo-btn--quiet" disabled title="Coming soon">
+            <button type="button" className="fas-wo-btn fas-wo-btn--quiet" disabled title="Bald verfügbar">
               <Headphones size={15} weight="regular" />
-              Listen to Briefing
+              Briefing anhören
             </button>
-            <Link href="/overview/projects" className="fas-wo-btn">
+            <Link
+              href={
+                briefing.projectId
+                  ? `/project/${briefing.projectId}`
+                  : '/overview/projects'
+              }
+              className="fas-wo-btn"
+            >
               <FileText size={15} weight="regular" />
-              Read Summary
+              Zusammenfassung
             </Link>
           </div>
         </section>
@@ -125,16 +159,16 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
 
       <section className="fas-wo-section fas-assemble fas-assemble-d2" aria-labelledby="fas-wo-projects-title">
         <div className="fas-wo-section-head">
-          <h2 id="fas-wo-projects-title" className="fas-wo-section-title">Active Projects</h2>
+          <h2 id="fas-wo-projects-title" className="fas-wo-section-title">Aktive Projekte</h2>
           <Link href="/overview/projects" className="fas-wo-section-link">
-            All projects
+            Alle Projekte
             <ArrowRight size={12} weight="bold" />
           </Link>
         </div>
 
         {projects.length === 0 ? (
           <div className="fas-wo-empty">
-            <p>No projects yet. Create your first project to give this workspace a center of gravity.</p>
+            <p>Noch keine Projekte. Lege das erste an — dann hat dieser Workspace einen Schwerpunkt.</p>
             <button type="button" className="fas-btn" onClick={() => openNewProject()}>
               Neues Projekt
             </button>
@@ -149,25 +183,25 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
                     {HEALTH_LABEL[p.health]}
                   </span>
                 </div>
-                <div className="fas-wo-progress" aria-label={`Progress ${p.progress}%`}>
+                <div className="fas-wo-progress" aria-label={`Fortschritt ${p.progress}%`}>
                   <span className="fas-wo-progress-bar" style={{ width: `${p.progress}%` }} />
                 </div>
                 <dl className="fas-wo-project-meta">
                   <div>
                     <dt>Phase</dt>
-                    <dd>{formatLabel(p.phase || p.status || 'Planning')}</dd>
+                    <dd>{formatLabel(p.phase || p.status || 'Planung')}</dd>
                   </div>
                   <div>
-                    <dt>Progress</dt>
+                    <dt>Fortschritt</dt>
                     <dd>{p.progress}%</dd>
                   </div>
                   <div>
-                    <dt>Next</dt>
+                    <dt>Nächstes</dt>
                     <dd>{p.nextMilestone || '—'}</dd>
                   </div>
                 </dl>
                 <Link href={`/project/${p.id}`} className="fas-wo-project-open">
-                  Open Project
+                  Projekt öffnen
                   <ArrowRight size={13} weight="bold" />
                 </Link>
               </article>
@@ -178,10 +212,10 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
 
       <section className="fas-wo-section fas-assemble fas-assemble-d3" aria-labelledby="fas-wo-decisions-title">
         <div className="fas-wo-section-head">
-          <h2 id="fas-wo-decisions-title" className="fas-wo-section-title">Pending Decisions</h2>
+          <h2 id="fas-wo-decisions-title" className="fas-wo-section-title">Offene Entscheidungen</h2>
         </div>
         {decisions.length === 0 ? (
-          <p className="fas-wo-quiet">No decisions need you right now.</p>
+          <p className="fas-wo-quiet">Gerade brauchst du keine Entscheidung.</p>
         ) : (
           <div className="fas-wo-decision-list">
             {decisions.map((d) => (
@@ -191,11 +225,11 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
                   <p className="fas-wo-decision-meta">
                     {d.projectTitle}
                     {d.urgency ? `, ${formatLabel(d.urgency)}` : ''}
-                    {d.dueDate ? `, due ${formatDate(d.dueDate)}` : ''}
+                    {d.dueDate ? `, fällig ${formatDate(d.dueDate)}` : ''}
                   </p>
                 </div>
                 <Link href={d.id ? `/decisions/${d.id}` : '/overview/inbox'} className="fas-wo-btn">
-                  Review
+                  Prüfen
                 </Link>
               </article>
             ))}
@@ -206,17 +240,17 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
       <div className="fas-wo-split">
         <section className="fas-wo-section fas-assemble fas-assemble-d4" aria-labelledby="fas-wo-activity-title">
           <div className="fas-wo-section-head">
-            <h2 id="fas-wo-activity-title" className="fas-wo-section-title">Workspace Activity</h2>
+            <h2 id="fas-wo-activity-title" className="fas-wo-section-title">Aktivität</h2>
             <Link href="/overview/activity" className="fas-wo-section-link">
-              Full feed
+              Vollständiger Feed
               <ArrowRight size={12} weight="bold" />
             </Link>
           </div>
           {activity.length === 0 ? (
-            <p className="fas-wo-quiet">Activity will appear as work moves through projects.</p>
+            <p className="fas-wo-quiet">Aktivität erscheint, sobald Arbeit in Projekten läuft.</p>
           ) : (
             <ol className="fas-wo-activity">
-              {activity.map((a) => (
+              {activity.slice(0, 8).map((a) => (
                 <li key={a.id} className="fas-wo-activity-row">
                   <div className="fas-wo-activity-dot" aria-hidden />
                   <div className="fas-wo-activity-copy">
@@ -233,14 +267,14 @@ export default function WorkspaceOverviewLive({ greeting, firstName, data }: Pro
 
         <section className="fas-wo-section fas-assemble fas-assemble-d5" aria-labelledby="fas-wo-team-title">
           <div className="fas-wo-section-head">
-            <h2 id="fas-wo-team-title" className="fas-wo-section-title">Team Snapshot</h2>
+            <h2 id="fas-wo-team-title" className="fas-wo-section-title">Team</h2>
             <Link href="/overview/team" className="fas-wo-section-link">
               Team
               <ArrowRight size={12} weight="bold" />
             </Link>
           </div>
           {team.length === 0 ? (
-            <p className="fas-wo-quiet">Invite people from workspace setup to see them here.</p>
+            <p className="fas-wo-quiet">Lade Mitwirkende ein — dann erscheinen sie hier.</p>
           ) : (
             <ul className="fas-wo-team">
               {team.map((m) => (
@@ -272,7 +306,7 @@ function formatLabel(raw: string): string {
 
 function formatDate(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString('de-DE', {
       month: 'short',
       day: 'numeric',
     })
@@ -286,12 +320,12 @@ function formatRelative(iso: string): string {
     const t = new Date(iso).getTime()
     const diff = Date.now() - t
     const mins = Math.floor(diff / 60000)
-    if (mins < 1) return 'Just now'
-    if (mins < 60) return `${mins}m ago`
+    if (mins < 1) return 'gerade eben'
+    if (mins < 60) return `vor ${mins}m`
     const hours = Math.floor(mins / 60)
-    if (hours < 24) return `${hours}h ago`
+    if (hours < 24) return `vor ${hours}h`
     const days = Math.floor(hours / 24)
-    if (days < 7) return `${days}d ago`
+    if (days < 7) return `vor ${days}d`
     return formatDate(iso)
   } catch {
     return ''

@@ -23,10 +23,10 @@ export type AppShellNavItem = {
 
 /** Primary rail — Overview / Projects / Tasks / Inbox */
 export const APP_SHELL_PRIMARY_NAV: AppShellNavItem[] = [
-  { href: '/overview', label: 'Overview', icon: Layout },
-  { href: '/overview/projects', label: 'Projects', icon: FolderSimple },
-  { href: '/overview/tasks', label: 'Tasks', icon: CheckSquare },
-  { href: '/overview/inbox', label: 'Inbox', icon: Tray },
+  { href: '/overview', label: 'Übersicht', icon: Layout },
+  { href: '/overview/projects', label: 'Projekte', icon: FolderSimple },
+  { href: '/overview/tasks', label: 'Aufgaben', icon: CheckSquare },
+  { href: '/overview/inbox', label: 'Posteingang', icon: Tray },
 ]
 
 /**
@@ -39,9 +39,9 @@ export const APP_SHELL_WORKSPACE_NAV: AppShellNavItem[] = [
 
 /** Secondary — Documents / Team / Activity */
 export const APP_SHELL_SECONDARY_NAV: AppShellNavItem[] = [
-  { href: '/overview/documents', label: 'Documents', icon: FileText },
+  { href: '/overview/documents', label: 'Dokumente', icon: FileText },
   { href: '/overview/team', label: 'Team', icon: UsersThree },
-  { href: '/overview/activity', label: 'Activity', icon: Pulse },
+  { href: '/overview/activity', label: 'Aktivität', icon: Pulse },
 ]
 
 export const APP_SHELL_ALL_NAV: AppShellNavItem[] = [
@@ -66,7 +66,7 @@ export function appShellRoleLabel(role?: string | null): string {
 
 export function appShellGreeting(now = new Date()): string {
   const hour = now.getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
+  if (hour < 12) return 'Guten Morgen'
+  if (hour < 18) return 'Guten Tag'
+  return 'Guten Abend'
 }

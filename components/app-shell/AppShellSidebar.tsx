@@ -69,7 +69,7 @@ function fmtRecentAge(iso?: string | null): string {
 }
 
 function workspaceInitial(name: string): string {
-  const clean = name.replace(/^No workspace$/i, '').trim()
+  const clean = name.replace(/^Kein Workspace$/i, '').replace(/^No workspace$/i, '').trim()
   if (!clean) return 'F'
   return clean.charAt(0).toUpperCase()
 }
@@ -93,11 +93,13 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const pathname = usePathname() || '/overview'
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
   const [workspaceLabel, setWorkspaceLabel] = useState(
-    () => getRememberedWorkspaceName() || 'No workspace',
+    () => getRememberedWorkspaceName() || 'Kein Workspace',
   )
   const [workspaceId, setWorkspaceId] = useState<string | null>(() => getActiveWorkspaceId())
   const [workspaces, setWorkspaces] = useState<WorkspaceListItem[]>([])
-  const hasWorkspace = workspaceLabel !== 'No workspace' || Boolean(workspaceId)
+  const hasWorkspace =
+    Boolean(workspaceId) ||
+    (workspaceLabel !== 'Kein Workspace' && workspaceLabel !== 'No workspace')
   const settingsActive =
     pathname === '/settings' ||
     pathname.startsWith('/settings/') ||
@@ -122,7 +124,7 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
       const { data: { user: authUser } } = await supabase.auth.getUser()
       if (!authUser) {
         setWorkspaces([])
-        setWorkspaceLabel('No workspace')
+        setWorkspaceLabel('Kein Workspace')
         setWorkspaceId(null)
         return
       }
@@ -143,7 +145,7 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
         rememberWorkspaceName(active.name)
       } else {
         setWorkspaceId(null)
-        setWorkspaceLabel('No workspace')
+        setWorkspaceLabel('Kein Workspace')
       }
     } catch { /* best-effort */ }
   }, [])

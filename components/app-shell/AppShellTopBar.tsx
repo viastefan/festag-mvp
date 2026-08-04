@@ -55,18 +55,18 @@ export default function AppShellTopBar({ user }: Props) {
       <div className="fas-topbar-right">
         <button
           type="button"
-          className="fas-icon-btn"
-          aria-label="Search"
+          className="fas-icon-btn fas-topbar-dup"
+          aria-label="Suche"
           onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
         >
           <MagnifyingGlass size={16} weight="light" />
         </button>
 
-        <div className="fas-topbar-notif" ref={notifRef}>
+        <div className="fas-topbar-notif fas-topbar-dup" ref={notifRef}>
           <button
             type="button"
             className="fas-icon-btn"
-            aria-label="Notifications"
+            aria-label="Benachrichtigungen"
             aria-expanded={notifOpen}
             onClick={() => setNotifOpen((v) => !v)}
           >
