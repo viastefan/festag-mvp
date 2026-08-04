@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * Festag Workspace Board — mock-faithful Wissensraum + Entscheidungsfluss.
- * Always paints a visible constellation (never an empty calm page).
+ * Festag Workspace Board — Wissensraum (left mock) + Entscheidungsfluss.
+ * Constellation is a single SVG so nodes always paint (no % layout collapse).
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -32,13 +32,15 @@ type Props = {
 
 type Level = 'board' | 'flying' | 'project'
 
-const KIND_CLASS: Record<BoardNode['kind'], string> = {
-  project: 'is-project',
-  decision: 'is-decision',
-  task: 'is-task',
-  risk: 'is-risk',
-  resource: 'is-resource',
-  knowledge: 'is-knowledge',
+const VB_W = 1000
+const VB_H = 640
+
+function kindFill(kind: BoardNode['kind'], center?: boolean): string {
+  if (center || kind === 'decision') return '#5B647D'
+  if (kind === 'risk') return '#C45B52'
+  if (kind === 'task') return '#5F6B5A'
+  if (kind === 'resource') return '#6B6280'
+  return '#6B6862'
 }
 
 export default function WorkspaceBoard({
@@ -70,13 +72,11 @@ export default function WorkspaceBoard({
   const [projectId, setProjectId] = useState<string | null>(
     () => data.projects[0]?.id || null,
   )
-  const [focusId, setFocusId] = useState<string>(constellation.focusNodeId)
+  const [focusId, setFocusId] = useState(constellation.focusNodeId)
   const [scale, setScale] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
-  const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(
-    null,
-  )
+  const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
 
   const [selected, setSelected] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -146,7 +146,7 @@ export default function WorkspaceBoard({
 
   function onPointerDown(e: React.PointerEvent) {
     if (level !== 'board') return
-    if ((e.target as HTMLElement).closest('.fas-wb-node')) return
+    if ((e.target as Element).closest('[data-node]')) return
     dragRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y }
     setDragging(true)
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
@@ -182,11 +182,10 @@ export default function WorkspaceBoard({
     const overview = await fetch(`/api/workspaces/overview${qs}`, { cache: 'no-store' })
     if (!overview.ok) return
     const json = await overview.json()
-    const nextInput: OverviewBoardInput = {
-      ...boardInput,
-      decisions: json.decisions || boardInput.decisions,
-    }
-    const rebuilt = buildProjectPathView(nextInput, projectId)
+    const rebuilt = buildProjectPathView(
+      { ...boardInput, decisions: json.decisions || boardInput.decisions },
+      projectId,
+    )
     setPathLive(rebuilt)
     setSelected(
       rebuilt.topic?.recommendId ||
@@ -209,7 +208,6 @@ export default function WorkspaceBoard({
       setDetailOpen(false)
       return
     }
-
     if (path.topic?.kind === 'project' || path.projectId === 'first-project') {
       if (optionId === 'later') {
         leaveProject()
@@ -219,12 +217,10 @@ export default function WorkspaceBoard({
       window.setTimeout(() => openNewProject(), 450)
       return
     }
-
     if (!path.topic?.decisionId) {
       setDetailOpen(false)
       return
     }
-
     setBusy(true)
     setError(null)
     const result = await acceptDecisionRecommendation({
@@ -244,6 +240,14 @@ export default function WorkspaceBoard({
   const showBoard = level === 'board' || fly !== null
   const showProject = level === 'project' || fly !== null
 
+  /* Map 0–100 layout → SVG viewBox */
+  const svgNodes = constellation.nodes.map((n) => ({
+    ...n,
+    sx: (n.x / 100) * VB_W,
+    sy: (n.y / 100) * VB_H,
+  }))
+  const byId = new Map(svgNodes.map((n) => [n.id, n]))
+
   return (
     <div
       className={[
@@ -252,16 +256,14 @@ export default function WorkspaceBoard({
         detailOpen ? ' has-detail' : '',
         dragging ? ' is-dragging' : '',
       ].join('')}
-      data-nodes={constellation.nodes.length}
     >
-      {/* In-flow sizer — absolute layers need a real box height */}
       <div className="fas-wb-sizer" aria-hidden />
 
       <div className="fas-wb-invites">
         <OverviewPendingInvites />
       </div>
 
-      {/* LEVEL 1 — Wissensraum */}
+      {/* ── Wissensraum (mock left) ── */}
       <section
         className={`fas-wb-board${showBoard ? ' is-visible' : ''}${fly === 'in' ? ' is-exiting' : ''}${fly === 'out' ? ' is-entering' : ''}`}
         aria-hidden={level === 'project'}
@@ -271,67 +273,118 @@ export default function WorkspaceBoard({
         onPointerCancel={onPointerUp}
         onWheel={onWheel}
       >
-        <header className="fas-wb-board-head">
-          <p className="fas-wb-greet">
-            {greeting}, {firstName}.
-          </p>
-          <p className="fas-wb-status">{data.summary.calmLine}</p>
-          <p className="fas-wb-hint">Klicke einen Knoten, um hineinzuzoomen.</p>
-        </header>
+        <p className="fas-wb-quiet">
+          {greeting}, {firstName}. {data.summary.calmLine}
+        </p>
 
         <div
-          className="fas-wb-canvas"
+          className="fas-wb-stage"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
           }}
         >
           <svg
-            className="fas-wb-edges"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            aria-hidden
+            className="fas-wb-svg"
+            viewBox={`0 0 ${VB_W} ${VB_H}`}
+            role="img"
+            aria-label="Wissensraum"
           >
+            <defs>
+              <radialGradient id="fasWbGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#5B647D" stopOpacity="0.35" />
+                <stop offset="45%" stopColor="#5B647D" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#5B647D" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+
+            {/* soft ambient dots — calm universe */}
+            {[
+              [120, 90],
+              [880, 110],
+              [200, 520],
+              [820, 500],
+              [150, 300],
+              [900, 340],
+              [480, 80],
+              [520, 580],
+            ].map(([x, y], i) => (
+              <circle key={`a${i}`} cx={x} cy={y} r="1.2" fill="rgba(26,25,23,0.12)" />
+            ))}
+
             {constellation.edges.map((e) => {
-              const a = constellation.nodes.find((n) => n.id === e.from)
-              const b = constellation.nodes.find((n) => n.id === e.to)
+              const a = byId.get(e.from)
+              const b = byId.get(e.to)
               if (!a || !b) return null
               return (
                 <path
                   key={e.id}
-                  d={edgePath(a.x, a.y, b.x, b.y)}
-                  className="fas-wb-edge"
+                  d={edgePath(a.sx, a.sy, b.sx, b.sy)}
+                  fill="none"
+                  stroke="rgba(26,25,23,0.14)"
+                  strokeWidth="1.25"
+                  strokeLinecap="round"
                 />
               )
             })}
-          </svg>
 
-          {constellation.nodes.map((node) => {
-            const active = focusId === node.id || Boolean(node.center)
-            return (
-              <button
-                key={node.id}
-                type="button"
-                className={[
-                  'fas-wb-node',
-                  KIND_CLASS[node.kind],
-                  active ? ' is-active' : '',
-                  node.center ? ' is-center' : '',
-                ].join('')}
-                style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                onClick={(ev) => {
-                  ev.stopPropagation()
-                  onNodeActivate(node)
-                }}
-              >
-                <span className="fas-wb-halo" aria-hidden />
-                <span className="fas-wb-dot" aria-hidden />
-                <span className="fas-wb-node-label">{node.label}</span>
-                {node.meta ? (
-                  <span className="fas-wb-node-meta">{node.meta}</span>
-                ) : null}
-              </button>
-            )
-          })}
+            {svgNodes.map((node) => {
+              const active = focusId === node.id || Boolean(node.center)
+              const r = node.center ? 7 : 4.5
+              const fill = kindFill(node.kind, node.center)
+              return (
+                <g
+                  key={node.id}
+                  data-node={node.id}
+                  className={`fas-wb-gnode${active ? ' is-active' : ''}${node.center ? ' is-center' : ''}`}
+                  transform={`translate(${node.sx} ${node.sy})`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={(ev) => {
+                    ev.stopPropagation()
+                    onNodeActivate(node)
+                  }}
+                >
+                  {node.center ? (
+                    <circle r="52" fill="url(#fasWbGlow)" pointerEvents="none" />
+                  ) : null}
+                  <circle
+                    r={r + 10}
+                    fill="transparent"
+                    pointerEvents="all"
+                  />
+                  <circle
+                    r={r}
+                    fill={fill}
+                    opacity={active ? 1 : 0.85}
+                  />
+                  {node.center ? (
+                    <circle
+                      r={r + 5}
+                      fill="none"
+                      stroke="#5B647D"
+                      strokeOpacity="0.28"
+                      strokeWidth="2"
+                    />
+                  ) : null}
+                  <text
+                    y={node.center ? 28 : 22}
+                    textAnchor="middle"
+                    className={node.center ? 'fas-wb-svg-label is-center' : 'fas-wb-svg-label'}
+                  >
+                    {node.label}
+                  </text>
+                  {node.meta ? (
+                    <text
+                      y={node.center ? 46 : 38}
+                      textAnchor="middle"
+                      className="fas-wb-svg-meta"
+                    >
+                      {node.meta}
+                    </text>
+                  ) : null}
+                </g>
+              )
+            })}
+          </svg>
         </div>
 
         <div className="fas-wb-board-foot">
@@ -340,47 +393,48 @@ export default function WorkspaceBoard({
               <button type="button" onClick={() => zoomBy(-0.12)} aria-label="Herauszoomen">
                 −
               </button>
-              <span>{Math.round(scale * 100)}%</span>
               <button type="button" onClick={() => zoomBy(0.12)} aria-label="Hineinzoomen">
                 +
               </button>
-              <button
-                type="button"
-                className="fas-wb-zoom-reset"
-                onClick={() => {
-                  setScale(1)
-                  setPan({ x: 0, y: 0 })
-                }}
-              >
-                Reset
-              </button>
             </div>
             <div className="fas-wb-minimap" aria-hidden>
-              <svg viewBox="0 0 100 70">
+              <svg viewBox={`0 0 ${VB_W} ${VB_H}`}>
                 {constellation.edges.map((e) => {
-                  const a = constellation.nodes.find((n) => n.id === e.from)
-                  const b = constellation.nodes.find((n) => n.id === e.to)
+                  const a = byId.get(e.from)
+                  const b = byId.get(e.to)
                   if (!a || !b) return null
                   return (
                     <line
                       key={e.id}
-                      x1={a.x}
-                      y1={a.y * 0.7}
-                      x2={b.x}
-                      y2={b.y * 0.7}
-                      className="fas-wb-mm-edge"
+                      x1={a.sx}
+                      y1={a.sy}
+                      x2={b.sx}
+                      y2={b.sy}
+                      stroke="rgba(26,25,23,0.15)"
+                      strokeWidth="4"
                     />
                   )
                 })}
-                {constellation.nodes.map((n) => (
+                {svgNodes.map((n) => (
                   <circle
                     key={n.id}
-                    cx={n.x}
-                    cy={n.y * 0.7}
-                    r={n.center ? 2.4 : 1.2}
-                    className={`fas-wb-mm-dot${n.center ? ' is-on' : ''}`}
+                    cx={n.sx}
+                    cy={n.sy}
+                    r={n.center ? 14 : 7}
+                    fill={n.center ? '#5B647D' : 'rgba(26,25,23,0.35)'}
                   />
                 ))}
+                <rect
+                  x={VB_W * 0.28}
+                  y={VB_H * 0.22}
+                  width={VB_W * 0.44}
+                  height={VB_H * 0.5}
+                  fill="none"
+                  stroke="#5B647D"
+                  strokeOpacity="0.45"
+                  strokeWidth="6"
+                  rx="8"
+                />
               </svg>
             </div>
           </div>
@@ -410,7 +464,7 @@ export default function WorkspaceBoard({
         </div>
       </section>
 
-      {/* LEVEL 2 — Entscheidungsfluss */}
+      {/* ── Entscheidungsfluss (mock right) ── */}
       <section
         className={`fas-wb-project${showProject ? ' is-visible' : ''}${fly === 'in' ? ' is-entering' : ''}${fly === 'out' ? ' is-exiting' : ''}`}
         aria-hidden={level === 'board'}

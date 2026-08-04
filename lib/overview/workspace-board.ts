@@ -188,9 +188,7 @@ export function buildWorkspaceConstellation(
     label: centerLabel,
     meta:
       openDec > 0
-        ? openDec === 1
-          ? '1 Entscheidung'
-          : `${openDec} Entscheidungen`
+        ? 'Entscheidung'
         : focusProject
           ? phaseLabel(focusProject.phase)
           : 'Workspace',
