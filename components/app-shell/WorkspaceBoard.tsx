@@ -279,6 +279,9 @@ export default function WorkspaceBoard({
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
             }}
           >
+            {/* Blueprint line grid — mock left (Wissensraum) */}
+            <div className="fas-wb-grid" aria-hidden />
+
             {/* Edges in the same 0–100 space as node left/top % */}
             <svg
               className="fas-wb-svg"

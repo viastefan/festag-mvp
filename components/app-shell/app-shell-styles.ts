@@ -1298,6 +1298,21 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 }
 .fas-wb.is-dragging .fas-wb-world { transition: none; }
 
+/* Large calm blueprint grid — mock Wissensraum */
+.fas-wb-grid {
+  position: absolute;
+  /* Oversized so pan/zoom still shows lines; does not affect node % layout */
+  inset: -60%;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(26, 25, 23, 0.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26, 25, 23, 0.075) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: 0 0;
+  opacity: 0.9;
+}
+
 .fas-wb-svg {
   position: absolute !important;
   inset: 0 !important;
@@ -1854,6 +1869,13 @@ html[data-theme="classic-dark"] .fas-wb {
   --wb-line: rgba(230, 230, 234, 0.12);
   --wb-sheet: #1A1A1E;
   background: #070708;
+}
+html[data-theme="dark"] .fas-wb-grid,
+html[data-theme="classic-dark"] .fas-wb-grid {
+  background-image:
+    linear-gradient(to right, rgba(230, 230, 234, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(230, 230, 234, 0.06) 1px, transparent 1px);
+  opacity: 0.7;
 }
 html[data-theme="dark"] .fas-root:has(.fas-wb),
 html[data-theme="classic-dark"] .fas-root:has(.fas-wb) {
