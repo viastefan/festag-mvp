@@ -1,25 +1,28 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import AppShellSidebar from '@/components/app-shell/AppShellSidebar'
 import AppShellTopBar from '@/components/app-shell/AppShellTopBar'
-import AppShellAccountPanel from '@/components/app-shell/AppShellAccountPanel'
-import WorkspaceCreateWizardModal from '@/components/app-shell/WorkspaceCreateWizardModal'
-import WorkspaceRenameSheet from '@/components/app-shell/WorkspaceRenameSheet'
-import WorkspaceManageModal from '@/components/app-shell/WorkspaceManageModal'
-import AppShellNewProjectHost from '@/components/app-shell/AppShellNewProjectHost'
 import { APP_SHELL_STYLES } from '@/components/app-shell/app-shell-styles'
-import CommandPalette from '@/components/CommandPalette'
 import { useUser } from '@/lib/hooks/useUser'
 import { applyAppearanceForPath } from '@/lib/theme'
 
 const COLLAPSE_KEY = 'festag-os-sidebar-collapsed'
 
+const CommandPalette = dynamic(() => import('@/components/CommandPalette'), { ssr: false })
+const AppShellAccountPanel = dynamic(() => import('@/components/app-shell/AppShellAccountPanel'), { ssr: false })
+const WorkspaceCreateWizardModal = dynamic(() => import('@/components/app-shell/WorkspaceCreateWizardModal'), { ssr: false })
+const WorkspaceRenameSheet = dynamic(() => import('@/components/app-shell/WorkspaceRenameSheet'), { ssr: false })
+const WorkspaceManageModal = dynamic(() => import('@/components/app-shell/WorkspaceManageModal'), { ssr: false })
+const AppShellNewProjectHost = dynamic(() => import('@/components/app-shell/AppShellNewProjectHost'), { ssr: false })
+
 export default function FestagAppShell({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
   const pathname = usePathname() || '/overview'
   const [collapsed, setCollapsed] = useState(false)
+  const [chromeReady, setChromeReady] = useState(false)
   const isSettingsWorkspace =
     pathname === '/settings' || pathname.startsWith('/settings/')
 
@@ -33,6 +36,29 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
     } catch { /* noop */ }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    const enable = () => {
+      if (!cancelled) setChromeReady(true)
+    }
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(enable, { timeout: 1200 })
+      return () => {
+        cancelled = true
+        w.cancelIdleCallback?.(id)
+      }
+    }
+    const id = globalThis.setTimeout(enable, 200)
+    return () => {
+      cancelled = true
+      globalThis.clearTimeout(id)
+    }
+  }, [])
+
   function toggleCollapse() {
     setCollapsed((prev) => {
       const next = !prev
@@ -41,17 +67,23 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
     })
   }
 
+  const deferredChrome = chromeReady ? (
+    <>
+      <CommandPalette theme="portal" />
+      <WorkspaceCreateWizardModal />
+      <WorkspaceRenameSheet />
+      <WorkspaceManageModal />
+      <AppShellNewProjectHost />
+    </>
+  ) : null
+
   /* Full settings workspace keeps its own rail — park the OS chrome. */
   if (isSettingsWorkspace) {
     return (
       <div className="fas-root fas-root--settings" data-app-shell="">
         <style>{APP_SHELL_STYLES}</style>
         {children}
-        <CommandPalette theme="portal" />
-        <WorkspaceCreateWizardModal />
-        <WorkspaceRenameSheet />
-        <WorkspaceManageModal />
-        <AppShellNewProjectHost />
+        {deferredChrome}
       </div>
     )
   }
@@ -68,12 +100,8 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
         <AppShellTopBar user={user} />
         <main className="fas-content">{children}</main>
       </div>
-      <CommandPalette theme="portal" />
-      <AppShellAccountPanel user={user} />
-      <WorkspaceCreateWizardModal />
-      <WorkspaceRenameSheet />
-      <WorkspaceManageModal />
-      <AppShellNewProjectHost />
+      {chromeReady ? <AppShellAccountPanel user={user} /> : null}
+      {deferredChrome}
     </div>
   )
 }

@@ -37,9 +37,12 @@ type Options = {
   limit?: number
   projectId?: string
   unreadOnly?: boolean
+  /** When false, skip network + realtime until enabled (faster first paint). */
+  enabled?: boolean
 }
 
 export function useNotifications(opts: Options = {}) {
+  const enabled = opts.enabled !== false
   const supabase = useMemo(() => createClient(), [])
   const [items, setItems] = useState<Notification[]>([])
   const [unread, setUnread] = useState(0)
@@ -47,6 +50,7 @@ export function useNotifications(opts: Options = {}) {
   const userIdRef = useRef<string | null>(null)
 
   const reload = useCallback(async () => {
+    if (!enabled) return
     const params = new URLSearchParams()
     if (opts.limit) params.set('limit', String(opts.limit))
     if (opts.projectId) params.set('projectId', opts.projectId)
@@ -57,9 +61,13 @@ export function useNotifications(opts: Options = {}) {
     setItems(d?.notifications ?? [])
     setUnread(d?.unread ?? 0)
     setLoading(false)
-  }, [opts.limit, opts.projectId, opts.unreadOnly])
+  }, [enabled, opts.limit, opts.projectId, opts.unreadOnly])
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false)
+      return
+    }
     let cancelled = false
     let channel: ReturnType<typeof supabase.channel> | null = null
     ;(async () => {
@@ -98,7 +106,7 @@ export function useNotifications(opts: Options = {}) {
       cancelled = true
       if (channel) supabase.removeChannel(channel)
     }
-  }, [supabase, reload, opts.projectId, opts.limit])
+  }, [enabled, opts.limit, opts.projectId, reload, supabase])
 
   const markRead = useCallback(async (id: string) => {
     setItems(prev => prev.map(n => n.id === id ? { ...n, read: true, read_at: new Date().toISOString() } : n))

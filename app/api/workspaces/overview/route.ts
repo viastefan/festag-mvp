@@ -106,14 +106,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, workspace: null, workspaces: [] })
   }
 
-  /* Soft-claim orphan projects owned by this user into the active workspace. */
-  try {
-    await service
+  /* Soft-claim orphan projects — never block the overview response. */
+  void Promise.resolve(
+    service
       .from('projects')
       .update({ workspace_id: workspace.id })
       .eq('user_id', user.id)
-      .is('workspace_id', null)
-  } catch { /* column / RLS */ }
+      .is('workspace_id', null),
+  ).catch(() => undefined)
 
   let projectsRaw: any[] = []
   {
@@ -143,67 +143,110 @@ export async function GET(req: NextRequest) {
   const tasksDoneByProject = new Map<string, { done: number; total: number }>()
   const milestoneByProject = new Map<string, string>()
 
-  if (projectIds.length > 0) {
-    const [decRes, issueRes, taskRes, mileRes] = await Promise.all([
-      service
-        .from('decisions')
-        .select('id, project_id, status')
-        .in('project_id', projectIds)
-        .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[]),
-      service
-        .from('issues')
-        .select('id, project_id, severity, status')
-        .in('project_id', projectIds)
-        .in('status', ['open', 'in_progress', 'triage']),
-      service
-        .from('tasks')
-        .select('id, project_id, title, status, updated_at')
-        .in('project_id', projectIds)
-        .order('updated_at', { ascending: false })
-        .limit(80),
-      service
-        .from('milestones')
-        .select('id, project_id, title, due_date, status')
-        .in('project_id', projectIds)
-        .order('due_date', { ascending: true }),
-    ])
-    const decisions = decRes.data
-    const issues = issueRes.data
-    const tasks = taskRes.data
-    const milestones = mileRes.data
+  const [
+    decRes,
+    issueRes,
+    taskRes,
+    mileRes,
+    feedRes,
+    membersRes,
+    reportRes,
+    workspacesList,
+  ] = await Promise.all([
+    projectIds.length > 0
+      ? service
+          .from('decisions')
+          .select('id, title, client_title, project_id, urgency, due_date, created_at, status')
+          .in('project_id', projectIds)
+          .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
+          .order('created_at', { ascending: false })
+          .limit(40)
+      : Promise.resolve({ data: [] as any[] }),
+    projectIds.length > 0
+      ? service
+          .from('issues')
+          .select('id, project_id, severity, status')
+          .in('project_id', projectIds)
+          .in('status', ['open', 'in_progress', 'triage'])
+      : Promise.resolve({ data: [] as any[] }),
+    projectIds.length > 0
+      ? service
+          .from('tasks')
+          .select('id, project_id, title, status, updated_at')
+          .in('project_id', projectIds)
+          .order('updated_at', { ascending: false })
+          .limit(80)
+      : Promise.resolve({ data: [] as any[] }),
+    projectIds.length > 0
+      ? service
+          .from('milestones')
+          .select('id, project_id, title, due_date, status')
+          .in('project_id', projectIds)
+          .order('due_date', { ascending: true })
+      : Promise.resolve({ data: [] as any[] }),
+    projectIds.length > 0
+      ? service
+          .from('activity_feed')
+          .select('id, title, message, kind, event_type, type, body, created_at, project_id')
+          .in('project_id', projectIds)
+          .order('created_at', { ascending: false })
+          .limit(40)
+      : Promise.resolve({ data: [] as any[] }),
+    service
+      .from('workspace_members')
+      .select('user_id, role')
+      .eq('workspace_id', workspace.id)
+      .limit(24),
+    projectIds.length > 0
+      ? service
+          .from('status_reports')
+          .select(
+            'id, project_id, summary, completed_work_json, current_work_json, next_steps_json, decisions_needed_json, created_at',
+          )
+          .in('project_id', projectIds)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null as any }),
+    listWorkspacesForUser(service as any, user.id),
+  ])
 
-    for (const d of decisions || []) {
-      if (!d.project_id) continue
-      openDecisionsByProject.set(
-        d.project_id,
-        (openDecisionsByProject.get(d.project_id) || 0) + 1,
+  const decisions = decRes.data
+  const issues = issueRes.data
+  const tasks = taskRes.data
+  const milestones = mileRes.data
+
+  for (const d of decisions || []) {
+    if (!d.project_id) continue
+    openDecisionsByProject.set(
+      d.project_id,
+      (openDecisionsByProject.get(d.project_id) || 0) + 1,
+    )
+  }
+  for (const issue of issues || []) {
+    if (!issue.project_id) continue
+    const sev = String(issue.severity || '').toLowerCase()
+    if (sev === 'critical' || sev === 'high') {
+      criticalByProject.set(
+        issue.project_id,
+        (criticalByProject.get(issue.project_id) || 0) + 1,
       )
     }
-    for (const issue of issues || []) {
-      if (!issue.project_id) continue
-      const sev = String(issue.severity || '').toLowerCase()
-      if (sev === 'critical' || sev === 'high') {
-        criticalByProject.set(
-          issue.project_id,
-          (criticalByProject.get(issue.project_id) || 0) + 1,
-        )
-      }
-    }
-    for (const t of tasks || []) {
-      if (!t.project_id) continue
-      const cur = tasksDoneByProject.get(t.project_id) || { done: 0, total: 0 }
-      cur.total += 1
-      const st = String(t.status || '').toLowerCase()
-      if (st === 'done' || st === 'completed' || st === 'closed') cur.done += 1
-      tasksDoneByProject.set(t.project_id, cur)
-    }
-    for (const m of milestones || []) {
-      if (!m.project_id || milestoneByProject.has(m.project_id)) continue
-      const st = String(m.status || '').toLowerCase()
-      if (st === 'done' || st === 'completed') continue
-      const title = typeof m.title === 'string' ? m.title.trim() : ''
-      if (title) milestoneByProject.set(m.project_id, title)
-    }
+  }
+  for (const t of tasks || []) {
+    if (!t.project_id) continue
+    const cur = tasksDoneByProject.get(t.project_id) || { done: 0, total: 0 }
+    cur.total += 1
+    const st = String(t.status || '').toLowerCase()
+    if (st === 'done' || st === 'completed' || st === 'closed') cur.done += 1
+    tasksDoneByProject.set(t.project_id, cur)
+  }
+  for (const m of milestones || []) {
+    if (!m.project_id || milestoneByProject.has(m.project_id)) continue
+    const st = String(m.status || '').toLowerCase()
+    if (st === 'done' || st === 'completed') continue
+    const title = typeof m.title === 'string' ? m.title.trim() : ''
+    if (title) milestoneByProject.set(m.project_id, title)
   }
 
   function deriveHealth(projectId: string): WorkspaceOverviewProject['health'] {
@@ -246,46 +289,25 @@ export async function GET(req: NextRequest) {
 
   const DONE_TASK = new Set(['done', 'completed', 'closed', 'cancelled', 'erledigt'])
   const openTasks: WorkspaceOverviewTask[] = []
-  {
-    /* Reuse the progress task query if present — otherwise fetch once. */
-    let taskRows: any[] = []
-    if (projectIds.length > 0) {
-      const { data } = await service
-        .from('tasks')
-        .select('id, project_id, title, status, updated_at')
-        .in('project_id', projectIds)
-        .order('updated_at', { ascending: false })
-        .limit(60)
-      taskRows = data || []
-    }
-    for (const t of taskRows) {
-      const st = String(t.status || '').toLowerCase()
-      if (DONE_TASK.has(st)) continue
-      const title = typeof t.title === 'string' ? t.title.trim() : ''
-      if (!title) continue
-      openTasks.push({
-        id: t.id,
-        title,
-        status: typeof t.status === 'string' ? t.status : null,
-        projectId: t.project_id || null,
-        projectTitle: (t.project_id && titleById.get(t.project_id)) || 'Projekt',
-        updatedAt: t.updated_at || null,
-      })
-      if (openTasks.length >= 40) break
-    }
+  for (const t of tasks || []) {
+    const st = String(t.status || '').toLowerCase()
+    if (DONE_TASK.has(st)) continue
+    const title = typeof t.title === 'string' ? t.title.trim() : ''
+    if (!title) continue
+    openTasks.push({
+      id: t.id,
+      title,
+      status: typeof t.status === 'string' ? t.status : null,
+      projectId: t.project_id || null,
+      projectTitle: (t.project_id && titleById.get(t.project_id)) || 'Projekt',
+      updatedAt: t.updated_at || null,
+    })
+    if (openTasks.length >= 40) break
   }
 
-  let pendingDecisions: WorkspaceOverviewDecision[] = []
-  if (projectIds.length > 0) {
-    const { data: decRows } = await service
-      .from('decisions')
-      .select('id, title, client_title, project_id, urgency, due_date, created_at')
-      .in('project_id', projectIds)
-      .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
-      .order('created_at', { ascending: false })
-      .limit(8)
-
-    pendingDecisions = (decRows || []).map((d: any) => ({
+  const pendingDecisions: WorkspaceOverviewDecision[] = (decisions || [])
+    .slice(0, 8)
+    .map((d: any) => ({
       id: d.id,
       title: String(d.client_title || d.title || 'Decision'),
       projectId: d.project_id || null,
@@ -293,25 +315,14 @@ export async function GET(req: NextRequest) {
       urgency: typeof d.urgency === 'string' ? d.urgency : null,
       dueDate: d.due_date || null,
     }))
-  }
 
-  let activity: WorkspaceOverviewActivity[] = []
-  if (projectIds.length > 0) {
-    const { data: feed } = await service
-      .from('activity_feed')
-      .select('*')
-      .in('project_id', projectIds)
-      .order('created_at', { ascending: false })
-      .limit(40)
-
-    activity = (feed || []).map((row: any) => ({
-      id: row.id,
-      title: String(row.title || row.message || row.kind || row.event_type || row.type || 'Activity'),
-      body: typeof row.body === 'string' ? row.body : typeof row.message === 'string' ? row.message : null,
-      createdAt: row.created_at,
-      projectTitle: row.project_id ? titleById.get(row.project_id) || null : null,
-    }))
-  }
+  let activity: WorkspaceOverviewActivity[] = (feedRes.data || []).map((row: any) => ({
+    id: row.id,
+    title: String(row.title || row.message || row.kind || row.event_type || row.type || 'Activity'),
+    body: typeof row.body === 'string' ? row.body : typeof row.message === 'string' ? row.message : null,
+    createdAt: row.created_at,
+    projectTitle: row.project_id ? titleById.get(row.project_id) || null : null,
+  }))
 
   /* Soft fallback from work_signals if activity_feed empty */
   if (activity.length === 0 && projectIds.length > 0) {
@@ -339,12 +350,7 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  const { data: members } = await service
-    .from('workspace_members')
-    .select('user_id, role')
-    .eq('workspace_id', workspace.id)
-    .limit(24)
-
+  const members = membersRes.data
   const memberIds = (members || []).map((m: any) => m.user_id as string).filter(Boolean)
   const roleByUser = new Map((members || []).map((m: any) => [m.user_id as string, m.role as string]))
 
@@ -401,45 +407,34 @@ export async function GET(req: NextRequest) {
     projectId: string | null
   } | null = null
 
-  if (projectIds.length > 0) {
-    const { data: report } = await service
-      .from('status_reports')
-      .select(
-        'id, project_id, summary, completed_work_json, current_work_json, next_steps_json, decisions_needed_json, created_at',
-      )
-      .in('project_id', projectIds)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (report) {
-      const lines: string[] = []
-      const pushJson = (raw: unknown) => {
-        if (!Array.isArray(raw)) return
-        for (const item of raw.slice(0, 3)) {
-          if (typeof item === 'string' && item.trim()) lines.push(item.trim())
-          else if (item && typeof item === 'object' && typeof (item as any).text === 'string') {
-            lines.push(String((item as any).text).trim())
-          } else if (item && typeof item === 'object' && typeof (item as any).title === 'string') {
-            lines.push(String((item as any).title).trim())
-          }
+  const report = reportRes.data
+  if (report) {
+    const lines: string[] = []
+    const pushJson = (raw: unknown) => {
+      if (!Array.isArray(raw)) return
+      for (const item of raw.slice(0, 3)) {
+        if (typeof item === 'string' && item.trim()) lines.push(item.trim())
+        else if (item && typeof item === 'object' && typeof (item as any).text === 'string') {
+          lines.push(String((item as any).text).trim())
+        } else if (item && typeof item === 'object' && typeof (item as any).title === 'string') {
+          lines.push(String((item as any).title).trim())
         }
       }
-      if (typeof report.summary === 'string' && report.summary.trim()) {
-        lines.push(report.summary.trim())
-      }
-      pushJson(report.completed_work_json)
-      pushJson(report.current_work_json)
-      pushJson(report.decisions_needed_json)
-      pushJson(report.next_steps_json)
+    }
+    if (typeof report.summary === 'string' && report.summary.trim()) {
+      lines.push(report.summary.trim())
+    }
+    pushJson(report.completed_work_json)
+    pushJson(report.current_work_json)
+    pushJson(report.decisions_needed_json)
+    pushJson(report.next_steps_json)
 
-      if (lines.length > 0) {
-        briefing = {
-          projectTitle: titleById.get(report.project_id) || 'Project',
-          lines: lines.filter(Boolean).slice(0, 5),
-          reportId: report.id,
-          projectId: report.project_id,
-        }
+    if (lines.length > 0) {
+      briefing = {
+        projectTitle: titleById.get(report.project_id) || 'Project',
+        lines: lines.filter(Boolean).slice(0, 5),
+        reportId: report.id,
+        projectId: report.project_id,
       }
     }
   }
@@ -476,7 +471,7 @@ export async function GET(req: NextRequest) {
           ? `${workspace.name} needs a few calm decisions today.`
           : `${workspace.name} is moving — keep momentum on active work.`
 
-  const workspaces = (await listWorkspacesForUser(service as any, user.id)).map((w) => ({
+  const workspaces = workspacesList.map((w) => ({
     id: w.id,
     name: w.name,
     slug: w.slug,

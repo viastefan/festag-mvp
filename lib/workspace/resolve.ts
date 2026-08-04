@@ -113,12 +113,18 @@ export async function listWorkspacesForUser(
 ): Promise<WorkspaceListItem[]> {
   const byId = new Map<string, WorkspaceListItem>()
 
-  const { data: owned } = await sb
-    .from('workspaces')
-    .select('id, name, slug, is_personal, created_at, metadata')
-    .eq('primary_owner_id', userId)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
+  const [{ data: owned }, { data: memberships }] = await Promise.all([
+    sb
+      .from('workspaces')
+      .select('id, name, slug, is_personal, created_at, metadata')
+      .eq('primary_owner_id', userId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: true }),
+    sb
+      .from('workspace_members')
+      .select('workspace_id, role')
+      .eq('user_id', userId),
+  ])
 
   for (const row of (owned as any[] | null) ?? []) {
     if (!row?.id) continue
@@ -130,11 +136,6 @@ export async function listWorkspacesForUser(
       role: 'owner',
     })
   }
-
-  const { data: memberships } = await sb
-    .from('workspace_members')
-    .select('workspace_id, role')
-    .eq('user_id', userId)
 
   const memberIds = ((memberships as any[] | null) ?? [])
     .map((m) => m.workspace_id as string)

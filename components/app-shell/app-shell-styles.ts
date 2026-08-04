@@ -104,14 +104,16 @@ html[data-theme="read"] .fas-root {
   background: var(--fas-sidebar-bg);
   border: none;
   border-right: 1px solid var(--fas-sep);
-  box-shadow: none;
+  box-shadow: none !important;
+  filter: none !important;
   overflow: hidden;
   position: relative;
   transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 html[data-theme="dark"] .fas-sidebar,
 html[data-theme="classic-dark"] .fas-sidebar {
-  box-shadow: none;
+  box-shadow: none !important;
+  filter: none !important;
 }
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);

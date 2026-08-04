@@ -116,26 +116,49 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   const [helpOpen, setHelpOpen] = useState(false)
   const [recent, setRecent] = useState<RecentItem[]>([])
   const [recentExpanded, setRecentExpanded] = useState(true)
+  const [deferredReady, setDeferredReady] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
   const helpTriggerRef = useRef<HTMLButtonElement>(null)
-  const { items: notifications, unread, markRead } = useNotifications({ limit: 12 })
+  const { items: notifications, unread, markRead } = useNotifications({
+    limit: 12,
+    enabled: deferredReady || notifOpen,
+  })
 
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
   }, [])
 
+  useEffect(() => {
+    const run = () => setDeferredReady(true)
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(run, { timeout: 1800 })
+      return () => w.cancelIdleCallback?.(id)
+    }
+    const id = globalThis.setTimeout(run, 400)
+    return () => globalThis.clearTimeout(id)
+  }, [])
+
   const loadWorkspaces = useCallback(async () => {
     try {
       const supabase = createClient()
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      if (!authUser) {
+      const authUserId = user?.id
+      let userId = authUserId || null
+      if (!userId) {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        userId = authUser?.id || null
+      }
+      if (!userId) {
         setWorkspaces([])
         setWorkspaceLabel('Kein Workspace')
         setWorkspaceId(null)
         return
       }
 
-      const list = await listWorkspacesForUser(supabase as any, authUser.id)
+      const list = await listWorkspacesForUser(supabase as any, userId)
       setWorkspaces(list)
 
       const preferred = getActiveWorkspaceId()
@@ -156,11 +179,11 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
         clearActiveWorkspaceId()
       }
     } catch { /* best-effort */ }
-  }, [])
+  }, [user?.id])
 
   useEffect(() => {
     void loadWorkspaces()
-  }, [loadWorkspaces, user?.id])
+  }, [loadWorkspaces])
 
   const loadRecent = useCallback(async () => {
     try {
@@ -182,8 +205,9 @@ export default function AppShellSidebar({ user, collapsed, onToggleCollapse }: P
   }, [])
 
   useEffect(() => {
+    if (!deferredReady) return
     void loadRecent()
-  }, [loadRecent, user?.id])
+  }, [deferredReady, loadRecent, user?.id])
 
   useEffect(() => {
     return onSymbolChange((key, prefs) => {
