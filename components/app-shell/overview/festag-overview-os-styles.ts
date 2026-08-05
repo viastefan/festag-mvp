@@ -71,6 +71,11 @@ ${FESTAG_CANVAS_STYLES}
   border-radius: 50%;
   background: var(--wb-primary);
   box-shadow: 0 0 0 4px rgba(91, 100, 125, 0.14);
+  animation: fasOsWaitPulse 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes fasOsWaitPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(91, 100, 125, 0.12); transform: scale(1); }
+  50% { box-shadow: 0 0 0 8px rgba(91, 100, 125, 0.06); transform: scale(1.06); }
 }
 .fas-wb-os-waiting-chev { color: var(--wb-muted); }
 
@@ -87,10 +92,23 @@ ${FESTAG_CANVAS_STYLES}
   inset: 0;
   transform-origin: 0 0;
   will-change: transform;
+  backface-visibility: hidden;
+}
+.fas-wb-os-world.is-camera-moving .fas-wb-os-mesh-dot {
+  animation-play-state: paused;
+}
+.fas-wb-os.is-decision-focus .fas-wb-os-mesh {
+  opacity: 0.72;
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fas-wb-os.is-decision-focus .fas-wb-os-knowledge-edges {
+  opacity: 0.55;
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .fas-wb-os.is-decision-focus .fas-wb-os-head {
-  opacity: 0.72;
-  transition: opacity 0.5s var(--wb-ease);
+  opacity: 0.68;
+  transform: translateY(-2px);
+  transition: opacity 0.65s var(--wb-ease), transform 0.65s var(--wb-ease);
 }
 
 /* ── Dot mesh ── */
@@ -115,6 +133,13 @@ ${FESTAG_CANVAS_STYLES}
 }
 .fas-wb-os-mesh-dot {
   fill: rgba(26, 25, 23, 0.16);
+  animation: fasOsMeshBreathe 5.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation-delay: calc(var(--mesh-i, 0) * 0.11s);
+  transform-origin: center;
+}
+@keyframes fasOsMeshBreathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
 }
 
 .fas-wb-os-knowledge-edges {
@@ -160,7 +185,13 @@ ${FESTAG_CANVAS_STYLES}
   box-shadow: none !important;
   cursor: pointer;
   font: inherit;
-  transition: opacity 0.45s var(--wb-ease);
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fas-wb-os-node:hover:not(.is-center) {
+  transform: translate(-50%, -50%) scale(1.04);
 }
 .fas-wb-os-node-copy {
   display: flex;
@@ -201,13 +232,30 @@ ${FESTAG_CANVAS_STYLES}
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translate(-50%, 20%);
+  transform: translate(-50%, 20%) scale(0.6);
   width: 10px;
   height: 10px;
   border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.6s var(--wb-ease), width 0.6s var(--wb-ease), height 0.6s var(--wb-ease);
+  transition:
+    opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fas-wb-os-node-ring {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 35%) scale(0.5);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(91, 100, 125, 0.35);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s var(--wb-ease), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .fas-wb-os-node.is-center .fas-wb-os-node-label {
   font-size: 10px;
@@ -220,41 +268,73 @@ ${FESTAG_CANVAS_STYLES}
   box-shadow: 0 0 0 8px rgba(91, 100, 125, 0.18);
 }
 .fas-wb-os-node.is-center.is-active .fas-wb-os-node-glow {
-  width: 180px;
-  height: 180px;
+  width: 200px;
+  height: 200px;
   opacity: 1;
+  transform: translate(-50%, 20%) scale(1);
   background: radial-gradient(
     circle,
-    rgba(91, 100, 125, 0.38) 0%,
-    rgba(91, 100, 125, 0.14) 40%,
+    rgba(91, 100, 125, 0.42) 0%,
+    rgba(91, 100, 125, 0.16) 38%,
     rgba(91, 100, 125, 0) 72%
   );
+  animation: fasOsGlowPulse 3.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+.fas-wb-os-node.is-center.is-active .fas-wb-os-node-ring {
+  opacity: 1;
+  transform: translate(-50%, 35%) scale(1);
+  animation: fasOsRingPulse 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes fasOsGlowPulse {
+  0%, 100% { opacity: 0.88; }
+  50% { opacity: 1; }
+}
+@keyframes fasOsRingPulse {
+  0%, 100% { transform: translate(-50%, 35%) scale(1); opacity: 0.55; }
+  50% { transform: translate(-50%, 35%) scale(1.12); opacity: 0.85; }
+}
+.fas-wb-os-node.is-center.is-active .fas-wb-os-node-dot {
+  animation: fasOsCenterDot 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes fasOsCenterDot {
+  0%, 100% { box-shadow: 0 0 0 8px rgba(91, 100, 125, 0.16); }
+  50% { box-shadow: 0 0 0 14px rgba(91, 100, 125, 0.08); }
 }
 .fas-wb-os-node.is-path-end .fas-wb-os-node-dot {
   background: var(--wb-primary);
   box-shadow: 0 0 0 5px rgba(91, 100, 125, 0.14);
+  animation: fasOsPathEndIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.9s;
+}
+@keyframes fasOsPathEndIn {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 .fas-wb-os-node.is-task .fas-wb-os-node-dot { background: rgba(95, 107, 90, 0.65); }
 .fas-wb-os-node.is-risk .fas-wb-os-node-dot { background: rgba(196, 91, 82, 0.7); }
 .fas-wb-os-node.is-resource .fas-wb-os-node-dot { background: rgba(107, 98, 128, 0.65); }
 
 .fas-wb-os.is-decision-focus .fas-wb-os-node:not(.is-center):not(.is-path-end) {
-  opacity: 0.42;
+  opacity: 0.38;
+  filter: blur(0.2px);
 }
 
 /* Decision block on map */
 .fas-wb-os-decision {
   position: absolute;
   z-index: 4;
-  transform: translate(-50%, 0);
+  transform: translate(-50%, 12px);
   max-width: min(360px, 38vw);
   text-align: center;
   pointer-events: none;
-  animation: fasOsDecisionIn 0.7s var(--wb-ease) 0.35s both;
+  opacity: 0;
+}
+.fas-wb-os-decision.is-visible {
+  animation: fasOsDecisionIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes fasOsDecisionIn {
-  from { opacity: 0; transform: translate(-50%, 8px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translate(-50%, 22px); filter: blur(2px); }
+  to { opacity: 1; transform: translate(-50%, 0); filter: blur(0); }
 }
 .fas-wb-os-decision-k {
   margin: 0;
@@ -274,12 +354,17 @@ ${FESTAG_CANVAS_STYLES}
 .fas-wb-os-decision-q::after {
   content: '';
   display: block;
-  width: 52px;
+  width: 0;
   height: 2px;
   margin: 12px auto 0;
   background: var(--wb-primary);
   border-radius: 1px;
-  opacity: 0.5;
+  opacity: 0.55;
+  animation: fasOsDecisionLine 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+@keyframes fasOsDecisionLine {
+  from { width: 0; opacity: 0; }
+  to { width: 52px; opacity: 0.55; }
 }
 
 /* ── Floating popup (reference right card) ── */
@@ -291,12 +376,43 @@ ${FESTAG_CANVAS_STYLES}
   width: min(380px, calc(100% - 40px));
   max-height: calc(100% - 48px);
   transform: translateY(-50%);
-  animation: fasOsPopupIn 0.65s var(--wb-ease) 0.2s both;
   pointer-events: auto;
 }
+.fas-wb-os-popup.is-in {
+  animation: fasOsPopupIn 0.78s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.fas-wb-os-popup.is-out {
+  animation: fasOsPopupOut 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+  pointer-events: none;
+}
 @keyframes fasOsPopupIn {
-  from { opacity: 0; transform: translateY(calc(-50% + 16px)); }
-  to { opacity: 1; transform: translateY(-50%); }
+  from {
+    opacity: 0;
+    transform: translateY(calc(-50% + 20px)) translateX(12px) scale(0.97);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+@keyframes fasOsPopupOut {
+  from { opacity: 1; transform: translateY(-50%) scale(1); }
+  to { opacity: 0; transform: translateY(calc(-50% + 10px)) scale(0.98); }
+}
+.fas-wb-os-stagger {
+  opacity: 0;
+  animation: fasOsStaggerIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(180ms + var(--stagger, 0) * 55ms);
+}
+@keyframes fasOsStaggerIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.fas-wb-os-popup.is-out .fas-wb-os-stagger {
+  animation: none;
+  opacity: 0;
 }
 .fas-wb-os-popup-inner {
   padding: 28px 26px 26px;
@@ -461,16 +577,24 @@ ${FESTAG_CANVAS_STYLES}
 }
 .fas-wb-os-btn-link:hover { text-decoration: underline; }
 
-/* ── Voice dock ── */
+/* ── Voice dock (reference pill bar) ── */
 .fas-wb-os-voice {
   position: relative;
   z-index: 8;
   flex-shrink: 0;
+  padding: 10px 32px 18px;
+}
+.fas-wb-os-voice-shell {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 40px 20px;
-  border-top: 1px solid rgba(26, 25, 23, 0.05);
+  width: 100%;
+  padding: 10px 18px 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(26, 25, 23, 0.07);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(8px);
 }
 .fas-wb-os-wave {
   display: flex;
@@ -560,5 +684,25 @@ html[data-theme="classic-dark"] .fas-wb-os-mesh-line {
 html[data-theme="dark"] .fas-wb-os-mesh-dot,
 html[data-theme="classic-dark"] .fas-wb-os-mesh-dot {
   fill: rgba(255, 255, 255, 0.12);
+}
+html[data-theme="dark"] .fas-wb-os-voice-shell,
+html[data-theme="classic-dark"] .fas-wb-os-voice-shell {
+  background: rgba(26, 26, 30, 0.88);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fas-wb-os-world,
+  .fas-wb-os-popup,
+  .fas-wb-os-decision,
+  .fas-wb-os-stagger,
+  .fas-wb-os-mesh-dot,
+  .fas-wb-os-waiting-dot,
+  .fas-wb-os-node-glow,
+  .fas-wb-os-node-ring,
+  .festag-path-flow {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 `.trim()

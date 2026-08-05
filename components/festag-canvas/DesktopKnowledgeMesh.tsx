@@ -28,7 +28,7 @@ export default function DesktopKnowledgeMesh({ className }: Props) {
             vectorEffect="non-scaling-stroke"
           />
         ))}
-        {dots.map((d) => (
+        {dots.map((d, i) => (
           <circle
             key={d.id}
             className="fas-wb-os-mesh-dot"
@@ -36,6 +36,7 @@ export default function DesktopKnowledgeMesh({ className }: Props) {
             cy={d.y}
             r={0.22 * d.scale}
             vectorEffect="non-scaling-stroke"
+            style={{ ['--mesh-i' as string]: i % 24 }}
           />
         ))}
       </svg>

@@ -1,5 +1,7 @@
 'use client'
 
+import type { CSSProperties } from 'react'
+
 type Point = { x: number; y: number }
 
 type Props = {
@@ -14,6 +16,10 @@ type Props = {
   viewBox?: string
   preserveAspectRatio?: string
   className?: string
+  /** Delay before ink line draws (ms) */
+  drawDelayMs?: number
+  /** Duration of ink draw (ms) */
+  drawDurationMs?: number
 }
 
 /**
@@ -30,8 +36,15 @@ export default function FestagPath({
   viewBox = '0 0 100 100',
   preserveAspectRatio = 'none',
   className,
+  drawDelayMs = 0,
+  drawDurationMs = 1100,
 }: Props) {
   const on = alwaysOn || visible
+  const flowStyle = {
+    ['--festag-path-draw-delay' as string]: `${drawDelayMs}ms`,
+    ['--festag-path-draw-duration' as string]: `${drawDurationMs}ms`,
+  } as CSSProperties
+
   return (
     <svg
       className={[
@@ -39,9 +52,11 @@ export default function FestagPath({
         className,
         on ? (alwaysOn ? 'is-always' : 'is-on') : '',
         retracting ? 'is-out' : '',
+        drawDelayMs > 0 ? 'has-draw-delay' : '',
       ]
         .filter(Boolean)
         .join(' ')}
+      style={flowStyle}
       viewBox={viewBox}
       preserveAspectRatio={preserveAspectRatio}
       aria-hidden

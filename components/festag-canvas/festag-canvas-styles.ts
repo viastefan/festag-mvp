@@ -40,9 +40,11 @@ export const FESTAG_CANVAS_STYLES = `
   stroke: var(--festag-canvas-primary, #5B647D);
   stroke-width: 1.4;
   stroke-linecap: round;
-  stroke-dasharray: 120;
-  stroke-dashoffset: 120;
-  transition: stroke-dashoffset 1.1s var(--festag-canvas-ease-slow, cubic-bezier(0.16, 1, 0.3, 1));
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  transition: stroke-dashoffset var(--festag-path-draw-duration, 1.1s)
+    var(--festag-canvas-ease-slow, cubic-bezier(0.16, 1, 0.3, 1));
+  transition-delay: var(--festag-path-draw-delay, 0ms);
 }
 .festag-path.is-on .festag-path-flow,
 .fos-path.is-on .fos-path-flow,
@@ -50,6 +52,14 @@ export const FESTAG_CANVAS_STYLES = `
 .festag-path.is-always .festag-path-flow,
 .fas-wb-path.is-always .fas-wb-path-flow {
   stroke-dashoffset: 0;
+}
+.festag-path.has-draw-delay.is-always .festag-path-start,
+.fas-wb-path.has-draw-delay.is-always .fas-wb-path-start {
+  transition-delay: calc(var(--festag-path-draw-delay, 0ms) + 80ms);
+}
+.festag-path.has-draw-delay.is-always .festag-path-end,
+.fas-wb-path.has-draw-delay.is-always .fas-wb-path-end {
+  transition-delay: calc(var(--festag-path-draw-delay, 0ms) + var(--festag-path-draw-duration, 1.1s) * 0.72);
 }
 .festag-path.is-out .festag-path-flow,
 .fos-path.is-out .fos-path-flow,
