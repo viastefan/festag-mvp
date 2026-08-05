@@ -18,6 +18,23 @@ ${FESTAG_CANVAS_STYLES}
   position: relative;
   min-height: calc(100dvh - var(--fas-topbar-h, 56px));
   height: calc(100dvh - var(--fas-topbar-h, 56px));
+  background:
+    radial-gradient(ellipse 90% 70% at 48% 18%, rgba(255, 255, 255, 0.55) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(91, 100, 125, 0.04) 0%, transparent 55%),
+    var(--wb-paper, #F8F6F2);
+  animation: fasOsCanvasIn 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes fasOsCanvasIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fas-wb-os-head-copy {
+  pointer-events: auto;
+  animation: fasOsHeadIn 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+@keyframes fasOsHeadIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* ── Header ── */
@@ -28,12 +45,11 @@ ${FESTAG_CANVAS_STYLES}
   padding: 24px 40px 8px;
   pointer-events: none;
 }
-.fas-wb-os-head-copy { pointer-events: auto; }
 .fas-wb-os-title {
   margin: 0;
-  font-size: 30px;
-  line-height: 1.2;
-  letter-spacing: -0.035em;
+  font-size: 32px;
+  line-height: 1.18;
+  letter-spacing: -0.038em;
   font-weight: 400;
   color: var(--wb-ink);
 }
@@ -87,6 +103,31 @@ ${FESTAG_CANVAS_STYLES}
   overflow: hidden;
   isolation: isolate;
 }
+.fas-wb-os-map-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 72% 68% at 36% 50%,
+    transparent 0%,
+    rgba(248, 246, 242, 0) 42%,
+    rgba(248, 246, 242, 0.35) 100%
+  );
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fas-wb-os.is-decision-focus .fas-wb-os-map-vignette {
+  opacity: 1;
+}
+.fas-wb-os-map-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 .fas-wb-os-world {
   position: absolute;
   inset: 0;
@@ -114,9 +155,25 @@ ${FESTAG_CANVAS_STYLES}
 /* ── Dot mesh ── */
 .fas-wb-os-mesh {
   position: absolute;
-  inset: 0;
+  inset: -2%;
   z-index: 0;
   pointer-events: none;
+  animation: fasOsMeshDrift 32s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+@keyframes fasOsMeshDrift {
+  from { transform: translate3d(-0.6%, -0.4%, 0); }
+  to { transform: translate3d(0.7%, 0.5%, 0); }
+}
+.fas-wb-os-mesh-line {
+  stroke: rgba(26, 25, 23, 0.11);
+  stroke-width: 0.32;
+  stroke-linecap: round;
+}
+.fas-wb-os-mesh-dot {
+  fill: rgba(26, 25, 23, 0.18);
+  animation: fasOsMeshBreathe 6.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation-delay: calc(var(--mesh-i, 0) * 0.13s);
+  transform-origin: center;
 }
 .fas-wb-os-mesh-svg {
   position: absolute !important;
@@ -127,19 +184,9 @@ ${FESTAG_CANVAS_STYLES}
   max-height: none !important;
   display: block !important;
 }
-.fas-wb-os-mesh-line {
-  stroke: rgba(26, 25, 23, 0.09);
-  stroke-width: 0.35;
-}
-.fas-wb-os-mesh-dot {
-  fill: rgba(26, 25, 23, 0.16);
-  animation: fasOsMeshBreathe 5.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-  animation-delay: calc(var(--mesh-i, 0) * 0.11s);
-  transform-origin: center;
-}
 @keyframes fasOsMeshBreathe {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 0.95; }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .fas-wb-os-knowledge-edges {
@@ -162,9 +209,18 @@ ${FESTAG_CANVAS_STYLES}
   max-height: none !important;
   z-index: 2;
 }
+.fas-wb-os-path .festag-path-track {
+  stroke: rgba(91, 100, 125, 0.06);
+  stroke-width: 1.4;
+}
 .fas-wb-os-path .festag-path-flow {
-  stroke-width: 1.6;
+  stroke-width: 1.75;
   stroke: var(--wb-primary);
+  filter: drop-shadow(0 0 3px rgba(91, 100, 125, 0.35));
+}
+.fas-wb-os-path .festag-path-start,
+.fas-wb-os-path .festag-path-end {
+  filter: drop-shadow(0 0 4px rgba(91, 100, 125, 0.45));
 }
 
 /* ── Nodes ── */
@@ -345,11 +401,13 @@ ${FESTAG_CANVAS_STYLES}
 }
 .fas-wb-os-decision-q {
   margin: 8px 0 0;
-  font-size: 15px;
-  line-height: 1.42;
-  letter-spacing: -0.025em;
+  font-size: 17px;
+  line-height: 1.38;
+  letter-spacing: -0.028em;
   color: var(--wb-ink);
   font-weight: 400;
+  max-width: 28ch;
+  margin-inline: auto;
 }
 .fas-wb-os-decision-q::after {
   content: '';
@@ -415,17 +473,20 @@ ${FESTAG_CANVAS_STYLES}
   opacity: 0;
 }
 .fas-wb-os-popup-inner {
-  padding: 28px 26px 26px;
-  border-radius: 14px;
-  border: 1px solid rgba(26, 25, 23, 0.07);
-  background: rgba(255, 255, 255, 0.96);
+  padding: 30px 28px 28px;
+  border-radius: 16px;
+  border: 1px solid rgba(26, 25, 23, 0.06);
+  background: rgba(255, 255, 255, 0.98);
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 16px 48px rgba(20, 20, 20, 0.07);
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset,
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    0 20px 56px rgba(20, 20, 20, 0.08),
+    0 4px 16px rgba(91, 100, 125, 0.04);
   display: flex;
   flex-direction: column;
   max-height: inherit;
   overflow-y: auto;
+  backdrop-filter: blur(16px);
 }
 .fas-wb-os-insp-head {
   display: flex;
@@ -482,23 +543,53 @@ ${FESTAG_CANVAS_STYLES}
   gap: 11px;
 }
 .fas-wb-os-insp-reasons li {
-  position: relative;
-  padding-left: 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   font-size: 13.5px;
   line-height: 1.48;
   letter-spacing: -0.01em;
   color: var(--wb-ink);
 }
-.fas-wb-os-insp-reasons li::before {
+.fas-wb-os-reason-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: rgba(91, 100, 125, 0.1);
+  position: relative;
+}
+.fas-wb-os-reason-check::after {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0.42em;
-  width: 10px;
-  height: 6px;
+  left: 5px;
+  top: 4px;
+  width: 6px;
+  height: 4px;
   border-left: 1.5px solid var(--wb-primary);
   border-bottom: 1.5px solid var(--wb-primary);
   transform: rotate(-45deg);
+}
+.fas-wb-os-reason-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.fas-wb-os-reason-lead {
+  display: block;
+  color: var(--wb-ink);
+  letter-spacing: -0.015em;
+}
+.fas-wb-os-reason-detail {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--wb-muted);
+}
+.fas-wb-os-insp-reasons li::before {
+  content: none;
 }
 .fas-wb-os-alt { margin-bottom: 20px; }
 .fas-wb-os-alt-k {
@@ -582,19 +673,23 @@ ${FESTAG_CANVAS_STYLES}
   position: relative;
   z-index: 8;
   flex-shrink: 0;
-  padding: 10px 32px 18px;
+  padding: 8px 28px 16px;
+  animation: fasOsHeadIn 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
 }
 .fas-wb-os-voice-shell {
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 10px 18px 10px 12px;
+  max-width: 100%;
+  padding: 11px 20px 11px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(26, 25, 23, 0.07);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  backdrop-filter: blur(8px);
+  border: 1px solid rgba(26, 25, 23, 0.06);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    0 8px 24px rgba(20, 20, 20, 0.04);
+  backdrop-filter: blur(12px);
 }
 .fas-wb-os-wave {
   display: flex;

@@ -43,13 +43,13 @@ const CAMERA_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const OVERVIEW_CAMERA: Camera = { panX: 0, panY: 0, scale: 1 }
 
 const TIMING = {
-  cameraMs: 1150,
-  pathDelayMs: 420,
-  pathDrawMs: 1350,
-  revealMs: 720,
-  popupMs: 380,
-  closePathMs: 520,
-  closeCameraMs: 980,
+  cameraMs: 1200,
+  pathDelayMs: 480,
+  pathDrawMs: 1500,
+  revealMs: 780,
+  popupMs: 360,
+  closePathMs: 560,
+  closeCameraMs: 1050,
 } as const
 
 function kindClass(kind: BoardNode['kind'], center?: boolean): string {
@@ -79,10 +79,19 @@ function buildVoiceLines(input: {
 }
 
 function buildActivePath(center: BoardNode, target: BoardNode): string {
-  const entry = { x: 22, y: 74 }
+  const entry = { x: 20, y: 76 }
   const mid = edgePath(entry.x, entry.y, center.x, center.y)
   const tail = edgePath(center.x, center.y, target.x, target.y).replace(/^M [^ ]+ [^ ]+ /, '')
   return `${mid} ${tail}`
+}
+
+function splitReason(text: string): { lead: string; detail: string | null } {
+  const idx = text.indexOf(':')
+  if (idx <= 0) return { lead: text, detail: null }
+  return {
+    lead: text.slice(0, idx).trim(),
+    detail: text.slice(idx + 1).trim() || null,
+  }
 }
 
 export default function DesktopOverviewOS({
@@ -471,6 +480,8 @@ export default function DesktopOverviewOS({
               if (isFocused && e.target === e.currentTarget) resetCamera()
             }}
           >
+            <div className="fas-wb-os-map-vignette" aria-hidden />
+            <div className="fas-wb-os-map-grain" aria-hidden />
             <div
               className={[
                 'fas-wb-os-world',
@@ -501,7 +512,7 @@ export default function DesktopOverviewOS({
                   alwaysOn={!pathRetracting}
                   retracting={pathRetracting}
                   className="fas-wb-os-path"
-                  start={{ x: 22, y: 74 }}
+                  start={{ x: 20, y: 76 }}
                   end={{ x: pathTarget?.x ?? 68, y: pathTarget?.y ?? 38 }}
                   drawDelayMs={pathRetracting ? 0 : TIMING.pathDelayMs}
                   drawDurationMs={TIMING.pathDrawMs}
@@ -590,15 +601,24 @@ export default function DesktopOverviewOS({
                   </p>
 
                   <ul className="fas-wb-os-insp-reasons">
-                    {activeTopic.reasons.map((r, i) => (
-                      <li
-                        key={r}
-                        className="fas-wb-os-stagger"
-                        style={{ ['--stagger' as string]: 3 + i }}
-                      >
-                        {r}
-                      </li>
-                    ))}
+                    {activeTopic.reasons.map((r, i) => {
+                      const { lead, detail } = splitReason(r)
+                      return (
+                        <li
+                          key={r}
+                          className="fas-wb-os-stagger"
+                          style={{ ['--stagger' as string]: 3 + i }}
+                        >
+                          <span className="fas-wb-os-reason-check" aria-hidden />
+                          <span className="fas-wb-os-reason-copy">
+                            <span className="fas-wb-os-reason-lead">{lead}</span>
+                            {detail ? (
+                              <span className="fas-wb-os-reason-detail">{detail}</span>
+                            ) : null}
+                          </span>
+                        </li>
+                      )
+                    })}
                   </ul>
 
                   {altOption ? (

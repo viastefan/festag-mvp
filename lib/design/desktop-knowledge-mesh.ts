@@ -33,7 +33,7 @@ function dist(a: MeshDot, b: MeshDot): number {
 
 /** Organic dot field across the full canvas (percent coords). */
 export function generateDesktopKnowledgeMesh(
-  dotCount = 88,
+  dotCount = 118,
   seed = 0x0a7d45,
 ): { dots: MeshDot[]; edges: MeshEdge[] } {
   const rand = seeded(seed)
@@ -62,7 +62,7 @@ export function generateDesktopKnowledgeMesh(
   }
 
   const edges: MeshEdge[] = []
-  const maxDist = 14
+  const maxDist = 16
 
   for (let i = 0; i < dots.length; i += 1) {
     const neighbors: Array<{ j: number; d: number }> = []
@@ -71,7 +71,7 @@ export function generateDesktopKnowledgeMesh(
       if (d <= maxDist) neighbors.push({ j, d })
     }
     neighbors.sort((a, b) => a.d - b.d)
-    for (const n of neighbors.slice(0, 2)) {
+    for (const n of neighbors.slice(0, 3)) {
       const id = `e:${dots[i].id}:${dots[n.j].id}`
       if (edges.some((e) => e.id === id)) continue
       edges.push({
