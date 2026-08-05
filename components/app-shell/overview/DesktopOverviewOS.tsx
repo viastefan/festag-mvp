@@ -1,13 +1,13 @@
 'use client'
 
 /**
- * Desktop Overview OS — Read Mode dashboard (reference layout).
- * Canvas · Knowledge Map · Inspector — one screen, no fly-in theater.
+ * Desktop Overview OS — reference dashboard with camera focus + floating inspector.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Sparkle } from '@phosphor-icons/react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowsOut, Sparkle } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
+import DesktopKnowledgeMesh from '@/components/festag-canvas/DesktopKnowledgeMesh'
 import FestagKnowledgeEdges from '@/components/festag-canvas/FestagKnowledgeEdges'
 import FestagPath from '@/components/festag-canvas/FestagPath'
 import { FESTAG_OVERVIEW_OS_STYLES } from '@/components/app-shell/overview/festag-overview-os-styles'
@@ -36,6 +36,11 @@ type Props = {
   onDecided?: () => void
 }
 
+type Camera = { panX: number; panY: number; scale: number }
+
+const CAMERA_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+const OVERVIEW_CAMERA: Camera = { panX: 0, panY: 0, scale: 1 }
+
 function kindClass(kind: BoardNode['kind'], center?: boolean): string {
   if (center || kind === 'decision') return 'is-decision'
   if (kind === 'risk') return 'is-risk'
@@ -60,6 +65,16 @@ function buildVoiceLines(input: {
     )
   }
   return lines
+}
+
+function buildActivePath(
+  center: BoardNode,
+  target: BoardNode,
+): string {
+  const entry = { x: 22, y: 74 }
+  const mid = edgePath(entry.x, entry.y, center.x, center.y)
+  const tail = edgePath(center.x, center.y, target.x, target.y).replace(/^M [^ ]+ [^ ]+ /, '')
+  return `${mid} ${tail}`
 }
 
 export default function DesktopOverviewOS({
@@ -87,6 +102,7 @@ export default function DesktopOverviewOS({
   )
 
   const focusDecision = data.decisions[0] || null
+  const mapRef = useRef<HTMLElement>(null)
 
   const topic = useMemo(() => {
     const focus = focusDecision
@@ -130,6 +146,8 @@ export default function DesktopOverviewOS({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [liveTopic, setLiveTopic] = useState<DecisionCanvasTopic | null>(null)
+  const [cameraMode, setCameraMode] = useState<'overview' | 'decision'>('overview')
+  const [camera, setCamera] = useState<Camera>(OVERVIEW_CAMERA)
   const [pathOn, setPathOn] = useState(false)
   const [showInspector, setShowInspector] = useState(false)
 
@@ -148,39 +166,59 @@ export default function DesktopOverviewOS({
   const playback = useStatusReportPlayback({
     sentences: voiceLines,
     onComplete: useCallback(() => {
-      if (activeTopic && data.summary.pendingDecisions > 0) {
-        setPathOn(true)
-        setShowInspector(true)
-      }
-    }, [activeTopic, data.summary.pendingDecisions]),
+      /* voice completes quietly — user clicks to focus */
+    }, []),
   })
 
   const { play, stop, speaking, activeIndex, activeWordIndex, supported } = playback
+
+  const centerNode = constellation.nodes.find((n) => n.center)
+  const pathTarget =
+    constellation.nodes.find((n) => /umsetzung|implement/i.test(n.label)) ||
+    constellation.nodes.find((n) => !n.center && n.kind === 'task') ||
+    constellation.nodes[1]
+
+  const focusDecisionView = useCallback(() => {
+    const map = mapRef.current
+    const node = centerNode
+    if (!map || !node || !activeTopic) return
+
+    const rect = map.getBoundingClientRect()
+    const scale = 1.32
+    const targetX = rect.width * 0.33
+    const targetY = rect.height * 0.5
+    const nodeX = (node.x / 100) * rect.width
+    const nodeY = (node.y / 100) * rect.height
+
+    setCamera({
+      panX: targetX - nodeX * scale,
+      panY: targetY - nodeY * scale,
+      scale,
+    })
+    setCameraMode('decision')
+    setPathOn(true)
+    setShowInspector(true)
+  }, [centerNode, activeTopic])
+
+  const resetCamera = useCallback(() => {
+    setCamera(OVERVIEW_CAMERA)
+    setCameraMode('overview')
+    setPathOn(false)
+    setShowInspector(false)
+  }, [])
 
   useEffect(() => {
     setSelected(topic?.recommendId || null)
     setLiveTopic(null)
     setError(null)
-    setPathOn(false)
-    setShowInspector(Boolean(topic && data.summary.pendingDecisions > 0))
-  }, [topic?.id, data.summary.pendingDecisions])
-
-  useEffect(() => {
-    if (topic && data.summary.pendingDecisions > 0) {
-      const t = window.setTimeout(() => {
-        setPathOn(true)
-        setShowInspector(true)
-      }, 800)
-      return () => clearTimeout(t)
-    }
-    return undefined
-  }, [topic?.id, data.summary.pendingDecisions])
+    resetCamera()
+  }, [topic?.id, resetCamera])
 
   useEffect(() => {
     const prefs = getVoicePreferences()
     if (!prefs.enabled || !prefs.statusReportsEnabled) return
     if (supported) {
-      const t = window.setTimeout(() => play(), 500)
+      const t = window.setTimeout(() => play(), 600)
       return () => clearTimeout(t)
     }
     return undefined
@@ -258,16 +296,10 @@ export default function DesktopOverviewOS({
     [constellation.edges, byId],
   )
 
-  const centerNode = constellation.nodes.find((n) => n.center)
-  const pathTarget =
-    constellation.nodes.find((n) => /umsetzung|implement/i.test(n.label)) ||
-    constellation.nodes.find((n) => !n.center && n.kind === 'task') ||
-    constellation.nodes[1]
-
   const activePathD =
     centerNode && pathTarget
-      ? edgePath(centerNode.x, centerNode.y, pathTarget.x, pathTarget.y)
-      : 'M 50 48 L 72 74'
+      ? buildActivePath(centerNode, pathTarget)
+      : 'M 22 74 C 32 62, 38 54, 44 54 S 62 42, 68 38'
 
   async function accept() {
     if (!activeTopic || busy) return
@@ -294,19 +326,40 @@ export default function DesktopOverviewOS({
       setError('Die Empfehlung konnte nicht übernommen werden.')
       return
     }
-    setPathOn(false)
-    setShowInspector(false)
+    resetCamera()
     onDecided?.()
+  }
+
+  function onNodeClick(node: BoardNode) {
+    if (!activeTopic) return
+    if (node.center || node.kind === 'decision') {
+      focusDecisionView()
+      return
+    }
+    if (cameraMode === 'decision') return
+    focusDecisionView()
   }
 
   const lineIndex = activeIndex >= 0 ? activeIndex : 0
   const currentLine = voiceLines[lineIndex] || ''
   const words = currentLine.split(/\s+/).filter(Boolean)
 
+  const altOption = activeTopic?.options.find((o) => o.id !== activeTopic.recommendId)
+
   return (
     <>
       <style>{FESTAG_OVERVIEW_OS_STYLES}</style>
-      <div className="fas-wb fas-wb-os festag-readmode">
+      <div
+        className={[
+          'fas-wb',
+          'fas-wb-os',
+          'festag-readmode',
+          cameraMode === 'decision' ? 'is-decision-focus' : '',
+          showInspector ? 'has-popup' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <div className="fas-wb-invites">
           <OverviewPendingInvites />
         </div>
@@ -324,10 +377,7 @@ export default function DesktopOverviewOS({
                 <button
                   type="button"
                   className="fas-wb-os-waiting"
-                  onClick={() => {
-                    setPathOn(true)
-                    setShowInspector(true)
-                  }}
+                  onClick={focusDecisionView}
                 >
                   <span className="fas-wb-os-waiting-dot" aria-hidden />
                   {activeTopic.waitingLabel}
@@ -339,65 +389,151 @@ export default function DesktopOverviewOS({
             </div>
           </header>
 
-          <section className="fas-wb-os-map" aria-label="Wissensraum">
-            <div className="fas-wb-grid fas-wb-os-grid" aria-hidden />
+          <section
+            className="fas-wb-os-map"
+            ref={mapRef}
+            aria-label="Wissensraum"
+            onClick={(e) => {
+              if (cameraMode === 'decision' && e.target === e.currentTarget) {
+                resetCamera()
+              }
+            }}
+          >
+            <div
+              className={`fas-wb-os-world${cameraMode === 'decision' ? ' is-focused' : ''}`}
+              style={{
+                transform: `translate3d(${camera.panX}px, ${camera.panY}px, 0) scale(${camera.scale})`,
+                transition: `transform 0.95s ${CAMERA_EASE}`,
+              }}
+            >
+              <DesktopKnowledgeMesh />
 
-            <FestagKnowledgeEdges edges={knowledgeEdges} />
-
-            {pathOn && centerNode ? (
-              <FestagPath
-                d={activePathD}
-                visible
-                alwaysOn
-                className="fas-wb-os-path"
-                start={{ x: centerNode.x, y: centerNode.y }}
-                end={{ x: pathTarget?.x ?? 72, y: pathTarget?.y ?? 74 }}
+              <FestagKnowledgeEdges
+                edges={knowledgeEdges}
+                className="fas-wb-os-knowledge-edges"
               />
-            ) : null}
 
-            {constellation.nodes.map((node) => (
-              <button
-                key={node.id}
-                type="button"
-                data-node={node.id}
-                className={[
-                  'fas-wb-os-node',
-                  kindClass(node.kind, node.center),
-                  node.center ? 'is-center' : '',
-                  pathOn && node.center ? 'is-active' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                onClick={() => {
-                  if (activeTopic) {
-                    setPathOn(true)
-                    setShowInspector(true)
-                  }
-                }}
-              >
-                <span className="fas-wb-os-node-glow" aria-hidden />
-                <span className="fas-wb-os-node-dot" aria-hidden />
-                <span className="fas-wb-os-node-copy">
-                  <span className="fas-wb-os-node-label">{node.label}</span>
-                  {node.meta ? (
-                    <span className="fas-wb-os-node-meta">({node.meta})</span>
+              {pathOn && centerNode ? (
+                <FestagPath
+                  d={activePathD}
+                  visible
+                  alwaysOn
+                  className="fas-wb-os-path"
+                  start={{ x: 22, y: 74 }}
+                  end={{ x: pathTarget?.x ?? 68, y: pathTarget?.y ?? 38 }}
+                />
+              ) : null}
+
+              {constellation.nodes.map((node) => (
+                <button
+                  key={node.id}
+                  type="button"
+                  data-node={node.id}
+                  className={[
+                    'fas-wb-os-node',
+                    kindClass(node.kind, node.center),
+                    node.center ? 'is-center' : '',
+                    pathOn && node.center ? 'is-active' : '',
+                    pathOn && pathTarget && node.id === pathTarget.id ? 'is-path-end' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  style={{ left: `${node.x}%`, top: `${node.y}%` }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onNodeClick(node)
+                  }}
+                >
+                  <span className="fas-wb-os-node-glow" aria-hidden />
+                  <span className="fas-wb-os-node-dot" aria-hidden />
+                  <span className="fas-wb-os-node-copy">
+                    <span className="fas-wb-os-node-label">{node.label}</span>
+                    {node.meta ? (
+                      <span className="fas-wb-os-node-meta">{node.meta}</span>
+                    ) : null}
+                  </span>
+                </button>
+              ))}
+
+              {pathOn && activeTopic && centerNode ? (
+                <div
+                  className="fas-wb-os-decision"
+                  style={{
+                    left: `${centerNode.x}%`,
+                    top: `${centerNode.y + 11}%`,
+                  }}
+                >
+                  <p className="fas-wb-os-decision-k">Entscheidung</p>
+                  <p className="fas-wb-os-decision-q">{activeTopic.question}</p>
+                </div>
+              ) : null}
+            </div>
+
+            {showInspector && activeTopic ? (
+              <aside className="fas-wb-os-popup" aria-label="Tagro Empfehlung">
+                <div className="fas-wb-os-popup-inner">
+                  <header className="fas-wb-os-insp-head">
+                    <div className="fas-wb-os-insp-head-left">
+                      <Sparkle size={14} weight="fill" aria-hidden />
+                      <span>Tagro Empfehlung</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="fas-wb-os-popup-expand"
+                      aria-label="Schließen"
+                      onClick={resetCamera}
+                    >
+                      <ArrowsOut size={16} weight="regular" />
+                    </button>
+                  </header>
+
+                  <p className="fas-wb-os-insp-pick">{activeTopic.recommendLabel}</p>
+                  <p className="fas-wb-os-insp-sub">Empfohlen für dein Projekt</p>
+
+                  <ul className="fas-wb-os-insp-reasons">
+                    {activeTopic.reasons.map((r) => (
+                      <li key={r}>{r}</li>
+                    ))}
+                  </ul>
+
+                  {altOption ? (
+                    <section className="fas-wb-os-alt">
+                      <p className="fas-wb-os-alt-k">Alternative</p>
+                      <p className="fas-wb-os-alt-label">
+                        {altOption.label}
+                        {altOption.hint ? `: ${altOption.hint}` : ''}
+                      </p>
+                    </section>
                   ) : null}
-                </span>
-              </button>
-            ))}
 
-            {pathOn && activeTopic ? (
-              <div
-                className="fas-wb-os-decision"
-                style={{
-                  left: `${centerNode?.x ?? 50}%`,
-                  top: `${(centerNode?.y ?? 48) + 12}%`,
-                }}
-              >
-                <p className="fas-wb-os-decision-k">Entscheidung</p>
-                <p className="fas-wb-os-decision-q">{activeTopic.question}</p>
-              </div>
+                  {error ? (
+                    <p className="fas-wb-os-error" role="alert">
+                      {error}
+                    </p>
+                  ) : null}
+
+                  <div className="fas-wb-os-actions">
+                    <button
+                      type="button"
+                      className="fas-wb-os-btn-primary"
+                      disabled={busy}
+                      onClick={() => void accept()}
+                    >
+                      {busy ? 'Wird übernommen…' : 'Empfehlung übernehmen'}
+                    </button>
+                    <button
+                      type="button"
+                      className="fas-wb-os-btn-ghost"
+                      onClick={resetCamera}
+                    >
+                      Alternativen prüfen
+                    </button>
+                    <button type="button" className="fas-wb-os-btn-link">
+                      Entscheidung erklären
+                    </button>
+                  </div>
+                </div>
+              </aside>
             ) : null}
           </section>
 
@@ -408,92 +544,34 @@ export default function DesktopOverviewOS({
               ))}
             </div>
             <p className="fas-wb-os-voice-text">
-              {speaking && words.length
-                ? words.map((w, i) => (
-                    <span
-                      key={`${lineIndex}-${i}`}
-                      className={[
-                        'fas-wb-os-word',
-                        i < activeWordIndex ? ' is-past' : '',
-                        i === activeWordIndex ? ' is-current' : '',
-                      ].join('')}
-                    >
-                      {w}{' '}
-                    </span>
-                  ))
-                : (
-                    <>
-                      Tagro analysiert{' '}
-                      <span className="fas-wb-os-word is-current">dein Projekt</span>
-                      …
-                    </>
-                  )}
+              {speaking && words.length ? (
+                words.map((w, i) => (
+                  <span
+                    key={`${lineIndex}-${i}`}
+                    className={[
+                      'fas-wb-os-word',
+                      i < activeWordIndex ? ' is-past' : '',
+                      i === activeWordIndex ? ' is-current' : '',
+                    ].join('')}
+                  >
+                    {w}{' '}
+                  </span>
+                ))
+              ) : (
+                <>
+                  Tagro analysiert{' '}
+                  <span className="fas-wb-os-word is-current">dein Projekt</span>
+                  … Letztes Update: gerade eben
+                </>
+              )}
             </p>
+            <div className="fas-wb-os-voice-rail" aria-hidden>
+              {Array.from({ length: 48 }).map((_, i) => (
+                <span key={i} style={{ ['--i' as string]: i }} />
+              ))}
+            </div>
           </footer>
         </main>
-
-        {showInspector && activeTopic ? (
-          <aside className="fas-wb-os-inspector" aria-label="Inspector">
-            <div className="fas-wb-os-inspector-inner">
-              <header className="fas-wb-os-insp-head">
-                <Sparkle size={14} weight="fill" aria-hidden />
-                <span>Tagro Empfehlung</span>
-              </header>
-
-              <p className="fas-wb-os-insp-pick">{activeTopic.recommendLabel}</p>
-              <p className="fas-wb-os-insp-sub">Empfohlen für dein Projekt</p>
-
-              <ul className="fas-wb-os-insp-reasons">
-                {activeTopic.reasons.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-
-              <section className="fas-wb-os-choices" aria-label="Optionen">
-                {activeTopic.options.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    className={`fas-wb-os-choice${selected === opt.id ? ' is-on' : ''}`}
-                    onClick={() => setSelected(opt.id)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </section>
-
-              {activeTopic.options.length > 1 ? (
-                <section className="fas-wb-os-alt">
-                  <p className="fas-wb-os-alt-k">Alternative</p>
-                  <p className="fas-wb-os-alt-label">
-                    {activeTopic.options.find((o) => o.id !== activeTopic.recommendId)?.label ||
-                      activeTopic.options[1]?.label}
-                  </p>
-                </section>
-              ) : null}
-
-              {error ? (
-                <p className="fas-wb-os-error" role="alert">
-                  {error}
-                </p>
-              ) : null}
-
-              <div className="fas-wb-os-actions">
-                <button
-                  type="button"
-                  className="fas-wb-os-btn-primary"
-                  disabled={busy}
-                  onClick={() => void accept()}
-                >
-                  {busy ? 'Wird übernommen…' : 'Empfehlung übernehmen'}
-                </button>
-                <button type="button" className="fas-wb-os-btn-ghost">
-                  Alternativen prüfen
-                </button>
-              </div>
-            </div>
-          </aside>
-        ) : null}
       </div>
     </>
   )

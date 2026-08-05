@@ -141,17 +141,17 @@ function phaseLabel(raw: string | null): string {
   return map[key] || raw.replace(/_/g, ' ')
 }
 
-/** Organic constellation slots — mock-like spread across the full board. */
+/** Organic constellation slots — reference dashboard spread. */
 const RING: Array<{ x: number; y: number }> = [
-  { x: 32, y: 20 }, // User Research
-  { x: 64, y: 16 }, // SEO
-  { x: 82, y: 32 }, // Navigation
-  { x: 88, y: 52 }, // Design System
-  { x: 74, y: 74 }, // Brand
-  { x: 48, y: 84 }, // Content
-  { x: 24, y: 76 }, // Deployment
-  { x: 12, y: 50 }, // Ressourcen
-  { x: 18, y: 30 }, // Risiken
+  { x: 18, y: 22 }, // Team
+  { x: 34, y: 14 }, // Branding
+  { x: 58, y: 12 }, // Analytics
+  { x: 82, y: 28 }, // Content
+  { x: 86, y: 48 }, // Design System
+  { x: 68, y: 38 }, // Umsetzung / Implementation (path target)
+  { x: 52, y: 78 }, // Deployment
+  { x: 22, y: 68 }, // Integrationen
+  { x: 10, y: 44 }, // Risiken
 ]
 
 export function buildWorkspaceConstellation(
@@ -193,8 +193,8 @@ export function buildWorkspaceConstellation(
         : focusProject
           ? phaseLabel(focusProject.phase)
           : 'Workspace',
-    x: 50,
-    y: 48,
+    x: openDec > 0 ? 44 : 50,
+    y: openDec > 0 ? 54 : 48,
     projectId: focusProject?.id || null,
     attention: true,
     center: true,
