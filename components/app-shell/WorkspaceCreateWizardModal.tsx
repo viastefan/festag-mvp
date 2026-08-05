@@ -21,6 +21,7 @@ import {
   emitWorkspaceCreated,
   emitWorkspaceSetupDone,
 } from '@/lib/workspace-create-open'
+import { openNewProject } from '@/lib/new-project-open'
 import {
   getTheme,
   parseThemeEventDetail,
@@ -55,6 +56,7 @@ export default function WorkspaceCreateWizardModal() {
   const [fieldFocused, setFieldFocused] = useState(false)
   const [themeMode, setThemeMode] = useState<PanelThemeMode>(() => getTheme('client'))
   const [workspaceId, setWorkspaceId] = useState('')
+  const [createdSlug, setCreatedSlug] = useState('')
   const createStarted = useRef(false)
   const slideRefs = useRef<Partial<Record<Step, HTMLElement | null>>>({})
   const [viewportHeight, setViewportHeight] = useState<number | undefined>(undefined)
@@ -86,6 +88,8 @@ export default function WorkspaceCreateWizardModal() {
   const useHeroLead = selectedUseCase?.title ?? COPY.useSlideTitle
   const useHeroRest = selectedUseCase?.description ?? COPY.useSlideRest
   const useHeroKey = selectedUseCase ? `wc-use-${selectedUseCase.id}` : 'wc-use-idle'
+  const welcomeDomain = workspaceDomainFromSlug(createdSlug || confirmedSlug)
+  const welcomeRest = displayName ? `${COPY.welcomeDomainLead} ${welcomeDomain}` : undefined
 
   function goUseSlide() {
     setError('')
@@ -146,7 +150,7 @@ export default function WorkspaceCreateWizardModal() {
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [open, step, useCase, workspaceName, availability, confirmedSlug, creatingVisible, displayName])
+  }, [open, step, useCase, workspaceName, availability, confirmedSlug, createdSlug, creatingVisible, displayName])
 
   useEffect(() => {
     if (!open) {
@@ -183,6 +187,7 @@ export default function WorkspaceCreateWizardModal() {
     setCreatingVisible(0)
     createStarted.current = false
     setWorkspaceId('')
+    setCreatedSlug('')
     setCheckingOwned(true)
     setThemeMode(getTheme('client'))
     setOpen(true)
@@ -292,13 +297,14 @@ export default function WorkspaceCreateWizardModal() {
       await new Promise((r) => window.setTimeout(r, Math.max(0, 2000 - elapsed)))
       setCreatingVisible(COPY.creatingLines.length)
       setWorkspaceId(result.workspace.id)
+      setCreatedSlug(result.workspace.slug || confirmedSlug)
       setStep('welcome')
       emitWorkspaceCreated({
         name: result.workspace.name,
         id: result.workspace.id,
       })
 
-      /* Short success, then land on Overview — projects open via Tagro popup later. */
+      /* Short success, then Create Project (Phase 2b — not a wizard slide). */
       window.setTimeout(() => {
         createStarted.current = false
         finishSetup()
@@ -320,6 +326,7 @@ export default function WorkspaceCreateWizardModal() {
     window.setTimeout(() => {
       setOpen(false)
       createStarted.current = false
+      window.setTimeout(() => openNewProject(), 260)
     }, 220)
   }
 
@@ -554,7 +561,7 @@ export default function WorkspaceCreateWizardModal() {
             {/* Slide: Creating */}
             <section
               ref={(el) => { slideRefs.current.creating = el }}
-              className="wc-os-slide"
+              className="wc-os-slide wc-os-slide--creating"
               aria-hidden={step !== 'creating'}
             >
               <div className="wc-os-stage">
@@ -583,7 +590,7 @@ export default function WorkspaceCreateWizardModal() {
             {/* Slide: Welcome */}
             <section
               ref={(el) => { slideRefs.current.welcome = el }}
-              className="wc-os-slide"
+              className="wc-os-slide wc-os-slide--welcome"
               aria-hidden={step !== 'welcome'}
             >
               <div className="wc-os-stage">
@@ -591,17 +598,12 @@ export default function WorkspaceCreateWizardModal() {
                   <AuthGlassyHero
                     animKey="wc-welcome"
                     lead={COPY.welcomeReady}
+                    rest={welcomeRest}
+                    stacked
                     className="mob-glassy-h1"
                     instant={step !== 'welcome'}
                   />
                 </div>
-                {displayName ? (
-                  <div className="wc-welcome-domain" aria-live="polite">
-                    <p className="wc-welcome-domain-lead">{COPY.welcomeDomainLead}</p>
-                    <p className="wc-welcome-domain-url">{workspaceDomainFromSlug(confirmedSlug || displayName)}</p>
-                    <p className="wc-domain-hint">{COPY.domainHint}</p>
-                  </div>
-                ) : null}
               </div>
             </section>
           </div>
@@ -1079,26 +1081,6 @@ const WIZARD_CSS = `
   letter-spacing: var(--auth-tracking);
   color: var(--mob-muted);
 }
-.wc-welcome-domain {
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-start;
-}
-.wc-welcome-domain-lead {
-  margin: 0;
-  font-size: 13px;
-  color: var(--mob-muted);
-  letter-spacing: var(--auth-tracking);
-}
-.wc-welcome-domain-url {
-  margin: 0;
-  font-size: 16px;
-  letter-spacing: -0.02em;
-  color: var(--mob-primary);
-  word-break: break-all;
-}
 
 /* Four individual use-case toggles — title only; context lives in the glassy H1 */
 .wc-ws-list {
@@ -1324,11 +1306,11 @@ const WIZARD_CSS = `
 
 .wc-creating-lines {
   list-style: none;
-  margin: 0;
+  margin: 4px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -1336,11 +1318,12 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 46px;
-  padding: 0 14px;
+  min-height: 50px;
+  padding: 0 16px;
   border-radius: 8px;
-  border: var(--mob-stroke-idle) solid rgba(30, 30, 32, 0.08);
-  font-size: 15px;
+  border: 1px solid rgba(30, 30, 32, 0.10) !important;
+  background: #FFFFFF;
+  font-size: 15.5px;
   letter-spacing: var(--auth-tracking);
   color: var(--mob-muted);
   opacity: 0;
@@ -1349,14 +1332,21 @@ const WIZARD_CSS = `
 }
 
 .wc-os[data-theme="dark"] .wc-creating-line {
-  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(186, 194, 210, 0.06);
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .wc-creating-line.is-on {
   opacity: 1;
   transform: translateY(0);
   color: var(--mob-ink);
-  border-color: var(--mob-primary);
+  border-color: rgba(91, 100, 125, 0.28) !important;
+  background: rgba(91, 100, 125, 0.06);
+}
+
+.wc-os[data-theme="dark"] .wc-creating-line.is-on {
+  background: rgba(91, 100, 125, 0.18);
+  border-color: rgba(91, 100, 125, 0.42) !important;
 }
 
 .wc-creating-dot {

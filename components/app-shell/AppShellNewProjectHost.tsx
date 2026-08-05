@@ -2,7 +2,7 @@
 
 /**
  * Host for NewProjectModal on Festag OS — darkened overlay + Tagro Intent Intake.
- * Opens only when the user chooses „Neues Projekt“, never during workspace create.
+ * Opens after workspace Ready and when the user chooses „Neues Projekt“.
  */
 
 import { useEffect, useState } from 'react'
