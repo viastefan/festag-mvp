@@ -200,30 +200,64 @@ export function buildWorkspaceConstellation(
     center: true,
   })
 
+  const teamCount = Math.max(input.team.length, 1)
+  const integrationHint =
+    input.activity.length > 0 ? `${Math.min(input.activity.length, 9)} aktiv` : '3 aktiv'
+
   type Sat = { kind: BoardNodeKind; label: string; meta: string; projectId: string | null }
   const sats: Sat[] = [
-    { kind: 'knowledge', label: 'User Research', meta: 'Abgeschlossen', projectId: focusProject?.id || null },
-    {
-      kind: 'task',
-      label: 'SEO',
-      meta: openDec > 0 ? `${Math.max(openDec, 1)} Entscheidungen` : '4 Entscheidungen',
-      projectId: focusProject?.id || null,
-    },
-    { kind: 'task', label: 'Navigation', meta: 'Struktur', projectId: focusProject?.id || null },
-    { kind: 'knowledge', label: 'Design System', meta: 'Kontext', projectId: focusProject?.id || null },
-    { kind: 'knowledge', label: 'Brand Identity', meta: 'Identität', projectId: focusProject?.id || null },
-    { kind: 'task', label: 'Content Strategy', meta: 'Geplant', projectId: focusProject?.id || null },
-    { kind: 'task', label: 'Deployment', meta: 'Release', projectId: focusProject?.id || null },
     {
       kind: 'resource',
-      label: 'Ressourcen',
-      meta: `${Math.max(input.team.length, 1)} zugewiesen`,
+      label: 'Team',
+      meta: `${teamCount} Mitglieder`,
+      projectId: focusProject?.id || null,
+    },
+    {
+      kind: 'knowledge',
+      label: 'Branding',
+      meta: 'Logo & Identität',
+      projectId: focusProject?.id || null,
+    },
+    {
+      kind: 'task',
+      label: 'Analytics',
+      meta: 'Performance',
+      projectId: focusProject?.id || null,
+    },
+    {
+      kind: 'task',
+      label: 'Content',
+      meta: openDec > 0 ? 'In Prüfung' : 'Geplant',
+      projectId: focusProject?.id || null,
+    },
+    {
+      kind: 'knowledge',
+      label: 'Design System',
+      meta: 'Komponenten',
+      projectId: focusProject?.id || null,
+    },
+    {
+      kind: 'task',
+      label: 'Umsetzung',
+      meta: openDec > 0 ? 'In Arbeit' : phaseLabel(focusProject?.phase || null),
+      projectId: focusProject?.id || null,
+    },
+    {
+      kind: 'task',
+      label: 'Deployment',
+      meta: 'Release',
+      projectId: focusProject?.id || null,
+    },
+    {
+      kind: 'resource',
+      label: 'Integrationen',
+      meta: integrationHint,
       projectId: focusProject?.id || null,
     },
     {
       kind: 'risk',
       label: 'Risiken',
-      meta: risky ? '3 identifiziert' : 'Beobachtet',
+      meta: risky ? 'Beobachtet' : 'Ruhig',
       projectId: focusProject?.id || null,
     },
   ]
