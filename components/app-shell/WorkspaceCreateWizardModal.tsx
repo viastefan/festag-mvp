@@ -2,7 +2,7 @@
 
 /**
  * Phase 2 — Workspace creation popup with horizontal slides.
- * Name → Nutzung → Creating → Welcome (plan gate when needed).
+ * Name → Nutzung → Creating… → Ready.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -34,9 +34,9 @@ import {
   type WorkspaceUseCaseId,
 } from '@/lib/platform/workspace-creation'
 
-type Step = 'name' | 'use' | 'creating' | 'welcome' | 'plan'
+type Step = 'name' | 'use' | 'creating' | 'welcome'
 
-const SLIDE_ORDER: Step[] = ['name', 'use', 'creating', 'welcome', 'plan']
+const SLIDE_ORDER: Step[] = ['name', 'use', 'creating', 'welcome']
 
 function resolveWizardTheme(mode: PanelThemeMode): 'light' | 'read' | 'dark' {
   if (mode === 'dark') return 'dark'
@@ -56,6 +56,8 @@ export default function WorkspaceCreateWizardModal() {
   const [themeMode, setThemeMode] = useState<PanelThemeMode>(() => getTheme('client'))
   const [workspaceId, setWorkspaceId] = useState('')
   const createStarted = useRef(false)
+  const slideRefs = useRef<Partial<Record<Step, HTMLElement | null>>>({})
+  const [viewportHeight, setViewportHeight] = useState<number | undefined>(undefined)
 
   const {
     workspaceName,
@@ -131,6 +133,20 @@ export default function WorkspaceCreateWizardModal() {
   useEffect(() => {
     if (open) resetOutsideHint()
   }, [open, resetOutsideHint])
+
+  useEffect(() => {
+    if (!open) {
+      setViewportHeight(undefined)
+      return
+    }
+    const el = slideRefs.current[step]
+    if (!el) return
+    const measure = () => setViewportHeight(el.scrollHeight)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [open, step, useCase, workspaceName, availability, confirmedSlug, creatingVisible, displayName])
 
   useEffect(() => {
     if (!open) {
@@ -230,7 +246,7 @@ export default function WorkspaceCreateWizardModal() {
           .select('id', { count: 'exact', head: true })
           .eq('primary_owner_id', user.id)
         if ((count ?? 0) >= 2) {
-          setStep('plan')
+          setError(`${COPY.additionalTitle} ${COPY.additionalBody}`)
           return
         }
         createAdditional = (count ?? 0) >= 1
@@ -311,7 +327,7 @@ export default function WorkspaceCreateWizardModal() {
 
   return createPortal(
     <div
-      className={`wc-os${visible ? ' is-visible' : ''}${busy ? ' is-busy' : ''}${step === 'name' ? ' is-name-step' : ''}${step === 'use' ? ' is-use-step' : ''}`}
+      className={`wc-os${visible ? ' is-visible' : ''}${busy ? ' is-busy' : ''}`}
       data-theme={dataTheme}
       role="dialog"
       aria-modal="true"
@@ -364,13 +380,20 @@ export default function WorkspaceCreateWizardModal() {
           </button>
         </header>
 
-        <div className="wc-os-viewport">
+        <div
+          className="wc-os-viewport"
+          style={viewportHeight ? { height: viewportHeight } : undefined}
+        >
           <div
             className="wc-os-track"
             style={{ transform: `translate3d(-${slideIndex * 100}%, 0, 0)` }}
           >
             {/* Slide: Name */}
-            <section className="wc-os-slide wc-os-slide--name" aria-hidden={step !== 'name'}>
+            <section
+              ref={(el) => { slideRefs.current.name = el }}
+              className="wc-os-slide wc-os-slide--name"
+              aria-hidden={step !== 'name'}
+            >
               <div className="wc-os-stage">
                 <div id="wc-os-title" className="wc-os-hero">
                   <AuthGlassyHero
@@ -459,7 +482,11 @@ export default function WorkspaceCreateWizardModal() {
             </section>
 
             {/* Slide: Use */}
-            <section className="wc-os-slide wc-os-slide--use" aria-hidden={step !== 'use'}>
+            <section
+              ref={(el) => { slideRefs.current.use = el }}
+              className="wc-os-slide wc-os-slide--use"
+              aria-hidden={step !== 'use'}
+            >
               <div className="wc-os-stage">
                 <div className="wc-os-hero">
                   <AuthGlassyHero
@@ -525,7 +552,11 @@ export default function WorkspaceCreateWizardModal() {
             </section>
 
             {/* Slide: Creating */}
-            <section className="wc-os-slide" aria-hidden={step !== 'creating'}>
+            <section
+              ref={(el) => { slideRefs.current.creating = el }}
+              className="wc-os-slide"
+              aria-hidden={step !== 'creating'}
+            >
               <div className="wc-os-stage">
                 <div className="wc-os-hero">
                   <AuthGlassyHero
@@ -550,7 +581,11 @@ export default function WorkspaceCreateWizardModal() {
             </section>
 
             {/* Slide: Welcome */}
-            <section className="wc-os-slide" aria-hidden={step !== 'welcome'}>
+            <section
+              ref={(el) => { slideRefs.current.welcome = el }}
+              className="wc-os-slide"
+              aria-hidden={step !== 'welcome'}
+            >
               <div className="wc-os-stage">
                 <div className="wc-os-hero">
                   <AuthGlassyHero
@@ -567,31 +602,6 @@ export default function WorkspaceCreateWizardModal() {
                     <p className="wc-domain-hint">{COPY.domainHint}</p>
                   </div>
                 ) : null}
-              </div>
-            </section>
-
-            {/* Slide: Plan gate */}
-            <section className="wc-os-slide" aria-hidden={step !== 'plan'}>
-              <div className="wc-os-stage">
-                <div className="wc-os-hero">
-                  <AuthGlassyHero
-                    animKey="wc-plan"
-                    lead={COPY.additionalTitle}
-                    rest={COPY.additionalBody}
-                    className="mob-glassy-h1"
-                    instant={step !== 'plan'}
-                  />
-                </div>
-                <div className="wc-form">
-                  <div className="wc-form-body wc-plan" />
-                  <div className="wc-continue-slot">
-                    <ContinueHint
-                      ready
-                      label={COPY.additionalBack}
-                      onContinue={closeWizard}
-                    />
-                  </div>
-                </div>
               </div>
             </section>
           </div>
@@ -627,8 +637,8 @@ const WIZARD_CSS = `
   --wc-mark-opacity: 0.9;
   /* Shared slide stack — same padding + hero rhythm on every slide */
   --wc-pad-x: 44px;
-  --wc-pad-top: 32px;
-  --wc-pad-bottom: 28px;
+  --wc-pad-top: 16px;
+  --wc-pad-bottom: 24px;
   --wc-stack-gap: 22px;
   --wc-hero-lh: 34px;
   --wc-hero-lines: 2;
@@ -741,7 +751,7 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28px var(--wc-pad-x) 8px;
+  padding: 20px var(--wc-pad-x) 4px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -774,38 +784,6 @@ const WIZARD_CSS = `
   align-items: center;
   gap: 4px;
   margin-left: auto;
-}
-
-.wc-os.is-name-step .wc-os-panel,
-.wc-os.is-use-step .wc-os-panel {
-  min-height: min(520px, 88dvh);
-}
-
-.wc-os-slide--name,
-.wc-os-slide--use {
-  min-height: 420px;
-}
-
-.wc-os-slide--name .wc-os-stage,
-.wc-os-slide--use .wc-os-stage {
-  justify-content: center;
-}
-
-.wc-os-slide--name .wc-form,
-.wc-os-slide--use .wc-form {
-  flex: 0 1 auto;
-}
-
-.wc-os-slide--name .wc-form-body,
-.wc-os-slide--use .wc-form-body {
-  flex: 0 1 auto;
-  justify-content: center;
-}
-
-.wc-os-slide--name .wc-continue-slot,
-.wc-os-slide--use .wc-continue-slot {
-  margin-top: auto;
-  padding-top: calc(var(--wc-stack-gap) + 8px);
 }
 
 .wc-os-close {
@@ -848,9 +826,9 @@ const WIZARD_CSS = `
 
 .wc-os-track {
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   width: 100%;
-  /* Height = tallest slide → all slides share the same stack height */
+  /* Viewport height follows the active slide — no dead air on shorter steps */
   transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
@@ -862,11 +840,10 @@ const WIZARD_CSS = `
   box-sizing: border-box;
   padding: var(--wc-pad-top) var(--wc-pad-x) var(--wc-pad-bottom);
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  /* No forced tall min-height — hug content; stretch to tallest sibling via track */
   min-height: 0;
 }
 
@@ -877,8 +854,14 @@ const WIZARD_CSS = `
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  min-height: 100%;
+  min-height: 0;
   box-sizing: border-box;
+}
+
+.wc-os-slide--name .wc-form,
+.wc-os-slide--use .wc-form {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* Glassy H1 — locked line metrics for every slide */
@@ -925,16 +908,6 @@ const WIZARD_CSS = `
   flex-direction: column;
   justify-content: flex-start;
 }
-
-.wc-plan {
-  width: 100%;
-  min-height: 0;
-}
-
-
-
-
-
 
 .wc-field-wrap {
   position: relative;
@@ -1705,8 +1678,8 @@ const WIZARD_CSS = `
 @media (min-width: 769px) {
   .wc-os {
     --wc-pad-x: 44px;
-    --wc-pad-top: 32px;
-    --wc-pad-bottom: 28px;
+    --wc-pad-top: 16px;
+    --wc-pad-bottom: 24px;
     --wc-hero-lh: 34px;
     --wc-panel-w: 520px;
   }
