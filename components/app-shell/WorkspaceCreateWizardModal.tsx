@@ -80,6 +80,10 @@ export default function WorkspaceCreateWizardModal() {
   const dataTheme = resolveWizardTheme(themeMode)
   const hasName = Boolean(displayName)
   const slideIndex = Math.max(0, SLIDE_ORDER.indexOf(step))
+  const selectedUseCase = getWorkspaceUseCase(useCase)
+  const useHeroLead = selectedUseCase?.title ?? COPY.useSlideTitle
+  const useHeroRest = selectedUseCase?.description ?? COPY.useSlideRest
+  const useHeroKey = selectedUseCase ? `wc-use-${selectedUseCase.id}` : 'wc-use-idle'
 
   function goUseSlide() {
     setError('')
@@ -307,7 +311,7 @@ export default function WorkspaceCreateWizardModal() {
 
   return createPortal(
     <div
-      className={`wc-os${visible ? ' is-visible' : ''}${busy ? ' is-busy' : ''}${step === 'name' ? ' is-name-step' : ''}`}
+      className={`wc-os${visible ? ' is-visible' : ''}${busy ? ' is-busy' : ''}${step === 'name' ? ' is-name-step' : ''}${step === 'use' ? ' is-use-step' : ''}`}
       data-theme={dataTheme}
       role="dialog"
       aria-modal="true"
@@ -455,13 +459,14 @@ export default function WorkspaceCreateWizardModal() {
             </section>
 
             {/* Slide: Use */}
-            <section className="wc-os-slide" aria-hidden={step !== 'use'}>
+            <section className="wc-os-slide wc-os-slide--use" aria-hidden={step !== 'use'}>
               <div className="wc-os-stage">
                 <div className="wc-os-hero">
                   <AuthGlassyHero
-                    animKey="wc-use"
-                    lead={COPY.useSlideTitle}
-                    rest={COPY.useSlideRest}
+                    animKey={useHeroKey}
+                    lead={useHeroLead}
+                    rest={useHeroRest}
+                    stacked
                     className="mob-glassy-h1"
                     instant={step !== 'use'}
                   />
@@ -476,6 +481,7 @@ export default function WorkspaceCreateWizardModal() {
                             key={card.id}
                             role="option"
                             aria-selected={on}
+                            aria-label={card.description ? `${card.title}. ${card.description}` : card.title}
                             tabIndex={0}
                             className={`wc-ws-row${on ? ' is-on' : ''}`}
                             style={{ ['--i' as string]: i }}
@@ -486,19 +492,20 @@ export default function WorkspaceCreateWizardModal() {
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault()
+                                setError('')
                                 setUseCase(card.id)
                               }
                             }}
                           >
-                            <span className="wc-ws-card-copy">
-                              <span className="wc-ws-card-title">{card.title}</span>
-                              <span className="wc-ws-card-body">{card.description}</span>
-                            </span>
+                            <span className="wc-ws-card-title">{card.title}</span>
                             <FestagToggle
                               on={on}
                               label={`${card.title} auswählen`}
                               stopPropagation
-                              onChange={() => setUseCase(card.id)}
+                              onChange={() => {
+                                setError('')
+                                setUseCase(card.id)
+                              }}
                             />
                           </div>
                         )
@@ -769,28 +776,34 @@ const WIZARD_CSS = `
   margin-left: auto;
 }
 
-.wc-os.is-name-step .wc-os-panel {
+.wc-os.is-name-step .wc-os-panel,
+.wc-os.is-use-step .wc-os-panel {
   min-height: min(520px, 88dvh);
 }
 
-.wc-os-slide--name {
+.wc-os-slide--name,
+.wc-os-slide--use {
   min-height: 420px;
 }
 
-.wc-os-slide--name .wc-os-stage {
+.wc-os-slide--name .wc-os-stage,
+.wc-os-slide--use .wc-os-stage {
   justify-content: center;
 }
 
-.wc-os-slide--name .wc-form {
+.wc-os-slide--name .wc-form,
+.wc-os-slide--use .wc-form {
   flex: 0 1 auto;
 }
 
-.wc-os-slide--name .wc-form-body {
+.wc-os-slide--name .wc-form-body,
+.wc-os-slide--use .wc-form-body {
   flex: 0 1 auto;
   justify-content: center;
 }
 
-.wc-os-slide--name .wc-continue-slot {
+.wc-os-slide--name .wc-continue-slot,
+.wc-os-slide--use .wc-continue-slot {
   margin-top: auto;
   padding-top: calc(var(--wc-stack-gap) + 8px);
 }
@@ -1114,24 +1127,25 @@ const WIZARD_CSS = `
   word-break: break-all;
 }
 
-/* Four individual use-case toggles — one choice each, never paired cards */
+/* Four individual use-case toggles — title only; context lives in the glassy H1 */
 .wc-ws-list {
-  margin-top: 8px;
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   box-sizing: border-box;
 }
 
 .wc-ws-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 14px;
   width: 100%;
   text-align: left;
-  min-height: 76px;
-  padding: 18px 18px;
-  border-radius: 10px;
+  min-height: 50px;
+  padding: 0 16px;
+  border-radius: 8px;
   border: 1px solid rgba(30, 30, 32, 0.10) !important;
   background: #FFFFFF;
   color: var(--mob-ink);
@@ -1171,26 +1185,16 @@ const WIZARD_CSS = `
   border-color: rgba(91, 100, 125, 0.42) !important;
 }
 
-.wc-ws-card-copy {
+.wc-ws-card-title {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.wc-ws-card-title {
   font-size: 15.5px;
-  line-height: 1.3;
+  line-height: 1.25;
   letter-spacing: var(--auth-tracking);
   color: var(--mob-ink);
-}
-
-.wc-ws-card-body {
-  font-size: 13.5px;
-  line-height: 1.45;
-  letter-spacing: var(--auth-tracking);
-  color: var(--mob-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wc-os .ft-toggle,
@@ -1653,13 +1657,14 @@ const WIZARD_CSS = `
   }
 
   .wc-ws-row {
-    min-height: 64px;
-    padding: 14px 16px;
+    min-height: 48px;
+    padding: 0 14px;
     border-radius: 8px;
   }
 
   .wc-ws-card-title {
     font-size: 15px;
+    white-space: normal;
   }
 
   .wc-ws-card-body {
