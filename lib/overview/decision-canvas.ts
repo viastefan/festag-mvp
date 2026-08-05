@@ -47,7 +47,7 @@ export type CanvasDecisionFocus = {
 }
 
 export type DecisionCanvasTopic = {
-  kind: 'decision' | 'project'
+  kind: 'decision' | 'project' | 'insight'
   id: string
   eyebrow: string
   question: string
@@ -433,6 +433,123 @@ export function buildDecisionCanvasTopic(input: {
     responseType: focus.responseType,
     needsSuggestion: focus.needsSuggestion,
   }
+}
+
+function phaseRecommendLabel(phase: string | null, title: string): string {
+  const p = String(phase || '').toLowerCase()
+  if (p.includes('design') || p.includes('brand')) return 'Design-Richtung schärfen'
+  if (p.includes('build') || p.includes('dev') || p.includes('umsetz')) return 'Umsetzung fortsetzen'
+  if (p.includes('launch') || p.includes('release')) return 'Release vorbereiten'
+  if (p.includes('plan')) return 'Planung abschließen'
+  return `Nächster Schritt für ${title}`
+}
+
+/** Tagro-Empfehlung wenn Projekte laufen, aber keine Entscheidung offen ist. */
+function buildCalmProjectOsTopic(input: {
+  workspaceName: string
+  calmLine: string | null
+  project: {
+    id: string
+    title: string
+    phase: string | null
+    nextMilestone: string | null
+    health: string
+    progress: number
+  }
+}): DecisionCanvasTopic {
+  const { project } = input
+  const recommend = phaseRecommendLabel(project.phase, project.title)
+  const question = project.nextMilestone?.trim()
+    ? `Wie gehen wir als Nächstes mit „${project.nextMilestone}" um?`
+    : `Was ist der sinnvollste nächste Schritt für ${project.title}?`
+
+  const reasons: string[] = []
+  if (project.progress > 0) {
+    reasons.push(`Fortschritt: ${Math.round(project.progress)}% — Momentum beibehalten.`)
+  }
+  if (project.nextMilestone) {
+    reasons.push(`Nächster Meilenstein: ${project.nextMilestone}.`)
+  }
+  reasons.push('Tagro kennt Phase, Team und bisherige Signale in diesem Workspace.')
+  if (project.health === 'risk' || project.health === 'watch') {
+    reasons.push('Ein Risiko ist sichtbar — früh klären spart Zeit.')
+  } else {
+    reasons.push('Alles wirkt ruhig — guter Moment für den nächsten klaren Schritt.')
+  }
+
+  return {
+    kind: 'insight',
+    id: `insight:${project.id}`,
+    eyebrow: 'Tagro',
+    question,
+    waitingLabel: 'Tagro Empfehlung bereit',
+    calmStatus:
+      (input.calmLine && input.calmLine.trim()) ||
+      `In ${input.workspaceName} läuft noch alles ruhig.`,
+    options: [
+      {
+        id: 'open',
+        label: recommend,
+        hint: 'Projekt öffnen und nächste Schritte sehen.',
+        recommended: true,
+      },
+      {
+        id: 'later',
+        label: 'Später',
+        hint: 'Der Workspace bleibt ruhig.',
+        recommended: false,
+      },
+    ],
+    recommendId: 'open',
+    recommendLabel: recommend,
+    reasons: reasons.slice(0, 4),
+    explainTitle: project.title,
+    explainSteps: [
+      { n: 1, label: 'Projektkontext prüfen' },
+      { n: 2, label: 'Nächste Aufgaben strukturieren' },
+      { n: 3, label: 'Team synchron halten' },
+    ],
+    decisionId: null,
+    href: `/projects/${project.id}`,
+    responseType: null,
+    needsSuggestion: false,
+  }
+}
+
+/** Desktop Overview — Entscheidung oder ruhige Tagro-Empfehlung. */
+export function buildOverviewOsTopic(input: {
+  workspaceName: string
+  activeProjects: number
+  pendingDecisions: number
+  calmLine: string | null
+  focus: CanvasDecisionFocus | null
+  focusProject?: {
+    id: string
+    title: string
+    phase: string | null
+    nextMilestone: string | null
+    health: string
+    progress: number
+  } | null
+}): DecisionCanvasTopic | null {
+  const decisionTopic = buildDecisionCanvasTopic({
+    workspaceName: input.workspaceName,
+    activeProjects: input.activeProjects,
+    pendingDecisions: input.pendingDecisions,
+    calmLine: input.calmLine,
+    focus: input.focus,
+  })
+  if (decisionTopic) return decisionTopic
+
+  if (input.activeProjects > 0 && input.focusProject) {
+    return buildCalmProjectOsTopic({
+      workspaceName: input.workspaceName,
+      calmLine: input.calmLine,
+      project: input.focusProject,
+    })
+  }
+
+  return null
 }
 
 export async function ensureCanvasSuggestion(decisionId: string): Promise<{

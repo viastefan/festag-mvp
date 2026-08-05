@@ -8,7 +8,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Sparkle } from '@phosphor-icons/react'
+import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
+import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import KnowledgeGrid from '@/components/festag-canvas/KnowledgeGrid'
 import FestagPath, { MOBILE_INK_PATH } from '@/components/festag-canvas/FestagPath'
@@ -360,6 +361,7 @@ export default function MobileOverviewStory({
   return (
     <>
       <style>{FESTAG_OVERVIEW_STORY_STYLES}</style>
+      <style>{FESTAG_OVERVIEW_PANEL_STYLES}</style>
       <div
         className={[
           'fos',
@@ -408,64 +410,19 @@ export default function MobileOverviewStory({
           ) : null}
 
           {showDecision && activeTopic ? (
-            <article className="fos-panel is-decision">
-              <p className="fos-panel-label">Entscheidung</p>
-              <h2 className="fos-panel-title">{activeTopic.question}</h2>
-              <div className="fos-options" role="radiogroup" aria-label="Optionen">
-                {activeTopic.options.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected === opt.id}
-                    className={`fos-option${selected === opt.id ? ' is-on' : ''}${opt.recommended ? ' is-rec' : ''}`}
-                    onClick={() => setSelected(opt.id)}
-                  >
-                    <span className="fos-option-label">{opt.label}</span>
-                    {opt.hint ? (
-                      <span className="fos-option-hint">{opt.hint}</span>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-              {!showRecommend ? (
-                <button type="button" className="fos-text-action" onClick={openRecommend}>
-                  Empfehlung ansehen
-                </button>
-              ) : null}
-            </article>
-          ) : null}
-
-          {showRecommend && activeTopic ? (
-            <article className="fos-panel is-tagro">
-              <div className="fos-tagro-head">
-                <Sparkle size={15} weight="fill" aria-hidden />
-                <span>Tagro</span>
-              </div>
-              <p className="fos-tagro-pick">{activeTopic.recommendLabel}</p>
-              <p className="fos-tagro-why">Warum</p>
-              <ul className="fos-tagro-reasons">
-                {activeTopic.reasons.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-              {error ? (
-                <p className="fos-tagro-error" role="alert">
-                  {error}
-                </p>
-              ) : null}
-              <button
-                type="button"
-                className="fos-btn-primary"
-                disabled={busy}
-                onClick={() => void accept()}
-              >
-                {busy ? 'Wird übernommen…' : 'Empfehlung übernehmen'}
-              </button>
-              <button type="button" className="fos-text-action" onClick={openExplain}>
-                Erklären
-              </button>
-            </article>
+            <OverviewStoryPanel
+              topic={activeTopic}
+              selected={selected}
+              onSelect={setSelected}
+              showDecision
+              showRecommend={showRecommend}
+              onOpenRecommend={openRecommend}
+              onExplain={openExplain}
+              onAccept={() => void accept()}
+              busy={busy}
+              error={error}
+              layout="stack"
+            />
           ) : null}
         </div>
 

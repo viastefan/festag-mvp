@@ -141,17 +141,17 @@ function phaseLabel(raw: string | null): string {
   return map[key] || raw.replace(/_/g, ' ')
 }
 
-/** Organic constellation slots — reference dashboard spread. */
+/** Reference dashboard node slots (percent). */
 const RING: Array<{ x: number; y: number }> = [
-  { x: 18, y: 22 }, // Team
-  { x: 34, y: 14 }, // Branding
-  { x: 58, y: 12 }, // Analytics
-  { x: 82, y: 28 }, // Content
-  { x: 86, y: 48 }, // Design System
-  { x: 68, y: 38 }, // Umsetzung / Implementation (path target)
-  { x: 52, y: 78 }, // Deployment
-  { x: 22, y: 68 }, // Integrationen
-  { x: 10, y: 44 }, // Risiken
+  { x: 14, y: 26 }, // Team — upper left
+  { x: 28, y: 16 }, // Branding
+  { x: 52, y: 14 }, // Analytics
+  { x: 78, y: 22 }, // Content
+  { x: 84, y: 42 }, // Design System
+  { x: 68, y: 30 }, // Umsetzung — path end (oben, Referenz)
+  { x: 58, y: 72 }, // Deployment
+  { x: 76, y: 68 }, // Integrationen
+  { x: 12, y: 58 }, // Risiken
 ]
 
 export function buildWorkspaceConstellation(
@@ -193,8 +193,8 @@ export function buildWorkspaceConstellation(
         : focusProject
           ? phaseLabel(focusProject.phase)
           : 'Workspace',
-    x: openDec > 0 ? 44 : 50,
-    y: openDec > 0 ? 54 : 48,
+    x: 46,
+    y: 52,
     projectId: focusProject?.id || null,
     attention: true,
     center: true,
@@ -467,4 +467,26 @@ export function edgePath(x1: number, y1: number, x2: number, y2: number): string
   const cx2 = x1 + dx * 0.6 + dy * 0.08
   const cy2 = y1 + dy * 0.6 - dx * 0.06
   return `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`
+}
+
+/** Reference ink path — unten links → Entscheidung → oben zum Projekt/Umsetzung. */
+export function buildOverviewActivePath(
+  center: { x: number; y: number },
+  target: { x: number; y: number },
+  entry = { x: 12, y: 84 },
+): { d: string; entry: { x: number; y: number }; end: { x: number; y: number } } {
+  const cx = center.x
+  const cy = center.y
+  const tx = target.x
+  const ty = target.y
+
+  const d = [
+    `M ${entry.x} ${entry.y}`,
+    /* Anstieg zur Entscheidung — von unten links */
+    `C ${entry.x + 16} ${entry.y - 2}, ${cx - 18} ${cy + 16}, ${cx} ${cy}`,
+    /* Deutlicher Schwung nach oben zum Projekt-Knoten */
+    `C ${cx + 12} ${cy - 22}, ${tx - 14} ${ty + 14}, ${tx} ${ty}`,
+  ].join(' ')
+
+  return { d, entry, end: { x: tx, y: ty } }
 }

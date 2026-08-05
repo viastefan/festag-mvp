@@ -1,5 +1,5 @@
 /**
- * Desktop knowledge mesh — dotted field + faint connections (reference dashboard).
+ * Desktop knowledge mesh — dense reference constellation field.
  */
 
 export type MeshDot = {
@@ -31,38 +31,40 @@ function dist(a: MeshDot, b: MeshDot): number {
   return Math.sqrt(dx * dx + dy * dy)
 }
 
-/** Organic dot field across the full canvas (percent coords). */
+/** Dense dotted web — reference dashboard fidelity. */
 export function generateDesktopKnowledgeMesh(
-  dotCount = 118,
+  dotCount = 64,
   seed = 0x0a7d45,
 ): { dots: MeshDot[]; edges: MeshEdge[] } {
   const rand = seeded(seed)
   const dots: MeshDot[] = []
 
-  for (let i = 0; i < dotCount; i += 1) {
-    dots.push({
-      id: `d${i}`,
-      x: 4 + rand() * 92,
-      y: 8 + rand() * 84,
-      scale: 0.65 + rand() * 0.7,
-    })
-  }
-
-  /* Anchor lattice — subtle grid anchors like the mock */
-  for (let row = 0; row < 7; row += 1) {
-    for (let col = 0; col < 11; col += 1) {
-      if (rand() > 0.42) continue
+  /* Regular lattice — primary grid like the mock */
+  for (let row = 0; row < 16; row += 1) {
+    for (let col = 0; col < 20; col += 1) {
+      const jitter = rand()
+      if (jitter > 0.68) continue
       dots.push({
         id: `g${row}-${col}`,
-        x: 8 + col * 8.2 + (rand() - 0.5) * 3,
-        y: 10 + row * 11 + (rand() - 0.5) * 4,
-        scale: 0.55 + rand() * 0.35,
+        x: 2 + col * 4.85 + (rand() - 0.5) * 1.6,
+        y: 3 + row * 6.1 + (rand() - 0.5) * 2,
+        scale: 0.36 + rand() * 0.26,
       })
     }
   }
 
+  /* Organic scatter */
+  for (let i = 0; i < dotCount; i += 1) {
+    dots.push({
+      id: `d${i}`,
+      x: 2 + rand() * 96,
+      y: 3 + rand() * 94,
+      scale: 0.32 + rand() * 0.4,
+    })
+  }
+
   const edges: MeshEdge[] = []
-  const maxDist = 16
+  const maxDist = 9.5
 
   for (let i = 0; i < dots.length; i += 1) {
     const neighbors: Array<{ j: number; d: number }> = []

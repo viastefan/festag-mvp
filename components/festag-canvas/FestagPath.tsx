@@ -65,8 +65,8 @@ export default function FestagPath({
       <path className="festag-path-flow" d={d} vectorEffect="non-scaling-stroke" />
       {showEndpoints ? (
         <>
-          <circle className="festag-path-start" cx={start.x} cy={start.y} r="1.8" />
-          <circle className="festag-path-end" cx={end.x} cy={end.y} r="2.4" />
+          <circle className="festag-path-start" cx={start.x} cy={start.y} r="2" />
+          <circle className="festag-path-end" cx={end.x} cy={end.y} r="2.6" />
         </>
       ) : null}
     </svg>
