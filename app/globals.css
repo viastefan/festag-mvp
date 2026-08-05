@@ -1484,7 +1484,7 @@ input[type="reset"],
   .fas-sidebar,
   [class^="sb-"],
   .festag-popup-surface
-) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item):not(.ft-toggle):not(.tln-core):not(.tln-node):not(.fas-ln-mic):not(.fas-dc-mic):not(.fas-dc-choice):not(.fas-wb-node) {
+) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item):not(.ft-toggle):not(.tln-core):not(.tln-node):not(.fas-ln-mic):not(.fas-dc-mic):not(.fas-dc-choice):not(.fas-wb-node):not(.fos-option):not(.fos-btn-primary):not(.fos-text-action) {
   border-radius: 6px !important;
 }
 

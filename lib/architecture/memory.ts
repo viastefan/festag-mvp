@@ -330,14 +330,32 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     related: ['.cursor/rules/festag-architect-ai.mdc'],
   },
   {
+    id: 'festag-design-constitution',
+    question: 'What is Festag visual law (Read Mode, Knowledge Grid, Path)?',
+    answer:
+      'Festag is a Software Production OS — not SaaS. Read Mode paper #F8F6F2 is default everywhere. Primary #5B647D only for attention. Knowledge = silent subtle dots; Flow = one organic path, one decision, retract. Mobile = independent living story (not shrunk desktop). Typography (Aeonik) creates hierarchy — not borders/cards. Gate: why is this visible now?',
+    decision: 'Design Constitution v1 · Knowledge vs Flow · MobileOverviewStory',
+    date: '2026-08-05',
+    version: '1.0',
+    status: 'locked',
+    related: [
+      'docs/festag-design-constitution.md',
+      '.cursor/rules/festag-design-constitution.mdc',
+      'lib/design-tokens/festag-canvas.ts',
+      'components/festag-canvas/KnowledgeGrid.tsx',
+      'components/festag-canvas/FestagPath.tsx',
+      'components/app-shell/overview/MobileOverviewStory.tsx',
+    ],
+  },
+  {
     id: 'overview-tagro-core-interface',
     question: 'Warum ist Overview ein zoomable Workspace Board mit Project Path?',
     answer:
-      'Overview is a zoomable Software Production OS: Level 1 Workspace Board (calm constellation — WHERE) and Level 2 Project View (decision path — WHY). Camera flies between levels — no page theater. Tagro is never the hero; the current decision is. Inspector = Apple-like recommendation. One focus. Paper #F8F6F2 · primary #5B647D only for focus. Mobile designed independently (gesture canvas + vertical path + bottom sheet).',
+      'Overview is a zoomable Software Production OS: Level 1 Workspace Board (calm constellation — WHERE) and Level 2 Project View (decision path — WHY). Desktop: full-bleed constellation + line grid. Mobile: independent living story (Knowledge Grid → voice lyrics → one path → one panel → retract) — never shrunk desktop. Tagro is never the hero. Paper #F8F6F2 · primary #5B647D only for focus.',
     decision:
-      'Overview v5 · Workspace Board constellation + Project path fly-in · Tagro as inspector only · accept via /decide · suggest on enter',
+      'Overview v5.2 · Desktop Wissensraum + Mobile living story · Design Constitution v1',
     date: '2026-08-05',
-    version: '5.1',
+    version: '5.2',
     status: 'locked',
     related: [
       'docs/festag-decision-canvas.md',

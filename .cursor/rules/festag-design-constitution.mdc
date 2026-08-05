@@ -1,0 +1,48 @@
+---
+description: Festag Design Constitution — Read Mode, Knowledge Grid, Path, mobile story law
+globs:
+  - components/**/*.tsx
+  - components/**/*.ts
+  - app/**/*.tsx
+  - lib/design-tokens/**
+  - lib/design/**
+alwaysApply: true
+---
+
+# Festag Design Constitution
+
+**Doc:** `docs/festag-design-constitution.md`  
+**Tokens:** `lib/design-tokens/festag-canvas.ts`  
+**Canvas:** `components/festag-canvas/*`
+
+Festag is a **Software Production Operating System** — not SaaS, not PM, not AI chat.
+
+## Gate (every UI change)
+
+1. Why is this visible **now**? No answer → remove it.
+2. Read Mode paper `#F8F6F2` — never pure white canvas, never gray dashboard.
+3. Primary `#5B647D` **only** for active attention (path, decision, focus).
+4. **One** active path at a time — organic ink, never arrows/flowcharts.
+5. Mobile ≠ shrunk desktop — large type, one focus, native story.
+6. Typography (Aeonik) creates hierarchy — not borders, not card chrome.
+
+## Knowledge vs Flow
+
+| Mode | Visual | When |
+|---|---|---|
+| **Knowledge** | Subtle dots, silent, unconnected | Default — project exists, nothing demands action |
+| **Flow** | One path grows → one panel → retract | Tagro speaks / one decision deserves attention |
+
+## Surfaces
+
+Floating paper: soft shadow, invisible border, editorial spacing. No dashboard widgets.
+
+## Tagro
+
+Invisible intelligence — never center stage, never AI theater. Recommendation floats; explanations branch from path.
+
+## Do not build
+
+Jira · ClickUp · Monday · Notion clone · ChatGPT clone · compressed desktop on mobile · permanent decision UI in calm state
+
+When unsure: **remove something**, never add.

@@ -9,6 +9,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkle } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
+import MobileOverviewStory from '@/components/app-shell/overview/MobileOverviewStory'
+import { useMobileViewport } from '@/lib/hooks/useMobileViewport'
 import { openNewProject } from '@/lib/new-project-open'
 import {
   acceptDecisionRecommendation,
@@ -44,7 +46,13 @@ function kindClass(kind: BoardNode['kind'], center?: boolean): string {
   return 'is-knowledge'
 }
 
-export default function WorkspaceBoard({
+export default function WorkspaceBoard(props: Props) {
+  const isMobile = useMobileViewport()
+  if (isMobile) return <MobileOverviewStory {...props} />
+  return <WorkspaceBoardDesktop {...props} />
+}
+
+function WorkspaceBoardDesktop({
   greeting,
   firstName,
   data,
