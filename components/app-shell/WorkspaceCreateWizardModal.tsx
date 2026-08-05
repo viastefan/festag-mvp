@@ -7,9 +7,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X } from '@phosphor-icons/react'
-import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
+import { useFestagOutsideClickHint, isPointerOverOverlay } from '@/hooks/useFestagOutsideClickHint'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import ContinueHint from '@/components/auth/master-onboarding/ContinueHint'
 import FestagToggle, { FESTAG_TOGGLE_CSS } from '@/components/ui/FestagToggle'
@@ -31,7 +30,7 @@ import {
   WORKSPACE_CREATION_COPY as COPY,
   WORKSPACE_USE_CASES,
   getWorkspaceUseCase,
-  workspaceSubdomainPreview,
+  workspaceDomainFromSlug,
   type WorkspaceUseCaseId,
 } from '@/lib/platform/workspace-creation'
 
@@ -63,17 +62,21 @@ export default function WorkspaceCreateWizardModal() {
     displayName,
     availability,
     availabilityMsg,
+    confirmedSlug,
     ready,
     inputRef,
     setWorkspaceName,
     checkAvailability,
   } = useWorkspaceNameField({ enabled: open && (step === 'name' || step === 'use') })
 
-  const subdomain = workspaceSubdomainPreview(displayName || workspaceName)
+  const subdomain = workspaceDomainFromSlug(confirmedSlug)
+  const domainReady = availability === 'available' && Boolean(confirmedSlug)
   const nameReady = ready && !checkingOwned
   const useReady = Boolean(useCase)
   const canCreate = nameReady && useReady
   const busy = step === 'creating' || step === 'welcome'
+  const { showHint, onOverlayPointer, reset: resetOutsideHint } =
+    useFestagOutsideClickHint(open && !busy, 1)
   const dataTheme = resolveWizardTheme(themeMode)
   const hasName = Boolean(displayName)
   const slideIndex = Math.max(0, SLIDE_ORDER.indexOf(step))
@@ -120,6 +123,10 @@ export default function WorkspaceCreateWizardModal() {
       window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
     }
   }, [])
+
+  useEffect(() => {
+    if (open) resetOutsideHint()
+  }, [open, resetOutsideHint])
 
   useEffect(() => {
     if (!open) {
@@ -170,6 +177,7 @@ export default function WorkspaceCreateWizardModal() {
         return
       }
       window.setTimeout(() => inputRef.current?.focus(), 120)
+      window.setTimeout(() => inputRef.current?.focus(), 280)
     } catch {
       /* stay on form */
     } finally {
@@ -299,11 +307,15 @@ export default function WorkspaceCreateWizardModal() {
 
   return createPortal(
     <div
-      className={`wc-os${visible ? ' is-visible' : ''}${busy ? ' is-busy' : ''}`}
+      className={`wc-os${visible ? ' is-visible' : ''}${busy ? ' is-busy' : ''}${step === 'name' ? ' is-name-step' : ''}`}
       data-theme={dataTheme}
       role="dialog"
       aria-modal="true"
       aria-labelledby="wc-os-title"
+      onPointerMove={(e) => {
+        onOverlayPointer(isPointerOverOverlay(e, '.wc-os-panel'))
+      }}
+      onPointerLeave={() => onOverlayPointer(false)}
     >
       <style>{AUTH_GLASSY_HERO_CSS}</style>
       <style>{FESTAG_TOGGLE_CSS}</style>
@@ -318,6 +330,12 @@ export default function WorkspaceCreateWizardModal() {
           if (!busy) closeWizard()
         }}
       />
+
+      {showHint && !busy ? (
+        <p className="festag-modal-outside-hint" aria-hidden="true">
+          Durch Klicken schließen.
+        </p>
+      ) : null}
 
       <div className="wc-os-panel" onMouseDown={(e) => e.stopPropagation()}>
         <div className="wc-os-grip" aria-hidden="true">
@@ -340,20 +358,6 @@ export default function WorkspaceCreateWizardModal() {
               height={28}
             />
           </button>
-          <div className="wc-os-header-actions">
-            <AuthDocsPopover page="/overview" />
-            <button
-              type="button"
-              className="wc-os-close"
-              aria-label="Schließen"
-              disabled={busy}
-              onClick={() => {
-                if (!busy) closeWizard()
-              }}
-            >
-              <X size={16} weight="regular" />
-            </button>
-          </div>
         </header>
 
         <div className="wc-os-viewport">
@@ -362,7 +366,7 @@ export default function WorkspaceCreateWizardModal() {
             style={{ transform: `translate3d(-${slideIndex * 100}%, 0, 0)` }}
           >
             {/* Slide: Name */}
-            <section className="wc-os-slide" aria-hidden={step !== 'name'}>
+            <section className="wc-os-slide wc-os-slide--name" aria-hidden={step !== 'name'}>
               <div className="wc-os-stage">
                 <div id="wc-os-title" className="wc-os-hero">
                   <AuthGlassyHero
@@ -384,6 +388,7 @@ export default function WorkspaceCreateWizardModal() {
                         ]
                           .filter(Boolean)
                           .join(' ')}
+                        onClick={() => inputRef.current?.focus()}
                       >
                         <input
                           ref={inputRef}
@@ -417,7 +422,9 @@ export default function WorkspaceCreateWizardModal() {
                             {COPY.namePlaceholder}
                           </span>
                         ) : null}
-                        {!hasName ? <span aria-hidden className="wc-field-caret" /> : null}
+                        {!hasName && fieldFocused ? (
+                          <span aria-hidden className="wc-field-caret" />
+                        ) : null}
                         {availability === 'checking' && displayName ? (
                           <UsernameCheckBadge status="checking" title="Wird geprüft…" />
                         ) : availability === 'available' && displayName ? (
@@ -426,14 +433,13 @@ export default function WorkspaceCreateWizardModal() {
                           <UsernameCheckBadge status="taken" title={availabilityMsg || 'Vergeben'} />
                         ) : null}
                       </div>
-                      <div className={`wc-domain${displayName ? ' is-ready' : ''}`}>
+                      <div className={`wc-domain${domainReady ? ' is-ready' : ''}`}>
                         <span className="wc-domain-label">{COPY.domainLabel}</span>
                         <span className="wc-subdomain" aria-live="polite">
                           {subdomain}
                         </span>
                         <p className="wc-domain-hint">{COPY.domainHint}</p>
                       </div>
-                      <p className="wc-hobby-hint">{COPY.hobbyHint}</p>
                     </div>
                     {error && step === 'name' ? <p className="wc-error">{error}</p> : null}
                   </div>
@@ -550,7 +556,7 @@ export default function WorkspaceCreateWizardModal() {
                 {displayName ? (
                   <div className="wc-welcome-domain" aria-live="polite">
                     <p className="wc-welcome-domain-lead">{COPY.welcomeDomainLead}</p>
-                    <p className="wc-welcome-domain-url">{workspaceSubdomainPreview(displayName)}</p>
+                    <p className="wc-welcome-domain-url">{workspaceDomainFromSlug(confirmedSlug || displayName)}</p>
                     <p className="wc-domain-hint">{COPY.domainHint}</p>
                   </div>
                 ) : null}
@@ -596,9 +602,9 @@ const WIZARD_CSS = `
   --mob-muted: #8891a0;
   --mob-primary: #5B647D;
   --mob-caret: #5B647D;
-  /* Idle: thin primary blue · Focus: slightly thicker primary */
+  /* Idle: thin stroke · Focus: thicker primary */
   --mob-stroke-idle: 1px;
-  --mob-stroke-focus: 1.5px;
+  --mob-stroke-focus: 2px;
   --mob-stroke-idle-color: rgba(91, 100, 125, 0.38);
   --mob-stroke-focus-color: #5B647D;
   --mob-card-bg-on: #FFFFFF;
@@ -614,7 +620,7 @@ const WIZARD_CSS = `
   --wc-mark-opacity: 0.9;
   /* Shared slide stack — same padding + hero rhythm on every slide */
   --wc-pad-x: 44px;
-  --wc-pad-top: 8px;
+  --wc-pad-top: 32px;
   --wc-pad-bottom: 28px;
   --wc-stack-gap: 22px;
   --wc-hero-lh: 34px;
@@ -728,7 +734,7 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px var(--wc-pad-x) 4px;
+  padding: 28px var(--wc-pad-x) 8px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -760,13 +766,33 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-left: auto;
 }
 
-.wc-os-header-actions .auth-docs-trigger {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  min-height: 32px !important;
+.wc-os.is-name-step .wc-os-panel {
+  min-height: min(520px, 88dvh);
+}
+
+.wc-os-slide--name {
+  min-height: 420px;
+}
+
+.wc-os-slide--name .wc-os-stage {
+  justify-content: center;
+}
+
+.wc-os-slide--name .wc-form {
+  flex: 0 1 auto;
+}
+
+.wc-os-slide--name .wc-form-body {
+  flex: 0 1 auto;
+  justify-content: center;
+}
+
+.wc-os-slide--name .wc-continue-slot {
+  margin-top: auto;
+  padding-top: calc(var(--wc-stack-gap) + 8px);
 }
 
 .wc-os-close {
@@ -914,6 +940,7 @@ const WIZARD_CSS = `
   border: var(--mob-stroke-idle) solid var(--mob-stroke-idle-color) !important;
   background: transparent;
   box-sizing: border-box;
+  cursor: text;
   transition: border-color .18s ease, border-width .18s ease;
 }
 
@@ -921,7 +948,11 @@ const WIZARD_CSS = `
   border-color: rgba(91, 100, 125, 0.55) !important;
 }
 
-.wc-field-shell.has-value,
+.wc-field-shell.has-value:not(.is-focused) {
+  border-width: var(--mob-stroke-idle) !important;
+  border-color: rgba(91, 100, 125, 0.48) !important;
+}
+
 .wc-field-shell.is-focused {
   border-width: var(--mob-stroke-focus) !important;
   border-color: var(--mob-stroke-focus-color) !important;
@@ -933,13 +964,18 @@ const WIZARD_CSS = `
 .wc-os[data-theme="dark"] .wc-field-shell:hover {
   border-color: rgba(91, 100, 125, 0.72) !important;
 }
-.wc-os[data-theme="dark"] .wc-field-shell.has-value,
+.wc-os[data-theme="dark"] .wc-field-shell.has-value:not(.is-focused) {
+  border-width: var(--mob-stroke-idle) !important;
+  border-color: rgba(91, 100, 125, 0.55) !important;
+}
 .wc-os[data-theme="dark"] .wc-field-shell.is-focused {
   border-width: var(--mob-stroke-focus) !important;
   border-color: var(--mob-stroke-focus-color) !important;
 }
 
 .wc-field-input {
+  position: relative;
+  z-index: 2;
   width: 100%;
   height: var(--mob-control-h);
   padding: 0;
@@ -954,15 +990,22 @@ const WIZARD_CSS = `
   outline: none;
   box-sizing: border-box;
   caret-color: var(--mob-caret);
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .wc-field-input.is-empty { caret-color: transparent; }
+
+.wc-field-shell.is-focused .wc-field-input.is-empty {
+  caret-color: var(--mob-caret);
+}
 
 .wc-field-example {
   position: absolute;
   left: 16px;
   right: 40px;
   top: 50%;
+  z-index: 1;
   transform: translate3d(0, -50%, 0);
   pointer-events: none;
   color: var(--mob-muted);
@@ -979,6 +1022,7 @@ const WIZARD_CSS = `
   position: absolute;
   left: 16px;
   top: 50%;
+  z-index: 1;
   margin-top: -10px;
   width: 1.5px;
   height: 20px;
@@ -1036,6 +1080,7 @@ const WIZARD_CSS = `
   opacity: 0.55;
   font-variant-ligatures: none;
   word-break: break-all;
+  transition: color 0.22s ease, opacity 0.22s ease;
 }
 .wc-domain.is-ready .wc-subdomain {
   opacity: 0.92;
@@ -1043,13 +1088,6 @@ const WIZARD_CSS = `
 }
 .wc-domain-hint {
   margin: 2px 0 0;
-  font-size: 13px;
-  line-height: 1.45;
-  letter-spacing: var(--auth-tracking);
-  color: var(--mob-muted);
-}
-.wc-hobby-hint {
-  margin: 10px 0 0;
   font-size: 13px;
   line-height: 1.45;
   letter-spacing: var(--auth-tracking);
@@ -1628,8 +1666,7 @@ const WIZARD_CSS = `
     font-size: 13px;
   }
 
-  .wc-domain-hint,
-  .wc-hobby-hint {
+  .wc-domain-hint {
     font-size: 12.5px;
   }
 
@@ -1663,7 +1700,7 @@ const WIZARD_CSS = `
 @media (min-width: 769px) {
   .wc-os {
     --wc-pad-x: 44px;
-    --wc-pad-top: 8px;
+    --wc-pad-top: 32px;
     --wc-pad-bottom: 28px;
     --wc-hero-lh: 34px;
     --wc-panel-w: 520px;

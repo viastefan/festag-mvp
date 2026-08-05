@@ -30,11 +30,12 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
   const [workspaceName, setWorkspaceNameState] = useState('')
   const [availability, setAvailability] = useState<WorkspaceNameAvailabilityState>('idle')
   const [availabilityMsg, setAvailabilityMsg] = useState('')
+  const [confirmedSlug, setConfirmedSlug] = useState('')
   const checkSeq = useRef(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const displayName = normalizeWorkspaceName(workspaceName)
-  const ready = availability === 'available' && !!displayName
+  const ready = availability === 'available' && !!displayName && !!confirmedSlug
 
   async function checkAvailability(raw: string): Promise<{ ok: boolean; reason?: string }> {
     const trimmed = normalizeWorkspaceName(raw)
@@ -42,10 +43,12 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
     if (!trimmed) {
       setAvailability('idle')
       setAvailabilityMsg('')
+      setConfirmedSlug('')
       return { ok: false, reason: 'Bitte einen Workspace-Namen eingeben.' }
     }
     setAvailability('checking')
     setAvailabilityMsg('')
+    setConfirmedSlug('')
     try {
       const qs = new URLSearchParams({ name: trimmed })
       if (excludeId) qs.set('excludeId', excludeId)
@@ -58,23 +61,28 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
         const reason = 'Prüfung nicht möglich.'
         setAvailability('invalid')
         setAvailabilityMsg(reason)
+        setConfirmedSlug('')
         return { ok: false, reason }
       }
       if (data.available) {
+        const slug = typeof data.slug === 'string' ? data.slug : ''
         setAvailability('available')
         setAvailabilityMsg('')
+        setConfirmedSlug(slug)
         setPendingWorkspaceName(trimmed)
         return { ok: true }
       }
       const reason = 'Bereits vergeben'
       setAvailability('taken')
       setAvailabilityMsg(reason)
+      setConfirmedSlug('')
       return { ok: false, reason: 'Dieser Workspace-Name ist bereits vergeben.' }
     } catch {
       if (seq !== checkSeq.current) return { ok: false }
       const reason = 'Prüfung nicht möglich.'
       setAvailability('invalid')
       setAvailabilityMsg(reason)
+      setConfirmedSlug('')
       return { ok: false, reason }
     }
   }
@@ -88,11 +96,13 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
       if (enabled) {
         setAvailability('checking')
         setAvailabilityMsg('')
+        setConfirmedSlug('')
       }
     } else {
       setPendingWorkspaceName('')
       setAvailability('idle')
       setAvailabilityMsg('')
+      setConfirmedSlug('')
     }
   }
 
@@ -119,6 +129,7 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
     displayName,
     availability,
     availabilityMsg,
+    confirmedSlug,
     ready,
     inputRef,
     setWorkspaceName,

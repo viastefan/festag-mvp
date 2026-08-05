@@ -122,6 +122,7 @@ export {
   WORKSPACE_PLAN,
   getWorkspaceUseCase,
   workspaceSubdomainPreview,
+  workspaceDomainFromSlug,
   type WorkspaceUseCaseId,
   type WorkspaceUseCase,
 } from '@/lib/platform/workspace-creation'

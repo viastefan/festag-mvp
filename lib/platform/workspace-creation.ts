@@ -58,11 +58,21 @@ export function getWorkspaceUseCase(id: WorkspaceUseCaseId | null | undefined): 
   return WORKSPACE_USE_CASES.find((c) => c.id === id) ?? null
 }
 
-/** Live subdomain preview under the name field. */
+const WORKSPACE_DOMAIN_PLACEHOLDER = 'dein-workspace.festag.app'
+
+/** Canonical festag.app subdomain from a claimed workspace slug. */
+export function workspaceDomainFromSlug(slug: string | null | undefined): string {
+  const cleaned = String(slug || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^-+|-+$/g, '')
+  if (!cleaned) return WORKSPACE_DOMAIN_PLACEHOLDER
+  return `${cleaned}.festag.app`
+}
+
+/** Live subdomain preview while typing (client slugify — use confirmed slug after check-name). */
 export function workspaceSubdomainPreview(rawName: string): string {
-  const slug = slugifyWorkspaceName(rawName)
-  if (!slug) return 'dein-workspace.festag.app'
-  return `${slug}.festag.app`
+  return workspaceDomainFromSlug(slugifyWorkspaceName(rawName))
 }
 
 export const WORKSPACE_CREATION_COPY = {
@@ -74,8 +84,6 @@ export const WORKSPACE_CREATION_COPY = {
   useTitle: 'Wofür wird dieser Workspace genutzt?',
   useSlideTitle: 'Wofür nutzt du ihn?',
   useSlideRest: 'Wähle, wie dieser Workspace arbeiten soll.',
-  /** Quiet plan note under the name field — never a second title. */
-  hobbyHint: 'Im Hobby-Plan ist 1 Workspace gratis.',
   /** Explains live subdomain under the name — calm, not a Zwischenüberschrift. */
   domainLabel: 'Workspace-Domain',
   domainHint: 'Diese Domain läuft auf deinem Workspace — zum Teilen, Einladen und Verknüpfen.',

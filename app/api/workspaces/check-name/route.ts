@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getServiceClient } from '@/lib/supabase/service'
+import { workspaceDomainFromSlug } from '@/lib/platform/workspace-creation'
 import { checkWorkspaceNameAvailability } from '@/lib/workspace-name-availability'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import { getClientIp, rateLimitResponse } from '@/lib/auth-request'
@@ -11,9 +12,27 @@ export const runtime = 'nodejs'
 const CHECK_LIMIT = { max: 40, windowMs: 60 * 1000 }
 
 export type WorkspaceNameCheck =
-  | { ok: true; available: true; name: string; slug: string }
-  | { ok: true; available: false; name: string; slug: string; reason: string }
+  | { ok: true; available: true; name: string; slug: string; domain: string }
+  | { ok: true; available: false; name: string; slug: string; domain: string; reason: string }
   | { ok: false; reason: string }
+
+function withDomain(result: Awaited<ReturnType<typeof checkWorkspaceNameAvailability>>): WorkspaceNameCheck {
+  if (!result.ok) {
+    return { ok: false, reason: 'check_failed' }
+  }
+  const domain = workspaceDomainFromSlug(result.slug)
+  if (result.available) {
+    return { ok: true, available: true, name: result.name, slug: result.slug, domain }
+  }
+  return {
+    ok: true,
+    available: false,
+    name: result.name,
+    slug: result.slug,
+    domain,
+    reason: result.reason,
+  }
+}
 
 /**
  * GET /api/workspaces/check-name?name=Acme
@@ -41,7 +60,7 @@ export async function GET(req: NextRequest) {
         excludeWorkspaceId: excludeId || null,
         excludeProfileId: excludeProfileId || null,
       })
-      const res = NextResponse.json(result satisfies WorkspaceNameCheck)
+      const res = NextResponse.json(withDomain(result) satisfies WorkspaceNameCheck)
       res.headers.set('Cache-Control', 'private, max-age=3')
       return res
     }
@@ -61,8 +80,8 @@ export async function GET(req: NextRequest) {
         { status: 500 },
       )
     }
-    const payload = data as WorkspaceNameCheck
-    const res = NextResponse.json(payload)
+    const payload = data as Awaited<ReturnType<typeof checkWorkspaceNameAvailability>>
+    const res = NextResponse.json(withDomain(payload) satisfies WorkspaceNameCheck)
     res.headers.set('Cache-Control', 'private, max-age=3')
     return res
   } catch (e: any) {

@@ -22,6 +22,7 @@ import {
 } from '@/lib/platform/workspace'
 import {
   getWorkspaceUseCase,
+  workspaceDomainFromSlug,
   type WorkspaceUseCaseId,
 } from '@/lib/platform/workspace-creation'
 
@@ -198,7 +199,14 @@ export async function POST(req: NextRequest) {
       await finishSideEffects(workspaceId)
       return NextResponse.json({
         ok: true,
-        workspace: { id: workspaceId, name, slug, region, workspaceType },
+        workspace: {
+          id: workspaceId,
+          name,
+          slug,
+          domain: workspaceDomainFromSlug(slug),
+          region,
+          workspaceType,
+        },
       })
     }
 
@@ -248,7 +256,14 @@ export async function POST(req: NextRequest) {
           await finishSideEffects(raced.id)
           return NextResponse.json({
             ok: true,
-            workspace: { id: raced.id, name, slug, region, workspaceType },
+            workspace: {
+              id: raced.id,
+              name,
+              slug,
+              domain: workspaceDomainFromSlug(slug),
+              region,
+              workspaceType,
+            },
           })
         }
       }
@@ -268,7 +283,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      workspace: { id: created.id, name, slug: created.slug, region, workspaceType },
+      workspace: {
+        id: created.id,
+        name,
+        slug: created.slug,
+        domain: workspaceDomainFromSlug(created.slug),
+        region,
+        workspaceType,
+      },
     })
   } catch (e: any) {
     return NextResponse.json({ ok: false, reason: e?.message || 'bootstrap_failed' }, { status: 500 })
