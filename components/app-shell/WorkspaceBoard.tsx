@@ -10,6 +10,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkle } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import MobileOverviewStory from '@/components/app-shell/overview/MobileOverviewStory'
+import FestagKnowledgeEdges from '@/components/festag-canvas/FestagKnowledgeEdges'
+import FestagPath, { DESKTOP_RAIL_PATH } from '@/components/festag-canvas/FestagPath'
 import { useMobileViewport } from '@/lib/hooks/useMobileViewport'
 import { openNewProject } from '@/lib/new-project-open'
 import {
@@ -249,7 +251,27 @@ function WorkspaceBoardDesktop({
   const showBoard = level === 'board' || fly !== null
   const showProject = level === 'project' || fly !== null
 
-  const byId = new Map(constellation.nodes.map((n) => [n.id, n]))
+  const byId = useMemo(
+    () => new Map(constellation.nodes.map((n) => [n.id, n])),
+    [constellation.nodes],
+  )
+
+  const knowledgeEdges = useMemo(
+    () =>
+      constellation.edges
+        .map((e) => {
+          const a = byId.get(e.from)
+          const b = byId.get(e.to)
+          if (!a || !b) return null
+          return {
+            id: e.id,
+            d: edgePath(a.x, a.y, b.x, b.y),
+            cross: e.id.includes('cross'),
+          }
+        })
+        .filter(Boolean) as Array<{ id: string; d: string; cross?: boolean }>,
+    [constellation.edges, byId],
+  )
 
   return (
     <div
@@ -290,44 +312,7 @@ function WorkspaceBoardDesktop({
             {/* Blueprint line grid — mock left (Wissensraum) */}
             <div className="fas-wb-grid" aria-hidden />
 
-            {/* Edges in the same 0–100 space as node left/top % */}
-            <svg
-              className="fas-wb-svg"
-              viewBox={`0 0 ${VB} ${VB}`}
-              preserveAspectRatio="none"
-              aria-hidden
-            >
-              {constellation.edges.map((e) => {
-                const a = byId.get(e.from)
-                const b = byId.get(e.to)
-                if (!a || !b) return null
-                const cross = e.id.includes('cross')
-                return (
-                  <path
-                    key={e.id}
-                    d={edgePath(a.x, a.y, b.x, b.y)}
-                    fill="none"
-                    stroke={cross ? 'rgba(26,25,23,0.07)' : 'rgba(26,25,23,0.18)'}
-                    strokeWidth={cross ? 0.14 : 0.22}
-                    strokeLinecap="round"
-                  />
-                )
-              })}
-              {/* ambient dust */}
-              {[
-                [12, 10], [88, 12], [18, 88], [90, 86],
-                [8, 48], [94, 52], [48, 6], [52, 94],
-                [30, 22], [74, 24], [28, 72], [76, 70],
-              ].map(([x, y], i) => (
-                <circle
-                  key={`a${i}`}
-                  cx={x}
-                  cy={y}
-                  r={i % 3 === 0 ? 0.28 : 0.18}
-                  fill="rgba(26,25,23,0.14)"
-                />
-              ))}
-            </svg>
+            <FestagKnowledgeEdges edges={knowledgeEdges} />
 
             {constellation.nodes.map((node) => {
               const active = focusId === node.id || Boolean(node.center)
@@ -468,7 +453,14 @@ function WorkspaceBoardDesktop({
 
         <div className="fas-wb-flow">
           <div className="fas-wb-rail" aria-label="Projektpfad">
-            <div className="fas-wb-rail-line" aria-hidden />
+            <FestagPath
+              d={DESKTOP_RAIL_PATH}
+              alwaysOn
+              showEndpoints={false}
+              className="fas-wb-path"
+              start={{ x: 50, y: 3 }}
+              end={{ x: 50, y: 97 }}
+            />
             <ol className="fas-wb-steps">
               {path.steps.map((step) => (
                 <li key={step.id} className={`fas-wb-step is-${step.kind}`}>

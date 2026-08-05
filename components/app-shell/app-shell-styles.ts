@@ -4,6 +4,7 @@
  */
 
 import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
+import { FESTAG_CANVAS_STYLES } from '@/components/festag-canvas/festag-canvas-styles'
 
 export const APP_SHELL_STYLES = `
 .fas-root {
@@ -1150,6 +1151,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 }
 
 /* ── Workspace Board (Overview) v5.1 — mock fidelity ── */
+${FESTAG_CANVAS_STYLES}
 .fas-wb {
   --wb-paper: #F8F6F2;
   --wb-ink: #1A1917;
@@ -1575,20 +1577,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   position: relative;
   padding: 8px 0 24px 4px;
 }
-.fas-wb-rail-line {
-  position: absolute;
-  left: 15px;
-  top: 18px;
-  bottom: 28px;
-  width: 1.5px;
-  background: linear-gradient(
-    180deg,
-    rgba(26, 25, 23, 0.18) 0%,
-    rgba(26, 25, 23, 0.1) 55%,
-    rgba(26, 25, 23, 0.05) 100%
-  );
-  border-radius: 2px;
-}
+.fas-wb-rail-line { display: none; }
 .fas-wb-steps {
   list-style: none;
   margin: 0;

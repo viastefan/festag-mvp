@@ -7,14 +7,16 @@
  * @see docs/festag-design-constitution.md
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkle } from '@phosphor-icons/react'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import KnowledgeGrid from '@/components/festag-canvas/KnowledgeGrid'
 import FestagPath, { MOBILE_INK_PATH } from '@/components/festag-canvas/FestagPath'
 import { FESTAG_OVERVIEW_STORY_STYLES } from '@/components/app-shell/overview/festag-overview-story-styles'
 import type { OverviewPayload, OverviewDecision } from '@/components/app-shell/WorkspaceOverviewLive'
+import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { openNewProject } from '@/lib/new-project-open'
+import { getVoicePreferences } from '@/lib/voice'
 import {
   acceptDecisionRecommendation,
   buildDecisionCanvasTopic,
@@ -40,8 +42,8 @@ type Phase =
   | 'accepted'
   | 'retract'
 
-const WORD_MS = 220
-const SENTENCE_PAUSE_MS = 680
+const FALLBACK_WORD_MS = 220
+const FALLBACK_SENTENCE_MS = 680
 
 function buildVoiceLines(input: {
   greeting: string
@@ -122,22 +124,100 @@ export default function MobileOverviewStory({
   }, [data, greeting, firstName, topic])
 
   const [phase, setPhase] = useState<Phase>('rest')
-  const [lineIndex, setLineIndex] = useState(0)
-  const [wordIndex, setWordIndex] = useState(0)
-  const [speaking, setSpeaking] = useState(true)
+  const [fallbackLine, setFallbackLine] = useState(0)
+  const [fallbackWord, setFallbackWord] = useState(0)
+  const [fallbackSpeaking, setFallbackSpeaking] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [liveTopic, setLiveTopic] = useState<DecisionCanvasTopic | null>(null)
   const activatedRef = useRef(false)
+  const pendingDecisionsRef = useRef(data.summary.pendingDecisions)
 
   const activeTopic = liveTopic && liveTopic.id === topic?.id ? liveTopic : topic
+  const activeTopicRef = useRef(activeTopic)
+  useEffect(() => { activeTopicRef.current = activeTopic }, [activeTopic])
+  useEffect(() => { pendingDecisionsRef.current = data.summary.pendingDecisions }, [data.summary.pendingDecisions])
+
+  const beginFlow = useCallback(async () => {
+    const current = activeTopicRef.current
+    if (!current || activatedRef.current) return
+    activatedRef.current = true
+    setFallbackSpeaking(false)
+    setSelected(current.recommendId)
+    setError(null)
+    setPhase('pulse')
+    window.setTimeout(() => setPhase('path'), 720)
+    window.setTimeout(() => setPhase('decision'), 1480)
+
+    if (current.kind === 'decision' && current.decisionId && current.needsSuggestion) {
+      const decisionId = current.decisionId
+      const res = await ensureCanvasSuggestion(decisionId)
+      if (!res.ok) return
+      try {
+        const qs = data.workspace.id
+          ? `?workspaceId=${encodeURIComponent(data.workspace.id)}`
+          : ''
+        const overview = await fetch(`/api/workspaces/overview${qs}`, { cache: 'no-store' })
+        if (!overview.ok) return
+        const json = await overview.json()
+        const next = (json?.decisions || []).find((d: OverviewDecision) => d.id === decisionId)
+        if (!next) return
+        const focus = enrichDecisionFocus({
+          id: next.id,
+          title: next.title,
+          summary: next.summary || null,
+          projectId: next.projectId,
+          projectTitle: next.projectTitle,
+          urgency: next.urgency,
+          dueDate: next.dueDate,
+          responseType: next.responseType || null,
+          decisionType: next.decisionType || null,
+          recommendedOptionId: next.recommendedOptionId || null,
+          recommendationReason: next.recommendationReason || null,
+          tagroReasoning: next.tagroReasoning || null,
+          options: next.options || [],
+        })
+        if (next.reasons?.length) focus.reasons = next.reasons
+        if (next.explainSteps?.length) focus.explainSteps = next.explainSteps
+        focus.needsSuggestion = false
+        const rebuilt = buildDecisionCanvasTopic({
+          workspaceName: data.workspace.name,
+          activeProjects: data.summary.activeProjects,
+          pendingDecisions: data.summary.pendingDecisions,
+          calmLine: data.summary.calmLine,
+          focus,
+        })
+        if (rebuilt) {
+          setLiveTopic(rebuilt)
+          setSelected(rebuilt.recommendId)
+        }
+      } catch {
+        /* keep current topic */
+      }
+    }
+  }, [data])
+
+  const handleVoiceComplete = useCallback(() => {
+    if (activatedRef.current) return
+    const current = activeTopicRef.current
+    if (current && pendingDecisionsRef.current > 0) {
+      void beginFlow()
+    }
+  }, [beginFlow])
+
+  const playback = useStatusReportPlayback({
+    sentences: voiceLines,
+    onComplete: handleVoiceComplete,
+    enabled: phase === 'rest',
+  })
+  const { supported, play, stop, speaking: ttsSpeaking, activeIndex, activeWordIndex } = playback
 
   useEffect(() => {
     setPhase('rest')
-    setLineIndex(0)
-    setWordIndex(0)
-    setSpeaking(true)
+    setFallbackLine(0)
+    setFallbackWord(0)
+    setFallbackSpeaking(false)
     setSelected(null)
     setError(null)
     setLiveTopic(null)
@@ -145,105 +225,69 @@ export default function MobileOverviewStory({
   }, [topic?.id])
 
   useEffect(() => {
-    const on = speaking || phase !== 'rest'
-    document.documentElement.classList.toggle('festag-story-focus', on)
-    return () => document.documentElement.classList.remove('festag-story-focus')
-  }, [speaking, phase])
+    if (phase !== 'rest') stop()
+  }, [phase, stop])
 
   useEffect(() => {
-    if (!speaking || phase !== 'rest') return
-    const line = voiceLines[lineIndex]
+    if (phase !== 'rest') return
+    const prefs = getVoicePreferences()
+    if (!prefs.enabled || !prefs.statusReportsEnabled) return
+
+    if (supported) {
+      const t = window.setTimeout(() => play(), 420)
+      return () => window.clearTimeout(t)
+    }
+
+    setFallbackSpeaking(true)
+    setFallbackLine(0)
+    setFallbackWord(0)
+    return undefined
+  }, [topic?.id, phase, supported, play])
+
+  useEffect(() => {
+    if (!fallbackSpeaking || phase !== 'rest' || supported) return
+    const line = voiceLines[fallbackLine]
     if (!line) return
     const words = line.split(/\s+/).filter(Boolean)
     if (!words.length) return
 
-    const atEndOfLine = wordIndex >= words.length - 1
-    const isWaitingLine = /wartet|waiting|freigabe|approval|entscheidung/i.test(line)
-
+    const atEnd = fallbackWord >= words.length - 1
     const t = window.setTimeout(
       () => {
-        if (!atEndOfLine) {
-          setWordIndex((w) => w + 1)
+        if (!atEnd) {
+          setFallbackWord((w) => w + 1)
           return
         }
-        if (lineIndex < voiceLines.length - 1) {
-          setLineIndex((i) => i + 1)
-          setWordIndex(0)
+        if (fallbackLine < voiceLines.length - 1) {
+          setFallbackLine((i) => i + 1)
+          setFallbackWord(0)
           return
         }
-        setSpeaking(false)
-        if (activeTopic && !activatedRef.current) {
-          if (isWaitingLine || data.summary.pendingDecisions > 0) {
-            void beginFlow()
-          }
-        }
+        setFallbackSpeaking(false)
+        handleVoiceComplete()
       },
-      atEndOfLine ? SENTENCE_PAUSE_MS : WORD_MS,
+      atEnd ? FALLBACK_SENTENCE_MS : FALLBACK_WORD_MS,
     )
     return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [speaking, phase, lineIndex, wordIndex, voiceLines, activeTopic])
+  }, [
+    fallbackSpeaking,
+    phase,
+    fallbackLine,
+    fallbackWord,
+    voiceLines,
+    supported,
+    handleVoiceComplete,
+  ])
 
-  async function ensureSuggestion(decisionId: string) {
-    const res = await ensureCanvasSuggestion(decisionId)
-    if (!res.ok) return
-    try {
-      const qs = data.workspace.id
-        ? `?workspaceId=${encodeURIComponent(data.workspace.id)}`
-        : ''
-      const overview = await fetch(`/api/workspaces/overview${qs}`, { cache: 'no-store' })
-      if (!overview.ok) return
-      const json = await overview.json()
-      const next = (json?.decisions || []).find((d: OverviewDecision) => d.id === decisionId)
-      if (!next) return
-      const focus = enrichDecisionFocus({
-        id: next.id,
-        title: next.title,
-        summary: next.summary || null,
-        projectId: next.projectId,
-        projectTitle: next.projectTitle,
-        urgency: next.urgency,
-        dueDate: next.dueDate,
-        responseType: next.responseType || null,
-        decisionType: next.decisionType || null,
-        recommendedOptionId: next.recommendedOptionId || null,
-        recommendationReason: next.recommendationReason || null,
-        tagroReasoning: next.tagroReasoning || null,
-        options: next.options || [],
-      })
-      if (next.reasons?.length) focus.reasons = next.reasons
-      if (next.explainSteps?.length) focus.explainSteps = next.explainSteps
-      focus.needsSuggestion = false
-      const rebuilt = buildDecisionCanvasTopic({
-        workspaceName: data.workspace.name,
-        activeProjects: data.summary.activeProjects,
-        pendingDecisions: data.summary.pendingDecisions,
-        calmLine: data.summary.calmLine,
-        focus,
-      })
-      if (rebuilt) {
-        setLiveTopic(rebuilt)
-        setSelected(rebuilt.recommendId)
-      }
-    } catch {
-      /* keep current topic */
-    }
-  }
+  const speaking = ttsSpeaking || fallbackSpeaking
+  const lineIndex = supported && activeIndex >= 0 ? activeIndex : fallbackLine
+  const wordIndex = supported && activeWordIndex >= 0 ? activeWordIndex : fallbackWord
 
-  async function beginFlow() {
-    if (!activeTopic || activatedRef.current) return
-    activatedRef.current = true
-    setSpeaking(false)
-    setSelected(activeTopic.recommendId)
-    setError(null)
-    setPhase('pulse')
-    window.setTimeout(() => setPhase('path'), 720)
-    window.setTimeout(() => setPhase('decision'), 1480)
-
-    if (activeTopic.kind === 'decision' && activeTopic.decisionId && activeTopic.needsSuggestion) {
-      void ensureSuggestion(activeTopic.decisionId)
-    }
-  }
+  useEffect(() => {
+    const on = speaking || phase !== 'rest'
+    document.documentElement.classList.toggle('festag-story-focus', on)
+    return () => document.documentElement.classList.remove('festag-story-focus')
+  }, [speaking, phase])
 
   function openRecommend() {
     setPhase('recommend')
@@ -254,12 +298,13 @@ export default function MobileOverviewStory({
   }
 
   function retract(then?: () => void) {
+    stop()
     setPhase('retract')
     window.setTimeout(() => {
       setPhase('rest')
-      setSpeaking(false)
+      setFallbackSpeaking(false)
       activatedRef.current = false
-      setLineIndex(voiceLines.length - 1)
+      setFallbackLine(Math.max(0, voiceLines.length - 1))
       then?.()
     }, 620)
   }
@@ -334,6 +379,7 @@ export default function MobileOverviewStory({
           d={MOBILE_INK_PATH}
           visible={showPath}
           retracting={phase === 'retract' || isAccepted}
+          className="fos-path"
         />
 
         {phase === 'explain' && activeTopic ? (

@@ -1,39 +1,67 @@
 'use client'
 
+type Point = { x: number; y: number }
+
 type Props = {
-  /** SVG path d — viewBox 0 0 100 100 */
+  /** SVG path d — viewBox 0 0 100 100 unless viewBox set */
   d: string
-  visible: boolean
+  visible?: boolean
+  alwaysOn?: boolean
   retracting?: boolean
+  showEndpoints?: boolean
+  start?: Point
+  end?: Point
+  viewBox?: string
+  preserveAspectRatio?: string
   className?: string
 }
 
 /**
  * One organic ink path. Grows slowly — never arrows, never flowcharts.
  */
-export default function FestagPath({ d, visible, retracting, className }: Props) {
+export default function FestagPath({
+  d,
+  visible = false,
+  alwaysOn = false,
+  retracting = false,
+  showEndpoints = true,
+  start = { x: 50, y: 24 },
+  end = { x: 50, y: 62 },
+  viewBox = '0 0 100 100',
+  preserveAspectRatio = 'none',
+  className,
+}: Props) {
+  const on = alwaysOn || visible
   return (
     <svg
       className={[
-        'fos-path',
-        visible ? 'is-on' : '',
-        retracting ? 'is-out' : '',
+        'festag-path',
         className,
+        on ? (alwaysOn ? 'is-always' : 'is-on') : '',
+        retracting ? 'is-out' : '',
       ]
         .filter(Boolean)
         .join(' ')}
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
+      viewBox={viewBox}
+      preserveAspectRatio={preserveAspectRatio}
       aria-hidden
     >
-      <path className="fos-path-track" d={d} vectorEffect="non-scaling-stroke" />
-      <path className="fos-path-flow" d={d} vectorEffect="non-scaling-stroke" />
-      <circle className="fos-path-start" cx="50" cy="24" r="1.8" />
-      <circle className="fos-path-end" cx="50" cy="62" r="2.4" />
+      <path className="festag-path-track" d={d} vectorEffect="non-scaling-stroke" />
+      <path className="festag-path-flow" d={d} vectorEffect="non-scaling-stroke" />
+      {showEndpoints ? (
+        <>
+          <circle className="festag-path-start" cx={start.x} cy={start.y} r="1.8" />
+          <circle className="festag-path-end" cx={end.x} cy={end.y} r="2.4" />
+        </>
+      ) : null}
     </svg>
   )
 }
 
-/** Vertical ink stroke from anchor to decision panel — mock mobile path */
+/** Vertical ink stroke — mobile anchor → decision panel */
 export const MOBILE_INK_PATH =
   'M 50 24 C 50 32, 49 38, 50 44 S 51 54, 50 62'
+
+/** Desktop project milestone rail */
+export const DESKTOP_RAIL_PATH =
+  'M 50 3 C 50 18, 50 38, 50 58 S 50 82, 50 97'

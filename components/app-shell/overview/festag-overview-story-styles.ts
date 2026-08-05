@@ -3,7 +3,10 @@
  * Read Mode paper · Knowledge Grid · Path · editorial panels.
  */
 
+import { FESTAG_CANVAS_STYLES } from '@/components/festag-canvas/festag-canvas-styles'
+
 export const FESTAG_OVERVIEW_STORY_STYLES = `
+${FESTAG_CANVAS_STYLES}
 /* ── Mobile story canvas ── */
 .fos {
   --fos-paper: #F8F6F2;
@@ -86,48 +89,15 @@ export const FESTAG_OVERVIEW_STORY_STYLES = `
   50% { box-shadow: 0 0 0 10px rgba(91, 100, 125, 0.16); }
 }
 
-/* Path — one ink line */
+/* Path styles live in festag-canvas-styles.ts (.fos-path aliases) */
 .fos-path {
-  position: absolute;
   inset: 0;
-  z-index: 2;
   width: 100% !important;
   height: 100% !important;
   max-width: none !important;
   max-height: none !important;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s var(--fos-ease);
+  z-index: 2;
 }
-.fos-path.is-on { opacity: 1; }
-.fos-path.is-out { opacity: 0; transition-duration: 0.45s; }
-
-.fos-path-track {
-  fill: none;
-  stroke: rgba(91, 100, 125, 0.08);
-  stroke-width: 1.2;
-  stroke-linecap: round;
-}
-.fos-path-flow {
-  fill: none;
-  stroke: var(--fos-primary);
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-dasharray: 120;
-  stroke-dashoffset: 120;
-  transition: stroke-dashoffset 1.1s var(--fos-ease-slow);
-}
-.fos-path.is-on .fos-path-flow { stroke-dashoffset: 0; }
-.fos-path.is-out .fos-path-flow { stroke-dashoffset: 120; transition-duration: 0.5s; }
-
-.fos-path-start,
-.fos-path-end {
-  fill: var(--fos-primary);
-  opacity: 0;
-  transition: opacity 0.4s var(--fos-ease);
-}
-.fos-path.is-on .fos-path-start { opacity: 0.85; }
-.fos-path.is-on .fos-path-end { opacity: 1; transition-delay: 0.85s; }
 
 /* Body — editorial center */
 .fos-body {

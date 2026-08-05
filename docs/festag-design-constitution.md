@@ -83,7 +83,9 @@ Code: `components/festag-canvas/KnowledgeGrid.tsx` · `lib/design/knowledge-grid
 
 **Never:** multiple active paths, arrows, flowcharts, thick glowing lines.
 
-Code: `components/festag-canvas/FestagPath.tsx`
+Code: `components/festag-canvas/FestagPath.tsx` · `components/festag-canvas/FestagKnowledgeEdges.tsx` · `components/festag-canvas/festag-canvas-styles.ts`
+
+Voice status on mobile uses `useStatusReportPlayback` (Web Speech API + word-level lyrics sync).
 
 ---
 
