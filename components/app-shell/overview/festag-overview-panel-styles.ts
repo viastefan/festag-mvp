@@ -167,18 +167,18 @@ export const FESTAG_OVERVIEW_PANEL_STYLES = `
   width: 100% !important;
   height: 50px !important;
   border-radius: 11px !important;
-  border: 1px solid rgba(20, 20, 22, 0.9) !important;
-  background: #2D2E2C !important;
-  color: #FAF8F3 !important;
+  border: 1px solid rgba(30, 30, 32, 0.10) !important;
+  background: #FFFFFF !important;
+  color: #1e1e20 !important;
   font-size: 16px !important;
   letter-spacing: -0.012em;
-  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.12) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
   cursor: pointer;
   margin-bottom: 8px;
   font: inherit;
   transition: background 0.2s var(--fos-ease), transform 0.15s var(--fos-ease);
 }
-.fos-btn-primary:hover:not(:disabled) { background: #1a1a1a !important; transform: translateY(-1px); }
+.fos-btn-primary:hover:not(:disabled) { background: #FCFBF8 !important; transform: translateY(-1px); }
 .fos-btn-primary:disabled { opacity: 0.4; cursor: default; }
 
 .fos-text-action {

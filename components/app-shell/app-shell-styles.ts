@@ -8,8 +8,8 @@ import { FESTAG_CANVAS_STYLES } from '@/components/festag-canvas/festag-canvas-s
 
 export const APP_SHELL_STYLES = `
 .fas-root {
-  --fas-canvas: ${FESTAG_SAND.canvasWarm};
-  --fas-sidebar-bg: #F4F3F0;
+  --fas-canvas: ${FESTAG_SAND.canvas};
+  --fas-sidebar-bg: transparent;
   --fas-main-bg: #FFFFFF;
   --fas-ink: ${FESTAG_SAND.ink};
   --fas-ink-muted: #8891a0;
@@ -89,8 +89,8 @@ html[data-theme="classic-dark"] .fas-root {
 }
 
 html[data-theme="read"] .fas-root {
-  --fas-canvas: ${FESTAG_SAND.canvasWarm};
-  --fas-sidebar-bg: #F4F3F0;
+  --fas-canvas: ${FESTAG_SAND.canvas};
+  --fas-sidebar-bg: transparent;
   --fas-main-bg: #FFFFFF;
 }
 
@@ -132,10 +132,26 @@ html[data-theme="classic-dark"] .fas-sidebar {
   bottom: 0;
   z-index: 30;
 }
+/* Peek — the sidebar leaves the edge and floats as its own container, so the
+   canvas behind it stays whole. */
 .fas-root.is-sidebar-peek .fas-sidebar {
   z-index: 40;
   width: var(--fas-sidebar-w);
-  border-right: 1px solid var(--fas-sep);
+  left: 10px;
+  top: 10px;
+  bottom: 10px;
+  border: 1px solid var(--fas-popover-border);
+  border-radius: 14px;
+  background: var(--fas-popover);
+  box-shadow: 0 18px 48px rgba(20, 20, 20, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  animation: fasSidebarFloat 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes fasSidebarFloat {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fas-root.is-sidebar-peek .fas-sidebar { animation: none; }
 }
 
 .fas-sidebar-top {
@@ -1181,7 +1197,7 @@ ${FESTAG_CANVAS_STYLES}
   visibility: hidden;
 }
 .fas-root:has(.fas-wb) {
-  --fas-canvas: #F8F6F2;
+  --fas-canvas: #FBF7EE;
   --fas-main-bg: transparent;
   --fas-sidebar-bg: transparent;
   --fas-sidebar-collapsed-w: 76px;

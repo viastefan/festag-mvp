@@ -11,6 +11,7 @@ export const FESTAG_CANVAS_UI_STYLES = `
   --fcv-soft: #5c5c62;
   --fcv-muted: #8891a0;
   --fcv-line: rgba(15, 15, 18, 0.08);
+  --fcv-primary: #5B647D;
   --fcv-ease: cubic-bezier(0.16, 1, 0.3, 1);
 
   position: relative;
@@ -60,20 +61,23 @@ export const FESTAG_CANVAS_UI_STYLES = `
     border-color 0.18s var(--fcv-ease);
 }
 .fcv-btn:hover { transform: translateY(-1px); }
+/* Primary — the login button: white, hairline border, barely-there shadow. */
 .fcv-btn-dark {
-  background: #1E1E20;
-  color: #FAF8F3;
-  border: 1px solid #1E1E20;
-  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.14);
-}
-.fcv-btn-dark:hover { background: #101012; }
-.fcv-btn-white {
   background: #FFFFFF;
   color: var(--fcv-ink);
   border: 1px solid rgba(30, 30, 32, 0.10);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-.fcv-btn-white:hover { background: #FCFBF8; border-color: rgba(30, 30, 32, 0.16); }
+.fcv-btn-dark:hover { background: #FCFBF8; border-color: rgba(30, 30, 32, 0.18); }
+.fcv-btn-dark svg { color: var(--fcv-primary); }
+
+/* Secondary — same surface language, quieter. */
+.fcv-btn-white {
+  background: transparent;
+  color: var(--fcv-soft);
+  border: 1px solid rgba(30, 30, 32, 0.10);
+}
+.fcv-btn-white:hover { background: rgba(255, 255, 255, 0.7); color: var(--fcv-ink); }
 
 .fcv-intel { margin-top: 26px; max-width: 360px; }
 
