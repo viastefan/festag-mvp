@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { propagateDecisionApply } from '@/lib/decisions/apply-propagation'
 import { extractOkmFromDecidedDecision } from '@/lib/intelligence/extract-decision-patterns'
+import { recordProjectIntelligence } from '@/lib/intelligence/persist'
 
 export const runtime = 'nodejs'
 
@@ -45,6 +46,13 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
         status: applied?.status ?? 'applied',
         reversibility: applied?.reversibility ?? d.reversibility,
       })
+
+      /* Learning Engine — score what just resolved. Best-effort: it must
+         never delay or fail the apply response. */
+      void recordProjectIntelligence(
+        okmDb as any,
+        applied?.project_id ?? d.project_id,
+      )
     }
     return NextResponse.json({
       decision: result.decision,
