@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { appShellGreeting } from '@/components/app-shell/app-shell-nav'
 import WorkspaceBoard from '@/components/app-shell/WorkspaceBoard'
 import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
@@ -16,6 +17,21 @@ export default function AppShellOverview({ user }: Props) {
   const firstName = getDisplayName(user) || 'du'
   const greet = appShellGreeting()
   const { state: load, refresh } = useWorkspaceOverview()
+
+  /* New user with no workspace — funnel straight into the (modular) create wizard,
+     once per session so it never fights a user who closed it. */
+  const autoOpenedRef = useRef(false)
+  useEffect(() => {
+    if (load.status !== 'empty' || autoOpenedRef.current) return
+    try {
+      if (sessionStorage.getItem('festag_ws_wizard_autoopened')) return
+      sessionStorage.setItem('festag_ws_wizard_autoopened', '1')
+    } catch {
+      /* private mode — still open once via ref guard */
+    }
+    autoOpenedRef.current = true
+    openWorkspaceCreateWizard()
+  }, [load.status])
 
   function openDocs(path = '/docs') {
     navigateLeavingAuthChrome(path)

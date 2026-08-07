@@ -7,7 +7,7 @@ export const FESTAG_OVERVIEW_PANEL_STYLES = `
 .osp-rail {
   --fos-ink: #1A1917;
   --fos-muted: #8A8680;
-  --fos-primary: #5B647D;
+  --fos-primary: #C9932B;
   --fos-sheet: #FFFFFF;
   --fos-ease: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
@@ -92,8 +92,8 @@ export const FESTAG_OVERVIEW_PANEL_STYLES = `
   transition: background 0.2s var(--fos-ease), border-color 0.2s var(--fos-ease);
 }
 .fos-option.is-on {
-  background: rgba(91, 100, 125, 0.05) !important;
-  border-color: rgba(91, 100, 125, 0.22) !important;
+  background: rgba(201, 147, 43, 0.08) !important;
+  border-color: rgba(201, 147, 43, 0.32) !important;
 }
 .fos-option-label {
   font-size: 17px;
@@ -165,20 +165,21 @@ export const FESTAG_OVERVIEW_PANEL_STYLES = `
 
 .fos-btn-primary {
   width: 100% !important;
-  height: 46px !important;
-  border-radius: 10px !important;
-  border: 1px solid rgba(30, 30, 32, 0.08) !important;
-  background: #ffffff !important;
-  color: #1e1e20 !important;
-  font-size: 15px !important;
-  letter-spacing: -0.015em;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  height: 50px !important;
+  border-radius: 11px !important;
+  border: 1px solid rgba(20, 20, 22, 0.9) !important;
+  background: #2D2E2C !important;
+  color: #FAF8F3 !important;
+  font-size: 16px !important;
+  letter-spacing: -0.012em;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.12) !important;
   cursor: pointer;
   margin-bottom: 8px;
   font: inherit;
+  transition: background 0.2s var(--fos-ease), transform 0.15s var(--fos-ease);
 }
-.fos-btn-primary:hover:not(:disabled) { background: #fafafa !important; }
-.fos-btn-primary:disabled { opacity: 0.45; cursor: default; }
+.fos-btn-primary:hover:not(:disabled) { background: #1a1a1a !important; transform: translateY(-1px); }
+.fos-btn-primary:disabled { opacity: 0.4; cursor: default; }
 
 .fos-text-action {
   display: block;
@@ -195,5 +196,24 @@ export const FESTAG_OVERVIEW_PANEL_STYLES = `
   cursor: pointer;
   text-align: center;
   font: inherit;
+}
+
+html[data-theme="dark"] .osp-stack,
+html[data-theme="dark"] .osp-rail,
+html[data-theme="classic-dark"] .osp-stack,
+html[data-theme="classic-dark"] .osp-rail {
+  --fos-ink: #F5F4F1;
+  --fos-muted: #9A968E;
+  --fos-sheet: #1A1A1E;
+}
+html[data-theme="dark"] .fos-btn-primary,
+html[data-theme="classic-dark"] .fos-btn-primary {
+  background: #F4F1EA !important;
+  color: #1a1a1a !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+html[data-theme="dark"] .fos-btn-primary:hover:not(:disabled),
+html[data-theme="classic-dark"] .fos-btn-primary:hover:not(:disabled) {
+  background: #ffffff !important;
 }
 `.trim()

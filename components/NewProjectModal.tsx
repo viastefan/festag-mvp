@@ -971,8 +971,8 @@ const INTENT_MODAL_CSS = `
   transition: border-color 160ms ease, background 160ms ease;
 }
 .ti-compose.is-drag {
-  border-color: var(--fp-accent, #5B647D);
-  background: var(--fp-accent-soft, rgba(91,100,125,0.06));
+  border-color: var(--fp-accent, #C9932B);
+  background: var(--fp-accent-soft, rgba(201,147,43,0.06));
 }
 .ti-input {
   width: 100%;
@@ -1011,10 +1011,10 @@ const INTENT_MODAL_CSS = `
   white-space: nowrap;
   cursor: pointer;
 }
-.ti-tool:hover { background: var(--fp-hover, rgba(91,100,125,0.07)); }
+.ti-tool:hover { background: var(--fp-hover, rgba(201,147,43,0.07)); }
 .ti-tool.is-on {
-  border-color: var(--fp-accent, #5B647D);
-  color: var(--fp-accent, #5B647D);
+  border-color: var(--fp-accent, #C9932B);
+  color: var(--fp-accent, #C9932B);
 }
 .ti-hint {
   margin: 0;
@@ -1101,7 +1101,7 @@ const INTENT_MODAL_CSS = `
   font: 400 15px/1.4 Aeonik, Inter, system-ui, sans-serif;
   outline: none;
 }
-.ti-field:focus { border-color: var(--fp-inp-focus-border, #5B647D); }
+.ti-field:focus { border-color: var(--fp-inp-focus-border, #C9932B); }
 .ti-field-area {
   height: auto;
   min-height: 84px;
@@ -1151,9 +1151,9 @@ const INTENT_MODAL_CSS = `
   font: 400 13px/1 Aeonik, Inter, system-ui, sans-serif;
 }
 .ti-scope-btn.is-on {
-  border-color: var(--fp-accent, #5B647D);
+  border-color: var(--fp-accent, #C9932B);
   color: var(--fp-text, #1e1e20);
-  background: var(--fp-accent-soft, rgba(91,100,125,0.08));
+  background: var(--fp-accent-soft, rgba(201,147,43,0.08));
 }
 .ti-error, .ti-done {
   padding: 8px 2px 12px;

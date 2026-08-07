@@ -304,19 +304,19 @@ ${FESTAG_CANVAS_STYLES}
   overflow: hidden;
 }
 .fas-wb-os-node-label {
-  font-size: 9px;
-  line-height: 1.15;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(138, 134, 128, 0.9);
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: -0.006em;
+  text-transform: none;
+  color: rgba(30, 30, 32, 0.92);
   font-weight: 400;
   white-space: nowrap;
 }
 .fas-wb-os-node-meta {
-  font-size: 8.5px;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
-  color: rgba(138, 134, 128, 0.58);
+  font-size: 11px;
+  line-height: 1.25;
+  letter-spacing: -0.004em;
+  color: rgba(136, 145, 160, 0.9);
   text-transform: none;
   white-space: nowrap;
 }
@@ -337,12 +337,34 @@ ${FESTAG_CANVAS_STYLES}
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  width: 6px !important;
-  height: 6px !important;
+  width: 7px !important;
+  height: 7px !important;
   border-radius: 50% !important;
-  background: rgba(107, 104, 98, 0.48);
+  background: rgba(107, 104, 98, 0.6);
   transition: transform 0.35s var(--wb-ease), box-shadow 0.35s var(--wb-ease);
 }
+/* Constellation satellites — cluster feel without markup change */
+.fas-wb-os-node:not(.is-center) .fas-wb-os-node-orb::before,
+.fas-wb-os-node:not(.is-center) .fas-wb-os-node-orb::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(107, 104, 98, 0.34);
+  pointer-events: none;
+  transition: background 0.35s var(--wb-ease);
+}
+.fas-wb-os-node:not(.is-center) .fas-wb-os-node-orb::before {
+  width: 3.5px; height: 3.5px; left: 0; top: -1px;
+}
+.fas-wb-os-node:not(.is-center) .fas-wb-os-node-orb::after {
+  width: 2.5px; height: 2.5px; right: 0; bottom: -1px;
+}
+.fas-wb-os-node.is-task .fas-wb-os-node-orb::before,
+.fas-wb-os-node.is-task .fas-wb-os-node-orb::after { background: rgba(95, 107, 90, 0.5); }
+.fas-wb-os-node.is-risk .fas-wb-os-node-orb::before,
+.fas-wb-os-node.is-risk .fas-wb-os-node-orb::after { background: rgba(196, 91, 82, 0.52); }
+.fas-wb-os-node.is-resource .fas-wb-os-node-orb::before,
+.fas-wb-os-node.is-resource .fas-wb-os-node-orb::after { background: rgba(107, 98, 128, 0.5); }
 .fas-wb-os-node-glow,
 .fas-wb-os-node-ring {
   position: absolute;
@@ -371,25 +393,25 @@ ${FESTAG_CANVAS_STYLES}
   transition: opacity 0.6s var(--wb-ease), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .fas-wb-os-node.is-center .fas-wb-os-node-label {
-  font-size: 9.5px;
-  color: var(--wb-primary);
+  font-size: 12px;
+  color: #C9932B;
 }
 .fas-wb-os-node.is-center .fas-wb-os-node-dot {
-  width: 14px !important;
-  height: 14px !important;
-  background: var(--wb-primary);
-  box-shadow: 0 0 0 7px rgba(91, 100, 125, 0.16);
+  width: 13px !important;
+  height: 13px !important;
+  background: #C9932B;
+  box-shadow: 0 0 0 6px rgba(201, 147, 43, 0.14);
 }
 .fas-wb-os-node.is-center.is-active .fas-wb-os-node-glow {
-  width: 220px;
-  height: 220px;
+  width: 132px;
+  height: 132px;
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
   background: radial-gradient(
     circle,
-    rgba(91, 100, 125, 0.38) 0%,
-    rgba(91, 100, 125, 0.14) 40%,
-    rgba(91, 100, 125, 0) 72%
+    rgba(201, 147, 43, 0.24) 0%,
+    rgba(201, 147, 43, 0.08) 44%,
+    rgba(201, 147, 43, 0) 72%
   );
   animation: fasOsGlowPulse 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
@@ -416,8 +438,8 @@ ${FESTAG_CANVAS_STYLES}
   animation: fasOsCenterDot 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 @keyframes fasOsCenterDot {
-  0%, 100% { box-shadow: 0 0 0 7px rgba(91, 100, 125, 0.14); }
-  50% { box-shadow: 0 0 0 12px rgba(91, 100, 125, 0.07); }
+  0%, 100% { box-shadow: 0 0 0 6px rgba(201, 147, 43, 0.14); }
+  50% { box-shadow: 0 0 0 11px rgba(201, 147, 43, 0.06); }
 }
 .fas-wb-os-node.is-path-end .fas-wb-os-node-dot {
   background: var(--wb-primary);
@@ -461,22 +483,22 @@ ${FESTAG_CANVAS_STYLES}
 }
 .fas-wb-os-decision-ctx {
   margin: 0;
-  font-size: 9px;
-  letter-spacing: 0.11em;
+  font-size: 11px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(138, 134, 128, 0.88);
+  color: rgba(136, 145, 160, 0.9);
 }
 .fas-wb-os-decision-pill {
   display: inline-block;
-  margin-top: 5px;
-  padding: 3px 8px;
+  margin-top: 6px;
+  padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(91, 100, 125, 0.18);
-  background: rgba(255, 255, 255, 0.92);
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--wb-primary);
+  border: 1px solid rgba(201, 147, 43, 0.22);
+  background: rgba(201, 147, 43, 0.08);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #C9932B;
 }
 .fas-wb-os-decision-k {
   margin: 0;
@@ -486,13 +508,13 @@ ${FESTAG_CANVAS_STYLES}
   color: var(--wb-primary);
 }
 .fas-wb-os-decision-q {
-  margin: 10px 0 0;
-  font-size: 15.5px;
-  line-height: 1.38;
-  letter-spacing: -0.026em;
+  margin: 11px 0 0;
+  font-size: 18px;
+  line-height: 1.32;
+  letter-spacing: -0.02em;
   color: var(--wb-ink);
   font-weight: 400;
-  max-width: 24ch;
+  max-width: 22ch;
   margin-inline: 0;
 }
 .fas-wb-os-decision-arr {
