@@ -57,6 +57,11 @@ export const DECISION_TERMINAL_STATES: ReadonlySet<DecisionStatus> = new Set<Dec
   'closed',
 ])
 
+/** For Supabase `.in('status', …)` filters — keep in sync with DECISION_TERMINAL_STATES. */
+export const DECISION_TERMINAL_STATUS_LIST: DecisionStatus[] = Array.from(
+  DECISION_TERMINAL_STATES,
+)
+
 
 // ── Typology, response shape, authority ──────────────────────────────────────
 

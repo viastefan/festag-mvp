@@ -63,6 +63,14 @@ export type OverviewPayload = {
     reportId: string | null
     projectId: string | null
   } | null
+  /** Project Intelligence — calm view model, never raw analytics. */
+  intelligence?: {
+    score: number
+    headline: string
+    highlights: string[]
+    learned: string | null
+    confidence: number
+  } | null
   projects: Array<{
     id: string
     title: string

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
-import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
+import { DECISION_OPEN_STATUS_LIST, DECISION_TERMINAL_STATUS_LIST } from '@/lib/decisions/types'
+import { buildProjectIntelligence, scoreDecisionRow, type DecisionRow } from '@/lib/intelligence'
 import { mapDecisionRowToOverview, rankDecisionsForCanvas } from '@/lib/overview/decision-canvas'
 import {
   listWorkspacesForUser,
@@ -545,6 +546,39 @@ export async function GET(req: NextRequest) {
     role: w.role,
   }))
 
+  /* Project Intelligence — what Tagro learned from decisions that finished.
+     Scored from real columns; stays empty until decisions actually resolve. */
+  const resolved = projectIds.length > 0
+    ? (
+        await service
+          .from('decisions')
+          .select(
+            'id, decision_type, recommended_option, selected_option, status, superseded_by, decided_at, due_at, created_by_tagro',
+          )
+          .in('project_id', projectIds)
+          .in('status', DECISION_TERMINAL_STATUS_LIST as unknown as string[])
+          .order('decided_at', { ascending: false })
+          .limit(200)
+      ).data || []
+    : []
+
+  const scored = resolved.map((row) => {
+    const outcome = scoreDecisionRow(row as DecisionRow)
+    return { decisionId: outcome.decisionId, category: outcome.category, score: outcome.score }
+  })
+
+  const startOfDay = new Date()
+  startOfDay.setHours(0, 0, 0, 0)
+  const autoDecidedToday = resolved.filter(
+    (r) => r.created_by_tagro && r.decided_at && new Date(r.decided_at) >= startOfDay,
+  ).length
+
+  const intelligence = buildProjectIntelligence({
+    decisions: scored,
+    autoDecidedToday,
+    openQuestions: pendingDecisions.length,
+  })
+
   return NextResponse.json({
     ok: true,
     workspace,
@@ -562,6 +596,7 @@ export async function GET(req: NextRequest) {
     decisions: pendingDecisions,
     activity,
     team,
+    intelligence,
   })
 }
 

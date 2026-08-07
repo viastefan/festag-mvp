@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowsOut } from '@phosphor-icons/react'
 import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
+import ProjectIntelligencePanel from '@/components/app-shell/overview/ProjectIntelligencePanel'
 import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import OverviewPendingInvites from '@/components/app-shell/OverviewPendingInvites'
 import DesktopKnowledgeMesh from '@/components/festag-canvas/DesktopKnowledgeMesh'
@@ -536,6 +537,12 @@ export default function DesktopOverviewOS({
                       : activeTopic.waitingLabel}
                     <span className="fas-wb-os-waiting-chev" aria-hidden>→</span>
                   </button>
+                ) : null}
+
+                {data.intelligence && !isFocused ? (
+                  <div className="fas-wb-os-pi">
+                    <ProjectIntelligencePanel intelligence={data.intelligence} />
+                  </div>
                 ) : null}
               </div>
 

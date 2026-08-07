@@ -132,6 +132,17 @@ ${FESTAG_CANVAS_STYLES}
 }
 .fas-wb-os-waiting-chev { color: var(--wb-muted); font-size: 12px; }
 
+/* Project Intelligence — part of the daily report, fades out during focus */
+.fas-wb-os-pi {
+  pointer-events: auto;
+  margin-top: 18px;
+  max-width: 340px;
+  animation: fasOsHeadIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+@media (max-width: 1180px) {
+  .fas-wb-os-pi { display: none; }
+}
+
 /* ── Camera world ── */
 .fas-wb-os-world {
   position: absolute;
