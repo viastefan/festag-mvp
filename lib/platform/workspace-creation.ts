@@ -80,7 +80,7 @@ export const WORKSPACE_CREATION_COPY = {
   nameTitle: 'Erstelle deinen Workspace.',
   nameTitleRest: 'Wähle einen Namen — deine Domain entsteht live.',
   nameLabel: 'Workspace-Name',
-  namePlaceholder: 'Aerobay',
+  namePlaceholder: 'Wie soll dein Workspace heißen?',
   useTitle: 'Wofür wird dieser Workspace genutzt?',
   useSlideTitle: 'Wofür nutzt du ihn?',
   useSlideRest: 'Wähle, wie dieser Workspace arbeiten soll.',

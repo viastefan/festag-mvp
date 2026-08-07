@@ -35,6 +35,107 @@ import {
   type WorkspaceUseCaseId,
 } from '@/lib/platform/workspace-creation'
 
+const DOMAIN_PLACEHOLDER_SLUG = 'dein-workspace'
+
+/** Soft crossfade when use-case H1 text changes — morph, no remount flash. */
+function MorphingUseHero({
+  lead,
+  rest,
+  active,
+}: {
+  lead: string
+  rest: string
+  active: boolean
+}) {
+  const [shown, setShown] = useState({ lead, rest })
+  const [phase, setPhase] = useState<'idle' | 'out' | 'in'>('idle')
+  const shownRef = useRef(shown)
+  const timer = useRef<number | null>(null)
+  shownRef.current = shown
+
+  useEffect(() => {
+    if (shownRef.current.lead === lead && shownRef.current.rest === rest) return
+    if (timer.current) window.clearTimeout(timer.current)
+    setPhase('out')
+    timer.current = window.setTimeout(() => {
+      setShown({ lead, rest })
+      setPhase('in')
+      timer.current = window.setTimeout(() => {
+        setPhase('idle')
+        timer.current = null
+      }, 300)
+    }, 170)
+    return () => {
+      if (timer.current) window.clearTimeout(timer.current)
+    }
+  }, [lead, rest])
+
+  const isDefault = shown.lead === COPY.useSlideTitle
+  const instant = !active || phase !== 'idle' || !isDefault
+
+  return (
+    <div
+      className={[
+        'wc-hero-morph',
+        phase === 'out' ? 'is-out' : '',
+        phase === 'in' ? 'is-in' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <AuthGlassyHero
+        animKey={active ? 'wc-use-on' : 'wc-use-off'}
+        lead={shown.lead}
+        rest={shown.rest}
+        stacked
+        className="mob-glassy-h1"
+        instant={instant}
+      />
+    </div>
+  )
+}
+
+/** Domain preview — placeholder slug morphs glassy into confirmed name. */
+function DomainPreview({
+  slug,
+  ready,
+  label,
+  hint,
+}: {
+  slug: string
+  ready: boolean
+  label: string
+  hint: string
+}) {
+  const [liveSlug, setLiveSlug] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (ready && slug) {
+      setLiveSlug(slug)
+      return
+    }
+    if (!slug) setLiveSlug(null)
+  }, [ready, slug])
+
+  const displaySlug = liveSlug || DOMAIN_PLACEHOLDER_SLUG
+
+  return (
+    <div className={`wc-domain${liveSlug ? ' is-ready' : ''}`}>
+      <span className="wc-domain-label">{label}</span>
+      <span className="wc-subdomain" aria-live="polite">
+        <span
+          key={displaySlug}
+          className={`wc-subdomain-slug${liveSlug ? ' is-live' : ''}`}
+        >
+          {displaySlug}
+        </span>
+        <span className="wc-subdomain-host">.festag.app</span>
+      </span>
+      <p className="wc-domain-hint">{hint}</p>
+    </div>
+  )
+}
+
 type Step = 'name' | 'use' | 'creating' | 'welcome'
 
 const SLIDE_ORDER: Step[] = ['name', 'use', 'creating', 'welcome']
@@ -73,7 +174,6 @@ export default function WorkspaceCreateWizardModal() {
     checkAvailability,
   } = useWorkspaceNameField({ enabled: open && (step === 'name' || step === 'use') })
 
-  const subdomain = workspaceDomainFromSlug(confirmedSlug)
   const domainReady = availability === 'available' && Boolean(confirmedSlug)
   const nameReady = ready && !checkingOwned
   const useReady = Boolean(useCase)
@@ -83,11 +183,12 @@ export default function WorkspaceCreateWizardModal() {
     useFestagOutsideClickHint(open && !busy, 1)
   const dataTheme = resolveWizardTheme(themeMode)
   const hasName = Boolean(displayName)
+  /** Empty auto-focus = caret only; stroke arrives once the user types (Login field language). */
+  const showFieldStroke = fieldFocused && hasName
   const slideIndex = Math.max(0, SLIDE_ORDER.indexOf(step))
   const selectedUseCase = getWorkspaceUseCase(useCase)
   const useHeroLead = selectedUseCase?.title ?? COPY.useSlideTitle
   const useHeroRest = selectedUseCase?.description ?? COPY.useSlideRest
-  const useHeroKey = selectedUseCase ? `wc-use-${selectedUseCase.id}` : 'wc-use-idle'
   const welcomeDomain = workspaceDomainFromSlug(createdSlug || confirmedSlug)
   const welcomeRest = displayName ? `${COPY.welcomeDomainLead} ${welcomeDomain}` : undefined
 
@@ -190,6 +291,7 @@ export default function WorkspaceCreateWizardModal() {
     setCreatedSlug('')
     setCheckingOwned(true)
     setThemeMode(getTheme('client'))
+    setFieldFocused(false)
     setOpen(true)
     setStep('name')
     setWorkspaceName('')
@@ -381,8 +483,8 @@ export default function WorkspaceCreateWizardModal() {
               src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
-              width={28}
-              height={28}
+              width={36}
+              height={36}
             />
           </button>
         </header>
@@ -419,6 +521,7 @@ export default function WorkspaceCreateWizardModal() {
                           'wc-field-shell',
                           hasName ? 'has-value' : '',
                           fieldFocused ? 'is-focused' : '',
+                          showFieldStroke ? 'has-stroke' : '',
                         ]
                           .filter(Boolean)
                           .join(' ')}
@@ -443,7 +546,7 @@ export default function WorkspaceCreateWizardModal() {
                           spellCheck={false}
                           maxLength={64}
                           aria-invalid={availability === 'taken' || availability === 'invalid'}
-                          aria-label={`${COPY.nameLabel}, z. B. ${COPY.namePlaceholder}`}
+                          aria-label={COPY.namePlaceholder}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && nameReady) {
                               e.preventDefault()
@@ -452,12 +555,12 @@ export default function WorkspaceCreateWizardModal() {
                           }}
                         />
                         {!hasName ? (
-                          <span aria-hidden className="wc-field-example">
+                          <span
+                            aria-hidden
+                            className={`wc-field-example${fieldFocused ? ' is-focused' : ''}`}
+                          >
                             {COPY.namePlaceholder}
                           </span>
-                        ) : null}
-                        {!hasName && fieldFocused ? (
-                          <span aria-hidden className="wc-field-caret" />
                         ) : null}
                         {availability === 'checking' && displayName ? (
                           <UsernameCheckBadge status="checking" title="Wird geprüft…" />
@@ -467,13 +570,12 @@ export default function WorkspaceCreateWizardModal() {
                           <UsernameCheckBadge status="taken" title={availabilityMsg || 'Vergeben'} />
                         ) : null}
                       </div>
-                      <div className={`wc-domain${domainReady ? ' is-ready' : ''}`}>
-                        <span className="wc-domain-label">{COPY.domainLabel}</span>
-                        <span className="wc-subdomain" aria-live="polite">
-                          {subdomain}
-                        </span>
-                        <p className="wc-domain-hint">{COPY.domainHint}</p>
-                      </div>
+                      <DomainPreview
+                        slug={confirmedSlug}
+                        ready={domainReady}
+                        label={COPY.domainLabel}
+                        hint={COPY.domainHint}
+                      />
                     </div>
                     {error && step === 'name' ? <p className="wc-error">{error}</p> : null}
                   </div>
@@ -496,13 +598,10 @@ export default function WorkspaceCreateWizardModal() {
             >
               <div className="wc-os-stage">
                 <div className="wc-os-hero">
-                  <AuthGlassyHero
-                    animKey={useHeroKey}
+                  <MorphingUseHero
                     lead={useHeroLead}
                     rest={useHeroRest}
-                    stacked
-                    className="mob-glassy-h1"
-                    instant={step !== 'use'}
+                    active={step === 'use'}
                   />
                 </div>
                 <div className="wc-form">
@@ -515,7 +614,7 @@ export default function WorkspaceCreateWizardModal() {
                             key={card.id}
                             role="option"
                             aria-selected={on}
-                            aria-label={card.description ? `${card.title}. ${card.description}` : card.title}
+                            aria-label={`${card.title}. ${card.description}`}
                             tabIndex={0}
                             className={`wc-ws-row${on ? ' is-on' : ''}`}
                             style={{ ['--i' as string]: i }}
@@ -752,18 +851,18 @@ const WIZARD_CSS = `
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px var(--wc-pad-x) 4px;
+  justify-content: flex-start;
+  padding: 20px var(--wc-pad-x) 6px;
   box-sizing: border-box;
   width: 100%;
 }
 
 .wc-os-wordmark {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   margin: 0;
   padding: 0;
   border: 0;
@@ -774,8 +873,8 @@ const WIZARD_CSS = `
 
 .wc-os-mark {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   filter: var(--wc-mark-filter);
   opacity: var(--wc-mark-opacity);
@@ -872,6 +971,8 @@ const WIZARD_CSS = `
   --al-hero-display-lh: var(--wc-hero-lh);
   margin: 0;
   max-width: 100%;
+  width: 100%;
+  text-align: left;
   font-size: 28px !important;
   line-height: var(--wc-hero-lh) !important;
   letter-spacing: var(--auth-tracking-display) !important;
@@ -909,6 +1010,39 @@ const WIZARD_CSS = `
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  align-items: stretch;
+  text-align: left;
+  width: 100%;
+}
+
+.wc-hero-morph {
+  width: 100%;
+  text-align: left;
+  transition:
+    opacity 170ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 170ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 170ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, filter, transform;
+}
+.wc-hero-morph.is-out {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translate3d(0, 4px, 0);
+}
+.wc-hero-morph.is-in {
+  animation: wcHeroMorphIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes wcHeroMorphIn {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .wc-field-wrap {
@@ -923,41 +1057,28 @@ const WIZARD_CSS = `
   align-items: center;
   min-height: var(--mob-control-h);
   height: var(--mob-control-h);
-  padding: 0 40px 0 16px;
+  padding: 0 40px 0 14px;
   border-radius: var(--mob-field-radius);
-  border: var(--mob-stroke-idle) solid var(--mob-stroke-idle-color) !important;
+  /* Login email: transparent until stroke is earned (focus + typed). */
+  border: 1.5px solid transparent !important;
   background: transparent;
   box-sizing: border-box;
   cursor: text;
-  transition: border-color .18s ease, border-width .18s ease;
+  transition: border-color .18s ease;
 }
 
 .wc-field-shell:hover {
-  border-color: rgba(91, 100, 125, 0.55) !important;
+  border-color: transparent !important;
 }
 
-.wc-field-shell.has-value:not(.is-focused) {
-  border-width: var(--mob-stroke-idle) !important;
-  border-color: rgba(91, 100, 125, 0.48) !important;
-}
-
-.wc-field-shell.is-focused {
-  border-width: var(--mob-stroke-focus) !important;
+.wc-field-shell.has-stroke {
   border-color: var(--mob-stroke-focus-color) !important;
 }
 
 .wc-os[data-theme="dark"] .wc-field-shell {
-  border-color: var(--mob-stroke-idle-color) !important;
+  border-color: transparent !important;
 }
-.wc-os[data-theme="dark"] .wc-field-shell:hover {
-  border-color: rgba(91, 100, 125, 0.72) !important;
-}
-.wc-os[data-theme="dark"] .wc-field-shell.has-value:not(.is-focused) {
-  border-width: var(--mob-stroke-idle) !important;
-  border-color: rgba(91, 100, 125, 0.55) !important;
-}
-.wc-os[data-theme="dark"] .wc-field-shell.is-focused {
-  border-width: var(--mob-stroke-focus) !important;
+.wc-os[data-theme="dark"] .wc-field-shell.has-stroke {
   border-color: var(--mob-stroke-focus-color) !important;
 }
 
@@ -970,11 +1091,11 @@ const WIZARD_CSS = `
   border: none;
   background: transparent;
   color: var(--mob-ink);
-  font-size: 17px;
-  line-height: 25px;
+  font-size: 15px;
+  line-height: 1.25;
   font-family: inherit;
   font-weight: 400;
-  letter-spacing: var(--auth-tracking);
+  letter-spacing: 0;
   outline: none;
   box-sizing: border-box;
   caret-color: var(--mob-caret);
@@ -982,46 +1103,26 @@ const WIZARD_CSS = `
   appearance: none;
 }
 
-.wc-field-input.is-empty { caret-color: transparent; }
-
-.wc-field-shell.is-focused .wc-field-input.is-empty {
-  caret-color: var(--mob-caret);
-}
-
 .wc-field-example {
   position: absolute;
-  left: 16px;
+  left: 14px;
   right: 40px;
   top: 50%;
   z-index: 1;
   transform: translate3d(0, -50%, 0);
   pointer-events: none;
   color: var(--mob-muted);
-  font-size: 17px;
-  line-height: 25px;
-  letter-spacing: var(--auth-tracking);
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0.88;
+  opacity: 0.92;
+  transition: opacity 0.18s ease;
 }
-
-.wc-field-caret {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  z-index: 1;
-  margin-top: -10px;
-  width: 1.5px;
-  height: 20px;
-  background: var(--mob-caret);
-  pointer-events: none;
-  animation: wcCaretBlink 1.05s steps(1, end) infinite;
-}
-
-@keyframes wcCaretBlink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+.wc-field-example.is-focused {
+  opacity: 0.62;
 }
 
 .wc-badge {
@@ -1070,9 +1171,40 @@ const WIZARD_CSS = `
   word-break: break-all;
   transition: color 0.22s ease, opacity 0.22s ease;
 }
+.wc-subdomain-slug {
+  display: inline-block;
+  vertical-align: baseline;
+}
+.wc-subdomain-slug.is-live {
+  animation: wcSlugGlassy 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+  color: var(--mob-primary);
+  opacity: 1;
+}
+.wc-subdomain-host {
+  opacity: inherit;
+}
 .wc-domain.is-ready .wc-subdomain {
   opacity: 0.92;
-  color: var(--mob-primary);
+  color: var(--mob-ink);
+}
+.wc-domain.is-ready .wc-subdomain-host {
+  opacity: 0.55;
+  color: var(--mob-ink);
+}
+@keyframes wcSlugGlassy {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translate3d(0, 10px, 0);
+  }
+  55% {
+    filter: blur(2.5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
 }
 .wc-domain-hint {
   margin: 2px 0 0;
@@ -1082,7 +1214,7 @@ const WIZARD_CSS = `
   color: var(--mob-muted);
 }
 
-/* Four individual use-case toggles — title only; context lives in the glassy H1 */
+/* Quellen-style toggle rows (ConnectStage) */
 .wc-ws-list {
   margin-top: 4px;
   display: flex;
@@ -1095,30 +1227,39 @@ const WIZARD_CSS = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   text-align: left;
-  min-height: 50px;
-  padding: 0 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(30, 30, 32, 0.10) !important;
+  height: var(--mob-control-h);
+  min-height: var(--mob-control-h);
+  max-height: var(--mob-control-h);
+  padding: 0 12px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(30, 30, 32, 0.15) !important;
   background: #FFFFFF;
   color: var(--mob-ink);
   cursor: pointer;
   box-sizing: border-box;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  box-shadow: none;
+  transition:
+    border-color 0.18s ease,
+    border-width 0.18s ease,
+    background 0.22s ease,
+    opacity 0.22s ease;
   animation: wcCardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
   animation-delay: calc(0.08s + var(--i, 0) * 55ms);
 }
 
 .wc-ws-row:hover:not(.is-on) {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(30, 30, 32, 0.14) !important;
+  border-color: rgba(30, 30, 32, 0.20) !important;
+  background: #FFFFFF;
 }
 
 .wc-ws-row.is-on {
-  background: rgba(91, 100, 125, 0.06);
-  border-color: rgba(91, 100, 125, 0.28) !important;
+  border-width: 1.5px !important;
+  border-color: var(--mob-primary) !important;
+  background: #FFFFFF;
+  box-shadow: none !important;
 }
 
 .wc-ws-row:focus,
@@ -1136,20 +1277,24 @@ const WIZARD_CSS = `
   border-color: rgba(255, 255, 255, 0.16) !important;
 }
 .wc-os[data-theme="dark"] .wc-ws-row.is-on {
-  background: rgba(91, 100, 125, 0.18);
-  border-color: rgba(91, 100, 125, 0.42) !important;
+  background: rgba(186, 194, 210, 0.08);
+  border-color: var(--mob-primary) !important;
 }
 
 .wc-ws-card-title {
   flex: 1;
   min-width: 0;
-  font-size: 15.5px;
+  font-size: 15px;
   line-height: 1.25;
   letter-spacing: var(--auth-tracking);
   color: var(--mob-ink);
+  opacity: 0.88;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.wc-ws-row.is-on .wc-ws-card-title {
+  opacity: 1;
 }
 
 .wc-os .ft-toggle,
@@ -1620,14 +1765,16 @@ const WIZARD_CSS = `
   }
 
   .wc-ws-row {
-    min-height: 48px;
-    padding: 0 14px;
-    border-radius: 8px;
+    min-height: var(--mob-control-h);
+    height: var(--mob-control-h);
+    max-height: var(--mob-control-h);
+    padding: 0 12px;
+    border-radius: 4px;
   }
 
   .wc-ws-card-title {
     font-size: 15px;
-    white-space: normal;
+    white-space: nowrap;
   }
 
   .wc-ws-card-body {
@@ -1675,6 +1822,19 @@ const WIZARD_CSS = `
   }
   .wc-os-grip {
     display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wc-hero-morph,
+  .wc-hero-morph.is-out,
+  .wc-hero-morph.is-in,
+  .wc-subdomain-slug.is-live {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
   }
 }
 `
