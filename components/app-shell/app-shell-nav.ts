@@ -8,11 +8,10 @@ import {
   Layout,
   FolderSimple,
   CheckSquare,
-  Tray,
   FileText,
-  UsersThree,
-  Pulse,
   SquaresFour,
+  GitBranch,
+  Warning,
 } from '@phosphor-icons/react'
 
 export type AppShellNavItem = {
@@ -21,12 +20,17 @@ export type AppShellNavItem = {
   icon: Icon
 }
 
-/** Primary rail — Overview / Projects / Tasks / Inbox */
+/**
+ * Primary rail — deliberately only what we are actually building right now.
+ * Everything else stays out until it earns its place.
+ */
 export const APP_SHELL_PRIMARY_NAV: AppShellNavItem[] = [
-  { href: '/overview', label: 'Übersicht', icon: Layout },
+  { href: '/overview', label: 'Dashboard', icon: Layout },
   { href: '/overview/projects', label: 'Projekte', icon: FolderSimple },
+  { href: '/decisions', label: 'Entscheidungen', icon: GitBranch },
   { href: '/overview/tasks', label: 'Aufgaben', icon: CheckSquare },
-  { href: '/overview/inbox', label: 'Posteingang', icon: Tray },
+  { href: '/issues', label: 'Risiken', icon: Warning },
+  { href: '/reports', label: 'Statusbericht', icon: FileText },
 ]
 
 /**
@@ -37,12 +41,11 @@ export const APP_SHELL_WORKSPACE_NAV: AppShellNavItem[] = [
   { href: '/overview/workspaces', label: 'Workspaces', icon: SquaresFour },
 ]
 
-/** Secondary — Documents / Team / Activity */
-export const APP_SHELL_SECONDARY_NAV: AppShellNavItem[] = [
-  { href: '/overview/documents', label: 'Dokumente', icon: FileText },
-  { href: '/overview/team', label: 'Team', icon: UsersThree },
-  { href: '/overview/activity', label: 'Aktivität', icon: Pulse },
-]
+/**
+ * Secondary rail — intentionally empty while we focus on the core loop.
+ * Documents / Team / Activity routes still exist for deep links.
+ */
+export const APP_SHELL_SECONDARY_NAV: AppShellNavItem[] = []
 
 export const APP_SHELL_ALL_NAV: AppShellNavItem[] = [
   ...APP_SHELL_PRIMARY_NAV,
