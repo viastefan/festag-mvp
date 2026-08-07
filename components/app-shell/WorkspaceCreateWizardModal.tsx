@@ -28,6 +28,12 @@ import {
   type PanelThemeMode,
 } from '@/lib/theme'
 import {
+  AUTH_STROKE,
+  AUTH_STROKE_IDLE,
+  AUTH_STROKE_WIDTH_FOCUS,
+  AUTH_STROKE_WIDTH_IDLE,
+} from '@/components/auth/auth-chrome-tokens'
+import {
   WORKSPACE_CREATION_COPY as COPY,
   WORKSPACE_USE_CASES,
   getWorkspaceUseCase,
@@ -154,7 +160,6 @@ export default function WorkspaceCreateWizardModal() {
   const [error, setError] = useState('')
   const [creatingVisible, setCreatingVisible] = useState(0)
   const [checkingOwned, setCheckingOwned] = useState(false)
-  const [fieldFocused, setFieldFocused] = useState(false)
   const [themeMode, setThemeMode] = useState<PanelThemeMode>(() => getTheme('client'))
   const [workspaceId, setWorkspaceId] = useState('')
   const [createdSlug, setCreatedSlug] = useState('')
@@ -183,8 +188,6 @@ export default function WorkspaceCreateWizardModal() {
     useFestagOutsideClickHint(open && !busy, 1)
   const dataTheme = resolveWizardTheme(themeMode)
   const hasName = Boolean(displayName)
-  /** Empty auto-focus = caret only; stroke arrives once the user types (Login field language). */
-  const showFieldStroke = fieldFocused && hasName
   const slideIndex = Math.max(0, SLIDE_ORDER.indexOf(step))
   const selectedUseCase = getWorkspaceUseCase(useCase)
   const useHeroLead = selectedUseCase?.title ?? COPY.useSlideTitle
@@ -291,7 +294,6 @@ export default function WorkspaceCreateWizardModal() {
     setCreatedSlug('')
     setCheckingOwned(true)
     setThemeMode(getTheme('client'))
-    setFieldFocused(false)
     setOpen(true)
     setStep('name')
     setWorkspaceName('')
@@ -516,29 +518,22 @@ export default function WorkspaceCreateWizardModal() {
                 <div className="wc-form">
                   <div className="wc-form-body">
                     <div className="wc-field-wrap">
-                      <div
-                        className={[
-                          'wc-field-shell',
-                          hasName ? 'has-value' : '',
-                          fieldFocused ? 'is-focused' : '',
-                          showFieldStroke ? 'has-stroke' : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                        onClick={() => inputRef.current?.focus()}
-                      >
+                      <div className={`al-input-shell${hasName ? ' has-value' : ''}`}>
+                        {!hasName ? (
+                          <span className="al-input-fake-ph" aria-hidden="true">
+                            {COPY.namePlaceholder}
+                          </span>
+                        ) : null}
                         <input
                           ref={inputRef}
                           id="wc-os-name"
-                          className={`wc-field-input${hasName ? '' : ' is-empty'}`}
+                          className="al-input"
                           type="text"
                           value={workspaceName}
                           onChange={(e) => {
                             setError('')
                             setWorkspaceName(e.target.value)
                           }}
-                          onFocus={() => setFieldFocused(true)}
-                          onBlur={() => setFieldFocused(false)}
                           placeholder=""
                           autoComplete="off"
                           autoCorrect="off"
@@ -554,14 +549,6 @@ export default function WorkspaceCreateWizardModal() {
                             }
                           }}
                         />
-                        {!hasName ? (
-                          <span
-                            aria-hidden
-                            className={`wc-field-example${fieldFocused ? ' is-focused' : ''}`}
-                          >
-                            {COPY.namePlaceholder}
-                          </span>
-                        ) : null}
                         {availability === 'checking' && displayName ? (
                           <UsernameCheckBadge status="checking" title="Wird geprüft…" />
                         ) : availability === 'available' && displayName ? (
@@ -720,14 +707,8 @@ const WIZARD_CSS = `
   --mob-muted: #8891a0;
   --mob-primary: #5B647D;
   --mob-caret: #5B647D;
-  /* Idle: thin stroke · Focus: thicker primary */
-  --mob-stroke-idle: 1px;
-  --mob-stroke-focus: 2px;
-  --mob-stroke-idle-color: rgba(91, 100, 125, 0.38);
-  --mob-stroke-focus-color: #5B647D;
-  --mob-card-bg-on: #FFFFFF;
   --mob-control-h: 46px;
-  --mob-field-radius: 4px;
+  --mob-field-radius: 8px;
   --auth-tracking: 0.01em;
   --auth-tracking-display: 0.006em;
   --wc-canvas: #FBF7EE;
@@ -748,6 +729,21 @@ const WIZARD_CSS = `
   --wc-content-max: 100%;
   --wc-panel-radius: 14px;
   --wc-panel-w: 520px;
+  /* Login email field tokens — identical to auth chrome */
+  --festag-input-height: 46px;
+  --festag-input-font-size: 15px;
+  --festag-input-radius: 8px;
+  --festag-input-border: ${AUTH_STROKE_IDLE};
+  --festag-input-border-hover: ${AUTH_STROKE_IDLE};
+  --festag-input-border-width: ${AUTH_STROKE_WIDTH_IDLE};
+  --festag-input-border-filled: ${AUTH_STROKE_IDLE};
+  --festag-input-border-width-filled: ${AUTH_STROKE_WIDTH_IDLE};
+  --festag-input-border-focus: ${AUTH_STROKE};
+  --festag-input-border-width-focus: ${AUTH_STROKE_WIDTH_FOCUS};
+  --festag-input-fill: transparent;
+  --festag-input-fill-focus: transparent;
+  --festag-input-caret: ${AUTH_STROKE};
+  --festag-input-placeholder: #8891a0;
 
   position: fixed;
   inset: 0;
@@ -825,14 +821,13 @@ const WIZARD_CSS = `
   --mob-ink: rgba(245, 245, 247, 0.96);
   --mob-muted: rgba(245, 245, 247, 0.55);
   --mob-card-bg-on: rgba(186, 194, 210, 0.1);
-  --mob-stroke-idle-color: rgba(91, 100, 125, 0.55);
-  --mob-stroke-focus-color: #5B647D;
   --wc-canvas: #0C0D12;
   --wc-panel: #12141C;
   --wc-wash-top: #151822;
   --wc-wash-bottom: #0E1016;
   --wc-mark-filter: none;
   --wc-mark-opacity: 0.92;
+  --festag-input-placeholder: rgba(245, 245, 247, 0.45);
 }
 
 .wc-os[data-theme="dark"] .wc-os-backdrop {
@@ -1051,78 +1046,92 @@ const WIZARD_CSS = `
   margin-bottom: 0;
 }
 
-.wc-field-shell {
+/* Exact Login email field — same shell / input / fake placeholder */
+.wc-os .al-input-shell {
   position: relative;
-  display: flex;
-  align-items: center;
-  min-height: var(--mob-control-h);
-  height: var(--mob-control-h);
-  padding: 0 40px 0 14px;
-  border-radius: var(--mob-field-radius);
-  /* Login email: transparent until stroke is earned (focus + typed). */
-  border: 1.5px solid transparent !important;
-  background: transparent;
-  box-sizing: border-box;
-  cursor: text;
-  transition: border-color .18s ease;
-}
-
-.wc-field-shell:hover {
-  border-color: transparent !important;
-}
-
-.wc-field-shell.has-stroke {
-  border-color: var(--mob-stroke-focus-color) !important;
-}
-
-.wc-os[data-theme="dark"] .wc-field-shell {
-  border-color: transparent !important;
-}
-.wc-os[data-theme="dark"] .wc-field-shell.has-stroke {
-  border-color: var(--mob-stroke-focus-color) !important;
-}
-
-.wc-field-input {
-  position: relative;
-  z-index: 2;
   width: 100%;
-  height: var(--mob-control-h);
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--mob-ink);
-  font-size: 15px;
-  line-height: 1.25;
-  font-family: inherit;
-  font-weight: 400;
-  letter-spacing: 0;
-  outline: none;
+  display: block;
+  font-size: var(--festag-input-font-size, 15px);
+  overflow: visible;
   box-sizing: border-box;
-  caret-color: var(--mob-caret);
-  -webkit-appearance: none;
-  appearance: none;
 }
-
-.wc-field-example {
+.wc-os .al-input-fake-ph {
   position: absolute;
   left: 14px;
-  right: 40px;
+  right: 44px;
   top: 50%;
-  z-index: 1;
-  transform: translate3d(0, -50%, 0);
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0;
+  border: 0;
   pointer-events: none;
-  color: var(--mob-muted);
-  font-size: 15px;
-  line-height: 1.25;
+  z-index: 1;
+  font-family: inherit;
+  font-size: var(--festag-input-font-size, 15px);
+  font-weight: 400;
   letter-spacing: 0;
+  line-height: 1.25;
+  text-align: left;
+  color: var(--festag-input-placeholder, #8891a0);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0.92;
-  transition: opacity 0.18s ease;
 }
-.wc-field-example.is-focused {
-  opacity: 0.62;
+.wc-os .al-input-shell.has-value .al-input-fake-ph {
+  display: none;
+}
+.wc-os .al-input {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: var(--festag-input-height, 46px);
+  min-height: var(--festag-input-height, 46px);
+  max-height: var(--festag-input-height, 46px);
+  border-radius: var(--festag-input-radius, 8px);
+  border: var(--festag-input-border-width, 1.5px) solid var(--festag-input-border, transparent) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--mob-ink);
+  -webkit-text-fill-color: var(--mob-ink);
+  font-family: inherit;
+  font-size: var(--festag-input-font-size, 15px);
+  font-weight: 400;
+  font-synthesis: none;
+  letter-spacing: 0;
+  line-height: 1.25;
+  padding: 0 44px 0 14px;
+  text-align: left;
+  text-indent: 0;
+  outline: none !important;
+  outline-offset: 0 !important;
+  caret-color: var(--festag-input-caret, #5B647D);
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color .18s ease;
+  box-sizing: border-box !important;
+}
+.wc-os .al-input:hover,
+.wc-os .al-input:active {
+  background: transparent !important;
+  border-color: var(--festag-input-border-hover, transparent) !important;
+  box-shadow: none !important;
+}
+.wc-os .al-input-shell.has-value .al-input {
+  border-color: var(--festag-input-border-filled, transparent) !important;
+}
+.wc-os .al-input:focus,
+.wc-os .al-input:focus-visible,
+.wc-os .al-input-shell.has-value .al-input:focus,
+.wc-os .al-input-shell.has-value .al-input:focus-visible {
+  background: transparent !important;
+  border-color: var(--festag-input-border-focus, #5B647D) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.wc-os .al-input-shell .uc-badge {
+  z-index: 3;
 }
 
 .wc-badge {
@@ -1525,8 +1534,8 @@ const WIZARD_CSS = `
   field-sizing: content;
   resize: none !important;
   padding: 12px 16px;
-  border-radius: var(--mob-field-radius);
-  border: var(--mob-stroke-idle) solid var(--mob-stroke-idle-color) !important;
+  border-radius: var(--festag-input-radius, 8px);
+  border: var(--festag-input-border-width, 1.5px) solid transparent !important;
   background: transparent;
   color: var(--mob-ink);
   font-size: 15.5px;
@@ -1537,13 +1546,8 @@ const WIZARD_CSS = `
   box-sizing: border-box;
 }
 
-.wc-os[data-theme="dark"] .wc-textarea {
-  border-color: var(--mob-stroke-idle-color) !important;
-}
-
 .wc-textarea:focus {
-  border-width: var(--mob-stroke-focus) !important;
-  border-color: var(--mob-stroke-focus-color) !important;
+  border-color: var(--festag-input-border-focus, #5B647D) !important;
 }
 
 .wc-invite-tabs {
