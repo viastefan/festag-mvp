@@ -31,7 +31,7 @@ import {
 import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
 import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import { FESTAG_FLOW_STYLES } from '@/components/app-shell/overview/festag-flow-styles'
-import ProjectIntelligencePanel from '@/components/app-shell/overview/ProjectIntelligencePanel'
+import OverviewSidequests, { buildOverviewSidequests } from '@/components/app-shell/overview/OverviewSidequests'
 import type { OverviewPayload } from '@/components/app-shell/WorkspaceOverviewLive'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { openNewProject } from '@/lib/new-project-open'
@@ -113,21 +113,44 @@ export default function FestagOverviewCanvas({
     })
   }, [data, focusDecision])
 
-  /* ── Spoken report ── */
+  /* ── Spoken report — calm editorial lines ── */
   const lines = useMemo(() => {
-    if (data.briefing?.lines?.length) return data.briefing.lines
-    const out = [`${greeting}, ${firstName}.`, data.summary.calmLine]
+    if (data.briefing?.lines?.length) {
+      return data.briefing.lines.map(softenBriefingLine)
+    }
+    const out = [`${greeting}, ${firstName}.`, softenCalmLine(data.summary.calmLine)]
     if (data.summary.pendingDecisions > 0) {
       out.push(
-        `${data.summary.pendingDecisions} ${data.summary.pendingDecisions === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`,
+        data.summary.pendingDecisions === 1
+          ? 'Eine Entscheidung wartet noch auf deine Freigabe.'
+          : `${data.summary.pendingDecisions} Entscheidungen warten noch auf deine Freigabe.`,
       )
     }
     if (atRisk > 0) {
-      out.push(`${atRisk} ${atRisk === 1 ? 'Risiko' : 'Risiken'} solltest du im Blick behalten.`)
+      out.push(
+        atRisk === 1
+          ? 'Ein Risiko bleibt im Blick.'
+          : `${atRisk} Risiken bleiben im Blick.`,
+      )
     }
-    if (openTasks > 0) out.push(`${openTasks} Aufgaben sind offen.`)
+    if (atRisk === 0 && data.summary.pendingDecisions === 0) {
+      out.push('Wir haben aktuell keine weiteren Sorgen.')
+    }
     return out
-  }, [data, greeting, firstName, atRisk, openTasks])
+  }, [data, greeting, firstName, atRisk])
+
+  const sidequests = useMemo(
+    () =>
+      buildOverviewSidequests({
+        team: data.team,
+        activity: data.activity,
+        atRisk,
+        pendingDecisions: data.summary.pendingDecisions,
+        intelligence: data.intelligence,
+        firstName,
+      }),
+    [data, atRisk, firstName],
+  )
 
   const { play, stop, speaking, activeIndex } = useStatusReportPlayback({
     sentences: lines,
@@ -153,8 +176,15 @@ export default function FestagOverviewCanvas({
         meta: data.summary.pendingDecisions > 0 ? `${data.summary.pendingDecisions} offen` : 'nichts offen',
         metaTone: data.summary.pendingDecisions > 0 ? 'green' : undefined,
       },
-      status: { label: 'Projektstatus', meta: healthLabel, metaTone: 'blue' },
-      team: { label: 'Team & Entwickler', meta: `${data.summary.teamMembers} aktiv` },
+      status: {
+        label: 'Projektstatus',
+        meta: healthLabel,
+        metaTone: healthLabel === 'Stabil' ? 'blue' : healthLabel === 'Achtung' ? 'red' : undefined,
+      },
+      team: {
+        label: 'Team & Entwickler',
+        meta: `${Math.max(1, data.summary.teamMembers)} aktiv`,
+      },
       project: { label: 'Projekt', meta: hasProjects ? 'Gesamtbericht' : 'noch keins' },
     }
     return FLOW_LAYOUT.map((n) => ({ ...n, ...copy[n.id] }))
@@ -200,25 +230,17 @@ export default function FestagOverviewCanvas({
         {view !== 'report' ? (
           <>
             <h1 className="ffl-greet">{greeting}, {firstName}.</h1>
-            <p className="ffl-line">{data.summary.calmLine}</p>
+            <p className="ffl-line">{softenCalmLine(data.summary.calmLine)}</p>
 
-            <div className="ffl-kpis">
-              <Kpi n={atRisk} label="Risiken" tone="red" />
-              <Kpi n={data.summary.pendingDecisions} label="Entscheidungen" tone="green" />
-              <Kpi text={healthLabel} label="Projektstatus" tone="blue" />
-              <Kpi n={data.summary.teamMembers} label="Team aktiv" tone="ink" />
-            </div>
+            <OverviewSidequests
+              items={sidequests}
+              onOpenScore={() => setView('report')}
+            />
 
             <button type="button" className={`ffl-cta${hasProjects ? ' ffl-cta-quiet' : ''}`} onClick={() => openNewProject()}>
               <Plus size={16} weight="bold" />
               {hasProjects ? 'Neues Projekt' : 'Erstes Projekt anlegen'}
             </button>
-
-            {data.intelligence ? (
-              <div className="ffl-intel">
-                <ProjectIntelligencePanel intelligence={data.intelligence} />
-              </div>
-            ) : null}
           </>
         ) : (
           /* ── Spoken report: the text carries the room ── */
@@ -454,14 +476,17 @@ function DetailHead({ tone, title }: { tone: string; title: string }) {
   )
 }
 
-function Kpi({ n, text, label, tone }: { n?: number; text?: string; label: string; tone: string }) {
-  return (
-    <div className="ffl-kpi">
-      <span className="ffl-kpi-top">
-        <span className={`ffl-kpi-dot is-${tone}`} aria-hidden />
-        <span className="ffl-kpi-v">{text ?? n ?? 0}</span>
-      </span>
-      <span className="ffl-kpi-l">{label}</span>
-    </div>
-  )
+function softenCalmLine(line: string) {
+  const t = line.trim()
+  if (!t) return 'Heute läuft alles planmäßig.'
+  if (/läuft ruhig/i.test(t)) return 'Heute läuft alles planmäßig.'
+  return t.endsWith('.') ? t : `${t}.`
+}
+
+function softenBriefingLine(line: string) {
+  return line
+    .replace(/Entscheidungen warten noch\.?/i, 'Entscheidungen warten noch auf deine Freigabe.')
+    .replace(/Eine Entscheidung wartet noch\.?/i, 'Eine Entscheidung wartet noch auf deine Freigabe.')
+    .replace(/Keine offenen Entscheidungen\.?/i, 'Wir haben aktuell keine weiteren Sorgen.')
+    .replace(/Fortschritt bei (\d+)\s*%\.?/i, 'Dein Projekt steht bei $1%.')
 }

@@ -508,13 +508,13 @@ export async function GET(req: NextRequest) {
     const top = projects[0]
     const lines = [
       top.phase ? `Aktuelle Phase: ${formatPhase(top.phase)}.` : null,
-      top.progress > 0 ? `Fortschritt bei ${top.progress} %.` : 'Das Projekt ist bereit, weiterzugehen.',
+      top.progress > 0 ? `Dein Projekt steht bei ${top.progress}%.` : 'Das Projekt ist bereit, weiterzugehen.',
       top.nextMilestone ? `Nächster Meilenstein: ${top.nextMilestone}.` : null,
       pendingDecisions.length > 0
         ? pendingDecisions.length === 1
-          ? 'Eine Entscheidung wartet noch.'
-          : `${pendingDecisions.length} Entscheidungen warten noch.`
-        : 'Keine offenen Entscheidungen.',
+          ? 'Eine Entscheidung wartet noch auf deine Freigabe.'
+          : `${pendingDecisions.length} Entscheidungen warten noch auf deine Freigabe.`
+        : 'Wir haben aktuell keine weiteren Sorgen.',
     ].filter(Boolean) as string[]
     briefing = {
       projectTitle: top.title,
@@ -531,11 +531,11 @@ export async function GET(req: NextRequest) {
   const healthyCount = projects.filter((p) => p.health === 'healthy').length
   const calmLine =
     projects.length === 0
-      ? `In ${workspace.name} läuft noch alles ruhig.`
+      ? 'Heute läuft alles planmäßig. Leg dein erstes Projekt an.'
       : pendingDecisions.length > 0
-        ? 'Alles läuft ruhig.'
+        ? 'Heute läuft alles planmäßig. Eine Entscheidung wartet auf deine Freigabe.'
         : healthyCount === projects.length
-          ? 'Alles läuft ruhig.'
+          ? 'Heute läuft alles planmäßig.'
           : `${workspace.name} bewegt sich — halte den Fokus.`
 
   const workspaces = workspacesList.map((w) => ({

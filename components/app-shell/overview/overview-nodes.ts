@@ -1,6 +1,12 @@
 /**
  * Overview flow — the nodes Tagro reports on, and the shape of the path
  * between them. Positions are fractions of the stage so the flow scales.
+ *
+ * Layout mirrors the calm editorial tree:
+ *   Kommunikation
+ *     Risiken · Entscheidungen
+ *           Projektstatus
+ *     Team            Projekt
  */
 
 export type FlowNodeId =
@@ -23,24 +29,28 @@ export type FlowNode = {
   tone: FlowTone
 }
 
-/** Curved connectors, drawn in a 100×100 viewBox. */
+/** Curved connectors in a 100×100 viewBox — organic diamond → stem. */
 export const FLOW_EDGES: string[] = [
-  'M 50 12 C 50 22, 30 22, 30 32',
-  'M 50 12 C 50 22, 70 22, 70 32',
-  'M 30 34 C 30 48, 55 46, 55 58',
-  'M 70 34 C 70 48, 55 46, 55 58',
-  'M 55 60 C 55 72, 32 68, 32 78',
-  'M 55 60 C 55 78, 55 82, 55 92',
-  'M 32 80 C 32 90, 55 88, 55 92',
+  /* Kommunikation → Risiken / Entscheidungen */
+  'M 50 11 C 50 20, 26 20, 26 31',
+  'M 50 11 C 50 20, 74 20, 74 31',
+  /* Risiken / Entscheidungen → Projektstatus */
+  'M 26 34 C 26 46, 50 44, 50 54',
+  'M 74 34 C 74 46, 50 44, 50 54',
+  /* Projektstatus → Team / Projekt */
+  'M 50 57 C 50 68, 28 66, 28 76',
+  'M 50 57 C 50 72, 50 80, 50 90',
+  /* Team → Projekt (soft close) */
+  'M 28 78 C 28 88, 50 86, 50 90',
 ]
 
 export const FLOW_LAYOUT: Array<Omit<FlowNode, 'label' | 'meta' | 'metaTone'>> = [
-  { id: 'communication', x: 50, y: 12, tone: 'blue' },
-  { id: 'risks', x: 30, y: 33, tone: 'red' },
-  { id: 'decisions', x: 70, y: 33, tone: 'green' },
-  { id: 'status', x: 55, y: 59, tone: 'blue' },
-  { id: 'team', x: 32, y: 79, tone: 'ink' },
-  { id: 'project', x: 55, y: 93, tone: 'ink' },
+  { id: 'communication', x: 50, y: 10, tone: 'blue' },
+  { id: 'risks', x: 26, y: 32, tone: 'red' },
+  { id: 'decisions', x: 74, y: 32, tone: 'green' },
+  { id: 'status', x: 50, y: 55, tone: 'blue' },
+  { id: 'team', x: 28, y: 77, tone: 'ink' },
+  { id: 'project', x: 50, y: 91, tone: 'ink' },
 ]
 
 export const TONE_HEX: Record<FlowTone, string> = {

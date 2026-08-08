@@ -64,10 +64,10 @@ export function buildProjectIntelligence(input: {
 
 function headlineFor(score: number, decisionCount: number): string {
   if (decisionCount === 0) return 'Noch keine abgeschlossenen Entscheidungen.'
-  if (score >= 90) return 'Projekt läuft effizient.'
-  if (score >= 75) return 'Projekt läuft stabil.'
-  if (score >= 60) return 'Projekt läuft, mit etwas Mehraufwand.'
-  return 'Projekt braucht Aufmerksamkeit.'
+  if (score >= 90) return 'Dein Projekt läuft ruhig.'
+  if (score >= 75) return 'Dein Projekt läuft stabil.'
+  if (score >= 60) return 'Dein Projekt läuft, mit etwas mehr Aufmerksamkeit.'
+  return 'Dein Projekt braucht Aufmerksamkeit.'
 }
 
 function learnedFor(wisdom: ReturnType<typeof scoreProjectWisdom>): string | null {
