@@ -124,6 +124,21 @@ html[data-theme="classic-dark"] .fas-sidebar {
 .fas-sidebar-spacer {
   width: var(--fas-sidebar-collapsed-w);
   flex-shrink: 0;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Collapsed means gone, not a narrow rail — the canvas gets the whole screen.
+   A thin hover zone on the left edge brings the sidebar back. */
+.fas-root.is-sidebar-collapsed:not(.is-sidebar-peek) .fas-sidebar {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-102%);
+  transition:
+    opacity 0.2s ease,
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fas-root.is-sidebar-collapsed:not(.is-sidebar-peek) .fas-sidebar-spacer {
+  width: 12px;
 }
 .fas-root.is-sidebar-collapsed .fas-sidebar {
   position: absolute;
