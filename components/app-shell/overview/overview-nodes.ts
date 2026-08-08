@@ -19,13 +19,18 @@ export type FlowNodeId =
 
 export type FlowTone = 'blue' | 'red' | 'green' | 'ink'
 
+export type FlowNewsPulse = 'calm' | 'soft' | 'hot'
+
 export type FlowNode = {
   id: FlowNodeId
   label: string
   meta: string
-  /** One calm Aeonik sentence — used when the node is in focus. */
+  /** Friendly news sentence — always visible on the node. */
+  news: string
+  /** @deprecated prefer `news` — kept for older call sites */
   line: string
   metaTone?: FlowTone
+  pulse?: FlowNewsPulse
   x: number
   y: number
   tone: FlowTone
@@ -34,25 +39,25 @@ export type FlowNode = {
 /** Curved connectors in a 100×100 viewBox — organic diamond → stem. */
 export const FLOW_EDGES: string[] = [
   /* Kommunikation → Risiken / Entscheidungen */
-  'M 50 11 C 50 20, 26 20, 26 31',
-  'M 50 11 C 50 20, 74 20, 74 31',
+  'M 50 12 C 50 20, 24 20, 24 29',
+  'M 50 12 C 50 20, 76 20, 76 29',
   /* Risiken / Entscheidungen → Projektstatus */
-  'M 26 34 C 26 46, 50 44, 50 54',
-  'M 74 34 C 74 46, 50 44, 50 54',
+  'M 24 34 C 24 46, 50 44, 50 52',
+  'M 76 34 C 76 46, 50 44, 50 52',
   /* Projektstatus → Team / Projekt */
-  'M 50 57 C 50 68, 28 66, 28 76',
-  'M 50 57 C 50 72, 50 80, 50 90',
+  'M 50 57 C 50 68, 26 66, 26 74',
+  'M 50 57 C 50 74, 50 82, 50 91',
   /* Team → Projekt (soft close) */
-  'M 28 78 C 28 88, 50 86, 50 90',
+  'M 26 78 C 26 88, 50 88, 50 91',
 ]
 
-export const FLOW_LAYOUT: Array<Omit<FlowNode, 'label' | 'meta' | 'line' | 'metaTone'>> = [
-  { id: 'communication', x: 50, y: 10, tone: 'blue' },
-  { id: 'risks', x: 26, y: 32, tone: 'red' },
-  { id: 'decisions', x: 74, y: 32, tone: 'green' },
-  { id: 'status', x: 50, y: 55, tone: 'blue' },
-  { id: 'team', x: 28, y: 77, tone: 'ink' },
-  { id: 'project', x: 50, y: 91, tone: 'ink' },
+export const FLOW_LAYOUT: Array<Omit<FlowNode, 'label' | 'meta' | 'news' | 'line' | 'metaTone' | 'pulse'>> = [
+  { id: 'communication', x: 50, y: 9, tone: 'blue' },
+  { id: 'risks', x: 24, y: 31, tone: 'red' },
+  { id: 'decisions', x: 76, y: 31, tone: 'green' },
+  { id: 'status', x: 50, y: 54, tone: 'blue' },
+  { id: 'team', x: 26, y: 76, tone: 'ink' },
+  { id: 'project', x: 50, y: 93, tone: 'ink' },
 ]
 
 export const TONE_HEX: Record<FlowTone, string> = {

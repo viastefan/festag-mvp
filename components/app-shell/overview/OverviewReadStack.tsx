@@ -2,19 +2,20 @@
 
 /**
  * Overview editorial read stack — stable H1, continuous body,
- * Fließtext toggle, compact audio + notiz export, calm marks.
+ * Bericht via footer icon only, compact audio + notiz export, calm marks.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
+  Article,
   Check,
   FilePdf,
   NoteBlank,
+  Pause,
+  PencilSimple,
+  Play,
   SpeakerHigh,
-  SpeakerSlash,
   ShareNetwork,
-  TextAlignLeft,
-  Waves,
 } from '@phosphor-icons/react'
 import type { FlowNodeId } from '@/components/app-shell/overview/overview-nodes'
 import {
@@ -57,7 +58,7 @@ export type ReadStackContext = {
   briefingLines?: string[]
 }
 
-type MarkTone = 'risk' | 'decision' | 'efficiency'
+export type MarkTone = 'risk' | 'decision' | 'efficiency'
 
 export type MarkPreview = {
   title: string
@@ -65,6 +66,19 @@ export type MarkPreview = {
 }
 
 export type MarkPreviews = Partial<Record<MarkTone, MarkPreview>>
+
+export type MarkGateItem = {
+  id: string
+  title: string
+  hint?: string
+}
+
+export type MarkGate = {
+  items: MarkGateItem[]
+  empty?: string
+}
+
+export type MarkGates = Partial<Record<MarkTone, MarkGate>>
 
 type ReadSentence = {
   text: string
@@ -77,14 +91,14 @@ type Props = {
   beats: ReadBeat[]
   filter: ReportFilter
   opening: { lead: string; rest: string }
+  ctx: ReadStackContext
   onCreateProject?: () => void
   showCreateProject?: boolean
-  onOpenMark?: (tone: MarkTone) => void
+  onOpenMark?: (tone: MarkTone, itemId?: string) => void
   markPreviews?: MarkPreviews
-}
-
-function easeOutCubic(t: number) {
-  return 1 - (1 - t) ** 3
+  markGates?: MarkGates
+  reportActive?: boolean
+  onToggleReport?: () => void
 }
 
 function splitSentences(text: string): string[] {
@@ -100,59 +114,117 @@ function splitSentences(text: string): string[] {
 const MARK_RULES: Array<{ tone: MarkTone; re: RegExp }> = [
   {
     tone: 'risk',
-    re: /\b(?:\d+\s+)?(?:offene[nrs]?\s+)?(?:Risiko|Risiken|Blocker|Eskalation|Vorkommnisse|Verzögerungen)\b(?:[^.]{0,36})?/gi,
+    re: /\b(?:Risiko|Risiken|Blocker|Eskalation|Vorkommnisse|Verzögerungen)\b/gi,
   },
   {
     tone: 'decision',
-    re: /\b(?:\d+\s+)?(?:offene[nrs]?\s+)?(?:Entscheidung|Entscheidungen|Freigabe|Freigaben|Empfehlung|Empfehlungen)\b(?:[^.]{0,40})?/gi,
+    re: /\b(?:Entscheidung|Entscheidungen|Freigabe|Freigaben|Empfehlung|Empfehlungen)\b/gi,
   },
   {
     tone: 'efficiency',
-    re: /\b(?:Projektstatus|Status|Stabil|Effizienz|Fortschritt|Rhythmus|Aufgaben)\b(?:[^.]{0,36})?/gi,
+    re: /\b(?:Projektstatus|Aufgaben|Fortschritt|Rhythmus)\b/gi,
   },
 ]
 
 const MARK_ARIA: Record<MarkTone, string> = {
-  risk: 'Risiken im Fluss öffnen',
-  decision: 'Entscheidung im Fluss öffnen',
-  efficiency: 'Projektstatus im Fluss öffnen',
+  risk: 'Risiken öffnen',
+  decision: 'Entscheidungen öffnen',
+  efficiency: 'Status öffnen',
 }
 
 function MarkChip({
   tone,
   children,
   preview,
+  gate,
   onOpen,
 }: {
   tone: MarkTone
   children: ReactNode
   preview?: MarkPreview
-  onOpen?: (tone: MarkTone) => void
+  gate?: MarkGate
+  onOpen?: (tone: MarkTone, itemId?: string) => void
 }) {
   const [tip, setTip] = useState(false)
-  const title = preview?.title?.trim() || children
-  const hint = preview?.hint?.trim()
+  const closeTimer = useRef<number | null>(null)
+  const items = gate?.items || []
+  const empty = gate?.empty || preview?.hint || 'Nichts offen'
+
+  function openTip() {
+    if (closeTimer.current) {
+      window.clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+    setTip(true)
+  }
+
+  function scheduleClose() {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current)
+    closeTimer.current = window.setTimeout(() => setTip(false), 120)
+  }
+
+  useEffect(() => () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current)
+  }, [])
 
   return (
     <span
-      className={`ffl-mark-wrap is-${tone}`}
-      onMouseEnter={() => setTip(true)}
-      onMouseLeave={() => setTip(false)}
+      className={`ffl-mark-wrap is-${tone}${tip ? ' is-open' : ''}`}
+      onMouseEnter={openTip}
+      onMouseLeave={scheduleClose}
     >
+      <span className="ffl-mark-word">{children}</span>
       <button
         type="button"
-        className={`ffl-mark is-${tone}`}
+        className={`ffl-mark-edit is-${tone}`}
         onClick={() => onOpen?.(tone)}
-        onFocus={() => setTip(true)}
-        onBlur={() => setTip(false)}
+        onFocus={openTip}
+        onBlur={scheduleClose}
         aria-label={MARK_ARIA[tone]}
+        aria-expanded={tip}
       >
-        {children}
+        <PencilSimple size={11} weight="bold" />
       </button>
       {tip ? (
-        <span className="ffl-mark-tip" role="tooltip">
-          <span className="ffl-mark-tip-title">{title}</span>
-          {hint ? <span className="ffl-mark-tip-hint">{hint}</span> : null}
+        <span
+          className="ffl-mark-tip"
+          role="dialog"
+          aria-label={MARK_ARIA[tone]}
+          onMouseEnter={openTip}
+          onMouseLeave={scheduleClose}
+        >
+          {items.length > 0 ? (
+            <span className="ffl-mark-tip-list">
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="ffl-mark-tip-item"
+                  onClick={() => {
+                    setTip(false)
+                    onOpen?.(tone, item.id)
+                  }}
+                >
+                  <span className="ffl-mark-tip-title">{item.title}</span>
+                  {item.hint ? <span className="ffl-mark-tip-hint">{item.hint}</span> : null}
+                </button>
+              ))}
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="ffl-mark-tip-item is-empty"
+              onClick={() => {
+                setTip(false)
+                onOpen?.(tone)
+              }}
+            >
+              <span className="ffl-mark-tip-title">{preview?.title || empty}</span>
+              {preview?.hint || empty ? (
+                <span className="ffl-mark-tip-hint">{preview?.hint || empty}</span>
+              ) : null}
+            </button>
+          )}
         </span>
       ) : null}
     </span>
@@ -162,8 +234,9 @@ function MarkChip({
 function renderMarkedText(
   text: string,
   opts?: {
-    onOpenMark?: (tone: MarkTone) => void
+    onOpenMark?: (tone: MarkTone, itemId?: string) => void
     markPreviews?: MarkPreviews
+    markGates?: MarkGates
   },
 ): ReactNode {
   type Hit = { start: number; end: number; tone: MarkTone }
@@ -190,6 +263,7 @@ function renderMarkedText(
         key={`${h.start}-${i}`}
         tone={h.tone}
         preview={opts?.markPreviews?.[h.tone]}
+        gate={opts?.markGates?.[h.tone]}
         onOpen={opts?.onOpenMark}
       >
         {chunk}
@@ -202,13 +276,19 @@ function renderMarkedText(
 }
 
 export default function OverviewReadStack({
+  greeting,
+  firstName,
   beats,
   filter,
   opening,
+  ctx,
   onCreateProject,
   showCreateProject = false,
   onOpenMark,
   markPreviews,
+  markGates,
+  reportActive = false,
+  onToggleReport,
 }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -217,16 +297,16 @@ export default function OverviewReadStack({
   const [canScroll, setCanScroll] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [atEnd, setAtEnd] = useState(false)
+  const [audioOpen, setAudioOpen] = useState(false)
   const [speaking, setSpeaking] = useState(false)
+  const [paused, setPaused] = useState(false)
   const [speakIndex, setSpeakIndex] = useState(-1)
   const [readAt, setReadAt] = useState<string | null>(null)
   const [plain, setPlain] = useState(false)
-  const [greetOpaque, setGreetOpaque] = useState(true)
   const [shownHeadline, setShownHeadline] = useState(opening)
   const [shownFromScroll, setShownFromScroll] = useState(false)
   const ackSentRef = useRef(false)
   const speakQueueRef = useRef(0)
-  const headlineSwapRef = useRef(0)
   const briefingKey = todayBriefingKey()
 
   const visibleBeats = useMemo(() => {
@@ -260,30 +340,11 @@ export default function OverviewReadStack({
     })
   }, [visibleBeats])
 
-  /** Per-paragraph key line — first sentence = what lands in the H1. */
-  const paragraphKeys = useMemo(
-    () => paragraphs.map((p) => p.parts[0]?.trim() || ''),
-    [paragraphs],
+  /* H1 stays on the opening — no scroll promotion, no mark colors */
+  const headline = useMemo(
+    () => ({ lead: opening.lead, rest: opening.rest, fromScroll: false }),
+    [opening.lead, opening.rest],
   )
-
-  const headline = useMemo(() => {
-    if (plain || activeIndex <= 0) {
-      return { lead: opening.lead, rest: opening.rest, fromScroll: false }
-    }
-    let paraIdx = 0
-    const cursor = activeIndex - 1
-    for (let i = 0; i < paragraphs.length; i++) {
-      const end = paragraphs[i].start + paragraphs[i].parts.length
-      if (cursor < end) {
-        paraIdx = i
-        break
-      }
-      paraIdx = i
-    }
-    const key = paragraphKeys[paraIdx]
-    if (!key) return { lead: opening.lead, rest: opening.rest, fromScroll: false }
-    return { ...headlineFromKey(key), fromScroll: true }
-  }, [plain, activeIndex, paragraphs, paragraphKeys, opening])
 
   const exportBody = useMemo(() => {
     const head = `${opening.lead}${opening.rest}`.trim()
@@ -291,39 +352,47 @@ export default function OverviewReadStack({
     return [head, body].filter(Boolean).join('\n\n')
   }, [opening, visibleBeats])
 
-  const publishProgress = useCallback((raw: number) => {
-    const p = Math.max(0, Math.min(1, raw))
-    const eased = easeOutCubic(p)
+  const publishProgress = useCallback((reading: boolean) => {
     const ffl = rootRef.current?.closest('.ffl') as HTMLElement | null
     if (ffl) {
-      ffl.style.setProperty('--ffl-read', eased.toFixed(4))
-      ffl.classList.toggle('is-reading', eased > 0.04)
+      ffl.style.setProperty('--ffl-read', reading ? '1' : '0')
+      ffl.classList.toggle('is-reading', reading)
     }
     window.dispatchEvent(new CustomEvent('festag-overview-read-progress'))
   }, [])
+
+  /* Fluss stays compact — expanded reading only via Bericht icon */
+  useEffect(() => {
+    setPlain(reportActive)
+    setActiveIndex(0)
+    setShownHeadline(opening)
+    setShownFromScroll(false)
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+    publishProgress(false)
+  }, [reportActive, opening.lead, opening.rest, publishProgress])
 
   const syncScroll = useCallback(() => {
     const root = scrollRef.current
     if (!root) return
 
     const scrollTop = root.scrollTop
-    const range = Math.max(1, root.scrollHeight - root.clientHeight)
-    publishProgress(plain ? 0 : scrollTop / range)
+    const reading = !plain && scrollTop > 12
+    publishProgress(reading)
 
     if (plain) {
       setActiveIndex(0)
       setCanScroll(root.scrollHeight > root.clientHeight + 8)
       setScrolled(scrollTop > 8)
-      setAtEnd(false)
+      setAtEnd(scrollTop + root.clientHeight >= root.scrollHeight - 14)
       return
     }
 
     let past = 0
-    const threshold = scrollTop + 10
+    const threshold = scrollTop + 12
     for (let i = 0; i < sentRefs.current.length; i++) {
       const el = sentRefs.current[i]
       if (!el) continue
-      if (el.offsetTop + el.offsetHeight * 0.4 <= threshold) past += 1
+      if (el.offsetTop + el.offsetHeight * 0.35 <= threshold) past += 1
       else break
     }
     setActiveIndex(Math.min(past, sentences.length))
@@ -335,30 +404,15 @@ export default function OverviewReadStack({
     setAtEnd(ended)
   }, [publishProgress, plain, sentences.length])
 
-  /* Soft crossfade when H1 content changes */
+  /* Instant H1 swap — no fade/layout thrash that stalls the wheel */
   useEffect(() => {
-    const next = { lead: headline.lead, rest: headline.rest }
-    if (
-      next.lead === shownHeadline.lead
-      && next.rest === shownHeadline.rest
-      && headline.fromScroll === shownFromScroll
-    ) return
-
-    const id = ++headlineSwapRef.current
-    setGreetOpaque(false)
-    const t = window.setTimeout(() => {
-      if (id !== headlineSwapRef.current) return
-      setShownHeadline(next)
-      setShownFromScroll(headline.fromScroll)
-      requestAnimationFrame(() => setGreetOpaque(true))
-    }, 140)
-    return () => window.clearTimeout(t)
-  }, [headline, shownHeadline, shownFromScroll])
+    setShownHeadline({ lead: headline.lead, rest: headline.rest })
+    setShownFromScroll(headline.fromScroll)
+  }, [headline.lead, headline.rest, headline.fromScroll])
 
   useEffect(() => {
     setShownHeadline(opening)
     setShownFromScroll(false)
-    setGreetOpaque(true)
     setActiveIndex(0)
   }, [filter, opening.lead, opening.rest])
 
@@ -375,7 +429,7 @@ export default function OverviewReadStack({
   }, [atEnd, briefingKey, filter])
 
   useEffect(() => {
-    publishProgress(0)
+    publishProgress(false)
     if (scrollRef.current) scrollRef.current.scrollTop = 0
     setActiveIndex(0)
     const id = window.requestAnimationFrame(() => syncScroll())
@@ -411,6 +465,7 @@ export default function OverviewReadStack({
     try { window.speechSynthesis.cancel() } catch { /* noop */ }
     speakQueueRef.current += 1
     setSpeaking(false)
+    setPaused(false)
     setSpeakIndex(-1)
   }, [])
 
@@ -428,11 +483,13 @@ export default function OverviewReadStack({
 
     let i = Math.max(0, Math.min(startAt, lines.length - 1))
     setSpeaking(true)
+    setPaused(false)
 
     const next = () => {
       if (queue !== speakQueueRef.current) return
       if (i >= lines.length) {
         setSpeaking(false)
+        setPaused(false)
         setSpeakIndex(-1)
         return
       }
@@ -447,6 +504,7 @@ export default function OverviewReadStack({
       u.onerror = () => {
         if (queue !== speakQueueRef.current) return
         setSpeaking(false)
+        setPaused(false)
         setSpeakIndex(-1)
       }
       window.speechSynthesis.speak(u)
@@ -454,12 +512,28 @@ export default function OverviewReadStack({
     next()
   }
 
-  function toggleSpeak() {
-    if (speaking) {
+  function toggleAudioDock() {
+    if (audioOpen) {
       stopSpeak()
+      setAudioOpen(false)
       return
     }
-    speakFrom(0)
+    setAudioOpen(true)
+  }
+
+  function togglePlayPause() {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    if (!speaking) {
+      speakFrom(speakIndex > 0 ? speakIndex : 0)
+      return
+    }
+    if (paused) {
+      window.speechSynthesis.resume()
+      setPaused(false)
+      return
+    }
+    window.speechSynthesis.pause()
+    setPaused(true)
   }
 
   async function shareReport() {
@@ -490,37 +564,21 @@ export default function OverviewReadStack({
     })
   }
 
-  function togglePlain() {
-    stopSpeak()
-    setPlain((v) => !v)
-    setActiveIndex(0)
-    setShownHeadline(opening)
-    setShownFromScroll(false)
-    if (scrollRef.current) scrollRef.current.scrollTop = 0
-    publishProgress(0)
-  }
-
-  const audioLabel = speaking
-    ? speakIndex >= 0
-      ? `Audio stoppen (${Math.min(speakIndex + 1, sentences.length + 1)}/${sentences.length + 1})`
-      : 'Audio stoppen'
-    : 'Audio'
+  const playLabel = !speaking
+    ? 'Vorlesen'
+    : paused
+      ? 'Weiter'
+      : 'Pause'
 
   return (
     <div
       ref={rootRef}
-      className={`ffl-read${shownFromScroll ? ' is-promoted-read' : ''}${plain ? ' is-plain' : ''}${speaking ? ' is-audio' : ''}`}
+      className={`ffl-read${shownFromScroll ? ' is-promoted-read' : ''}${plain ? ' is-plain' : ''}${audioOpen ? ' is-audio' : ''}`}
     >
-      <h1
-        className={`ffl-greet${shownFromScroll ? ' is-promoted' : ''}${greetOpaque ? ' is-in' : ' is-out'}`}
-      >
-        <span className="ffl-greet-lead">
-          {renderMarkedText(shownHeadline.lead, { onOpenMark, markPreviews })}
-        </span>
+      <h1 className="ffl-greet">
+        <span className="ffl-greet-lead">{shownHeadline.lead}</span>
         {shownHeadline.rest ? (
-          <span className="ffl-greet-rest">
-            {renderMarkedText(shownHeadline.rest, { onOpenMark, markPreviews })}
-          </span>
+          <span className="ffl-greet-rest"> {shownHeadline.rest}</span>
         ) : null}
       </h1>
 
@@ -537,16 +595,15 @@ export default function OverviewReadStack({
           <p key={`${p.topic}-${p.start}`} className={`ffl-read-line is-flow is-${p.topic}`}>
             {p.parts.map((text, i) => {
               const globalIndex = p.start + i
-              const promoted = !plain && activeIndex > 0 && globalIndex < activeIndex
               const live = speaking && speakIndex === globalIndex + 1
               return (
                 <span
                   key={`${p.topic}-${globalIndex}`}
                   ref={(node) => { sentRefs.current[globalIndex] = node }}
-                  className={`ffl-read-sent${promoted ? ' is-up' : ''}${live ? ' is-live' : ''}`}
-                  aria-hidden={promoted || undefined}
+                  className={`ffl-read-sent${live ? ' is-live' : ''}`}
                 >
-                  {text}{i < p.parts.length - 1 ? ' ' : ''}
+                  {renderMarkedText(text, { onOpenMark, markPreviews, markGates })}
+                  {i < p.parts.length - 1 ? ' ' : ''}
                 </span>
               )
             })}
@@ -568,27 +625,50 @@ export default function OverviewReadStack({
 
       <div className="ffl-read-foot">
         <p className={`ffl-read-hint${canScroll && !atEnd && !readAt && !plain ? '' : ' is-hidden'}`}>
-          Scrollen — das Wichtige wandert in die Überschrift
+          Scrollen zum Weiterlesen
         </p>
-        <div className="ffl-read-actions" role="toolbar" aria-label="Bericht">
-          <button
-            type="button"
-            className={`ffl-icon-btn${plain ? ' is-on' : ''}`}
-            onClick={togglePlain}
-            aria-label={plain ? 'Zurück zum normalen Lesen' : 'Als Fließtext lesen'}
-            title={plain ? 'Zurück' : 'Fließtext'}
-          >
-            {plain ? <Waves size={16} weight="regular" /> : <TextAlignLeft size={16} weight="regular" />}
-          </button>
-          <button
-            type="button"
-            className={`ffl-icon-btn${speaking ? ' is-on' : ''}`}
-            onClick={toggleSpeak}
-            aria-label={audioLabel}
-            title={audioLabel}
-          >
-            {speaking ? <SpeakerSlash size={16} weight="regular" /> : <SpeakerHigh size={16} weight="regular" />}
-          </button>
+        <div className={`ffl-read-actions${audioOpen ? ' is-audio-open' : ''}`} role="toolbar" aria-label="Bericht">
+          {onToggleReport ? (
+            <button
+              type="button"
+              className={`ffl-icon-btn${reportActive ? ' is-on' : ''}`}
+              onClick={() => {
+                stopSpeak()
+                setAudioOpen(false)
+                onToggleReport()
+              }}
+              aria-label={reportActive ? 'Zurück zum Fluss' : 'Bericht-Ansicht'}
+              title={reportActive ? 'Fluss' : 'Bericht'}
+              aria-pressed={reportActive}
+            >
+              <Article size={16} weight="regular" />
+            </button>
+          ) : null}
+          <div className="ffl-audio-dock">
+            <button
+              type="button"
+              className={`ffl-icon-btn ffl-audio-play${audioOpen ? ' is-shown' : ''}${speaking && !paused ? ' is-on' : ''}`}
+              onClick={togglePlayPause}
+              tabIndex={audioOpen ? 0 : -1}
+              aria-hidden={!audioOpen}
+              aria-label={playLabel}
+              title={playLabel}
+            >
+              {speaking && !paused
+                ? <Pause size={15} weight="fill" />
+                : <Play size={15} weight="fill" />}
+            </button>
+            <button
+              type="button"
+              className={`ffl-icon-btn${audioOpen ? ' is-on' : ''}`}
+              onClick={toggleAudioDock}
+              aria-label={audioOpen ? 'Audio schließen' : 'Audio öffnen'}
+              title={audioOpen ? 'Schließen' : 'Audio'}
+              aria-expanded={audioOpen}
+            >
+              <SpeakerHigh size={16} weight="regular" />
+            </button>
+          </div>
           <button
             type="button"
             className="ffl-icon-btn"
@@ -632,42 +712,6 @@ function endDot(s: string) {
   const t = s.trim()
   if (!t) return t
   return /[.!?…]$/.test(t) ? t : `${t}.`
-}
-
-/**
- * Turn a full key sentence into H1 lead + muted rest.
- * Prefers a natural clause break (comma / em-dash) over a mid-word chop.
- */
-function headlineFromKey(sentence: string): { lead: string; rest: string } {
-  const t = sentence.replace(/\s+/g, ' ').trim()
-  if (!t) return { lead: '', rest: '' }
-
-  const clauseAt = (() => {
-    const soft = Math.min(t.length, 42)
-    const window = t.slice(0, soft)
-    const marks = [', ', ' — ', ' – ', ': ', '; ']
-    let best = -1
-    for (const m of marks) {
-      const i = window.lastIndexOf(m)
-      if (i > 12) best = Math.max(best, i)
-    }
-    return best
-  })()
-
-  if (clauseAt > 12) {
-    const lead = t.slice(0, clauseAt).trim()
-    const rest = t.slice(clauseAt).replace(/^[,—–:;\s]+/, '').trim()
-    return fitHeadline(lead.endsWith('.') ? lead : `${lead}.`, rest)
-  }
-
-  if (t.length <= 48) {
-    return fitHeadline(t, '')
-  }
-
-  const mid = Math.min(t.length, Math.floor(t.length * 0.48))
-  const sp = t.lastIndexOf(' ', mid)
-  const cut = sp > 14 ? sp : mid
-  return fitHeadline(t.slice(0, cut).trim(), t.slice(cut).trim())
 }
 
 /** Keep H1 optically short — ~2 lines lead, short muted rest. */

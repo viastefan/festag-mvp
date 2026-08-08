@@ -267,17 +267,23 @@ pointer-events: none;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
   font-size: 10px;
   font-weight: 400;
   letter-spacing: -0.02em;
-  color: var(--fas-ink);
-  background: rgba(30, 30, 32, 0.06);
+  text-transform: lowercase;
+  color: rgba(30, 30, 32, 0.55);
+  background: rgba(30, 30, 32, 0.07);
   border: none;
   box-shadow: none;
   overflow: hidden;
 }
+.fas-ws-mark.is-empty {
+  color: transparent;
+}
 html[data-theme="dark"] .fas-ws-mark,
 html[data-theme="classic-dark"] .fas-ws-mark {
+  color: rgba(230, 230, 234, 0.62);
   background: rgba(255, 255, 255, 0.08);
 }
 

@@ -31,8 +31,6 @@ import {
   WORKSPACE_SWITCHED_EVENT,
 } from '@/lib/active-workspace'
 import { listWorkspacesForUser, type WorkspaceListItem } from '@/lib/workspace/resolve'
-import { loadSymbol, onSymbolChange, type WorkspaceSymbolPrefs } from '@/lib/workspace-symbol'
-import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
@@ -99,15 +97,13 @@ export default function AppShellSidebar({
 }: Props) {
   const pathname = usePathname() || '/overview'
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
-  const initials = getInitials(user) || 'F'
+  const rawInitials = getInitials(user)
+  const initials = rawInitials && rawInitials !== '??' ? rawInitials : ''
   const [workspaceLabel, setWorkspaceLabel] = useState(
     () => getRememberedWorkspaceName() || 'Kein Workspace',
   )
   const [workspaceId, setWorkspaceId] = useState<string | null>(() => getActiveWorkspaceId())
   const [workspaces, setWorkspaces] = useState<WorkspaceListItem[]>([])
-  const [symbol, setSymbol] = useState<WorkspaceSymbolPrefs>(() =>
-    loadSymbol(getActiveWorkspaceId() || getRememberedWorkspaceName() || 'festag'),
-  )
   const hasWorkspace =
     Boolean(workspaceId) ||
     (workspaceLabel !== 'Kein Workspace' && workspaceLabel !== 'No workspace')
@@ -177,7 +173,6 @@ export default function AppShellSidebar({
         setWorkspaceLabel(active.name)
         rememberActiveWorkspace(active.id, active.name)
         rememberWorkspaceName(active.name)
-        setSymbol(loadSymbol(active.id))
       } else {
         setWorkspaceId(null)
         setWorkspaceLabel('Kein Workspace')
@@ -215,18 +210,11 @@ export default function AppShellSidebar({
   }, [deferredReady, loadRecent, user?.id])
 
   useEffect(() => {
-    return onSymbolChange((key, prefs) => {
-      if (key === workspaceId) setSymbol(prefs)
-    })
-  }, [workspaceId])
-
-  useEffect(() => {
     function onCreated(e: Event) {
       const detail = (e as CustomEvent<{ name?: string; id?: string }>).detail
       if (typeof detail?.id === 'string' && detail.id) {
         rememberActiveWorkspace(detail.id, detail.name)
         setWorkspaceId(detail.id)
-        setSymbol(loadSymbol(detail.id))
       }
       if (typeof detail?.name === 'string' && detail.name.trim()) {
         setWorkspaceLabel(detail.name.trim())
@@ -249,19 +237,12 @@ export default function AppShellSidebar({
       setWorkspaceLabel('Kein Workspace')
       void loadWorkspaces()
     }
-    function onUpdated(e: Event) {
-      const detail = (e as CustomEvent<{ id?: string; symbol?: WorkspaceSymbolPrefs }>).detail
-      if (detail?.id && detail.id === workspaceId && detail.symbol) {
-        setSymbol(detail.symbol)
-      }
+    function onUpdated() {
       void loadWorkspaces()
     }
     function onSwitched(e: Event) {
       const detail = (e as CustomEvent<{ name?: string; id?: string }>).detail
-      if (detail?.id) {
-        setWorkspaceId(detail.id)
-        setSymbol(loadSymbol(detail.id))
-      }
+      if (detail?.id) setWorkspaceId(detail.id)
       if (detail?.name) setWorkspaceLabel(detail.name)
     }
     window.addEventListener(WORKSPACE_CREATED_EVENT, onCreated)
@@ -328,7 +309,6 @@ export default function AppShellSidebar({
     emitWorkspaceSwitched({ id: ws.id, name: ws.name })
     setWorkspaceId(ws.id)
     setWorkspaceLabel(ws.name)
-    setSymbol(loadSymbol(ws.id))
   }
 
   function openSearch() {
@@ -373,17 +353,8 @@ export default function AppShellSidebar({
               setWsOpen((v) => !v)
             }}
           >
-            <span className="fas-ws-mark" aria-hidden="true">
-              {hasWorkspace ? (
-                <WorkspaceSymbol
-                  variant={symbol.variant}
-                  scheme={symbol.scheme}
-                  seed={symbol.seed}
-                  size={28}
-                />
-              ) : (
-                initials
-              )}
+            <span className={`fas-ws-mark${!initials ? ' is-empty' : ''}`} aria-hidden="true">
+              {initials}
             </span>
             <span className="fas-ws-copy">
               <span className="fas-ws-text">

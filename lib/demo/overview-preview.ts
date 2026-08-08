@@ -118,7 +118,7 @@ export const DEMO_OVERVIEW_PAYLOAD: OverviewPayload = {
       summary: null,
       projectId: 'demo-project-2',
       projectTitle: 'Client Portal',
-      urgency: 'normal',
+      urgency: 'high',
       dueDate: null,
       options: [],
     },

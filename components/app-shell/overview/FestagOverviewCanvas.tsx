@@ -13,12 +13,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  ChatCircle,
-  Warning,
-  CheckCircle,
-  ChartBar,
-  UsersThree,
-  FolderSimple,
   ArrowRight,
   X,
   GraphIcon,
@@ -44,6 +38,7 @@ import {
   enrichDecisionFocus,
   type DecisionCanvasTopic,
 } from '@/lib/overview/decision-canvas'
+import { buildFlowNews, countDecisionUrgency } from '@/lib/overview/flow-news'
 import { FLOW_EDGES, FLOW_LAYOUT, type FlowNode, type FlowNodeId } from './overview-nodes'
 
 type Props = {
@@ -54,15 +49,6 @@ type Props = {
 }
 
 type ViewMode = 'flow' | 'report' | 'list'
-
-const ICONS: Record<FlowNodeId, typeof ChatCircle> = {
-  communication: ChatCircle,
-  risks: Warning,
-  decisions: CheckCircle,
-  status: ChartBar,
-  team: UsersThree,
-  project: FolderSimple,
-}
 
 export default function FestagOverviewCanvas({
   greeting,
@@ -78,8 +64,10 @@ export default function FestagOverviewCanvas({
   const [error, setError] = useState<string | null>(null)
   const [showRecommend, setShowRecommend] = useState(false)
   const [reportFilter, setReportFilter] = useState<ReportFilter>('all')
+  const [focusDecisionId, setFocusDecisionId] = useState<string | null>(null)
 
-  const focusDecision = data.decisions[0] || null
+  const focusDecision =
+    data.decisions.find((d) => d.id === focusDecisionId) || data.decisions[0] || null
   const hasProjects = data.projects.length > 0
 
   const atRisk = useMemo(
@@ -155,53 +143,34 @@ export default function FestagOverviewCanvas({
   )
 
   const nodes: FlowNode[] = useMemo(() => {
-    const copy: Record<FlowNodeId, { label: string; meta: string; line: string; metaTone?: FlowNode['tone'] }> = {
-      communication: {
-        label: 'Kommunikation',
-        meta: 'Tagro hört mit',
-        line: 'Tagro hält den Kommunikationsfaden ruhig im Blick.',
-      },
-      risks: {
-        label: 'Risiken',
-        meta: atRisk > 0 ? `${atRisk} offen` : 'keine offenen',
-        metaTone: atRisk > 0 ? 'red' : undefined,
-        line: atRisk > 0
-          ? atRisk === 1
-            ? 'Ein Risiko sollte bald geklärt werden.'
-            : `${atRisk} Risiken sollten bald geklärt werden.`
-          : 'Aktuell sind keine Risiken offen.',
-      },
-      decisions: {
-        label: 'Entscheidungen',
-        meta: data.summary.pendingDecisions > 0 ? `${data.summary.pendingDecisions} offen` : 'nichts offen',
-        metaTone: data.summary.pendingDecisions > 0 ? 'green' : undefined,
-        line: data.summary.pendingDecisions > 0
-          ? data.summary.pendingDecisions === 1
-            ? 'Eine Entscheidung wartet auf deine Freigabe.'
-            : `${data.summary.pendingDecisions} Entscheidungen warten auf deine Freigabe.`
-          : 'Gerade wartet keine Entscheidung auf dich.',
-      },
-      status: {
-        label: 'Projektstatus',
-        meta: healthLabel,
-        metaTone: healthLabel === 'Stabil' ? 'blue' : healthLabel === 'Achtung' ? 'red' : undefined,
-        line: `Der Projektstatus steht auf ${healthLabel.toLowerCase()}.`,
-      },
-      team: {
-        label: 'Team & Entwickler',
-        meta: `${Math.max(1, data.summary.teamMembers)} aktiv`,
-        line: `${Math.max(1, data.summary.teamMembers)} Personen sind gerade aktiv im Workspace.`,
-      },
-      project: {
-        label: 'Projekt',
-        meta: hasProjects ? 'Gesamtbericht' : 'noch keins',
-        line: hasProjects
-          ? 'Der Gesamtbericht fasst den Stand deiner Projekte.'
-          : 'Leg dein erstes Projekt an — danach entsteht der Fluss.',
-      },
+    const { soft, urgent } = countDecisionUrgency(data.decisions)
+    const activityHint = data.activity[0]?.title || null
+    const projectTitle = data.briefing?.projectTitle || data.projects[0]?.title || null
+    const input = {
+      atRisk,
+      pendingDecisions: data.summary.pendingDecisions,
+      softDecisions: soft,
+      urgentDecisions: urgent,
+      teamMembers: data.summary.teamMembers,
+      openTasks,
+      healthLabel,
+      hasProjects,
+      activityHint,
+      projectTitle,
     }
-    return FLOW_LAYOUT.map((n) => ({ ...n, ...copy[n.id] }))
-  }, [data, atRisk, healthLabel, hasProjects])
+    return FLOW_LAYOUT.map((n) => {
+      const news = buildFlowNews(n.id, input)
+      return {
+        ...n,
+        label: news.label,
+        meta: news.meta,
+        metaTone: news.metaTone,
+        news: news.news,
+        line: news.news,
+        pulse: news.pulse,
+      }
+    })
+  }, [data, atRisk, healthLabel, hasProjects, openTasks])
 
   const openDecisions = useCallback(() => {
     setFocus('decisions')
@@ -209,11 +178,13 @@ export default function FestagOverviewCanvas({
     setSelected(topic?.recommendId || null)
   }, [topic])
 
-  const openMarkGate = useCallback((tone: 'risk' | 'decision' | 'efficiency') => {
+  const openMarkGate = useCallback((tone: 'risk' | 'decision' | 'efficiency', itemId?: string) => {
     setView('flow')
     if (tone === 'decision') {
+      if (itemId) setFocusDecisionId(itemId)
       setReportFilter('decisions')
-      openDecisions()
+      setFocus('decisions')
+      setShowRecommend(false)
       return
     }
     if (tone === 'risk') {
@@ -225,7 +196,12 @@ export default function FestagOverviewCanvas({
     setReportFilter('status')
     setFocus('status')
     setShowRecommend(false)
-  }, [openDecisions])
+  }, [])
+
+  useEffect(() => {
+    if (focus !== 'decisions') return
+    setSelected(topic?.recommendId || null)
+  }, [focus, topic?.recommendId, focusDecision?.id])
 
   const markPreviews = useMemo(() => {
     const riskProject = data.projects.find((p) => p.health === 'risk' || p.health === 'blocked')
@@ -235,7 +211,7 @@ export default function FestagOverviewCanvas({
         hint: topic?.recommendLabel
           ? `Empfehlung: ${topic.recommendLabel}`
           : data.summary.pendingDecisions > 0
-            ? `${data.summary.pendingDecisions} offen — im Fluss entscheiden`
+            ? `${data.summary.pendingDecisions} offen — tippen zum Öffnen`
             : 'Im Fluss öffnen',
       },
       risk: {
@@ -250,6 +226,38 @@ export default function FestagOverviewCanvas({
       },
     }
   }, [data, topic, atRisk, healthLabel, openTasks])
+
+  const markGates = useMemo(() => ({
+    decision: {
+      items: data.decisions.map((d) => ({
+        id: d.id,
+        title: d.title || d.summary || 'Entscheidung',
+        hint: d.urgency === 'high' || d.urgency === 'critical'
+          ? 'eher dringend'
+          : d.projectTitle || 'offen',
+      })),
+      empty: 'Keine offene Entscheidung',
+    },
+    risk: {
+      items: data.projects
+        .filter((p) => p.health === 'risk' || p.health === 'blocked')
+        .map((p) => ({
+          id: p.id,
+          title: p.title,
+          hint: p.health === 'blocked' ? 'blockiert' : 'im Blick',
+        })),
+      empty: 'Keine offenen Risiken',
+    },
+    efficiency: {
+      items: [
+        {
+          id: 'status',
+          title: `Status: ${healthLabel}`,
+          hint: openTasks > 0 ? `${openTasks} Aufgaben offen` : 'im Fluss öffnen',
+        },
+      ],
+    },
+  }), [data.decisions, data.projects, healthLabel, openTasks])
 
   async function accept() {
     if (!topic || busy || !topic.decisionId) return
@@ -298,10 +306,17 @@ export default function FestagOverviewCanvas({
             beats={readBeats}
             filter={reportFilter}
             opening={readOpening}
+            ctx={readCtx}
             showCreateProject={!hasProjects}
             onCreateProject={() => openNewProject()}
             onOpenMark={openMarkGate}
             markPreviews={markPreviews}
+            markGates={markGates}
+            reportActive={view === 'report'}
+            onToggleReport={() => {
+              setFocus(null)
+              setView((v) => (v === 'report' ? 'flow' : 'report'))
+            }}
           />
         </section>
       ) : null}
@@ -319,7 +334,6 @@ export default function FestagOverviewCanvas({
             ))}
           </svg>
           {nodes.map((node) => {
-            const Icon = ICONS[node.id]
             const isFocus = focus === node.id
             return (
               <button
@@ -331,6 +345,7 @@ export default function FestagOverviewCanvas({
                 className={[
                   'ffl-node',
                   `is-${node.tone}`,
+                  `is-pulse-${node.pulse || 'calm'}`,
                   isFocus ? 'is-focus' : '',
                   focus && !isFocus ? 'is-dim' : '',
                   reportFilter !== 'all' && reportFilter !== node.id ? 'is-filter-dim' : '',
@@ -339,28 +354,36 @@ export default function FestagOverviewCanvas({
                 onClick={() => {
                   if (view !== 'flow') return
                   setReportFilter(node.id)
+                  if (isFocus) {
+                    setFocus(null)
+                    return
+                  }
                   if (node.id === 'decisions') openDecisions()
-                  else setFocus(isFocus ? null : node.id)
+                  else setFocus(node.id)
                 }}
                 aria-pressed={isFocus}
-                aria-label={isFocus ? node.line : node.label}
+                aria-label={`${node.label}. ${node.news}`}
               >
-                {isFocus ? (
-                  <>
-                    <span className="ffl-node-mark">
-                      <FlowConstellation tone={node.tone} size={56} />
-                    </span>
-                    <span className="ffl-node-line">{node.line}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="ffl-node-orb"><Icon size={20} weight="regular" /></span>
-                    <span className="ffl-node-copy">
-                      <span className="ffl-node-label">{node.label}</span>
-                      <span className={`ffl-node-meta${node.metaTone ? ` is-${node.metaTone}` : ''}`}>{node.meta}</span>
-                    </span>
-                  </>
-                )}
+                <span className="ffl-node-mark" aria-hidden>
+                  <FlowConstellation
+                    tone={node.metaTone || node.tone}
+                    size={isFocus ? 30 : 28}
+                    pulse={node.pulse}
+                  />
+                </span>
+                <span className="ffl-node-copy">
+                  <span className="ffl-node-head">
+                    <span className="ffl-node-label">{node.label}</span>
+                    {node.meta ? (
+                      <span className={`ffl-node-meta${node.metaTone ? ` is-${node.metaTone}` : ''}`}>
+                        {node.meta}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className={`ffl-node-line${isFocus ? ' is-focus-line' : ' is-idle-line'}`}>
+                    {node.news}
+                  </span>
+                </span>
               </button>
             )
           })}
@@ -390,22 +413,31 @@ export default function FestagOverviewCanvas({
             <X size={16} weight="bold" />
           </button>
 
-          {focus === 'decisions' && topic ? (
-            <>
-              <DetailHead title="Entscheidungen" />
-              <OverviewStoryPanel
-                topic={topic}
-                selected={selected}
-                onSelect={setSelected}
-                showDecision
-                showRecommend={showRecommend}
-                onOpenRecommend={() => setShowRecommend(true)}
-                onAccept={() => void accept()}
-                busy={busy}
-                error={error}
-                layout="rail"
-              />
-            </>
+          {focus === 'decisions' ? (
+            topic ? (
+              <>
+                <DetailHead title="Entscheidungen" />
+                <OverviewStoryPanel
+                  topic={topic}
+                  selected={selected}
+                  onSelect={setSelected}
+                  showDecision
+                  showRecommend={showRecommend}
+                  onOpenRecommend={() => setShowRecommend(true)}
+                  onAccept={() => void accept()}
+                  busy={busy}
+                  error={error}
+                  layout="rail"
+                />
+              </>
+            ) : (
+              <>
+                <DetailHead title="Entscheidungen" />
+                <p className="ffl-empty" data-ffl-bridge-target>
+                  Gerade wartet keine Entscheidung auf dich.
+                </p>
+              </>
+            )
           ) : focus === 'risks' ? (
             <>
               <DetailHead title="Risiken" />
