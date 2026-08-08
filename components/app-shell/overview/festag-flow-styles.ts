@@ -94,6 +94,36 @@ export const FESTAG_FLOW_STYLES = `
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* ── Report filters — top left, sync with Fluss ── */
+.ffl-filters {
+  position: absolute;
+  top: clamp(16px, 2.4vh, 28px);
+  left: clamp(24px, 3vw, 48px);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  max-width: min(420px, calc(50vw - 80px));
+}
+.ffl-filter {
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ffl-muted);
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.18s var(--ffl-ease), color 0.18s var(--ffl-ease);
+}
+.ffl-filter:hover { color: var(--ffl-soft); background: rgba(15, 15, 18, 0.04); }
+.ffl-filter.is-on {
+  background: rgba(15, 15, 18, 0.06);
+  color: var(--ffl-ink);
+}
+
 /* ── Report column — Figma editorial read stack ── */
 .ffl-report { min-width: 0; width: 100%; }
 .ffl-report.is-centered {
@@ -111,58 +141,117 @@ export const FESTAG_FLOW_STYLES = `
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 34ch;
+  max-width: 36ch;
   width: 100%;
 }
 .ffl-greet {
-  margin: 0 0 22px;
+  margin: 0 0 20px;
   font-family: 'Editors Note', Georgia, 'Times New Roman', serif;
   font-weight: 400;
   font-style: normal;
-  font-size: clamp(34px, 3.6vw, 48px);
-  line-height: 1.12;
-  letter-spacing: -0.018em;
+  font-size: clamp(38px, 4.1vw, 54px);
+  line-height: 1.14;
+  letter-spacing: -0.016em;
   color: #2F3544;
+  max-width: 22ch;
+  transition: opacity 0.35s var(--ffl-ease), transform 0.35s var(--ffl-ease);
 }
+.ffl-greet-lead { color: #2F3544; }
+.ffl-greet-rest { color: #8891a0; }
 .ffl-read-scroll {
   position: relative;
   width: 100%;
-  max-height: min(38vh, 280px);
+  max-height: min(42vh, 300px);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 42%, transparent 96%);
-  mask-image: linear-gradient(to bottom, #000 42%, transparent 96%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 38%, transparent 94%);
+  mask-image: linear-gradient(to bottom, #000 38%, transparent 94%);
 }
 .ffl-read-scroll::-webkit-scrollbar { display: none; }
 .ffl-read-scroll.is-end {
   -webkit-mask-image: none;
   mask-image: none;
 }
+.ffl-read-line {
+  margin: 0 0 14px;
+  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
+  font-weight: 400;
+  font-size: clamp(16px, 1.35vw, 18.5px);
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: #A7ADB8;
+  max-width: 34ch;
+}
+.ffl-read-line:last-child { margin-bottom: 28px; }
 .ffl-read-body {
   margin: 0;
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
   font-weight: 400;
   font-size: clamp(16px, 1.35vw, 18.5px);
   line-height: 1.55;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   color: #A7ADB8;
   max-width: 34ch;
 }
+.ffl-read-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 14px;
+}
 .ffl-read-hint {
-  margin: 18px 0 0;
+  margin: 0;
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
   font-weight: 400;
   font-size: 12px;
-  line-height: 1.3;
+  line-height: 1.35;
   letter-spacing: 0.01em;
   color: #C4C8D0;
   transition: opacity 0.25s var(--ffl-ease);
+  flex: 1;
+  min-width: 0;
 }
 .ffl-read-hint.is-hidden {
   opacity: 0;
   pointer-events: none;
 }
+.ffl-read-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.ffl-icon-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #A0A7B5;
+  cursor: pointer;
+  transition: background 0.18s var(--ffl-ease), color 0.18s var(--ffl-ease);
+}
+.ffl-icon-btn:hover {
+  background: rgba(15, 15, 18, 0.05);
+  color: var(--ffl-ink);
+}
+.ffl-icon-btn.is-on {
+  background: rgba(15, 15, 18, 0.07);
+  color: var(--ffl-ink);
+}
+
+.ffl-node.is-filter-dim {
+  opacity: 0.28;
+  filter: saturate(0.5);
+  pointer-events: none;
+}
+
 .ffl-line {
   margin: 0;
   font-size: 17px;

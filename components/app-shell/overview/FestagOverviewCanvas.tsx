@@ -11,7 +11,7 @@
  * that has nothing to say stays silent.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ChatCircle,
   Warning,
@@ -20,7 +20,6 @@ import {
   UsersThree,
   FolderSimple,
   ArrowRight,
-  Plus,
   Play,
   Pause,
   X,
@@ -31,6 +30,11 @@ import {
 import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
 import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import { FESTAG_FLOW_STYLES } from '@/components/app-shell/overview/festag-flow-styles'
+import OverviewReadStack, {
+  buildOverviewReadBeats,
+  REPORT_FILTERS,
+  type ReportFilter,
+} from '@/components/app-shell/overview/OverviewReadStack'
 import type { OverviewPayload } from '@/components/app-shell/WorkspaceOverviewLive'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { openNewProject } from '@/lib/new-project-open'
@@ -72,9 +76,7 @@ export default function FestagOverviewCanvas({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showRecommend, setShowRecommend] = useState(false)
-  const [readAtEnd, setReadAtEnd] = useState(false)
-  const [readCanScroll, setReadCanScroll] = useState(false)
-  const readScrollRef = useRef<HTMLDivElement | null>(null)
+  const [reportFilter, setReportFilter] = useState<ReportFilter>('all')
 
   const focusDecision = data.decisions[0] || null
   const hasProjects = data.projects.length > 0
@@ -152,58 +154,20 @@ export default function FestagOverviewCanvas({
   }, [view, stop])
   useEffect(() => () => stop(), [stop])
 
-  const editorialBody = useMemo(() => {
-    const fromBriefing = (data.briefing?.lines || [])
-      .map(softenBriefingLine)
-      .map((l) => l.trim())
-      .filter(Boolean)
-    if (fromBriefing.length > 0) return fromBriefing.join(' ')
-
-    const parts: string[] = [softenCalmLine(data.summary.calmLine)]
-    if (data.summary.pendingDecisions > 0) {
-      parts.push(
-        data.summary.pendingDecisions === 1
-          ? 'Optional könnten wir die offene Entscheidung prüfen.'
-          : `Optional könnten wir die ${data.summary.pendingDecisions} offenen Entscheidungen prüfen.`,
-      )
-    } else if (openTasks > 0) {
-      parts.push(
-        openTasks === 1
-          ? 'Eine Aufgabe bleibt noch offen — sonst ist der Tag ruhig.'
-          : `${openTasks} Aufgaben bleiben noch offen — sonst ist der Tag ruhig.`,
-      )
-    } else {
-      parts.push('Abgesehen davon gibt es keine auffälligen Vorkommnisse.')
-    }
-    if (atRisk > 0) {
-      parts.push(
-        atRisk === 1
-          ? 'Ein Risiko bleibt im Blick.'
-          : `${atRisk} Risiken bleiben im Blick.`,
-      )
-    } else if (data.summary.pendingDecisions === 0) {
-      parts.push('Bei Bedarf können wir den bisherigen Fortschritt noch einmal durchgehen.')
-    }
-    return parts.join(' ')
-  }, [data, atRisk, openTasks])
-
-  const syncReadScroll = useCallback(() => {
-    const el = readScrollRef.current
-    if (!el) return
-    const can = el.scrollHeight > el.clientHeight + 4
-    setReadCanScroll(can)
-    const atEnd = !can || el.scrollTop + el.clientHeight >= el.scrollHeight - 8
-    setReadAtEnd(atEnd)
-  }, [])
-
-  useEffect(() => {
-    syncReadScroll()
-    const el = readScrollRef.current
-    if (!el || typeof ResizeObserver === 'undefined') return
-    const ro = new ResizeObserver(() => syncReadScroll())
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [editorialBody, view, syncReadScroll])
+  const readBeats = useMemo(
+    () =>
+      buildOverviewReadBeats({
+        calmLine: data.summary.calmLine,
+        pendingDecisions: data.summary.pendingDecisions,
+        atRisk,
+        openTasks,
+        teamMembers: data.summary.teamMembers,
+        healthLabel,
+        activityTitle: data.activity[0]?.title || null,
+        briefingLines: data.briefing?.lines,
+      }),
+    [data, atRisk, openTasks, healthLabel],
+  )
 
   const nodes: FlowNode[] = useMemo(() => {
     const copy: Record<FlowNodeId, { label: string; meta: string; metaTone?: FlowNode['tone'] }> = {
@@ -265,30 +229,38 @@ export default function FestagOverviewCanvas({
       <style>{FESTAG_FLOW_STYLES}</style>
       <style>{FESTAG_OVERVIEW_PANEL_STYLES}</style>
 
+      <div className="ffl-filters" role="tablist" aria-label="Bericht filtern">
+        {REPORT_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            role="tab"
+            aria-selected={reportFilter === f.id}
+            className={`ffl-filter${reportFilter === f.id ? ' is-on' : ''}`}
+            onClick={() => {
+              setReportFilter(f.id)
+              if (f.id !== 'all') setFocus(f.id)
+              else setFocus(null)
+            }}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       <ViewSwitch view={view} onChange={(v) => { setView(v); setFocus(null) }} />
 
       {/* ── Report column ── */}
       <section className={`ffl-report${view === 'report' ? ' is-centered' : ''}`}>
         {view !== 'report' ? (
-          <div className="ffl-read">
-            <h1 className="ffl-greet">{greeting}, {firstName}.</h1>
-            <div
-              ref={readScrollRef}
-              className={`ffl-read-scroll${readAtEnd ? ' is-end' : ''}`}
-              onScroll={syncReadScroll}
-            >
-              <p className="ffl-read-body">{editorialBody}</p>
-            </div>
-            <p className={`ffl-read-hint${!readCanScroll || readAtEnd ? ' is-hidden' : ''}`}>
-              Scrollen um zu lesen
-            </p>
-            {!hasProjects ? (
-              <button type="button" className="ffl-cta" onClick={() => openNewProject()}>
-                <Plus size={16} weight="bold" />
-                Erstes Projekt anlegen
-              </button>
-            ) : null}
-          </div>
+          <OverviewReadStack
+            greeting={greeting}
+            firstName={firstName}
+            beats={readBeats}
+            filter={reportFilter}
+            showCreateProject={!hasProjects}
+            onCreateProject={() => openNewProject()}
+          />
         ) : (
           /* ── Spoken report: the text carries the room ── */
           <div className="ffl-lyrics">
@@ -353,9 +325,19 @@ export default function FestagOverviewCanvas({
               <button
                 key={node.id}
                 type="button"
-                className={['ffl-node', `is-${node.tone}`, isFocus ? 'is-focus' : '', focus && !isFocus ? 'is-dim' : ''].filter(Boolean).join(' ')}
+                className={[
+                  'ffl-node',
+                  `is-${node.tone}`,
+                  isFocus ? 'is-focus' : '',
+                  focus && !isFocus ? 'is-dim' : '',
+                  reportFilter !== 'all' && reportFilter !== node.id ? 'is-filter-dim' : '',
+                ].filter(Boolean).join(' ')}
                 style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                onClick={() => (node.id === 'decisions' ? openDecisions() : setFocus(isFocus ? null : node.id))}
+                onClick={() => {
+                  setReportFilter(node.id)
+                  if (node.id === 'decisions') openDecisions()
+                  else setFocus(isFocus ? null : node.id)
+                }}
                 aria-pressed={isFocus}
               >
                 <span className="ffl-node-orb"><Icon size={20} weight="fill" /></span>
