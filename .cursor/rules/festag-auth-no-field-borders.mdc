@@ -43,23 +43,23 @@ Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal 
 
 ## Inputs
 
-Idle text fields have **no visible stroke**. Stroke appears only on **focus** (accent `#5B647D` / `--al-accent`), slightly soft (`1.5px`). No focus rings / glow shadows. Focus changes **stroke only** — never a fill step. Hover and filled-unfocused stay transparent.
+Idle / hover / filled-unfocused text fields keep a **soft gray hairline** (same as OTP PIN cells). Focus switches to accent `#5B647D` / `--al-accent` (`1.5px`). No focus rings / glow shadows. Focus changes **stroke color only** — never a fill step.
 
 ```css
 background: transparent;
-border: 1.5px solid transparent; /* idle / hover / filled */
+border: 1.5px solid rgba(30, 30, 32, 0.16); /* idle / hover / filled — light */
 /* focus */
 border-color: #5B647D; /* --festag-input-border-focus */
 ```
 
-Same in light and dark. Autofill may use a canvas-matched inset paint but must not show an idle accent stroke — only while focused.
+Dark idle: `rgba(255, 255, 255, 0.16)`. Autofill may use a canvas-matched inset paint but must not show an idle accent stroke — only while focused.
 
-**Exception — OTP digit boxes (`.al-otp-cell`):** idle strokes stay visible (`rgba(30,30,32,0.16)` light / white hairline dark). Empty code boxes must read as six fields at rest — never inherit transparent `--festag-input-border`.
+OTP digit boxes (`.al-otp-cell`) use the same idle gray family.
 
 ## Do not
 
 - Dual/heavy marketing shadows
-- Idle field hairlines (stroke only on focus)
+- Fully transparent idle field strokes (fields must stay visible at rest)
 - Thick / opaque strokes in dark CTAs (keep ~6% white hairline only)
 - Inset top strokes / `inset 0 1px …` on idle or hover
 - Thicker “3D platform” bars (`0 1.5px 0`)

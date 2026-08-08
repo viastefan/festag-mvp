@@ -9,9 +9,9 @@ import {
  * Shared 6-box OTP / PIN digit styles — AuthLanding (`/login`) + Dev login.
  * Classes: `.al-otp`, `.al-otp-cell` (from AuthOtpInput).
  *
- * Auth text fields use transparent idle strokes (focus-only).
- * OTP cells are different: empty boxes must stay visible at rest, or Code eingeben
- * collapses to a single caret with “missing” fields.
+ * Auth text fields + OTP cells share the same soft idle hairline family
+ * (`AUTH_STROKE_IDLE` / dark twin). OTP cells still hardcode the gray so
+ * empty code boxes never collapse if a theme resets input tokens.
  */
 const OTP_IDLE_LIGHT = 'rgba(30, 30, 32, 0.16)'
 const OTP_HOVER_LIGHT = 'rgba(30, 30, 32, 0.24)'
@@ -47,7 +47,7 @@ export const AUTH_OTP_STYLES = `
           min-width:40px;
           max-width:40px;
           border-radius:var(--festag-input-radius, 8px) !important;
-          /* Always-visible idle box — do NOT use --festag-input-border (transparent). */
+          /* Always-visible idle box — soft gray matching auth text fields. */
           border:${OTP_STROKE_WIDTH} solid ${OTP_IDLE_LIGHT} !important;
           background-color:transparent;
           background-image:none;

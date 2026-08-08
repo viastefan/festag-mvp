@@ -30,6 +30,7 @@ import {
 import {
   AUTH_STROKE,
   AUTH_STROKE_IDLE,
+  AUTH_STROKE_IDLE_HOVER,
   AUTH_STROKE_WIDTH_FOCUS,
   AUTH_STROKE_WIDTH_IDLE,
 } from '@/components/auth/auth-chrome-tokens'
@@ -734,7 +735,7 @@ const WIZARD_CSS = `
   --festag-input-font-size: 15px;
   --festag-input-radius: 8px;
   --festag-input-border: ${AUTH_STROKE_IDLE};
-  --festag-input-border-hover: ${AUTH_STROKE_IDLE};
+  --festag-input-border-hover: ${AUTH_STROKE_IDLE_HOVER};
   --festag-input-border-width: ${AUTH_STROKE_WIDTH_IDLE};
   --festag-input-border-filled: ${AUTH_STROKE_IDLE};
   --festag-input-border-width-filled: ${AUTH_STROKE_WIDTH_IDLE};

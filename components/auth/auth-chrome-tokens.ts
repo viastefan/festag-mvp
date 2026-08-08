@@ -22,14 +22,18 @@ export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
  * Slightly soft read on ivory; fills (Google CTA) use the same Night primary.
  */
 export const AUTH_CARET = '#5B647D'
-/** Alias — use for every focus/filled field stroke. */
+/** Alias — use for every focus field stroke. */
 export const AUTH_STROKE = AUTH_CARET
 export const AUTH_CARET_SELECTION = 'rgba(91, 100, 125, 0.28)'
-/** Idle: no visible stroke (transparent). Focus: soft accent, slightly thicker. */
+/** Soft idle hairline — same weight as focus; focus alone switches to primary. */
 export const AUTH_STROKE_WIDTH_IDLE = '1.5px'
 export const AUTH_STROKE_WIDTH_FOCUS = '1.5px'
-/** Idle / hover / filled-unfocused field edge — invisible until focus. */
-export const AUTH_STROKE_IDLE = 'transparent'
+/** Idle / hover / filled-unfocused — quiet gray box edge (matches OTP PIN cells). */
+export const AUTH_STROKE_IDLE = 'rgba(30, 30, 32, 0.16)'
+export const AUTH_STROKE_IDLE_HOVER = 'rgba(30, 30, 32, 0.24)'
+/** Dark idle hairline on OLED. */
+export const AUTH_STROKE_IDLE_DARK = 'rgba(255, 255, 255, 0.16)'
+export const AUTH_STROKE_IDLE_HOVER_DARK = 'rgba(255, 255, 255, 0.24)'
 /**
  * Auth dark canvas — Primary Dusk (same OS foundation as mobile onboarding).
  * Deeper than flat Night OLED so auth feels cinematic, not like a login card.
@@ -168,11 +172,11 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
-  /* Quiet ink hairline — idle/focus same weight; focus uses primary blue. */
+  /* Quiet ink hairline at rest; focus uses primary blue. */
   --festag-input-border:${AUTH_STROKE_IDLE};
-  --festag-input-border-hover:${AUTH_STROKE_IDLE};
+  --festag-input-border-hover:${AUTH_STROKE_IDLE_HOVER};
   --festag-input-border-width:${AUTH_STROKE_WIDTH_IDLE};
-  /* Filled keeps the same weight as focus — primary blue. */
+  /* Filled keeps the quiet hairline until focus. */
   --festag-input-border-filled:${AUTH_STROKE_IDLE};
   --festag-input-border-width-filled:${AUTH_STROKE_WIDTH_IDLE};
   --festag-input-border-focus:${AUTH_STROKE};
@@ -234,8 +238,8 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_READ};
   --festag-input-border:${AUTH_STROKE_IDLE};
-  --festag-input-border-hover:${AUTH_STROKE_IDLE};
-  /* Idle transparent; focus alone shows accent stroke. */
+  --festag-input-border-hover:${AUTH_STROKE_IDLE_HOVER};
+  /* Soft idle hairline; focus alone shows accent stroke. */
   --festag-input-border-width:${AUTH_STROKE_WIDTH_IDLE};
   --festag-input-border-filled:${AUTH_STROKE_IDLE};
   --festag-input-border-width-filled:${AUTH_STROKE_WIDTH_IDLE};
@@ -310,11 +314,11 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-caret:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
-  --festag-input-border:${AUTH_STROKE_IDLE};
-  --festag-input-border-hover:${AUTH_STROKE_IDLE};
-  /* Idle transparent; focus alone shows accent stroke. */
+  --festag-input-border:${AUTH_STROKE_IDLE_DARK};
+  --festag-input-border-hover:${AUTH_STROKE_IDLE_HOVER_DARK};
+  /* Soft idle hairline; focus alone shows accent stroke. */
   --festag-input-border-width:${AUTH_STROKE_WIDTH_IDLE};
-  --festag-input-border-filled:${AUTH_STROKE_IDLE};
+  --festag-input-border-filled:${AUTH_STROKE_IDLE_DARK};
   --festag-input-border-width-filled:${AUTH_STROKE_WIDTH_IDLE};
   --festag-input-border-focus:${AUTH_STROKE};
   --festag-input-border-width-focus:${AUTH_STROKE_WIDTH_FOCUS};

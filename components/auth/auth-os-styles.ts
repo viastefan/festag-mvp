@@ -1540,10 +1540,10 @@ export const AUTH_OS_STYLES = `
     --festag-btn-dark-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     --festag-btn-dark-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.04);
     --festag-btn-dark-shadow-active: none;
-    --festag-input-border: transparent;
-    --festag-input-border-hover: transparent;
+    --festag-input-border: rgba(30, 30, 32, 0.16);
+    --festag-input-border-hover: rgba(30, 30, 32, 0.24);
     --festag-input-border-width: 1.5px;
-    --festag-input-border-filled: transparent;
+    --festag-input-border-filled: rgba(30, 30, 32, 0.16);
     --festag-input-border-width-filled: 1.5px;
     --festag-input-border-focus: #5B647D;
     --festag-input-border-width-focus: 1.5px;
