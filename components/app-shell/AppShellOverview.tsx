@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { appShellGreeting } from '@/components/app-shell/app-shell-nav'
 import WorkspaceBoard from '@/components/app-shell/WorkspaceBoard'
 import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
@@ -33,15 +33,30 @@ export default function AppShellOverview({ user }: Props) {
     openWorkspaceCreateWizard()
   }, [load.status])
 
+  /* Only admit to loading once it is actually slow. */
+  const [slowLoad, setSlowLoad] = useState(false)
+  useEffect(() => {
+    if (load.status !== 'loading') {
+      setSlowLoad(false)
+      return
+    }
+    const t = window.setTimeout(() => setSlowLoad(true), 400)
+    return () => window.clearTimeout(t)
+  }, [load.status])
+
   function openDocs(path = '/docs') {
     navigateLeavingAuthChrome(path)
   }
 
   if (load.status === 'loading') {
-    return (
+    /* Fast loads should show nothing at all — a skeleton that flashes for
+       120ms reads as jank, not as progress. */
+    return slowLoad ? (
       <div className="fas-home fas-wo-loading" aria-busy="true">
         <div className="fas-wo-skeleton" />
       </div>
+    ) : (
+      <div className="fas-home" aria-busy="true" />
     )
   }
 

@@ -358,7 +358,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
   const headline =
     phase === 'compose' || phase === 'understanding'
-      ? 'What would you like to build or update?'
+      ? 'Was möchtest du bauen oder ändern?'
       : phase === 'done'
         ? doneMessage || 'Ready.'
         : draftHeadline(result)
@@ -397,10 +397,10 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             onClick={() => setPhase(editing ? 'draft' : 'editing')}
             disabled={busy}
           >
-            {editing ? 'Done editing' : 'Edit Draft'}
+            {editing ? 'Fertig' : 'Entwurf bearbeiten'}
           </ModalButton>
           <ModalButton variant="primary" onClick={confirmDraft} loading={busy} disabled={busy}>
-            Create Project
+            Projekt anlegen
           </ModalButton>
         </>
       )}
@@ -411,7 +411,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             onClick={() => setPhase(editing ? 'draft' : 'editing')}
             disabled={busy}
           >
-            {editing ? 'Done editing' : 'Edit Draft'}
+            {editing ? 'Fertig' : 'Entwurf bearbeiten'}
           </ModalButton>
           <ModalButton variant="primary" onClick={confirmDraft} loading={busy} disabled={busy}>
             Create Task
@@ -697,7 +697,7 @@ function ProjectDraftView({
 }) {
   return (
     <div className="ti-draft">
-      <DraftField label="Project Name">
+      <DraftField label="Projektname">
         {editing ? (
           <input
             className="ti-field"
@@ -709,7 +709,7 @@ function ProjectDraftView({
           <p className="ti-value">{draft.name}</p>
         )}
       </DraftField>
-      <DraftField label="Summary">
+      <DraftField label="Zusammenfassung">
         {editing ? (
           <textarea
             className="ti-field ti-field-area"
@@ -723,7 +723,7 @@ function ProjectDraftView({
           <p className="ti-value ti-value-soft">{draft.summary}</p>
         )}
       </DraftField>
-      <DraftField label="Detected Features">
+      <DraftField label="Erkannte Bausteine">
         <ul className="ti-chips">
           {draft.features.map((f) => (
             <li key={f} className="ti-chip">
@@ -762,7 +762,7 @@ function ProjectDraftView({
           </div>
         )}
       </DraftField>
-      <DraftField label="Estimated Scope">
+      <DraftField label="Geschätzter Umfang">
         {editing ? (
           <div className="ti-scope">
             {(['small', 'medium', 'large'] as EstimatedScope[]).map((s) => (
@@ -962,14 +962,22 @@ function draftHeadline(result: TagroIntentResult | null): string {
 }
 
 const INTENT_MODAL_CSS = `
-.ti-body { display: flex; flex-direction: column; gap: 16px; }
+.ti-body {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 4px 2px 2px;
+}
+
+/* ── Compose ── */
 .ti-compose {
   border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  border-radius: 12px;
-  background: var(--fp-inp, transparent);
-  padding: 14px 14px 10px;
-  transition: border-color 160ms ease, background 160ms ease;
+  border-radius: 14px;
+  background: var(--fp-inp, #ffffff);
+  padding: 20px 20px 14px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
+.ti-compose:focus-within { border-color: rgba(30,30,32,0.20); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 .ti-compose.is-drag {
   border-color: var(--fp-accent, #C9932B);
   background: var(--fp-accent-soft, rgba(201,147,43,0.06));
@@ -981,190 +989,141 @@ const INTENT_MODAL_CSS = `
   resize: none !important;
   background: transparent;
   color: var(--fp-text, #1e1e20);
-  font: 400 16px/1.55 Aeonik, Inter, system-ui, sans-serif;
-  min-height: 140px;
+  font: 400 17px/1.6 Aeonik, Inter, system-ui, sans-serif;
+  min-height: 132px;
   field-sizing: content;
-  max-block-size: 280px;
+  max-block-size: 300px;
 }
 .ti-input::placeholder { color: var(--fp-muted, #8891a0); }
+
 .ti-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--fp-divider, rgba(30,30,32,0.08));
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--fp-divider, rgba(30,30,32,0.07));
 }
-.ti-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.ti-tools { display: flex; gap: 8px; flex-wrap: wrap; }
 .ti-tool {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 4px;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
   border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  background: transparent;
+  background: #ffffff;
   color: var(--fp-soft, #5c5c62);
-  font: 400 13px/1 Aeonik, Inter, system-ui, sans-serif;
+  font: 400 14px/1 Aeonik, Inter, system-ui, sans-serif;
   white-space: nowrap;
   cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
-.ti-tool:hover { background: var(--fp-hover, rgba(201,147,43,0.07)); }
+.ti-tool:hover { background: #FCFBF8; color: var(--fp-text, #1e1e20); }
 .ti-tool.is-on {
   border-color: var(--fp-accent, #C9932B);
   color: var(--fp-accent, #C9932B);
+  background: rgba(201,147,43,0.07);
 }
-.ti-hint {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--fp-muted, #8891a0);
-  white-space: nowrap;
-}
-.ti-files {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+.ti-hint { margin: 0; font-size: 14px; color: var(--fp-muted, #8891a0); white-space: nowrap; }
+
+.ti-files { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .ti-file {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  padding: 6px 8px 6px 10px;
-  border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 8px;
+  max-width: 100%; padding: 8px 10px 8px 12px;
+  border-radius: 8px;
   background: var(--fp-pill, rgba(15,23,42,0.04));
   color: var(--fp-text, #1e1e20);
-  font-size: 12.5px;
+  font-size: 14px;
 }
-.ti-file span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 180px;
-}
+.ti-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
 .ti-file button {
-  border: none;
-  background: transparent;
-  color: var(--fp-muted, #8891a0);
-  cursor: pointer;
-  display: inline-flex;
-  padding: 2px;
+  border: none; background: transparent; color: var(--fp-muted, #8891a0);
+  cursor: pointer; display: inline-flex; padding: 2px;
 }
+.ti-file button:hover { color: var(--fp-text, #1e1e20); }
+
+/* ── Processing ── */
 .ti-process {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  min-height: 140px;
-  justify-content: center;
-  padding: 12px 2px 24px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+  min-height: 150px; justify-content: center; padding: 16px 2px 28px;
 }
-.ti-process-label {
-  margin: 0;
-  font: 400 18px/1.35 Aeonik, Inter, system-ui, sans-serif;
-  color: var(--fp-text, #1e1e20);
-}
-.ti-process-sub {
-  margin: 0;
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: var(--fp-muted, #8891a0);
-  max-width: 36rem;
-}
-.ti-draft { display: flex; flex-direction: column; gap: 18px; }
-.ti-row { display: grid; gap: 6px; }
+.ti-process-label { margin: 0; font: 400 20px/1.35 Aeonik, Inter, system-ui, sans-serif; color: var(--fp-text, #1e1e20); }
+.ti-process-sub { margin: 0; font-size: 15px; line-height: 1.6; color: var(--fp-muted, #8891a0); max-width: 40rem; }
+
+/* ── Draft — one calm rhythm, generous room ── */
+.ti-draft { display: flex; flex-direction: column; gap: 24px; }
+.ti-row { display: grid; gap: 8px; }
 .ti-label {
-  font-size: 12.5px;
+  font-size: 14px;
   letter-spacing: 0.01em;
   color: var(--fp-muted, #8891a0);
 }
-.ti-value {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.45;
-  color: var(--fp-text, #1e1e20);
-}
-.ti-value-soft { color: var(--fp-soft, #5c5c62); font-size: 15px; line-height: 1.55; }
+.ti-value { margin: 0; font-size: 18px; line-height: 1.5; color: var(--fp-text, #1e1e20); }
+.ti-value-soft { color: var(--fp-soft, #5c5c62); font-size: 16px; line-height: 1.6; }
+
 .ti-field {
-  width: 100%;
-  height: 42px;
-  border-radius: 4px;
-  border: 1px solid var(--fp-inp-border, rgba(30,30,32,0.15));
-  background: transparent;
+  width: 100%; height: 48px; border-radius: 8px;
+  border: 1px solid var(--fp-inp-border, rgba(30,30,32,0.12));
+  background: #ffffff;
   color: var(--fp-text, #1e1e20);
-  padding: 0 12px;
-  font: 400 15px/1.4 Aeonik, Inter, system-ui, sans-serif;
-  outline: none;
-}
-.ti-field:focus { border-color: var(--fp-inp-focus-border, #C9932B); }
-.ti-field-area {
-  height: auto;
-  min-height: 84px;
-  padding: 10px 12px;
-  resize: none !important;
-}
-.ti-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.ti-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border-radius: 6px;
-  background: var(--fp-pill, rgba(15,23,42,0.04));
-  border: 1px solid var(--fp-border, rgba(30,30,32,0.08));
-  font-size: 13.5px;
-  color: var(--fp-text, #1e1e20);
-}
-.ti-chip button {
-  border: none;
-  background: transparent;
-  color: var(--fp-muted, #8891a0);
-  cursor: pointer;
-  display: inline-flex;
-}
-.ti-add-row { display: flex; gap: 8px; margin-top: 8px; }
-.ti-add-btn {
-  height: 42px;
   padding: 0 14px;
-  border-radius: 4px;
-  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  background: transparent;
-  color: var(--fp-text, #1e1e20);
-  cursor: pointer;
-  white-space: nowrap;
-  font: 400 14px/1 Aeonik, Inter, system-ui, sans-serif;
+  font: 400 16px/1.4 Aeonik, Inter, system-ui, sans-serif;
+  outline: none;
+  transition: border-color 140ms ease;
 }
-.ti-scope { display: flex; gap: 6px; flex-wrap: wrap; }
+.ti-field:focus { border-color: var(--fp-inp-focus-border, rgba(30,30,32,0.28)); }
+.ti-field-area { height: auto; min-height: 104px; padding: 13px 14px; resize: none !important; line-height: 1.6; }
+
+.ti-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.ti-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
+  font-size: 15px; color: var(--fp-text, #1e1e20);
+}
+.ti-chip button { border: none; background: transparent; color: var(--fp-muted, #8891a0); cursor: pointer; display: inline-flex; }
+.ti-chip button:hover { color: var(--fp-text, #1e1e20); }
+
+.ti-add-row { display: flex; gap: 8px; margin-top: 10px; }
+.ti-add-btn {
+  height: 48px; padding: 0 16px; border-radius: 8px;
+  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
+  background: #ffffff; color: var(--fp-text, #1e1e20);
+  cursor: pointer; white-space: nowrap;
+  font: 400 15px/1 Aeonik, Inter, system-ui, sans-serif;
+}
+.ti-add-btn:hover { background: #FCFBF8; }
+
+.ti-scope { display: flex; gap: 8px; flex-wrap: wrap; }
 .ti-scope-btn {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 4px;
+  height: 40px; padding: 0 16px; border-radius: 8px;
   border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  background: transparent;
-  color: var(--fp-soft, #5c5c62);
+  background: #ffffff; color: var(--fp-soft, #5c5c62);
   cursor: pointer;
-  font: 400 13px/1 Aeonik, Inter, system-ui, sans-serif;
+  font: 400 15px/1 Aeonik, Inter, system-ui, sans-serif;
+  transition: all 140ms ease;
 }
+.ti-scope-btn:hover { background: #FCFBF8; }
 .ti-scope-btn.is-on {
   border-color: var(--fp-accent, #C9932B);
   color: var(--fp-text, #1e1e20);
   background: var(--fp-accent-soft, rgba(201,147,43,0.08));
 }
+
 .ti-error, .ti-done {
-  padding: 8px 2px 12px;
-  color: var(--fp-text, #1e1e20);
-  font-size: 15.5px;
-  line-height: 1.55;
+  padding: 12px 2px 16px; color: var(--fp-text, #1e1e20);
+  font-size: 16px; line-height: 1.6;
 }
-.ti-error { color: var(--red, #D14343); }
+.ti-error { color: var(--red, #C43C3C); }
+
 @media (max-width: 768px) {
   .ti-hint { display: none; }
   .ti-toolbar { justify-content: flex-start; }
   .ti-input { font-size: 16px; min-height: 120px; }
+  .ti-body { gap: 22px; }
 }
 `
