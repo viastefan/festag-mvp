@@ -16,6 +16,11 @@
 }
 @font-face {
   font-family: 'Editors Note';
+  src: url('/fonts/EditorsNote-Regular.otf') format('opentype');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Editors Note';
   src: url('/fonts/EditorsNote-MediumItalic.otf') format('opentype');
   font-weight: 500; font-style: italic; font-display: swap;
 }

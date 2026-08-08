@@ -19,30 +19,52 @@ export const FESTAG_FLOW_STYLES = `
   --ffl-surface: transparent;
   --ffl-btn: #FFFFFF;
   --ffl-pad-x: clamp(24px, 4.5vw, 64px);
+  --ffl-read: 0;
 
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(280px, 1.05fr) minmax(0, 1.05fr);
   gap: clamp(24px, 3.5vw, 56px);
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: min(1180px, 100%);
+  max-width: min(1240px, 100%);
   margin: 0 auto;
   box-sizing: border-box;
-  min-height: calc(100dvh - var(--fas-topbar-h, 52px));
+  min-height: calc(100dvh - var(--fas-topbar-h, 68px));
   padding:
     clamp(56px, 7vh, 80px)
     var(--ffl-pad-x)
     clamp(28px, 4vh, 56px);
   background: ${FESTAG_SAND.canvas};
   color: var(--ffl-ink);
-  transition: grid-template-columns 0.42s var(--ffl-ease), max-width 0.42s var(--ffl-ease);
+  transition: grid-template-columns 0.42s var(--ffl-ease), max-width 0.42s var(--ffl-ease), gap 0.35s var(--ffl-ease);
+  overflow-x: clip;
+}
+.ffl.is-reading {
+  gap: calc(clamp(24px, 3.5vw, 56px) - var(--ffl-read) * 12px);
 }
 /* The detail column only exists once something is in focus — no reserved gap. */
 .ffl.has-detail {
-  max-width: min(1320px, 100%);
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  max-width: min(1380px, 100%);
+  grid-template-columns: minmax(280px, 1.15fr) minmax(0, 1fr) minmax(0, 0.82fr);
+  align-items: start;
+}
+.ffl.has-detail .ffl-report,
+.ffl.has-detail .ffl-stage {
+  position: sticky;
+  top: clamp(16px, 2.4vh, 28px);
+  align-self: start;
+  max-height: calc(100dvh - var(--fas-topbar-h, 52px) - 24px);
+  z-index: 2;
+}
+.ffl.has-detail .ffl-report {
+  display: flex;
+  align-items: center;
+  min-height: calc(100dvh - var(--fas-topbar-h, 52px) - 48px);
+}
+.ffl.has-detail .ffl-stage {
+  overflow: visible;
 }
 .ffl.is-view-report,
 .ffl.is-view-list {
@@ -57,75 +79,101 @@ export const FESTAG_FLOW_STYLES = `
 }
 .ffl h1.ffl-greet {
   font-family: 'Editors Note', Georgia, 'Times New Roman', serif;
-  font-weight: 400;
+  font-weight: 500;
 }
 
-/* ── View switch ── */
-.ffl-views {
+/* ── View menu (canvas, not header) ── */
+.ffl-view-menu {
   position: absolute;
-  top: clamp(16px, 2.4vh, 28px);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 9px;
-  background: rgba(15, 15, 18, 0.045);
+  top: clamp(12px, 2vh, 20px);
+  right: clamp(16px, 2.2vw, 28px);
   z-index: 4;
 }
-.ffl-view {
+.ffl-view-trigger {
+  width: 36px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 15px;
+  justify-content: center;
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ffl-paper, #F8F6F2) 72%, transparent);
+  color: var(--ffl-muted);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: background 0.16s var(--ffl-ease), color 0.16s var(--ffl-ease), border-color 0.16s var(--ffl-ease);
+}
+.ffl-view-trigger:hover,
+.ffl-view-trigger.is-on {
+  color: var(--ffl-ink);
+  border-color: rgba(30, 30, 32, 0.12);
+  background: color-mix(in srgb, var(--ffl-paper, #F8F6F2) 88%, transparent);
+}
+.ffl-view-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 148px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--ffl-btn, #fff);
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.10), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.ffl-view-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
   border: none;
   border-radius: 7px;
   background: transparent;
-  color: var(--ffl-muted);
+  color: var(--ffl-soft, #5c5c62);
   font: inherit;
-  font-size: 15px;
+  font-size: 13.5px;
   cursor: pointer;
-  transition: background 0.2s var(--ffl-ease), color 0.2s var(--ffl-ease);
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
 }
-.ffl-view:hover { color: var(--ffl-soft); }
-.ffl-view.is-on {
-  background: var(--ffl-btn);
+.ffl-view-option:hover {
+  background: rgba(15, 15, 18, 0.045);
   color: var(--ffl-ink);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-
-/* ── Report filters — top left, sync with Fluss ── */
-.ffl-filters {
-  position: absolute;
-  top: clamp(16px, 2.4vh, 28px);
-  left: clamp(24px, 3vw, 48px);
-  z-index: 5;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  max-width: min(420px, calc(50vw - 80px));
-}
-.ffl-filter {
-  height: 28px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--ffl-muted);
-  font: inherit;
-  font-size: 12.5px;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: background 0.18s var(--ffl-ease), color 0.18s var(--ffl-ease);
-}
-.ffl-filter:hover { color: var(--ffl-soft); background: rgba(15, 15, 18, 0.04); }
-.ffl-filter.is-on {
+.ffl-view-option.is-on {
   background: rgba(15, 15, 18, 0.06);
   color: var(--ffl-ink);
 }
+html[data-theme="dark"] .ffl-view-trigger,
+html[data-theme="classic-dark"] .ffl-view-trigger {
+  background: rgba(26, 26, 30, 0.72);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(230, 232, 238, 0.62);
+}
+html[data-theme="dark"] .ffl-view-popover,
+html[data-theme="classic-dark"] .ffl-view-popover {
+  background: #1A1A1E;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .ffl-view-option.is-on,
+html[data-theme="classic-dark"] .ffl-view-option.is-on {
+  background: rgba(255, 255, 255, 0.08);
+}
 
 /* ── Report column — Figma editorial read stack ── */
-.ffl-report { min-width: 0; width: 100%; }
+.ffl-report {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  min-height: calc(100dvh - var(--fas-topbar-h, 52px) - 96px);
+}
+.ffl.has-detail .ffl-report {
+  align-self: start;
+}
 .ffl-report.is-centered {
   max-width: 62ch;
   width: 100%;
@@ -141,37 +189,80 @@ export const FESTAG_FLOW_STYLES = `
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 36ch;
+  justify-content: center;
   width: 100%;
+  max-width: min(calc(46ch + var(--ffl-read) * 12ch), 100%);
+  transition: max-width 0.2s var(--ffl-ease);
+  will-change: max-width;
 }
 .ffl-greet {
-  margin: 0 0 20px;
+  margin: 0 0 calc(18px - var(--ffl-read) * 4px);
   font-family: 'Editors Note', Georgia, 'Times New Roman', serif;
-  font-weight: 400;
+  font-weight: 500;
   font-style: normal;
-  font-size: clamp(38px, 4.1vw, 54px);
-  line-height: 1.14;
+  font-size: clamp(
+    30px,
+    calc(3.6vw - var(--ffl-read) * 0.7vw),
+    calc(48px - var(--ffl-read) * 12px)
+  );
+  line-height: 1.18;
   letter-spacing: -0.016em;
   color: #2F3544;
-  max-width: 22ch;
-  transition: opacity 0.35s var(--ffl-ease), transform 0.35s var(--ffl-ease);
+  width: 100%;
+  max-width: min(calc(30ch + var(--ffl-read) * 10ch), 100%);
+  text-wrap: balance;
+  transform-origin: left top;
+  transform: scale(calc(1 - var(--ffl-read) * 0.08));
+  animation: fflGreetIn 0.42s var(--ffl-ease) both;
+  transition:
+    font-size 0.18s var(--ffl-ease),
+    max-width 0.2s var(--ffl-ease),
+    transform 0.18s var(--ffl-ease),
+    margin 0.18s var(--ffl-ease);
+}
+.ffl-greet.is-promoted {
+  font-weight: 500;
+  font-size: clamp(
+    28px,
+    calc(3.2vw - var(--ffl-read) * 0.55vw),
+    calc(42px - var(--ffl-read) * 10px)
+  );
+}
+@keyframes fflGreetIn {
+  from { opacity: 0; transform: translateY(14px) scale(calc(1 - var(--ffl-read) * 0.08)); }
+  to { opacity: 1; transform: scale(calc(1 - var(--ffl-read) * 0.08)); }
 }
 .ffl-greet-lead { color: #2F3544; }
 .ffl-greet-rest { color: #8891a0; }
 .ffl-read-scroll {
   position: relative;
   width: 100%;
-  max-height: min(42vh, 300px);
+  max-width: min(calc(42ch + var(--ffl-read) * 10ch), 100%);
+  max-height: min(36vh, 260px);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 38%, transparent 94%);
-  mask-image: linear-gradient(to bottom, #000 38%, transparent 94%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 48%,
+    rgba(0, 0, 0, 0.55) 72%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 48%,
+    rgba(0, 0, 0, 0.55) 72%,
+    transparent 100%
+  );
+  overscroll-behavior: contain;
+  transition: max-width 0.2s var(--ffl-ease);
 }
 .ffl-read-scroll::-webkit-scrollbar { display: none; }
-.ffl-read-scroll.is-end {
-  -webkit-mask-image: none;
-  mask-image: none;
+.ffl-read-scroll-pad {
+  height: min(24vh, 140px);
+  pointer-events: none;
 }
 .ffl-read-line {
   margin: 0 0 14px;
@@ -181,9 +272,45 @@ export const FESTAG_FLOW_STYLES = `
   line-height: 1.55;
   letter-spacing: 0.02em;
   color: #A7ADB8;
-  max-width: 34ch;
+  max-width: min(calc(40ch + var(--ffl-read) * 8ch), 100%);
+  text-wrap: pretty;
+  transition: opacity 0.28s var(--ffl-ease), transform 0.28s var(--ffl-ease), max-width 0.2s var(--ffl-ease);
 }
-.ffl-read-line:last-child { margin-bottom: 28px; }
+.ffl-read-line.is-up {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.ffl-read-line:last-of-type { margin-bottom: 8px; }
+
+.ffl.is-reading .ffl-stage .ffl-node.is-dim {
+  opacity: calc(0.22 + (1 - var(--ffl-read)) * 0.12);
+}
+.ffl.is-reading.has-detail .ffl-detail {
+  opacity: calc(1 - var(--ffl-read) * 0.06);
+}
+
+/* Sidebar open → slightly tighter read column so the page stays balanced */
+.fas-root.is-sidebar-expanded .ffl-read {
+  max-width: min(calc(40ch + var(--ffl-read) * 10ch), 100%);
+}
+.fas-root.is-sidebar-expanded .ffl-greet {
+  max-width: min(calc(26ch + var(--ffl-read) * 8ch), 100%);
+}
+.fas-root.is-sidebar-expanded .ffl-read-scroll,
+.fas-root.is-sidebar-expanded .ffl-read-line {
+  max-width: min(calc(36ch + var(--ffl-read) * 8ch), 100%);
+}
+/* Sidebar collapsed → fuller editorial width */
+.fas-root.is-sidebar-collapsed .ffl-read {
+  max-width: min(calc(48ch + var(--ffl-read) * 12ch), 100%);
+}
+.fas-root.is-sidebar-collapsed .ffl-greet {
+  max-width: min(calc(32ch + var(--ffl-read) * 10ch), 100%);
+}
+.fas-root.is-sidebar-collapsed .ffl-read-scroll,
+.fas-root.is-sidebar-collapsed .ffl-read-line {
+  max-width: min(calc(44ch + var(--ffl-read) * 10ch), 100%);
+}
 .ffl-read-body {
   margin: 0;
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
@@ -249,7 +376,6 @@ export const FESTAG_FLOW_STYLES = `
 .ffl-node.is-filter-dim {
   opacity: 0.28;
   filter: saturate(0.5);
-  pointer-events: none;
 }
 
 .ffl-line {
@@ -420,7 +546,18 @@ export const FESTAG_FLOW_STYLES = `
 .ffl-lrow svg { color: var(--ffl-muted); }
 
 /* ── Stage ── */
-.ffl-stage { position: relative; height: 100%; min-height: 620px; width: 100%; }
+.ffl-stage {
+  position: relative;
+  height: 100%;
+  min-height: 620px;
+  width: 100%;
+  transform: translate3d(calc(var(--ffl-read) * 42px), 0, 0);
+  transition: transform 0.18s var(--ffl-ease);
+  will-change: transform;
+}
+.ffl.has-detail .ffl-stage {
+  transform: translate3d(calc(var(--ffl-read) * 56px), 0, 0);
+}
 .ffl-edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ffl-edges path {
   fill: none; stroke: rgba(30, 30, 32, 0.11); stroke-width: 1.1; stroke-linecap: round;
@@ -469,18 +606,46 @@ export const FESTAG_FLOW_STYLES = `
 /* ── Detail ── */
 .ffl-detail {
   position: relative;
-  align-self: stretch;
+  align-self: start;
   display: flex; flex-direction: column; gap: 12px;
   padding: 4px 0 4px clamp(16px, 2vw, 30px);
   border-left: 1px solid var(--ffl-line);
-  max-height: calc(100dvh - var(--fas-topbar-h, 52px) - 110px);
-  overflow-y: auto; scrollbar-width: none;
+  max-height: none;
+  overflow: visible;
+  z-index: 1;
+  transform: translate3d(calc(var(--ffl-read) * 72px), 0, 0);
+  transition: transform 0.2s var(--ffl-ease), opacity 0.2s var(--ffl-ease);
+  will-change: transform;
   animation: fflDetailIn 0.42s var(--ffl-ease) both;
 }
 .ffl-detail::-webkit-scrollbar { display: none; }
 @keyframes fflDetailIn {
-  from { opacity: 0; transform: translateX(14px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translate3d(calc(18px + var(--ffl-read) * 72px), 0, 0); }
+  to { opacity: 1; transform: translate3d(calc(var(--ffl-read) * 72px), 0, 0); }
+}
+
+/* Bridge lines — node → detail cards (fixed viewport overlay) */
+.ffl-bridge {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  pointer-events: none;
+  z-index: 6;
+  overflow: visible;
+}
+.ffl-bridge-path {
+  fill: none;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: fflBridgeDraw 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes fflBridgeDraw {
+  to { stroke-dashoffset: 0; }
+}
+[data-ffl-bridge-target] {
+  position: relative;
 }
 .ffl-detail-close {
   position: absolute; top: 0; right: 0;
@@ -525,7 +690,24 @@ export const FESTAG_FLOW_STYLES = `
     max-width: min(720px, 100%);
     gap: 28px;
   }
+  .ffl.has-detail .ffl-report,
+  .ffl.has-detail .ffl-stage {
+    position: static;
+    max-height: none;
+    min-height: 0;
+  }
+  .ffl-bridge { display: none; }
   .ffl-stage { min-height: 440px; }
+  .ffl-read,
+  .fas-root.is-sidebar-collapsed .ffl-read,
+  .fas-root.is-sidebar-expanded .ffl-read {
+    max-width: min(42ch, 100%);
+  }
+  .ffl-greet,
+  .fas-root.is-sidebar-collapsed .ffl-greet,
+  .fas-root.is-sidebar-expanded .ffl-greet {
+    max-width: min(28ch, 100%);
+  }
   .ffl-detail {
     border-left: none; padding-left: 0;
     border-top: 1px solid var(--ffl-line); padding-top: 20px; max-height: none;
@@ -562,8 +744,20 @@ html[data-theme="dark"] .ffl-lyric.is-now,
 html[data-theme="classic-dark"] .ffl-lyric.is-now { color: #F5F4F1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ffl, .ffl-node, .ffl-node-orb, .ffl-cta, .ffl-detail, .ffl-lyric, .ffl-report {
+  .ffl, .ffl-node, .ffl-node-orb, .ffl-cta, .ffl-detail, .ffl-lyric, .ffl-report, .ffl-stage, .ffl-greet, .ffl-read {
     transition: none !important; animation: none !important;
+  }
+  .ffl {
+    --ffl-read: 0 !important;
+  }
+  .ffl-stage,
+  .ffl-detail,
+  .ffl-greet {
+    transform: none !important;
+  }
+  .ffl-bridge-path {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
   }
 }
 `.trim()

@@ -11,7 +11,7 @@
  * that has nothing to say stays silent.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ChatCircle,
   Warning,
@@ -26,13 +26,15 @@ import {
   GraphIcon,
   ListBullets,
   Article,
+  CirclesThreePlus,
 } from '@phosphor-icons/react'
 import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
+import FlowDetailBridge from '@/components/app-shell/overview/FlowDetailBridge'
 import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import { FESTAG_FLOW_STYLES } from '@/components/app-shell/overview/festag-flow-styles'
 import OverviewReadStack, {
+  buildOverviewOpening,
   buildOverviewReadBeats,
-  REPORT_FILTERS,
   type ReportFilter,
 } from '@/components/app-shell/overview/OverviewReadStack'
 import type { OverviewPayload } from '@/components/app-shell/WorkspaceOverviewLive'
@@ -70,6 +72,7 @@ export default function FestagOverviewCanvas({
   data,
   onDecided,
 }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null)
   const [view, setView] = useState<ViewMode>('flow')
   const [focus, setFocus] = useState<FlowNodeId | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
@@ -154,19 +157,40 @@ export default function FestagOverviewCanvas({
   }, [view, stop])
   useEffect(() => () => stop(), [stop])
 
-  const readBeats = useMemo(
-    () =>
-      buildOverviewReadBeats({
-        calmLine: data.summary.calmLine,
-        pendingDecisions: data.summary.pendingDecisions,
-        atRisk,
-        openTasks,
-        teamMembers: data.summary.teamMembers,
-        healthLabel,
-        activityTitle: data.activity[0]?.title || null,
-        briefingLines: data.briefing?.lines,
-      }),
+  useEffect(() => {
+    function onSetView(e: Event) {
+      const next = (e as CustomEvent<{ view?: ViewMode }>).detail?.view
+      if (next === 'flow' || next === 'report' || next === 'list') {
+        setView(next)
+        setFocus(null)
+      }
+    }
+    window.addEventListener('festag-overview-set-view', onSetView)
+    return () => window.removeEventListener('festag-overview-set-view', onSetView)
+  }, [])
+
+  const readCtx = useMemo(
+    () => ({
+      calmLine: data.summary.calmLine,
+      pendingDecisions: data.summary.pendingDecisions,
+      atRisk,
+      openTasks,
+      teamMembers: data.summary.teamMembers,
+      healthLabel,
+      activityTitles: data.activity.map((a) => a.title).filter(Boolean),
+      projectTitles: data.projects.map((p) => p.title).filter(Boolean),
+      decisionTitles: data.decisions.map((d) => d.title || d.summary || '').filter(Boolean),
+      teamNames: data.team.map((m) => m.name).filter(Boolean),
+      briefingLines: data.briefing?.lines,
+    }),
     [data, atRisk, openTasks, healthLabel],
+  )
+
+  const readBeats = useMemo(() => buildOverviewReadBeats(readCtx), [readCtx])
+
+  const readOpening = useMemo(
+    () => buildOverviewOpening(reportFilter, greeting, firstName, readCtx),
+    [reportFilter, greeting, firstName, readCtx],
   )
 
   const nodes: FlowNode[] = useMemo(() => {
@@ -223,32 +247,24 @@ export default function FestagOverviewCanvas({
   }
 
   const detailOpen = view === 'flow' && focus !== null
+  const focusTone = nodes.find((n) => n.id === focus)?.tone || 'ink'
 
   return (
-    <div className={`ffl is-view-${view}${detailOpen ? ' has-detail' : ''}`}>
+    <div ref={rootRef} className={`ffl is-view-${view}${detailOpen ? ' has-detail' : ''}`}>
       <style>{FESTAG_FLOW_STYLES}</style>
       <style>{FESTAG_OVERVIEW_PANEL_STYLES}</style>
 
-      <div className="ffl-filters" role="tablist" aria-label="Bericht filtern">
-        {REPORT_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            role="tab"
-            aria-selected={reportFilter === f.id}
-            className={`ffl-filter${reportFilter === f.id ? ' is-on' : ''}`}
-            onClick={() => {
-              setReportFilter(f.id)
-              if (f.id !== 'all') setFocus(f.id)
-              else setFocus(null)
-            }}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <FlowDetailBridge
+        active={detailOpen}
+        focus={focus}
+        rootRef={rootRef}
+        tone={focusTone}
+      />
 
-      <ViewSwitch view={view} onChange={(v) => { setView(v); setFocus(null) }} />
+      <OverviewViewMenu
+        view={view}
+        onChange={(v) => { setView(v); setFocus(null) }}
+      />
 
       {/* ── Report column ── */}
       <section className={`ffl-report${view === 'report' ? ' is-centered' : ''}`}>
@@ -258,6 +274,7 @@ export default function FestagOverviewCanvas({
             firstName={firstName}
             beats={readBeats}
             filter={reportFilter}
+            opening={readOpening}
             showCreateProject={!hasProjects}
             onCreateProject={() => openNewProject()}
           />
@@ -325,6 +342,7 @@ export default function FestagOverviewCanvas({
               <button
                 key={node.id}
                 type="button"
+                data-ffl-node={node.id}
                 className={[
                   'ffl-node',
                   `is-${node.tone}`,
@@ -399,7 +417,7 @@ export default function FestagOverviewCanvas({
                 data.projects
                   .filter((p) => p.health === 'risk' || p.health === 'blocked')
                   .map((p) => (
-                    <article key={p.id} className="ffl-item">
+                    <article key={p.id} className="ffl-item" data-ffl-bridge-target>
                       <div className="ffl-item-top">
                         <span className="ffl-item-title">{p.title}</span>
                         <span className={`ffl-chip is-${p.health === 'blocked' ? 'high' : 'mid'}`}>
@@ -416,7 +434,7 @@ export default function FestagOverviewCanvas({
             <>
               <DetailHead tone="ink" title="Team & Entwickler" />
               {data.team.map((m) => (
-                <div key={m.id} className="ffl-row">
+                <div key={m.id} className="ffl-row" data-ffl-bridge-target>
                   <span className="ffl-row-name">{m.name}</span>
                   {m.role ? <span className="ffl-chip is-quiet">{m.role}</span> : null}
                 </div>
@@ -427,7 +445,7 @@ export default function FestagOverviewCanvas({
               <DetailHead tone={focus === 'status' ? 'blue' : 'ink'} title={focus === 'status' ? 'Projektstatus' : 'Projekte'} />
               {hasProjects ? (
                 data.projects.map((p) => (
-                  <div key={p.id} className="ffl-row">
+                  <div key={p.id} className="ffl-row" data-ffl-bridge-target>
                     <span className="ffl-row-name">{p.title}</span>
                     <span className="ffl-row-meta">{p.phase || p.status || '—'}</span>
                   </div>
@@ -441,7 +459,9 @@ export default function FestagOverviewCanvas({
               <DetailHead tone="blue" title="Kommunikation" />
               {data.activity.length > 0 ? (
                 data.activity.slice(0, 6).map((a) => (
-                  <div key={a.id} className="ffl-row"><span className="ffl-row-name">{a.title}</span></div>
+                  <div key={a.id} className="ffl-row" data-ffl-bridge-target>
+                    <span className="ffl-row-name">{a.title}</span>
+                  </div>
                 ))
               ) : (
                 <p className="ffl-empty">Heute war es still.</p>
@@ -454,27 +474,62 @@ export default function FestagOverviewCanvas({
   )
 }
 
-function ViewSwitch({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
+function OverviewViewMenu({
+  view,
+  onChange,
+}: {
+  view: ViewMode
+  onChange: (v: ViewMode) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const items: Array<{ id: ViewMode; label: string; Icon: typeof GraphIcon }> = [
     { id: 'flow', label: 'Fluss', Icon: GraphIcon },
     { id: 'report', label: 'Bericht', Icon: Article },
     { id: 'list', label: 'Liste', Icon: ListBullets },
   ]
+
+  useEffect(() => {
+    if (!open) return
+    function onDoc(e: MouseEvent) {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+
   return (
-    <div className="ffl-views" role="tablist" aria-label="Ansicht">
-      {items.map(({ id, label, Icon }) => (
-        <button
-          key={id}
-          type="button"
-          role="tab"
-          aria-selected={view === id}
-          className={`ffl-view${view === id ? ' is-on' : ''}`}
-          onClick={() => onChange(id)}
-        >
-          <Icon size={15} weight="regular" />
-          {label}
-        </button>
-      ))}
+    <div className="ffl-view-menu" ref={wrapRef}>
+      <button
+        type="button"
+        className={`ffl-view-trigger${open ? ' is-on' : ''}`}
+        aria-label="Ansicht"
+        title="Ansicht"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <CirclesThreePlus size={18} weight="regular" />
+      </button>
+      {open ? (
+        <div className="ffl-view-popover" role="menu" aria-label="Ansicht">
+          {items.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={view === id}
+              className={`ffl-view-option${view === id ? ' is-on' : ''}`}
+              onClick={() => {
+                onChange(id)
+                setOpen(false)
+              }}
+            >
+              <Icon size={15} weight="regular" />
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

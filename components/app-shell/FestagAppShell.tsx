@@ -12,6 +12,7 @@ import { applyAppearanceForPath } from '@/lib/theme'
 const COLLAPSE_KEY = 'festag-os-sidebar-collapsed'
 
 const CommandPalette = dynamic(() => import('@/components/CommandPalette'), { ssr: false })
+const TagroOverlay = dynamic(() => import('@/components/TagroOverlay'), { ssr: false })
 const AppShellAccountPanel = dynamic(() => import('@/components/app-shell/AppShellAccountPanel'), { ssr: false })
 const WorkspaceCreateWizardModal = dynamic(() => import('@/components/app-shell/WorkspaceCreateWizardModal'), { ssr: false })
 const WorkspaceRenameSheet = dynamic(() => import('@/components/app-shell/WorkspaceRenameSheet'), { ssr: false })
@@ -84,6 +85,7 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   const deferredChrome = chromeReady ? (
     <>
       <CommandPalette theme="portal" />
+      <TagroOverlay />
       <WorkspaceCreateWizardModal />
       <WorkspaceRenameSheet />
       <WorkspaceManageModal />

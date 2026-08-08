@@ -37,7 +37,7 @@ export default function OverviewStoryPanel({
   return (
     <div className={rootClass}>
       {showDecision ? (
-        <article className="fos-panel is-decision">
+        <article className="fos-panel is-decision" data-ffl-bridge-target>
           <p className="fos-panel-label">Entscheidung</p>
           <h2 className="fos-panel-title">{topic.question}</h2>
           {topic.options.length >= 2 ? (
@@ -74,7 +74,7 @@ export default function OverviewStoryPanel({
       ) : null}
 
       {showRecommend ? (
-        <article className="fos-panel is-tagro">
+        <article className="fos-panel is-tagro" data-ffl-bridge-target>
           <div className="fos-tagro-head">
             <Sparkle size={15} weight="fill" aria-hidden />
             <span>Tagro</span>
