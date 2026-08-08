@@ -7,6 +7,7 @@ import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { getDisplayName, type UserProfile } from '@/lib/hooks/useUser'
 import { openWorkspaceCreateWizard } from '@/lib/workspace-create-open'
 import { useWorkspaceOverview } from '@/hooks/useWorkspaceOverview'
+import { isOverviewPreview } from '@/lib/demo/overview-preview'
 import { ArrowRight } from '@phosphor-icons/react'
 
 type Props = {
@@ -14,7 +15,8 @@ type Props = {
 }
 
 export default function AppShellOverview({ user }: Props) {
-  const firstName = getDisplayName(user) || 'du'
+  const preview = isOverviewPreview()
+  const firstName = getDisplayName(user) || (preview ? 'Stefan' : 'du')
   const greet = appShellGreeting()
   const { state: load, refresh } = useWorkspaceOverview()
 
@@ -22,6 +24,7 @@ export default function AppShellOverview({ user }: Props) {
      once per session so it never fights a user who closed it. */
   const autoOpenedRef = useRef(false)
   useEffect(() => {
+    if (preview) return
     if (load.status !== 'empty' || autoOpenedRef.current) return
     try {
       if (sessionStorage.getItem('festag_ws_wizard_autoopened')) return
@@ -31,7 +34,7 @@ export default function AppShellOverview({ user }: Props) {
     }
     autoOpenedRef.current = true
     openWorkspaceCreateWizard()
-  }, [load.status])
+  }, [load.status, preview])
 
   /* Only admit to loading once it is actually slow. */
   const [slowLoad, setSlowLoad] = useState(false)

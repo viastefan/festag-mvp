@@ -139,14 +139,26 @@ export async function middleware(request: NextRequest) {
     user = null
   }
 
+  // Local UI QA — skip login before public-path early return.
+  const preview = request.nextUrl.searchParams.get('preview') || ''
+  const previewOn = preview === '1' || preview.startsWith('1')
+  const skipAuth =
+    process.env.NODE_ENV === 'development' &&
+    (process.env.FESTAG_DEV_SKIP_AUTH === '1' || process.env.NEXT_PUBLIC_FESTAG_DEMO === '1')
+
+  if (skipAuth && (pathname === '/' || pathname === '/login' || pathname === '/register')) {
+    return NextResponse.redirect(new URL('/overview?preview=1', request.url))
+  }
+
   // Public paths: refreshed cookies are attached, no gating.
   if (PUBLIC_PATHS.some(p => pathMatches(pathname, p))) {
     return response
   }
 
-  // TEMP — UI-only onboarding preview (no auth). Remove after QA.
-  const preview = request.nextUrl.searchParams.get('preview') || ''
-  if (pathname === '/onboarding' && (preview === '1' || preview.startsWith('1'))) {
+  if (
+    (pathname === '/onboarding' || pathname === '/overview' || pathname.startsWith('/overview/')) &&
+    (previewOn || skipAuth)
+  ) {
     return response
   }
 

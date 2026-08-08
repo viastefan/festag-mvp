@@ -3,6 +3,7 @@
 /**
  * Shared Festag OS overview fetch — respects active workspace + switch events.
  * Paints instantly from a short-lived session cache, then refreshes in background.
+ * Local preview (`?preview=1` / `NEXT_PUBLIC_FESTAG_DEMO=1`) uses demo data — no auth.
  */
 
 import { useCallback, useEffect, useState } from 'react'
@@ -16,6 +17,7 @@ import {
 } from '@/lib/workspace-create-open'
 import { PROJECT_CREATED_EVENT } from '@/lib/new-project-open'
 import type { OverviewPayload } from '@/components/app-shell/WorkspaceOverviewLive'
+import { DEMO_OVERVIEW_PAYLOAD, isOverviewPreview } from '@/lib/demo/overview-preview'
 
 export type WorkspaceOverviewState =
   | { status: 'loading' }
@@ -59,6 +61,7 @@ function clearCache() {
 
 function initialState(): WorkspaceOverviewState {
   if (typeof window === 'undefined') return { status: 'loading' }
+  if (isOverviewPreview()) return { status: 'ready', data: DEMO_OVERVIEW_PAYLOAD }
   const cached = readCache(getActiveWorkspaceId())
   return cached ? { status: 'ready', data: cached } : { status: 'loading' }
 }
@@ -70,6 +73,10 @@ export function useWorkspaceOverview(): {
   const [state, setState] = useState<WorkspaceOverviewState>(initialState)
 
   const refresh = useCallback(async () => {
+    if (isOverviewPreview()) {
+      setState({ status: 'ready', data: DEMO_OVERVIEW_PAYLOAD })
+      return
+    }
     try {
       const wsId = getActiveWorkspaceId()
       const qs = wsId ? `?workspaceId=${encodeURIComponent(wsId)}` : ''
@@ -89,6 +96,7 @@ export function useWorkspaceOverview(): {
         workspaces: json.workspaces || [],
         summary: json.summary,
         briefing: json.briefing,
+        intelligence: json.intelligence || null,
         projects: json.projects || [],
         tasks: json.tasks || [],
         decisions: json.decisions || [],
@@ -107,6 +115,7 @@ export function useWorkspaceOverview(): {
   }, [refresh])
 
   useEffect(() => {
+    if (isOverviewPreview()) return
     function onChanged() {
       clearCache()
       setState({ status: 'loading' })
