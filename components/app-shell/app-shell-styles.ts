@@ -390,6 +390,8 @@ html[data-theme="classic-dark"] .fas-ws-mark {
   max-height: min(420px, 70vh);
   overflow: auto;
   padding: 8px;
+  transform-origin: top right;
+  animation: fasNotifPop 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .fas-notif-list {
   list-style: none;
@@ -794,24 +796,42 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 
 .fas-search-wrap {
   position: relative;
-  flex: 1;
-  max-width: 280px;
-  min-width: 160px;
-  flex-shrink: 1;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 32px;
+  transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* Login-style field: transparent fill, idle hairline, accent focus stroke */
+.fas-search-wrap.is-expanded {
+  /* Match workspace chip visual weight — not a wide auth field */
+  width: min(220px, calc(100vw - 100px));
+}
+/* Compact login-stroke field — height aligns with sidebar chip controls */
 .fas-search-field {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 42px;
-  padding: 0 14px;
+  gap: 7px;
+  width: 100%;
+  height: 36px;
+  padding: 0 6px 0 10px;
   border-radius: 8px;
   background: transparent;
   border: 1.5px solid rgba(30, 30, 32, 0.16);
   color: var(--fas-ink-muted);
   cursor: text;
+  animation: fasSearchExpand 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: border-color 0.14s ease, color 0.14s ease;
+}
+@keyframes fasSearchExpand {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 .fas-search-field:hover {
   border-color: rgba(30, 30, 32, 0.24);
@@ -843,7 +863,7 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
   background: transparent;
   color: var(--fas-ink);
   font: inherit;
-  font-size: 15px;
+  font-size: 13.5px;
   letter-spacing: -0.01em;
 }
 .fas-search-input::placeholder {
@@ -852,6 +872,49 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 }
 .fas-search-input::-webkit-search-cancel-button {
   -webkit-appearance: none;
+}
+.fas-search-enter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #5B647D;
+}
+.fas-search-enter .al-enter-glyph {
+  margin-left: 0;
+  width: 13px;
+  height: 13px;
+}
+.fas-search-enter .al-enter-glyph-svg {
+  width: 12px;
+  height: 12px;
+}
+.fas-search-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--fas-ink-muted);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.fas-search-close:hover {
+  background: var(--fas-nav-hover);
+  color: var(--fas-ink);
 }
 .fas-search-busy {
   width: 8px;
@@ -867,13 +930,15 @@ html[data-theme="classic-dark"] .fas-help-btn:hover {
 }
 
 .fas-search-popover {
-  left: 0;
+  left: auto;
   right: 0;
   min-width: 0;
   width: 100%;
   max-width: min(360px, 92vw);
   max-height: min(360px, 50vh);
   overflow-y: auto;
+  transform-origin: top right;
+  animation: fasNotifPop 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .fas-search-hit {
   width: 100%;
@@ -943,14 +1008,18 @@ html[data-theme="dark"] .fas-search-field.is-filled,
 html[data-theme="classic-dark"] .fas-search-field.is-filled {
   border-color: rgba(255, 255, 255, 0.16);
 }
+html[data-theme="dark"] .fas-search-enter .al-enter-glyph,
+html[data-theme="classic-dark"] .fas-search-enter .al-enter-glyph {
+  color: rgba(230, 232, 238, 0.78) !important;
+}
 
 .fas-ws-switch {
   display: none;
 }
 
 .fas-icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -981,6 +1050,21 @@ html[data-theme="classic-dark"] .fas-search-field.is-filled {
   box-shadow: var(--fas-popover-shadow);
   z-index: 40;
   animation: fasPop 0.16s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.fas-topbar-notif {
+  position: relative;
+}
+@keyframes fasNotifPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 .fas-popover-left { left: 0; right: auto; }
 .fas-popover-title {
@@ -2554,9 +2638,6 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   color: var(--fas-ink);
 }
 
-.fas-topbar-notif {
-  position: relative;
-}
 .fas-notif-empty {
   margin: 8px 10px;
   font-size: 13px;

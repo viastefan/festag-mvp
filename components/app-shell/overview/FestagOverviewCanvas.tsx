@@ -4,7 +4,7 @@
  * Festag Overview — one report, three ways to read it.
  *
  *   Fluss   the project as a living flow; a node opens its detail beside it
- *   Bericht Tagro reads the day out loud, the text carries the room
+ *   Bericht H1 + T1 center; flow exits glassy to the right
  *   Liste   the same facts as a quiet, scannable list
  *
  * Nothing is invented: every number comes from the payload, and a section
@@ -20,8 +20,6 @@ import {
   UsersThree,
   FolderSimple,
   ArrowRight,
-  Play,
-  Pause,
   X,
   GraphIcon,
   ListBullets,
@@ -30,6 +28,7 @@ import {
 } from '@phosphor-icons/react'
 import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
 import FlowDetailBridge from '@/components/app-shell/overview/FlowDetailBridge'
+import FlowConstellation from '@/components/app-shell/overview/FlowConstellation'
 import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import { FESTAG_FLOW_STYLES } from '@/components/app-shell/overview/festag-flow-styles'
 import OverviewReadStack, {
@@ -38,7 +37,6 @@ import OverviewReadStack, {
   type ReportFilter,
 } from '@/components/app-shell/overview/OverviewReadStack'
 import type { OverviewPayload } from '@/components/app-shell/WorkspaceOverviewLive'
-import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { openNewProject } from '@/lib/new-project-open'
 import {
   acceptDecisionRecommendation,
@@ -120,43 +118,6 @@ export default function FestagOverviewCanvas({
     })
   }, [data, focusDecision])
 
-  /* ── Spoken report — calm editorial lines ── */
-  const lines = useMemo(() => {
-    if (data.briefing?.lines?.length) {
-      return data.briefing.lines.map(softenBriefingLine)
-    }
-    const out = [`${greeting}, ${firstName}.`, softenCalmLine(data.summary.calmLine)]
-    if (data.summary.pendingDecisions > 0) {
-      out.push(
-        data.summary.pendingDecisions === 1
-          ? 'Eine Entscheidung wartet noch auf deine Freigabe.'
-          : `${data.summary.pendingDecisions} Entscheidungen warten noch auf deine Freigabe.`,
-      )
-    }
-    if (atRisk > 0) {
-      out.push(
-        atRisk === 1
-          ? 'Ein Risiko bleibt im Blick.'
-          : `${atRisk} Risiken bleiben im Blick.`,
-      )
-    }
-    if (atRisk === 0 && data.summary.pendingDecisions === 0) {
-      out.push('Wir haben aktuell keine weiteren Sorgen.')
-    }
-    return out
-  }, [data, greeting, firstName, atRisk])
-
-  const { play, stop, speaking, activeIndex } = useStatusReportPlayback({
-    sentences: lines,
-    onComplete: useCallback(() => {}, []),
-  })
-
-  /* Leaving the report view must never leave a voice running. */
-  useEffect(() => {
-    if (view !== 'report') stop()
-  }, [view, stop])
-  useEffect(() => () => stop(), [stop])
-
   useEffect(() => {
     function onSetView(e: Event) {
       const next = (e as CustomEvent<{ view?: ViewMode }>).detail?.view
@@ -194,28 +155,50 @@ export default function FestagOverviewCanvas({
   )
 
   const nodes: FlowNode[] = useMemo(() => {
-    const copy: Record<FlowNodeId, { label: string; meta: string; metaTone?: FlowNode['tone'] }> = {
-      communication: { label: 'Kommunikation', meta: 'Tagro hört mit' },
+    const copy: Record<FlowNodeId, { label: string; meta: string; line: string; metaTone?: FlowNode['tone'] }> = {
+      communication: {
+        label: 'Kommunikation',
+        meta: 'Tagro hört mit',
+        line: 'Tagro hält den Kommunikationsfaden ruhig im Blick.',
+      },
       risks: {
         label: 'Risiken',
         meta: atRisk > 0 ? `${atRisk} offen` : 'keine offenen',
         metaTone: atRisk > 0 ? 'red' : undefined,
+        line: atRisk > 0
+          ? atRisk === 1
+            ? 'Ein Risiko sollte bald geklärt werden.'
+            : `${atRisk} Risiken sollten bald geklärt werden.`
+          : 'Aktuell sind keine Risiken offen.',
       },
       decisions: {
         label: 'Entscheidungen',
         meta: data.summary.pendingDecisions > 0 ? `${data.summary.pendingDecisions} offen` : 'nichts offen',
         metaTone: data.summary.pendingDecisions > 0 ? 'green' : undefined,
+        line: data.summary.pendingDecisions > 0
+          ? data.summary.pendingDecisions === 1
+            ? 'Eine Entscheidung wartet auf deine Freigabe.'
+            : `${data.summary.pendingDecisions} Entscheidungen warten auf deine Freigabe.`
+          : 'Gerade wartet keine Entscheidung auf dich.',
       },
       status: {
         label: 'Projektstatus',
         meta: healthLabel,
         metaTone: healthLabel === 'Stabil' ? 'blue' : healthLabel === 'Achtung' ? 'red' : undefined,
+        line: `Der Projektstatus steht auf ${healthLabel.toLowerCase()}.`,
       },
       team: {
         label: 'Team & Entwickler',
         meta: `${Math.max(1, data.summary.teamMembers)} aktiv`,
+        line: `${Math.max(1, data.summary.teamMembers)} Personen sind gerade aktiv im Workspace.`,
       },
-      project: { label: 'Projekt', meta: hasProjects ? 'Gesamtbericht' : 'noch keins' },
+      project: {
+        label: 'Projekt',
+        meta: hasProjects ? 'Gesamtbericht' : 'noch keins',
+        line: hasProjects
+          ? 'Der Gesamtbericht fasst den Stand deiner Projekte.'
+          : 'Leg dein erstes Projekt an — danach entsteht der Fluss.',
+      },
     }
     return FLOW_LAYOUT.map((n) => ({ ...n, ...copy[n.id] }))
   }, [data, atRisk, healthLabel, hasProjects])
@@ -225,6 +208,48 @@ export default function FestagOverviewCanvas({
     setShowRecommend(false)
     setSelected(topic?.recommendId || null)
   }, [topic])
+
+  const openMarkGate = useCallback((tone: 'risk' | 'decision' | 'efficiency') => {
+    setView('flow')
+    if (tone === 'decision') {
+      setReportFilter('decisions')
+      openDecisions()
+      return
+    }
+    if (tone === 'risk') {
+      setReportFilter('risks')
+      setFocus('risks')
+      setShowRecommend(false)
+      return
+    }
+    setReportFilter('status')
+    setFocus('status')
+    setShowRecommend(false)
+  }, [openDecisions])
+
+  const markPreviews = useMemo(() => {
+    const riskProject = data.projects.find((p) => p.health === 'risk' || p.health === 'blocked')
+    return {
+      decision: {
+        title: topic?.question || data.decisions[0]?.title || 'Keine offene Entscheidung',
+        hint: topic?.recommendLabel
+          ? `Empfehlung: ${topic.recommendLabel}`
+          : data.summary.pendingDecisions > 0
+            ? `${data.summary.pendingDecisions} offen — im Fluss entscheiden`
+            : 'Im Fluss öffnen',
+      },
+      risk: {
+        title: atRisk > 0
+          ? (riskProject?.title || `${atRisk} offene Risiken`)
+          : 'Keine offenen Risiken',
+        hint: atRisk > 0 ? 'Im Fluss ansehen' : 'Alles ruhig',
+      },
+      efficiency: {
+        title: `Status: ${healthLabel}`,
+        hint: openTasks > 0 ? `${openTasks} offene Aufgaben` : 'Projektstatus öffnen',
+      },
+    }
+  }, [data, topic, atRisk, healthLabel, openTasks])
 
   async function accept() {
     if (!topic || busy || !topic.decisionId) return
@@ -247,7 +272,6 @@ export default function FestagOverviewCanvas({
   }
 
   const detailOpen = view === 'flow' && focus !== null
-  const focusTone = nodes.find((n) => n.id === focus)?.tone || 'ink'
 
   return (
     <div ref={rootRef} className={`ffl is-view-${view}${detailOpen ? ' has-detail' : ''}`}>
@@ -258,7 +282,6 @@ export default function FestagOverviewCanvas({
         active={detailOpen}
         focus={focus}
         rootRef={rootRef}
-        tone={focusTone}
       />
 
       <OverviewViewMenu
@@ -266,9 +289,9 @@ export default function FestagOverviewCanvas({
         onChange={(v) => { setView(v); setFocus(null) }}
       />
 
-      {/* ── Report column ── */}
-      <section className={`ffl-report${view === 'report' ? ' is-centered' : ''}`}>
-        {view !== 'report' ? (
+      {/* ── Report column (H1 + T1 stay mounted in Fluss & Bericht) ── */}
+      {view !== 'list' ? (
+        <section className={`ffl-report${view === 'report' ? ' is-centered' : ''}`}>
           <OverviewReadStack
             greeting={greeting}
             firstName={firstName}
@@ -277,59 +300,19 @@ export default function FestagOverviewCanvas({
             opening={readOpening}
             showCreateProject={!hasProjects}
             onCreateProject={() => openNewProject()}
+            onOpenMark={openMarkGate}
+            markPreviews={markPreviews}
           />
-        ) : (
-          /* ── Spoken report: the text carries the room ── */
-          <div className="ffl-lyrics">
-            <button
-              type="button"
-              className="ffl-play"
-              onClick={() => (speaking ? stop() : play())}
-              aria-label={speaking ? 'Bericht pausieren' : 'Bericht abspielen'}
-            >
-              {speaking ? <Pause size={17} weight="fill" /> : <Play size={17} weight="fill" />}
-              {speaking ? 'Pause' : 'Bericht abspielen'}
-            </button>
+        </section>
+      ) : null}
 
-            <div className="ffl-lyric-lines">
-              {lines.map((l, i) => (
-                <p
-                  key={`${i}-${l}`}
-                  className={[
-                    'ffl-lyric',
-                    speaking && i === activeIndex ? 'is-now' : '',
-                    speaking && i < activeIndex ? 'is-past' : '',
-                  ].filter(Boolean).join(' ')}
-                >
-                  {l}
-                </p>
-              ))}
-            </div>
-
-            {data.summary.pendingDecisions > 0 && topic ? (
-              <div className="ffl-inline">
-                <p className="ffl-inline-k">Dazu wartet auf dich</p>
-                <article className="ffl-inline-card">
-                  <p className="ffl-inline-title">{topic.question}</p>
-                  <div className="ffl-inline-actions">
-                    <button type="button" className="ffl-btn-primary" disabled={busy} onClick={() => void accept()}>
-                      {busy ? 'Wird übernommen…' : 'Empfehlung übernehmen'}
-                    </button>
-                    <button type="button" className="ffl-btn-quiet" onClick={() => { setView('flow'); openDecisions() }}>
-                      Details
-                    </button>
-                  </div>
-                  {error ? <p className="ffl-inline-error" role="alert">{error}</p> : null}
-                </article>
-              </div>
-            ) : null}
-          </div>
-        )}
-      </section>
-
-      {/* ── Flow ── */}
-      {view === 'flow' ? (
-        <section className="ffl-stage" aria-label="Projektfluss">
+      {/* ── Flow — stays mounted in Bericht so it can exit glassy to the right ── */}
+      {view === 'flow' || view === 'report' ? (
+        <section
+          className={`ffl-stage${view === 'report' ? ' is-report-exit' : ''}`}
+          aria-label="Projektfluss"
+          aria-hidden={view === 'report' || undefined}
+        >
           <svg className="ffl-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
             {FLOW_EDGES.map((d) => (
               <path key={d} d={d} vectorEffect="non-scaling-stroke" />
@@ -343,6 +326,8 @@ export default function FestagOverviewCanvas({
                 key={node.id}
                 type="button"
                 data-ffl-node={node.id}
+                tabIndex={view === 'report' ? -1 : 0}
+                disabled={view === 'report'}
                 className={[
                   'ffl-node',
                   `is-${node.tone}`,
@@ -352,17 +337,30 @@ export default function FestagOverviewCanvas({
                 ].filter(Boolean).join(' ')}
                 style={{ left: `${node.x}%`, top: `${node.y}%` }}
                 onClick={() => {
+                  if (view !== 'flow') return
                   setReportFilter(node.id)
                   if (node.id === 'decisions') openDecisions()
                   else setFocus(isFocus ? null : node.id)
                 }}
                 aria-pressed={isFocus}
+                aria-label={isFocus ? node.line : node.label}
               >
-                <span className="ffl-node-orb"><Icon size={20} weight="fill" /></span>
-                <span className="ffl-node-copy">
-                  <span className="ffl-node-label">{node.label}</span>
-                  <span className={`ffl-node-meta${node.metaTone ? ` is-${node.metaTone}` : ''}`}>{node.meta}</span>
-                </span>
+                {isFocus ? (
+                  <>
+                    <span className="ffl-node-mark">
+                      <FlowConstellation tone={node.tone} size={56} />
+                    </span>
+                    <span className="ffl-node-line">{node.line}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="ffl-node-orb"><Icon size={20} weight="regular" /></span>
+                    <span className="ffl-node-copy">
+                      <span className="ffl-node-label">{node.label}</span>
+                      <span className={`ffl-node-meta${node.metaTone ? ` is-${node.metaTone}` : ''}`}>{node.meta}</span>
+                    </span>
+                  </>
+                )}
               </button>
             )
           })}
@@ -394,7 +392,7 @@ export default function FestagOverviewCanvas({
 
           {focus === 'decisions' && topic ? (
             <>
-              <DetailHead tone="green" title="Entscheidungen" />
+              <DetailHead title="Entscheidungen" />
               <OverviewStoryPanel
                 topic={topic}
                 selected={selected}
@@ -410,7 +408,7 @@ export default function FestagOverviewCanvas({
             </>
           ) : focus === 'risks' ? (
             <>
-              <DetailHead tone="red" title="Risiken" />
+              <DetailHead title="Risiken" />
               {atRisk === 0 ? (
                 <p className="ffl-empty">Aktuell keine offenen Risiken.</p>
               ) : (
@@ -432,7 +430,7 @@ export default function FestagOverviewCanvas({
             </>
           ) : focus === 'team' ? (
             <>
-              <DetailHead tone="ink" title="Team & Entwickler" />
+              <DetailHead title="Team & Entwickler" />
               {data.team.map((m) => (
                 <div key={m.id} className="ffl-row" data-ffl-bridge-target>
                   <span className="ffl-row-name">{m.name}</span>
@@ -442,7 +440,7 @@ export default function FestagOverviewCanvas({
             </>
           ) : focus === 'project' || focus === 'status' ? (
             <>
-              <DetailHead tone={focus === 'status' ? 'blue' : 'ink'} title={focus === 'status' ? 'Projektstatus' : 'Projekte'} />
+              <DetailHead title={focus === 'status' ? 'Projektstatus' : 'Projekte'} />
               {hasProjects ? (
                 data.projects.map((p) => (
                   <div key={p.id} className="ffl-row" data-ffl-bridge-target>
@@ -456,7 +454,7 @@ export default function FestagOverviewCanvas({
             </>
           ) : focus === 'communication' ? (
             <>
-              <DetailHead tone="blue" title="Kommunikation" />
+              <DetailHead title="Kommunikation" />
               {data.activity.length > 0 ? (
                 data.activity.slice(0, 6).map((a) => (
                   <div key={a.id} className="ffl-row" data-ffl-bridge-target>
@@ -551,26 +549,10 @@ function ListRow({
   )
 }
 
-function DetailHead({ tone, title }: { tone: string; title: string }) {
+function DetailHead({ title }: { title: string }) {
   return (
     <header className="ffl-detail-head">
-      <span className={`ffl-detail-dot is-${tone}`} aria-hidden />
       <h2 className="ffl-detail-title">{title}</h2>
     </header>
   )
-}
-
-function softenCalmLine(line: string) {
-  const t = line.trim()
-  if (!t) return 'Heute läuft alles planmäßig.'
-  if (/läuft ruhig/i.test(t)) return 'Heute läuft alles planmäßig.'
-  return t.endsWith('.') ? t : `${t}.`
-}
-
-function softenBriefingLine(line: string) {
-  return line
-    .replace(/Entscheidungen warten noch\.?/i, 'Entscheidungen warten noch auf deine Freigabe.')
-    .replace(/Eine Entscheidung wartet noch\.?/i, 'Eine Entscheidung wartet noch auf deine Freigabe.')
-    .replace(/Keine offenen Entscheidungen\.?/i, 'Wir haben aktuell keine weiteren Sorgen.')
-    .replace(/Fortschritt bei (\d+)\s*%\.?/i, 'Dein Projekt steht bei $1%.')
 }

@@ -1,13 +1,30 @@
 'use client'
 
 /**
- * Overview editorial read stack — scroll promotes line pairs into the H1,
- * body fades downward, quiet audio + share, filters sync with Fluss.
+ * Overview editorial read stack — stable H1, continuous body,
+ * Fließtext toggle, compact audio + notiz export, calm marks.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { SpeakerHigh, SpeakerSlash, ShareNetwork } from '@phosphor-icons/react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  Check,
+  FilePdf,
+  NoteBlank,
+  SpeakerHigh,
+  SpeakerSlash,
+  ShareNetwork,
+  TextAlignLeft,
+  Waves,
+} from '@phosphor-icons/react'
 import type { FlowNodeId } from '@/components/app-shell/overview/overview-nodes'
+import {
+  formatBriefingReadDate,
+  loadBriefingReadAt,
+  markBriefingRead,
+  todayBriefingKey,
+} from '@/lib/overview/briefing-read'
+import { downloadBriefingNote } from '@/lib/overview/download-briefing-note'
+import { downloadBriefingPdf } from '@/lib/overview/download-briefing-pdf'
 
 export type ReadBeat = {
   text: string
@@ -40,6 +57,20 @@ export type ReadStackContext = {
   briefingLines?: string[]
 }
 
+type MarkTone = 'risk' | 'decision' | 'efficiency'
+
+export type MarkPreview = {
+  title: string
+  hint?: string
+}
+
+export type MarkPreviews = Partial<Record<MarkTone, MarkPreview>>
+
+type ReadSentence = {
+  text: string
+  topic: ReadBeat['topic']
+}
+
 type Props = {
   greeting: string
   firstName: string
@@ -48,10 +79,126 @@ type Props = {
   opening: { lead: string; rest: string }
   onCreateProject?: () => void
   showCreateProject?: boolean
+  onOpenMark?: (tone: MarkTone) => void
+  markPreviews?: MarkPreviews
 }
 
 function easeOutCubic(t: number) {
   return 1 - (1 - t) ** 3
+}
+
+function splitSentences(text: string): string[] {
+  const parts = text
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(/(?<=[.!?…])\s+(?=[A-ZÄÖÜ0-9„"»])/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return parts.length ? parts : [text.trim()].filter(Boolean)
+}
+
+const MARK_RULES: Array<{ tone: MarkTone; re: RegExp }> = [
+  {
+    tone: 'risk',
+    re: /\b(?:\d+\s+)?(?:offene[nrs]?\s+)?(?:Risiko|Risiken|Blocker|Eskalation|Vorkommnisse|Verzögerungen)\b(?:[^.]{0,36})?/gi,
+  },
+  {
+    tone: 'decision',
+    re: /\b(?:\d+\s+)?(?:offene[nrs]?\s+)?(?:Entscheidung|Entscheidungen|Freigabe|Freigaben|Empfehlung|Empfehlungen)\b(?:[^.]{0,40})?/gi,
+  },
+  {
+    tone: 'efficiency',
+    re: /\b(?:Projektstatus|Status|Stabil|Effizienz|Fortschritt|Rhythmus|Aufgaben)\b(?:[^.]{0,36})?/gi,
+  },
+]
+
+const MARK_ARIA: Record<MarkTone, string> = {
+  risk: 'Risiken im Fluss öffnen',
+  decision: 'Entscheidung im Fluss öffnen',
+  efficiency: 'Projektstatus im Fluss öffnen',
+}
+
+function MarkChip({
+  tone,
+  children,
+  preview,
+  onOpen,
+}: {
+  tone: MarkTone
+  children: ReactNode
+  preview?: MarkPreview
+  onOpen?: (tone: MarkTone) => void
+}) {
+  const [tip, setTip] = useState(false)
+  const title = preview?.title?.trim() || children
+  const hint = preview?.hint?.trim()
+
+  return (
+    <span
+      className={`ffl-mark-wrap is-${tone}`}
+      onMouseEnter={() => setTip(true)}
+      onMouseLeave={() => setTip(false)}
+    >
+      <button
+        type="button"
+        className={`ffl-mark is-${tone}`}
+        onClick={() => onOpen?.(tone)}
+        onFocus={() => setTip(true)}
+        onBlur={() => setTip(false)}
+        aria-label={MARK_ARIA[tone]}
+      >
+        {children}
+      </button>
+      {tip ? (
+        <span className="ffl-mark-tip" role="tooltip">
+          <span className="ffl-mark-tip-title">{title}</span>
+          {hint ? <span className="ffl-mark-tip-hint">{hint}</span> : null}
+        </span>
+      ) : null}
+    </span>
+  )
+}
+
+function renderMarkedText(
+  text: string,
+  opts?: {
+    onOpenMark?: (tone: MarkTone) => void
+    markPreviews?: MarkPreviews
+  },
+): ReactNode {
+  type Hit = { start: number; end: number; tone: MarkTone }
+  const hits: Hit[] = []
+  for (const rule of MARK_RULES) {
+    rule.re.lastIndex = 0
+    let m: RegExpExecArray | null
+    while ((m = rule.re.exec(text)) !== null) {
+      const start = m.index
+      const end = start + m[0].length
+      if (hits.some((h) => start < h.end && end > h.start)) continue
+      hits.push({ start, end, tone: rule.tone })
+    }
+  }
+  if (!hits.length) return text
+  hits.sort((a, b) => a.start - b.start)
+  const nodes: ReactNode[] = []
+  let cursor = 0
+  hits.forEach((h, i) => {
+    if (h.start > cursor) nodes.push(text.slice(cursor, h.start))
+    const chunk = text.slice(h.start, h.end)
+    nodes.push(
+      <MarkChip
+        key={`${h.start}-${i}`}
+        tone={h.tone}
+        preview={opts?.markPreviews?.[h.tone]}
+        onOpen={opts?.onOpenMark}
+      >
+        {chunk}
+      </MarkChip>,
+    )
+    cursor = h.end
+  })
+  if (cursor < text.length) nodes.push(text.slice(cursor))
+  return nodes
 }
 
 export default function OverviewReadStack({
@@ -60,15 +207,27 @@ export default function OverviewReadStack({
   opening,
   onCreateProject,
   showCreateProject = false,
+  onOpenMark,
+  markPreviews,
 }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const lineRefs = useRef<(HTMLParagraphElement | null)[]>([])
-  const [pairIndex, setPairIndex] = useState(0)
+  const sentRefs = useRef<(HTMLSpanElement | null)[]>([])
+  const [activeIndex, setActiveIndex] = useState(0)
   const [canScroll, setCanScroll] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [atEnd, setAtEnd] = useState(false)
   const [speaking, setSpeaking] = useState(false)
-  const utterRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const [speakIndex, setSpeakIndex] = useState(-1)
+  const [readAt, setReadAt] = useState<string | null>(null)
+  const [plain, setPlain] = useState(false)
+  const [greetOpaque, setGreetOpaque] = useState(true)
+  const [shownHeadline, setShownHeadline] = useState(opening)
+  const [shownFromScroll, setShownFromScroll] = useState(false)
+  const ackSentRef = useRef(false)
+  const speakQueueRef = useRef(0)
+  const headlineSwapRef = useRef(0)
+  const briefingKey = todayBriefingKey()
 
   const visibleBeats = useMemo(() => {
     if (filter !== 'all') return beats.filter((b) => b.topic === filter)
@@ -86,22 +245,51 @@ export default function OverviewReadStack({
     return out
   }, [beats, filter])
 
-  const headline = useMemo(() => {
-    if (pairIndex <= 0) {
-      return { ...fitHeadline(opening.lead, opening.rest), fromScroll: false }
-    }
-    const line = visibleBeats[(pairIndex - 1) * 2]?.text
-      || visibleBeats[(pairIndex - 1) * 2 + 1]?.text
-      || ''
-    if (!line) return { ...fitHeadline(opening.lead, opening.rest), fromScroll: false }
+  const sentences = useMemo<ReadSentence[]>(
+    () => visibleBeats.flatMap((b) => splitSentences(b.text).map((text) => ({ text, topic: b.topic }))),
+    [visibleBeats],
+  )
 
-    const mid = Math.min(line.length, Math.floor(line.length * 0.48))
-    const sp = line.lastIndexOf(' ', mid)
-    const cut = sp > 10 ? sp : mid
-    const lead = line.slice(0, cut).trim()
-    const rest = line.slice(cut).trim()
-    return { ...fitHeadline(lead, rest), fromScroll: true }
-  }, [pairIndex, visibleBeats, opening])
+  const paragraphs = useMemo(() => {
+    let offset = 0
+    return visibleBeats.map((b) => {
+      const parts = splitSentences(b.text)
+      const start = offset
+      offset += parts.length
+      return { topic: b.topic, parts, start }
+    })
+  }, [visibleBeats])
+
+  /** Per-paragraph key line — first sentence = what lands in the H1. */
+  const paragraphKeys = useMemo(
+    () => paragraphs.map((p) => p.parts[0]?.trim() || ''),
+    [paragraphs],
+  )
+
+  const headline = useMemo(() => {
+    if (plain || activeIndex <= 0) {
+      return { lead: opening.lead, rest: opening.rest, fromScroll: false }
+    }
+    let paraIdx = 0
+    const cursor = activeIndex - 1
+    for (let i = 0; i < paragraphs.length; i++) {
+      const end = paragraphs[i].start + paragraphs[i].parts.length
+      if (cursor < end) {
+        paraIdx = i
+        break
+      }
+      paraIdx = i
+    }
+    const key = paragraphKeys[paraIdx]
+    if (!key) return { lead: opening.lead, rest: opening.rest, fromScroll: false }
+    return { ...headlineFromKey(key), fromScroll: true }
+  }, [plain, activeIndex, paragraphs, paragraphKeys, opening])
+
+  const exportBody = useMemo(() => {
+    const head = `${opening.lead}${opening.rest}`.trim()
+    const body = visibleBeats.map((b) => b.text.trim()).filter(Boolean).join('\n\n')
+    return [head, body].filter(Boolean).join('\n\n')
+  }, [opening, visibleBeats])
 
   const publishProgress = useCallback((raw: number) => {
     const p = Math.max(0, Math.min(1, raw))
@@ -120,33 +308,79 @@ export default function OverviewReadStack({
 
     const scrollTop = root.scrollTop
     const range = Math.max(1, root.scrollHeight - root.clientHeight)
-    publishProgress(scrollTop / range)
+    publishProgress(plain ? 0 : scrollTop / range)
 
-    let past = 0
-    for (let i = 0; i < lineRefs.current.length; i++) {
-      const el = lineRefs.current[i]
-      if (!el) continue
-      const mid = el.offsetTop + el.offsetHeight * 0.55
-      if (mid <= scrollTop + 2) past += 1
-      else break
+    if (plain) {
+      setActiveIndex(0)
+      setCanScroll(root.scrollHeight > root.clientHeight + 8)
+      setScrolled(scrollTop > 8)
+      setAtEnd(false)
+      return
     }
 
-    const maxPair = Math.max(0, Math.ceil(visibleBeats.length / 2))
-    const nextPair = Math.min(Math.floor(past / 2), maxPair)
-    setPairIndex(nextPair)
+    let past = 0
+    const threshold = scrollTop + 10
+    for (let i = 0; i < sentRefs.current.length; i++) {
+      const el = sentRefs.current[i]
+      if (!el) continue
+      if (el.offsetTop + el.offsetHeight * 0.4 <= threshold) past += 1
+      else break
+    }
+    setActiveIndex(Math.min(past, sentences.length))
 
     const can = root.scrollHeight > root.clientHeight + 8
+    const ended = can && scrollTop + root.clientHeight >= root.scrollHeight - 14
     setCanScroll(can)
-    setAtEnd(!can || scrollTop + root.clientHeight >= root.scrollHeight - 10)
-  }, [visibleBeats.length, publishProgress])
+    setScrolled(scrollTop > 8)
+    setAtEnd(ended)
+  }, [publishProgress, plain, sentences.length])
+
+  /* Soft crossfade when H1 content changes */
+  useEffect(() => {
+    const next = { lead: headline.lead, rest: headline.rest }
+    if (
+      next.lead === shownHeadline.lead
+      && next.rest === shownHeadline.rest
+      && headline.fromScroll === shownFromScroll
+    ) return
+
+    const id = ++headlineSwapRef.current
+    setGreetOpaque(false)
+    const t = window.setTimeout(() => {
+      if (id !== headlineSwapRef.current) return
+      setShownHeadline(next)
+      setShownFromScroll(headline.fromScroll)
+      requestAnimationFrame(() => setGreetOpaque(true))
+    }, 140)
+    return () => window.clearTimeout(t)
+  }, [headline, shownHeadline, shownFromScroll])
 
   useEffect(() => {
-    setPairIndex(0)
+    setShownHeadline(opening)
+    setShownFromScroll(false)
+    setGreetOpaque(true)
+    setActiveIndex(0)
+  }, [filter, opening.lead, opening.rest])
+
+  useEffect(() => {
+    const existing = loadBriefingReadAt(briefingKey)
+    setReadAt(existing)
+    ackSentRef.current = Boolean(existing)
+  }, [briefingKey])
+
+  useEffect(() => {
+    if (!atEnd || ackSentRef.current || filter !== 'all') return
+    ackSentRef.current = true
+    void markBriefingRead(briefingKey).then((iso) => setReadAt(iso))
+  }, [atEnd, briefingKey, filter])
+
+  useEffect(() => {
     publishProgress(0)
     if (scrollRef.current) scrollRef.current.scrollTop = 0
+    setActiveIndex(0)
     const id = window.requestAnimationFrame(() => syncScroll())
     return () => window.cancelAnimationFrame(id)
-  }, [filter, visibleBeats, opening.lead, syncScroll, publishProgress])
+  }, [filter, sentences, opening.lead, syncScroll, publishProgress, plain])
 
   useEffect(() => {
     const root = scrollRef.current
@@ -165,84 +399,213 @@ export default function OverviewReadStack({
     }
   }, [])
 
-  const fullText = useMemo(() => {
-    const head = `${headline.lead}${headline.rest}`.trim()
-    return [head, ...visibleBeats.map((b) => b.text)].join(' ')
-  }, [headline, visibleBeats])
+  useEffect(() => {
+    if (speakIndex < 1) return
+    const root = scrollRef.current
+    if (!root) return
+    const el = root.querySelector(`.ffl-read-sent.is-live`) as HTMLElement | null
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [speakIndex])
+
+  const stopSpeak = useCallback(() => {
+    try { window.speechSynthesis.cancel() } catch { /* noop */ }
+    speakQueueRef.current += 1
+    setSpeaking(false)
+    setSpeakIndex(-1)
+  }, [])
+
+  function speakFrom(startAt: number) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    const queue = ++speakQueueRef.current
+    window.speechSynthesis.cancel()
+
+    const lines = [
+      `${opening.lead}${opening.rest}`.trim(),
+      ...sentences.map((s) => s.text),
+    ].filter(Boolean)
+
+    if (!lines.length) return
+
+    let i = Math.max(0, Math.min(startAt, lines.length - 1))
+    setSpeaking(true)
+
+    const next = () => {
+      if (queue !== speakQueueRef.current) return
+      if (i >= lines.length) {
+        setSpeaking(false)
+        setSpeakIndex(-1)
+        return
+      }
+      setSpeakIndex(i)
+      const u = new SpeechSynthesisUtterance(lines[i])
+      u.lang = 'de-DE'
+      u.rate = 1.05
+      u.onend = () => {
+        i += 1
+        next()
+      }
+      u.onerror = () => {
+        if (queue !== speakQueueRef.current) return
+        setSpeaking(false)
+        setSpeakIndex(-1)
+      }
+      window.speechSynthesis.speak(u)
+    }
+    next()
+  }
 
   function toggleSpeak() {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
     if (speaking) {
-      window.speechSynthesis.cancel()
-      setSpeaking(false)
+      stopSpeak()
       return
     }
-    const u = new SpeechSynthesisUtterance(fullText)
-    u.lang = 'de-DE'
-    u.rate = 1
-    u.onend = () => setSpeaking(false)
-    u.onerror = () => setSpeaking(false)
-    utterRef.current = u
-    setSpeaking(true)
-    window.speechSynthesis.speak(u)
+    speakFrom(0)
   }
 
   async function shareReport() {
-    const payload = { title: 'Festag Bericht', text: fullText }
+    const payload = { title: 'Festag Bericht', text: exportBody }
     try {
       if (navigator.share) {
         await navigator.share(payload)
         return
       }
     } catch { /* cancelled */ }
-    const wa = `https://wa.me/?text=${encodeURIComponent(fullText)}`
+    const wa = `https://wa.me/?text=${encodeURIComponent(exportBody)}`
     window.open(wa, '_blank', 'noopener,noreferrer')
   }
 
+  function downloadPdf() {
+    downloadBriefingPdf({
+      title: 'Festag Bericht',
+      body: exportBody,
+      filename: `festag-bericht-${todayBriefingKey()}.pdf`,
+    })
+  }
+
+  function downloadNote() {
+    downloadBriefingNote({
+      title: 'Festag Notiz',
+      body: exportBody,
+      filename: `festag-notiz-${todayBriefingKey()}.txt`,
+    })
+  }
+
+  function togglePlain() {
+    stopSpeak()
+    setPlain((v) => !v)
+    setActiveIndex(0)
+    setShownHeadline(opening)
+    setShownFromScroll(false)
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+    publishProgress(0)
+  }
+
+  const audioLabel = speaking
+    ? speakIndex >= 0
+      ? `Audio stoppen (${Math.min(speakIndex + 1, sentences.length + 1)}/${sentences.length + 1})`
+      : 'Audio stoppen'
+    : 'Audio'
+
   return (
-    <div ref={rootRef} className={`ffl-read${headline.fromScroll ? ' is-promoted-read' : ''}`}>
+    <div
+      ref={rootRef}
+      className={`ffl-read${shownFromScroll ? ' is-promoted-read' : ''}${plain ? ' is-plain' : ''}${speaking ? ' is-audio' : ''}`}
+    >
       <h1
-        className={`ffl-greet${headline.fromScroll ? ' is-promoted' : ''}`}
-        key={`${filter}-${pairIndex}-${headline.lead}`}
+        className={`ffl-greet${shownFromScroll ? ' is-promoted' : ''}${greetOpaque ? ' is-in' : ' is-out'}`}
       >
-        <span className="ffl-greet-lead">{headline.lead}</span>
-        {headline.rest ? <span className="ffl-greet-rest">{headline.rest}</span> : null}
+        <span className="ffl-greet-lead">
+          {renderMarkedText(shownHeadline.lead, { onOpenMark, markPreviews })}
+        </span>
+        {shownHeadline.rest ? (
+          <span className="ffl-greet-rest">
+            {renderMarkedText(shownHeadline.rest, { onOpenMark, markPreviews })}
+          </span>
+        ) : null}
       </h1>
 
       <div
         ref={scrollRef}
-        className="ffl-read-scroll"
+        className={[
+          'ffl-read-scroll',
+          scrolled ? 'is-scrolled' : '',
+          atEnd || readAt ? 'is-end' : '',
+        ].filter(Boolean).join(' ')}
         onScroll={syncScroll}
       >
-        {visibleBeats.map((beat, i) => {
-          const promoted = pairIndex > 0 && i < pairIndex * 2
-          return (
-            <p
-              key={`${beat.topic}-${i}-${beat.text.slice(0, 24)}`}
-              ref={(el) => { lineRefs.current[i] = el }}
-              className={`ffl-read-line${promoted ? ' is-up' : ''}`}
-              aria-hidden={promoted || undefined}
-            >
-              {beat.text}
-            </p>
-          )
-        })}
+        {paragraphs.map((p) => (
+          <p key={`${p.topic}-${p.start}`} className={`ffl-read-line is-flow is-${p.topic}`}>
+            {p.parts.map((text, i) => {
+              const globalIndex = p.start + i
+              const promoted = !plain && activeIndex > 0 && globalIndex < activeIndex
+              const live = speaking && speakIndex === globalIndex + 1
+              return (
+                <span
+                  key={`${p.topic}-${globalIndex}`}
+                  ref={(node) => { sentRefs.current[globalIndex] = node }}
+                  className={`ffl-read-sent${promoted ? ' is-up' : ''}${live ? ' is-live' : ''}`}
+                  aria-hidden={promoted || undefined}
+                >
+                  {text}{i < p.parts.length - 1 ? ' ' : ''}
+                </span>
+              )
+            })}
+          </p>
+        ))}
+        {readAt || atEnd ? (
+          <div className="ffl-read-ack" role="status" aria-live="polite">
+            <span className="ffl-read-ack-mark" aria-hidden>
+              <Check size={14} weight="bold" />
+            </span>
+            <span className="ffl-read-ack-label">Gelesen</span>
+            <span className="ffl-read-ack-date">
+              {formatBriefingReadDate(readAt || new Date().toISOString())}
+            </span>
+          </div>
+        ) : null}
         <div className="ffl-read-scroll-pad" aria-hidden />
       </div>
 
       <div className="ffl-read-foot">
-        <p className={`ffl-read-hint${canScroll && !atEnd ? '' : ' is-hidden'}`}>
-          Scrollen — je zwei Zeilen werden zur Überschrift
+        <p className={`ffl-read-hint${canScroll && !atEnd && !readAt && !plain ? '' : ' is-hidden'}`}>
+          Scrollen — das Wichtige wandert in die Überschrift
         </p>
-        <div className="ffl-read-actions">
+        <div className="ffl-read-actions" role="toolbar" aria-label="Bericht">
+          <button
+            type="button"
+            className={`ffl-icon-btn${plain ? ' is-on' : ''}`}
+            onClick={togglePlain}
+            aria-label={plain ? 'Zurück zum normalen Lesen' : 'Als Fließtext lesen'}
+            title={plain ? 'Zurück' : 'Fließtext'}
+          >
+            {plain ? <Waves size={16} weight="regular" /> : <TextAlignLeft size={16} weight="regular" />}
+          </button>
           <button
             type="button"
             className={`ffl-icon-btn${speaking ? ' is-on' : ''}`}
             onClick={toggleSpeak}
-            aria-label={speaking ? 'Vorlesen stoppen' : 'Bericht vorlesen'}
-            title={speaking ? 'Stoppen' : 'Vorlesen'}
+            aria-label={audioLabel}
+            title={audioLabel}
           >
             {speaking ? <SpeakerSlash size={16} weight="regular" /> : <SpeakerHigh size={16} weight="regular" />}
+          </button>
+          <button
+            type="button"
+            className="ffl-icon-btn"
+            onClick={downloadNote}
+            aria-label="Notizdatei herunterladen"
+            title="Notiz"
+          >
+            <NoteBlank size={16} weight="regular" />
+          </button>
+          <button
+            type="button"
+            className="ffl-icon-btn"
+            onClick={downloadPdf}
+            aria-label="Als PDF herunterladen"
+            title="PDF"
+          >
+            <FilePdf size={16} weight="regular" />
           </button>
           <button
             type="button"
@@ -271,6 +634,42 @@ function endDot(s: string) {
   return /[.!?…]$/.test(t) ? t : `${t}.`
 }
 
+/**
+ * Turn a full key sentence into H1 lead + muted rest.
+ * Prefers a natural clause break (comma / em-dash) over a mid-word chop.
+ */
+function headlineFromKey(sentence: string): { lead: string; rest: string } {
+  const t = sentence.replace(/\s+/g, ' ').trim()
+  if (!t) return { lead: '', rest: '' }
+
+  const clauseAt = (() => {
+    const soft = Math.min(t.length, 42)
+    const window = t.slice(0, soft)
+    const marks = [', ', ' — ', ' – ', ': ', '; ']
+    let best = -1
+    for (const m of marks) {
+      const i = window.lastIndexOf(m)
+      if (i > 12) best = Math.max(best, i)
+    }
+    return best
+  })()
+
+  if (clauseAt > 12) {
+    const lead = t.slice(0, clauseAt).trim()
+    const rest = t.slice(clauseAt).replace(/^[,—–:;\s]+/, '').trim()
+    return fitHeadline(lead.endsWith('.') ? lead : `${lead}.`, rest)
+  }
+
+  if (t.length <= 48) {
+    return fitHeadline(t, '')
+  }
+
+  const mid = Math.min(t.length, Math.floor(t.length * 0.48))
+  const sp = t.lastIndexOf(' ', mid)
+  const cut = sp > 14 ? sp : mid
+  return fitHeadline(t.slice(0, cut).trim(), t.slice(cut).trim())
+}
+
 /** Keep H1 optically short — ~2 lines lead, short muted rest. */
 function fitHeadline(lead: string, rest: string): { lead: string; rest: string } {
   const softCut = (text: string, max: number) => {
@@ -285,7 +684,6 @@ function fitHeadline(lead: string, rest: string): { lead: string; rest: string }
   let L = lead.trim()
   let R = rest.trim()
 
-  // Prefer one crisp sentence as lead; move overflow into rest.
   if (L.length > 36) {
     const mid = Math.min(L.length, 34)
     const sp = L.lastIndexOf(' ', mid)
@@ -371,86 +769,116 @@ export function buildOverviewOpening(
   )
 }
 
+/** Continuous editorial paragraphs for the Overview body (second text). */
 export function buildOverviewReadBeats(input: ReadStackContext): ReadBeat[] {
   const beats: ReadBeat[] = []
   const push = (topic: ReadBeat['topic'], text: string) => {
-    const t = endDot(text)
+    const t = text.trim()
     if (t) beats.push({ topic, text: t })
   }
 
   const calm = endDot(input.calmLine)
-  if (calm) push('all', calm)
-
   const acts = (input.activityTitles || []).filter(Boolean)
-  if (acts.length) {
-    // Opening H1 already carries the latest signal — body continues from there.
-    if (acts[1]) push('communication', `Davor: ${acts[1]}`)
-    push('communication', 'Tagro fasst Signale ruhig zusammen, ohne Lärm.')
-    push('communication', 'Du musst nichts nachfragen — der Stand bleibt sichtbar.')
-  } else {
-    push('communication', 'Heute war die Kommunikation ruhig — keine dringenden Signale.')
-    push('communication', 'Tagro hört weiter mit und meldet sich nur, wenn es zählt.')
-    push('communication', 'Du musst nichts nachfragen — der Stand bleibt sichtbar.')
-  }
+  const names = (input.teamNames || []).filter(Boolean)
+  const projects = (input.projectTitles || []).filter(Boolean)
+  const decision = input.decisionTitles?.[0]
+  const health = input.healthLabel.toLowerCase()
 
-  if (input.atRisk > 0) {
-    push(
-      'risks',
-      input.atRisk === 1
-        ? 'Ein Risiko bleibt im Blick und sollte geklärt werden.'
-        : `${input.atRisk} Risiken bleiben im Blick und sollten geklärt werden.`,
-    )
-    push('risks', 'Tagro empfiehlt eine kurze Klärung, bevor der Fortschritt stockt.')
-  } else {
-    push('risks', 'Abgesehen davon gibt es keine auffälligen Vorkommnisse.')
-    push('risks', 'Keine Blocker, keine Eskalation — der Blick bleibt ruhig.')
-  }
+  push(
+    'all',
+    [
+      calm || 'Heute stehen vorerst keine weiteren Termine oder Aufgaben an.',
+      'Tagro hat den Tag als ruhigen Betriebsbericht zusammengefasst — ohne Dashboard-Lärm, ohne technische Details, die dich nicht weiterbringen.',
+      'Was zählt, liegt hier im Fließtext: Stand, Risiken, offene Freigaben und der nächste sinnvolle Schritt.',
+    ].join(' '),
+  )
 
-  if (input.pendingDecisions > 0) {
-    push(
-      'decisions',
-      input.pendingDecisions === 1
-        ? 'Eine Entscheidung wartet noch auf deine Freigabe.'
-        : `${input.pendingDecisions} offene Entscheidungen warten noch auf deine Freigabe.`,
-    )
-    const first = input.decisionTitles?.[0]
-    if (first) push('decisions', first)
-    push('decisions', 'Tagro hat Empfehlungen vorbereitet — du entscheidest.')
-  } else {
-    push('decisions', 'Optional könnten wir prüfen, wie die bisherigen Entscheidungen umgesetzt wurden.')
-    push('decisions', 'Aktuell wartet nichts auf deine Freigabe.')
-  }
+  push(
+    'communication',
+    acts.length
+      ? [
+          `In der Kommunikation war zuletzt Bewegung zu ${acts[0].replace(/\.$/, '')}.`,
+          acts[1] ? `Kurz davor: ${acts[1].replace(/\.$/, '')}.` : '',
+          'Tagro fasst diese Signale ruhig zusammen und hält den Faden, ohne dass du in Chats oder Threads nachschlagen musst.',
+          'Wenn etwas wirklich deine Aufmerksamkeit braucht, erscheint es hier — nicht als Alarm, sondern als klarer Satz.',
+        ].filter(Boolean).join(' ')
+      : [
+          'Heute war die Kommunikation ruhig.',
+          'Es gab keine dringenden Rückfragen, keine offenen Klärungen und keinen ungeklärten Feedback-Loop.',
+          'Tagro hört weiter mit und meldet sich nur, wenn ein Signal den Projektverlauf wirklich verändert.',
+        ].join(' '),
+  )
 
-  push('status', `Projektstatus ${input.healthLabel.toLowerCase()}.`)
+  push(
+    'risks',
+    input.atRisk > 0
+      ? [
+          input.atRisk === 1
+            ? 'Ein Risiko bleibt im Blick und sollte geklärt werden, bevor der Fortschritt stockt.'
+            : `${input.atRisk} Risiken bleiben im Blick und sollten geklärt werden, bevor der Fortschritt stockt.`,
+          'Tagro empfiehlt eine kurze, gezielte Klärung — nicht eine große Eskalation.',
+          'Solange das offen ist, bleibt dieser Punkt im Bericht sichtbar, damit nichts zwischen den Stühlen verschwindet.',
+        ].join(' ')
+      : [
+          'Abgesehen davon gibt es keine auffälligen Vorkommnisse.',
+          'Keine Blocker, keine Eskalation, keine stillen Verzögerungen, die sich unbemerkt aufbauen würden.',
+          'Der Blick bleibt ruhig — und genau deshalb kann der Bericht heute eher Orientierung als Alarm sein.',
+        ].join(' '),
+  )
+
+  push(
+    'decisions',
+    input.pendingDecisions > 0
+      ? [
+          input.pendingDecisions === 1
+            ? 'Eine Entscheidung wartet noch auf deine Freigabe.'
+            : `${input.pendingDecisions} offene Entscheidungen warten noch auf deine Freigabe.`,
+          decision ? `Aktuell im Vordergrund: ${decision.replace(/\.$/, '')}.` : '',
+          'Tagro hat Empfehlungen vorbereitet — mit Begründung und Auswirkung.',
+          'Du entscheidest; Festag trägt die Entscheidung danach in Plan, Status und Team weiter.',
+        ].filter(Boolean).join(' ')
+      : [
+          'Aktuell wartet nichts auf deine Freigabe.',
+          'Optional können wir später prüfen, wie die bisherigen Entscheidungen umgesetzt wurden und ob sich daraus ein klarerer Standard für ähnliche Fälle ergibt.',
+          'Solange nichts Offen ist, bleibt dieser Abschnitt bewusst kurz und ruhig.',
+        ].join(' '),
+  )
+
   push(
     'status',
-    input.openTasks > 0
-      ? `Tagro überwacht ${input.openTasks === 1 ? 'eine offene Aufgabe' : `${input.openTasks} Aufgaben`}, Entscheidungen und Blocker weiter.`
-      : 'Tagro überwacht Tasks, Entscheidungen und Blocker weiter.',
+    [
+      `Der Projektstatus steht auf ${health}.`,
+      input.openTasks > 0
+        ? `Tagro überwacht ${input.openTasks === 1 ? 'eine offene Aufgabe' : `${input.openTasks} Aufgaben`}, Entscheidungen und mögliche Blocker weiter.`
+        : 'Tagro überwacht Tasks, Entscheidungen und mögliche Blocker weiter.',
+      'Der Rhythmus bleibt erkennbar: was erledigt ist, was läuft, und was als Nächstes sinnvoll wäre — ohne dass du dafür ein zweites Tool öffnen musst.',
+    ].join(' '),
   )
-  push('status', 'Der Rhythmus bleibt erkennbar — ohne Dashboard-Lärm.')
 
-  const names = (input.teamNames || []).filter(Boolean)
   push(
     'team',
-    names.length
-      ? `Aktiv: ${names.slice(0, 3).join(', ')}.`
-      : `Team: ${Math.max(1, input.teamMembers)} aktiv.`,
+    [
+      names.length
+        ? `Aktiv im Blick: ${names.slice(0, 3).join(', ')}.`
+        : `Im Team sind ${Math.max(1, input.teamMembers)} Personen aktiv.`,
+      'Rollen und Fortschritt bleiben für dich sichtbar, ohne dass daraus ein Überwachungsgefühl entsteht.',
+      'Tagro hält den Überblick über Kapazität und Übergaben — du behältst die menschliche Entscheidung.',
+    ].join(' '),
   )
-  push('team', 'Rollen und Fortschritt bleiben für dich sichtbar.')
-  push('team', 'Tagro hält den Überblick, ohne jemanden zu überwachen.')
 
-  const projects = (input.projectTitles || []).filter(Boolean)
-  if (projects.length) {
-    push(
-      'project',
+  push(
+    'project',
+    [
       projects.length === 1
         ? `${projects[0]} ist dein aktueller Fokus.`
-        : `${projects.slice(0, 2).join(' und ')} sind im Blick.`,
-    )
-  }
-  push('project', 'Bei Bedarf können wir den bisherigen Fortschritt noch einmal durchgehen.')
-  push('project', 'Der Gesamtbericht bleibt die ruhige Lesefläche für den Stand.')
+        : projects.length > 1
+          ? `${projects.slice(0, 2).join(' und ')} sind im Blick.`
+          : 'Dein Workspace fasst den Stand über die aktiven Projekte zusammen.',
+      'Bei Bedarf können wir den bisherigen Fortschritt noch einmal ruhig durchgehen — Deliverables, offene Punkte und das, was als Nächstes Freigabe oder Fokus verdient.',
+      'Dieser Gesamtbericht bleibt die Lesefläche für den Tag: einmal durchlesen, bestätigen, dann weiterarbeiten.',
+      'Wenn du bis hierher gescrollt hast, ist der Bericht vollständig gelesen — unten erscheint die Bestätigung mit Datum, und Festag legt ihn als gelesen ab.',
+    ].join(' '),
+  )
 
   return beats
 }

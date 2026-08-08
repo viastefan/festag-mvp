@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, MagnifyingGlass, Sparkle } from '@phosphor-icons/react'
-import { toggleAccountPanel } from '@/lib/account-panel-open'
-import { getInitials, type UserProfile } from '@/lib/hooks/useUser'
+import { Bell, MagnifyingGlass, Sparkle, X } from '@phosphor-icons/react'
+import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnterGlyph'
+import type { UserProfile } from '@/lib/hooks/useUser'
 import { openTagro } from '@/components/TagroOverlay'
 import { useNotifications } from '@/hooks/useNotifications'
 
@@ -20,12 +20,13 @@ type SearchHit = {
   href?: string
 }
 
-export default function AppShellTopBar({ user }: Props) {
+export default function AppShellTopBar({}: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const [q, setQ] = useState('')
   const [hits, setHits] = useState<SearchHit[]>([])
-  const [searchOpen, setSearchOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [resultsOpen, setResultsOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -33,13 +34,27 @@ export default function AppShellTopBar({ user }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const { items: notifications, unread, markRead } = useNotifications({ limit: 10 })
 
-  const initials = getInitials(user)
   const filled = q.trim().length > 0
+  const canSubmit = filled
+  const expandedRef = useRef(false)
+  expandedRef.current = expanded
+
+  function closeSearch(clear = false) {
+    if (clear) {
+      setQ('')
+      setHits([])
+    }
+    setResultsOpen(false)
+    setExpanded(false)
+    inputRef.current?.blur()
+  }
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       const t = e.target as Node
-      if (searchRef.current && !searchRef.current.contains(t)) setSearchOpen(false)
+      if (expandedRef.current && searchRef.current && !searchRef.current.contains(t)) {
+        closeSearch(true)
+      }
       if (notifRef.current && !notifRef.current.contains(t)) setNotifOpen(false)
     }
     document.addEventListener('mousedown', onDoc)
@@ -47,8 +62,14 @@ export default function AppShellTopBar({ user }: Props) {
   }, [])
 
   useEffect(() => {
+    if (!expanded) return
+    const t = window.setTimeout(() => inputRef.current?.focus(), 160)
+    return () => window.clearTimeout(t)
+  }, [expanded])
+
+  useEffect(() => {
     const term = q.trim()
-    if (term.length < 2) {
+    if (!expanded || term.length < 2) {
       setHits([])
       return
     }
@@ -64,7 +85,7 @@ export default function AppShellTopBar({ user }: Props) {
         }
         const data = (await res.json()) as { hits?: SearchHit[] }
         setHits(Array.isArray(data.hits) ? data.hits : [])
-        setSearchOpen(true)
+        setResultsOpen(true)
       } catch {
         setHits([])
       } finally {
@@ -72,7 +93,7 @@ export default function AppShellTopBar({ user }: Props) {
       }
     }, 200)
     return () => window.clearTimeout(t)
-  }, [q])
+  }, [q, expanded])
 
   function askTagro(question: string) {
     const text = question.trim()
@@ -83,19 +104,10 @@ export default function AppShellTopBar({ user }: Props) {
       title: 'Suche',
       prefill: text,
     })
-    setQ('')
-    setHits([])
-    setSearchOpen(false)
+    closeSearch(true)
   }
 
-  function onSearchKey(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Escape') {
-      setSearchOpen(false)
-      inputRef.current?.blur()
-      return
-    }
-    if (e.key !== 'Enter') return
-    e.preventDefault()
+  function submitSearch() {
     const term = q.trim()
     if (!term) return
     const first = hits.find((h) => h.kind !== 'tagro') || hits[0]
@@ -105,37 +117,84 @@ export default function AppShellTopBar({ user }: Props) {
     }
     if (first.href) {
       router.push(first.href)
-      setQ('')
-      setHits([])
-      setSearchOpen(false)
+      closeSearch(true)
     }
+  }
+
+  function onSearchKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeSearch(true)
+      return
+    }
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    submitSearch()
   }
 
   return (
     <header className="fas-topbar">
+      <style>{AUTH_ENTER_GLYPH_CSS}</style>
       <div className="fas-topbar-left" />
 
       <div className="fas-topbar-right">
-        <div className="fas-search-wrap" ref={searchRef}>
-          <label className={`fas-search-field${filled ? ' is-filled' : ''}`}>
-            <MagnifyingGlass size={16} weight="regular" aria-hidden className="fas-search-ico" />
-            <input
-              ref={inputRef}
-              type="search"
-              className="fas-search-input"
-              placeholder="Suchen oder Tagro fragen…"
-              value={q}
-              autoComplete="off"
-              onChange={(e) => {
-                setQ(e.target.value)
-                setSearchOpen(true)
+        <div
+          className={`fas-search-wrap${expanded ? ' is-expanded' : ''}`}
+          ref={searchRef}
+        >
+          {!expanded ? (
+            <button
+              type="button"
+              className="fas-icon-btn"
+              aria-label="Suche öffnen"
+              onClick={() => {
+                setNotifOpen(false)
+                setExpanded(true)
               }}
-              onFocus={() => { if (q.trim().length >= 2) setSearchOpen(true) }}
-              onKeyDown={onSearchKey}
-            />
-            {busy ? <span className="fas-search-busy" aria-hidden /> : null}
-          </label>
-          {searchOpen && q.trim().length >= 2 ? (
+            >
+              <MagnifyingGlass size={15} weight="regular" />
+            </button>
+          ) : (
+            <div className={`fas-search-field${filled ? ' is-filled' : ''}`}>
+              <MagnifyingGlass size={14} weight="regular" aria-hidden className="fas-search-ico" />
+              <input
+                ref={inputRef}
+                type="search"
+                className="fas-search-input"
+                placeholder="Womit sollen wir helfen?"
+                value={q}
+                autoComplete="off"
+                onChange={(e) => {
+                  setQ(e.target.value)
+                  if (e.target.value.trim().length >= 2) setResultsOpen(true)
+                }}
+                onFocus={() => { if (q.trim().length >= 2) setResultsOpen(true) }}
+                onKeyDown={onSearchKey}
+              />
+              {busy ? <span className="fas-search-busy" aria-hidden /> : null}
+              {canSubmit ? (
+                <button
+                  type="button"
+                  className="fas-search-enter"
+                  aria-label="Absenden"
+                  onClick={submitSearch}
+                >
+                  <AuthEnterGlyph ready />
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="fas-search-close"
+                aria-label="Suche schließen"
+                title="Schließen"
+                onClick={() => closeSearch(true)}
+              >
+                <X size={12} weight="bold" />
+              </button>
+            </div>
+          )}
+
+          {expanded && resultsOpen && q.trim().length >= 2 ? (
             <div className="fas-popover fas-search-popover" role="listbox" aria-label="Suchergebnisse">
               <button
                 type="button"
@@ -155,9 +214,7 @@ export default function AppShellTopBar({ user }: Props) {
                   className="fas-search-hit"
                   onClick={() => {
                     if (h.href) router.push(h.href)
-                    setQ('')
-                    setHits([])
-                    setSearchOpen(false)
+                    closeSearch(true)
                   }}
                 >
                   <span>
@@ -176,7 +233,11 @@ export default function AppShellTopBar({ user }: Props) {
             className={`fas-icon-btn${notifOpen ? ' is-on' : ''}`}
             aria-label="Benachrichtigungen"
             aria-expanded={notifOpen}
-            onClick={() => setNotifOpen((v) => !v)}
+            onClick={() => {
+              setNotifOpen((v) => !v)
+              if (!q.trim()) setExpanded(false)
+              setResultsOpen(false)
+            }}
           >
             <Bell size={17} weight="regular" />
             {unread > 0 ? <span className="fas-notif-dot" aria-hidden /> : null}
@@ -210,17 +271,6 @@ export default function AppShellTopBar({ user }: Props) {
             </div>
           ) : null}
         </div>
-
-        <button
-          type="button"
-          className="fas-icon-btn fas-topbar-account"
-          aria-label="Account"
-          onClick={() => toggleAccountPanel()}
-        >
-          <span className="fas-profile-avatar" style={{ width: 26, height: 26, fontSize: 10 }} aria-hidden="true">
-            {initials}
-          </span>
-        </button>
       </div>
     </header>
   )

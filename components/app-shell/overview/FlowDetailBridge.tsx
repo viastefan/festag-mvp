@@ -1,8 +1,9 @@
 'use client'
 
 /**
- * Animated ink bridges from the focused Fluss node to every detail card on the right.
- * Drawn in viewport space so sticky columns stay connected while the page scrolls.
+ * Animated ink bridges from the focused Fluss node to every detail card.
+ * Starts at the node's right edge (never through the label), light gray dotted,
+ * small terminal dots — matching the Entwickler rail reference.
  */
 
 import { useEffect, useState, type RefObject } from 'react'
@@ -17,25 +18,18 @@ type Props = {
 
 type BridgePath = {
   d: string
-  len: number
+  x2: number
+  y2: number
 }
 
 function cubic(x1: number, y1: number, x2: number, y2: number): string {
-  const dx = Math.max(48, Math.abs(x2 - x1) * 0.42)
-  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + dx).toFixed(1)} ${y1.toFixed(1)}, ${(x2 - dx).toFixed(1)} ${y2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`
+  const dx = Math.max(56, Math.abs(x2 - x1) * 0.48)
+  /* Lift mid control so the curve stays clear of the node copy */
+  const lift = Math.abs(y2 - y1) < 28 ? (y2 >= y1 ? 18 : -18) : 0
+  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + dx).toFixed(1)} ${(y1 + lift).toFixed(1)}, ${(x2 - dx * 0.55).toFixed(1)} ${y2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`
 }
 
-function pathLength(d: string): number {
-  try {
-    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    p.setAttribute('d', d)
-    return p.getTotalLength()
-  } catch {
-    return 240
-  }
-}
-
-export default function FlowDetailBridge({ active, focus, rootRef, tone = 'ink' }: Props) {
+export default function FlowDetailBridge({ active, focus, rootRef }: Props) {
   const [size, setSize] = useState({ w: 0, h: 0 })
   const [paths, setPaths] = useState<BridgePath[]>([])
   const [tick, setTick] = useState(0)
@@ -54,7 +48,7 @@ export default function FlowDetailBridge({ active, focus, rootRef, tone = 'ink' 
       const root = rootRef.current
       if (!root || cancelled) return
 
-      const orb = root.querySelector(`[data-ffl-node="${focus}"] .ffl-node-orb`) as HTMLElement | null
+      const node = root.querySelector(`[data-ffl-node="${focus}"]`) as HTMLElement | null
       const targets = Array.from(
         root.querySelectorAll('[data-ffl-bridge-target]'),
       ) as HTMLElement[]
@@ -63,23 +57,24 @@ export default function FlowDetailBridge({ active, focus, rootRef, tone = 'ink' 
       const h = window.innerHeight
       setSize({ w, h })
 
-      if (!orb || targets.length === 0) {
+      if (!node || targets.length === 0) {
         lastCount = 0
         setPaths([])
         return
       }
 
-      const orbBox = orb.getBoundingClientRect()
-      const x1 = orbBox.left + orbBox.width / 2
-      const y1 = orbBox.top + orbBox.height / 2
+      const nodeBox = node.getBoundingClientRect()
+      /* Leave from the right edge of the whole node — never through the sentence */
+      const x1 = nodeBox.right + 2
+      const y1 = nodeBox.top + nodeBox.height / 2
 
       const next: BridgePath[] = targets.map((el, i) => {
         const box = el.getBoundingClientRect()
-        const x2 = box.left + 4
-        const y2 = box.top + Math.min(Math.max(box.height * 0.22, 18), 40)
-        const staggerY = (i - (targets.length - 1) / 2) * 5
+        const x2 = box.left - 2
+        const y2 = box.top + Math.min(Math.max(box.height * 0.18, 14), 28)
+        const staggerY = (i - (targets.length - 1) / 2) * 10
         const d = cubic(x1, y1, x2, y2 + staggerY)
-        return { d, len: pathLength(d) }
+        return { d, x2, y2: y2 + staggerY }
       })
 
       const grew = next.length > lastCount
@@ -113,7 +108,6 @@ export default function FlowDetailBridge({ active, focus, rootRef, tone = 'ink' 
     if (root && ro) ro.observe(root)
     if (detail && ro) ro.observe(detail)
 
-    // Only watch the detail column — never the bridge SVG (would loop).
     const mo =
       typeof MutationObserver !== 'undefined' && detail
         ? new MutationObserver(() => measureQuiet())
@@ -141,11 +135,8 @@ export default function FlowDetailBridge({ active, focus, rootRef, tone = 'ink' 
 
   if (!active || !focus || paths.length === 0 || size.w < 8) return null
 
-  const stroke =
-    tone === 'green' ? 'rgba(46, 155, 82, 0.55)'
-      : tone === 'red' ? 'rgba(196, 60, 60, 0.5)'
-        : tone === 'blue' ? 'rgba(59, 111, 212, 0.5)'
-          : 'rgba(30, 30, 32, 0.28)'
+  const stroke = 'rgba(58, 58, 66, 0.22)'
+  const dot = 'rgba(58, 58, 66, 0.38)'
 
   return (
     <svg
@@ -156,17 +147,24 @@ export default function FlowDetailBridge({ active, focus, rootRef, tone = 'ink' 
       aria-hidden
     >
       {paths.map((p, i) => (
-        <path
-          key={`${tick}-${i}`}
-          className="ffl-bridge-path"
-          d={p.d}
-          style={{
-            stroke,
-            strokeDasharray: p.len,
-            strokeDashoffset: p.len,
-            animationDelay: `${i * 40}ms`,
-          }}
-        />
+        <g key={`${tick}-${i}`}>
+          <path
+            className="ffl-bridge-path"
+            d={p.d}
+            style={{
+              stroke,
+              animationDelay: `${i * 50}ms`,
+            }}
+          />
+          <circle
+            className="ffl-bridge-dot"
+            cx={p.x2}
+            cy={p.y2}
+            r={2.2}
+            fill={dot}
+            style={{ animationDelay: `${140 + i * 50}ms` }}
+          />
+        </g>
       ))}
     </svg>
   )

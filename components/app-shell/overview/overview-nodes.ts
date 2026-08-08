@@ -23,6 +23,8 @@ export type FlowNode = {
   id: FlowNodeId
   label: string
   meta: string
+  /** One calm Aeonik sentence — used when the node is in focus. */
+  line: string
   metaTone?: FlowTone
   x: number
   y: number
@@ -44,7 +46,7 @@ export const FLOW_EDGES: string[] = [
   'M 28 78 C 28 88, 50 86, 50 90',
 ]
 
-export const FLOW_LAYOUT: Array<Omit<FlowNode, 'label' | 'meta' | 'metaTone'>> = [
+export const FLOW_LAYOUT: Array<Omit<FlowNode, 'label' | 'meta' | 'line' | 'metaTone'>> = [
   { id: 'communication', x: 50, y: 10, tone: 'blue' },
   { id: 'risks', x: 26, y: 32, tone: 'red' },
   { id: 'decisions', x: 74, y: 32, tone: 'green' },
