@@ -18,25 +18,38 @@ export const FESTAG_FLOW_STYLES = `
   --ffl-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ffl-surface: transparent;
   --ffl-btn: #FFFFFF;
+  --ffl-pad-x: clamp(24px, 4.5vw, 64px);
 
   position: relative;
   display: grid;
-  grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.2fr);
-  gap: clamp(28px, 4vw, 72px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 3.5vw, 56px);
   align-items: center;
+  justify-content: center;
   width: 100%;
+  max-width: min(1180px, 100%);
+  margin: 0 auto;
+  box-sizing: border-box;
   min-height: calc(100dvh - var(--fas-topbar-h, 52px));
-  padding: clamp(48px, 6vh, 72px) clamp(32px, 5vw, 88px) clamp(28px, 4vh, 56px);
+  padding:
+    clamp(56px, 7vh, 80px)
+    var(--ffl-pad-x)
+    clamp(28px, 4vh, 56px);
   background: ${FESTAG_SAND.canvas};
   color: var(--ffl-ink);
-  transition: grid-template-columns 0.42s var(--ffl-ease);
+  transition: grid-template-columns 0.42s var(--ffl-ease), max-width 0.42s var(--ffl-ease);
 }
 /* The detail column only exists once something is in focus — no reserved gap. */
 .ffl.has-detail {
-  grid-template-columns: minmax(300px, 0.85fr) minmax(340px, 1fr) minmax(320px, 0.9fr);
+  max-width: min(1320px, 100%);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.85fr);
 }
 .ffl.is-view-report,
-.ffl.is-view-list { grid-template-columns: 1fr; justify-items: center; }
+.ffl.is-view-list {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  max-width: min(720px, 100%);
+}
 
 .ffl h1, .ffl h2, .ffl h3 {
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
@@ -47,8 +60,8 @@ export const FESTAG_FLOW_STYLES = `
 .ffl-views {
   position: absolute;
   top: clamp(16px, 2.4vh, 28px);
-  left: clamp(32px, 5vw, 88px);
-  transform: none;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 2px;
   padding: 3px;
@@ -78,7 +91,7 @@ export const FESTAG_FLOW_STYLES = `
 }
 
 /* ── Report column ── */
-.ffl-report { min-width: 0; }
+.ffl-report { min-width: 0; width: 100%; }
 .ffl-report.is-centered {
   max-width: 62ch;
   width: 100%;
@@ -363,12 +376,26 @@ export const FESTAG_FLOW_STYLES = `
 .ffl-empty { margin: 0; font-size: 16px; line-height: 1.55; color: var(--ffl-muted); max-width: 30ch; }
 
 @media (max-width: 1180px) {
-  .ffl, .ffl.has-detail { grid-template-columns: 1fr; align-items: start; }
+  .ffl, .ffl.has-detail {
+    grid-template-columns: 1fr;
+    align-items: start;
+    max-width: min(720px, 100%);
+    gap: 28px;
+  }
   .ffl-stage { min-height: 440px; }
   .ffl-detail {
     border-left: none; padding-left: 0;
     border-top: 1px solid var(--ffl-line); padding-top: 20px; max-height: none;
   }
+}
+
+@media (max-width: 900px) {
+  .ffl {
+    --ffl-pad-x: 20px;
+    padding-top: 64px;
+  }
+  .ffl-greet { font-size: clamp(28px, 7vw, 36px); }
+  .ffl-stage { min-height: 400px; }
 }
 
 html[data-theme="dark"] .ffl,

@@ -1225,6 +1225,11 @@ html:not([data-theme="dark"]):not([data-theme="classic-dark"]) .fas-root:has(.ff
   padding: 0 !important;
   overflow: hidden;
 }
+/* Floating chip overlays — don't push the Overview off-center. */
+.fas-root:has(.ffl) .fas-sidebar-spacer {
+  width: 0;
+  min-width: 0;
+}
 .fas-root:has(.fas-wb) .fas-sidebar-spacer {
   width: calc(var(--fas-sidebar-collapsed-w) + var(--fas-sidebar-float-inset));
 }
