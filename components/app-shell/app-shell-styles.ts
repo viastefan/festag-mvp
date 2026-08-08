@@ -22,9 +22,10 @@ export const APP_SHELL_STYLES = `
   --fas-nav-hover: rgba(30, 30, 32, 0.055);
   --fas-nav-active: rgba(30, 30, 32, 0.09);
   --fas-nav-active-ink: ${FESTAG_SAND.ink};
-  --fas-sidebar-w: 248px;
-  --fas-sidebar-collapsed-w: 64px;
-  --festag-sidebar-width: var(--fas-sidebar-w);
+  --fas-sidebar-w: 268px;
+  --fas-sidebar-collapsed-w: 220px;
+  --fas-sidebar-float-inset: 12px;
+  --festag-sidebar-width: var(--fas-sidebar-collapsed-w);
   --fas-topbar-h: 52px;
   --fas-radius: 8px;
   --fas-radius-btn: 6px;
@@ -52,6 +53,10 @@ export const APP_SHELL_STYLES = `
 }
 
 .fas-root.is-sidebar-collapsed {
+  --festag-sidebar-width: var(--fas-sidebar-collapsed-w);
+}
+.fas-root.is-sidebar-expanded {
+  /* Keep account panel / chrome docked to the collapsed chip width — panel floats. */
   --festag-sidebar-width: var(--fas-sidebar-collapsed-w);
 }
 
@@ -94,95 +99,82 @@ html[data-theme="read"] .fas-root {
   --fas-main-bg: #FFFFFF;
 }
 
-/* ── Sidebar ── */
+/* ── Floating sidebar (desktop) — expands from top-left control ── */
 .fas-sidebar {
+  position: absolute;
+  left: var(--fas-sidebar-float-inset);
+  top: var(--fas-sidebar-float-inset);
+  bottom: auto;
+  z-index: 40;
   width: var(--fas-sidebar-w);
+  max-height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 10px 10px 10px;
-  background: var(--fas-sidebar-bg);
-  border: none;
-  border-right: 1px solid var(--fas-sep);
-  box-shadow: none !important;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 18px 48px rgba(15, 23, 42, 0.10);
   filter: none !important;
   overflow: hidden;
-  position: relative;
-  transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top left;
+  transition:
+    width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s ease,
+    background 0.22s ease;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 html[data-theme="dark"] .fas-sidebar,
 html[data-theme="classic-dark"] .fas-sidebar {
-  box-shadow: none !important;
-  filter: none !important;
+  background: rgba(26, 26, 30, 0.94);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 20px 52px rgba(0, 0, 0, 0.45);
 }
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
-  padding-left: 8px;
-  padding-right: 8px;
+  max-height: 72px;
+  padding: 8px 10px;
+  gap: 0;
+}
+.fas-sidebar.is-expanded {
+  width: var(--fas-sidebar-w);
+  max-height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
 }
 .fas-sidebar-spacer {
-  width: var(--fas-sidebar-collapsed-w);
+  width: calc(var(--fas-sidebar-collapsed-w) + var(--fas-sidebar-float-inset));
   flex-shrink: 0;
-  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+pointer-events: none;
 }
-
-/* Collapsed means gone, not a narrow rail — the canvas gets the whole screen.
-   A thin hover zone on the left edge brings the sidebar back. */
-.fas-root.is-sidebar-collapsed:not(.is-sidebar-peek) .fas-sidebar {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-102%);
-  transition:
-    opacity 0.2s ease,
-    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.fas-root.is-sidebar-collapsed:not(.is-sidebar-peek) .fas-sidebar-spacer {
-  width: 12px;
-}
-.fas-root.is-sidebar-collapsed .fas-sidebar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 30;
-}
-/* Peek — the sidebar leaves the edge and floats as its own container, so the
-   canvas behind it stays whole. */
-.fas-root.is-sidebar-peek .fas-sidebar {
-  z-index: 40;
-  width: var(--fas-sidebar-w);
-  left: 10px;
-  top: 10px;
-  bottom: 10px;
-  border: 1px solid var(--fas-popover-border);
-  border-radius: 14px;
-  background: var(--fas-popover);
-  box-shadow: 0 18px 48px rgba(20, 20, 20, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  animation: fasSidebarFloat 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes fasSidebarFloat {
-  from { opacity: 0; transform: translateX(-10px); }
-  to { opacity: 1; transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .fas-root.is-sidebar-peek .fas-sidebar { animation: none; }
-}
+/* Expanded floats over the canvas — do not push the main column. */
 
 .fas-sidebar-top {
   position: relative;
   flex-shrink: 0;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   z-index: 5;
+}
+.fas-sidebar.is-expanded .fas-sidebar-top {
+  margin-bottom: 8px;
 }
 
 .fas-sidebar-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-columns: 28px minmax(0, 1fr) max-content;
   align-items: center;
   column-gap: 8px;
   min-width: 0;
   padding: 0;
+}
+.fas-sidebar.is-collapsed .fas-sidebar-header {
+  grid-template-columns: 28px minmax(0, 1fr);
 }
 
 .fas-ws-trigger {
@@ -192,7 +184,7 @@ html[data-theme="classic-dark"] .fas-sidebar {
   min-width: 0;
   max-width: 100%;
   margin: 0;
-  padding: 5px 6px;
+  padding: 4px 6px 4px 2px;
   border: none;
   border-radius: var(--fas-nav-radius);
   background: transparent;
@@ -225,9 +217,26 @@ html[data-theme="classic-dark"] .fas-sidebar {
   max-width: 100%;
   overflow: hidden;
 }
+.fas-ws-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.fas-ws-label {
+  display: block;
+  font-size: 11px;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: var(--fas-ink-muted);
+  white-space: nowrap;
+}
 .fas-ws-value {
   display: block;
   min-width: 0;
+  max-width: 100%;
   font-size: 13.5px;
   font-weight: 400;
   color: var(--fas-ink);
@@ -235,7 +244,7 @@ html[data-theme="classic-dark"] .fas-sidebar {
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: -0.015em;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 .fas-ws-caret {
   width: 6px;
@@ -247,19 +256,23 @@ html[data-theme="classic-dark"] .fas-sidebar {
 .fas-ws-mark {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--fas-ink);
-  background: transparent;
+  background: rgba(30, 30, 32, 0.06);
   border: none;
   box-shadow: none;
   overflow: hidden;
+}
+html[data-theme="dark"] .fas-ws-mark,
+html[data-theme="classic-dark"] .fas-ws-mark {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .fas-sidebar-utils {
@@ -281,7 +294,6 @@ html[data-theme="classic-dark"] .fas-sidebar {
   color: var(--fas-ink-muted);
   outline: none;
   box-shadow: none;
-}
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
   font-family: inherit;
@@ -290,6 +302,16 @@ html[data-theme="classic-dark"] .fas-sidebar {
 .fas-sidebar-icon:hover {
   background: var(--fas-nav-hover);
   color: var(--fas-ink);
+}
+.fas-sidebar-collapse {
+  flex-shrink: 0;
+}
+
+/* Body collapses with the floating chip */
+.fas-sidebar.is-collapsed .fas-nav,
+.fas-sidebar.is-collapsed .fas-recent,
+.fas-sidebar.is-collapsed .fas-sidebar-footer {
+  display: none;
 }
 
 .fas-ws-popover {
@@ -400,58 +422,6 @@ html[data-theme="classic-dark"] .fas-sidebar {
   font-size: 13px;
   line-height: 1.45;
   color: var(--fas-ink-muted);
-}
-
-.fas-sidebar.is-collapsed .fas-sidebar-header {
-  grid-template-columns: 1fr;
-  justify-items: center;
-  gap: 8px;
-}
-.fas-sidebar.is-collapsed .fas-ws-trigger {
-  width: 40px;
-  height: 40px;
-  margin: 0;
-  padding: 0;
-  justify-content: center;
-  border-radius: 8px;
-}
-.fas-sidebar.is-collapsed .fas-ws-mark {
-  width: 28px;
-  height: 28px;
-}
-.fas-sidebar.is-collapsed .fas-sidebar-utils {
-  flex-direction: column;
-}
-.fas-sidebar.is-collapsed .fas-nav-link {
-  justify-content: center;
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  margin: 0 auto;
-}
-.fas-sidebar.is-collapsed .fas-nav-group,
-.fas-sidebar.is-collapsed .fas-nav-after-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.fas-sidebar.is-collapsed .fas-sidebar-footer {
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-.fas-sidebar.is-collapsed .fas-settings-link {
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  margin: 0;
-}
-.fas-sidebar.is-collapsed .fas-help-btn {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: 8px;
 }
 
 .fas-nav {
@@ -1215,7 +1185,7 @@ ${FESTAG_CANVAS_STYLES}
   --fas-canvas: #FBF7EE;
   --fas-main-bg: transparent;
   --fas-sidebar-bg: transparent;
-  --fas-sidebar-collapsed-w: 76px;
+  --fas-sidebar-collapsed-w: 220px;
   background: #F8F6F2 !important;
 }
 .fas-root:has(.fas-wb) .fas-main-col,
@@ -1227,21 +1197,17 @@ ${FESTAG_CANVAS_STYLES}
 }
 .fas-root:has(.fas-wb) .fas-content { padding: 0 !important; }
 .fas-root:has(.fas-wb) .fas-sidebar {
-  background: transparent !important;
-  border-right: none !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(30, 30, 32, 0.07) !important;
 }
-.fas-root:has(.fas-wb) .fas-sidebar.is-collapsed {
-  width: 76px;
-  padding-left: 14px;
-  padding-right: 14px;
+.fas-root:has(.fas-wb) .fas-sidebar-spacer {
+  width: calc(var(--fas-sidebar-collapsed-w) + var(--fas-sidebar-float-inset));
 }
-.fas-root:has(.fas-wb) .fas-sidebar-spacer { width: 76px; }
-.fas-root:has(.fas-wb).is-sidebar-collapsed { --festag-sidebar-width: 76px; }
-.fas-root:has(.fas-wb) .fas-sidebar.is-collapsed:hover,
-.fas-root:has(.fas-wb).is-sidebar-peek .fas-sidebar {
-  background: rgba(255, 255, 255, 0.72) !important;
-  border-radius: 0 18px 18px 0;
-  box-shadow: 0 10px 36px rgba(20, 20, 20, 0.04) !important;
+.fas-root:has(.fas-wb).is-sidebar-collapsed {
+  --festag-sidebar-width: var(--fas-sidebar-collapsed-w);
+}
+.fas-root:has(.fas-wb).is-sidebar-expanded {
+  --festag-sidebar-width: var(--fas-sidebar-collapsed-w);
 }
 
 .fas-wb-invites {
@@ -2652,32 +2618,40 @@ html[data-theme="classic-dark"] .fas-wo-progress {
 @media (max-width: 768px) {
   .fas-root { flex-direction: column; }
   .fas-sidebar-spacer { display: none; }
-  .fas-root.is-sidebar-collapsed .fas-sidebar,
-  .fas-root.is-sidebar-peek .fas-sidebar {
+  .fas-sidebar,
+  .fas-sidebar.is-collapsed,
+  .fas-sidebar.is-expanded {
     position: relative;
     left: auto;
     top: auto;
     bottom: auto;
     z-index: auto;
     width: 100%;
-  }
-  .fas-sidebar,
-  .fas-sidebar.is-collapsed {
-    width: 100%;
+    max-height: none;
     flex-direction: row;
     align-items: center;
     padding: 8px 12px;
     overflow-x: auto;
     gap: 4px;
-    border-right: none;
+    border-radius: 0;
+    border: none;
     border-bottom: 1px solid var(--fas-sep);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--fas-sidebar-bg);
+  }
+  .fas-sidebar.is-collapsed .fas-nav,
+  .fas-sidebar.is-collapsed .fas-recent,
+  .fas-sidebar.is-collapsed .fas-sidebar-footer {
+    display: flex;
   }
   .fas-sidebar-top {
     margin: 0;
     flex-shrink: 0;
   }
   .fas-sidebar-header {
-    grid-template-columns: auto auto;
+    grid-template-columns: 28px auto max-content;
     gap: 4px;
   }
   .fas-ws-name { max-width: 110px; }
@@ -2686,6 +2660,7 @@ html[data-theme="classic-dark"] .fas-wo-progress {
     overflow-x: auto;
     gap: 2px;
     padding: 0;
+    display: flex !important;
   }
   .fas-nav-group,
   .fas-nav-after-group {
@@ -2706,8 +2681,15 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   .fas-ws-label,
   .fas-ws-value,
   .fas-ws-caret { display: none; }
-  .fas-recent { display: none; }
+  .fas-recent { display: none !important; }
   .fas-sidebar-collapse { display: none; }
+  .fas-sidebar-footer {
+    display: flex !important;
+    flex-direction: row;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: none;
+  }
   .fas-help-btn { display: none; }
   .fas-content { padding: 12px 18px 40px; }
   .fas-hero-greet,

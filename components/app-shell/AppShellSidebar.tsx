@@ -19,7 +19,7 @@ import {
   isAppShellNavActive,
 } from '@/components/app-shell/app-shell-nav'
 import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
-import { getDisplayName, getFullDisplayName, type UserProfile } from '@/lib/hooks/useUser'
+import { getDisplayName, getFullDisplayName, getInitials, type UserProfile } from '@/lib/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 import { openWorkspaceCreateWizard, openWorkspaceManage, openWorkspaceRename, WORKSPACE_CREATED_EVENT, WORKSPACE_DELETED_EVENT, WORKSPACE_RENAMED_EVENT, WORKSPACE_UPDATED_EVENT } from '@/lib/workspace-create-open'
@@ -39,8 +39,6 @@ type Props = {
   user: UserProfile | null
   collapsed: boolean
   onToggleCollapse: () => void
-  onPeekEnter?: () => void
-  onPeekLeave?: () => void
 }
 
 type RecentItem = {
@@ -98,11 +96,10 @@ export default function AppShellSidebar({
   user,
   collapsed,
   onToggleCollapse,
-  onPeekEnter,
-  onPeekLeave,
 }: Props) {
   const pathname = usePathname() || '/overview'
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
+  const initials = getInitials(user) || 'F'
   const [workspaceLabel, setWorkspaceLabel] = useState(
     () => getRememberedWorkspaceName() || 'Kein Workspace',
   )
@@ -342,14 +339,28 @@ export default function AppShellSidebar({
 
   return (
     <aside
-      className={`fas-sidebar${collapsed ? ' is-collapsed' : ''}`}
+      className={`fas-sidebar${collapsed ? ' is-collapsed' : ' is-expanded'}`}
       aria-label="Festag navigation"
       data-collapsed={collapsed ? '1' : '0'}
-      onMouseEnter={onPeekEnter}
-      onMouseLeave={onPeekLeave}
     >
       <div className="fas-sidebar-top" ref={headerRef}>
         <div className="fas-sidebar-header">
+          <button
+            type="button"
+            className="fas-sidebar-icon fas-sidebar-collapse"
+            aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
+            title={collapsed ? 'Ausklappen' : 'Einklappen'}
+            aria-expanded={!collapsed}
+            onClick={(e) => {
+              e.stopPropagation()
+              setWsOpen(false)
+              setNotifOpen(false)
+              onToggleCollapse()
+            }}
+          >
+            <SidebarSimple size={15} weight="regular" />
+          </button>
+
           <button
             type="button"
             className={`fas-ws-trigger${wsOpen ? ' is-open' : ''}`}
@@ -371,55 +382,45 @@ export default function AppShellSidebar({
                   size={28}
                 />
               ) : (
-                workspaceInitial(workspaceLabel)
+                initials
               )}
             </span>
-            {!collapsed ? (
-              <span className="fas-ws-copy">
+            <span className="fas-ws-copy">
+              <span className="fas-ws-text">
+                <span className="fas-ws-label">Workspace</span>
                 <span className="fas-ws-value">{workspaceLabel}</span>
-                <CaretDown size={6} weight="bold" className="fas-ws-caret" aria-hidden />
               </span>
-            ) : null}
+              <CaretDown size={6} weight="bold" className="fas-ws-caret" aria-hidden />
+            </span>
           </button>
 
-          <div className="fas-sidebar-utils">
-            {!collapsed ? (
-              <>
-                <button
-                  type="button"
-                  className="fas-sidebar-icon"
-                  aria-label="Suche"
-                  title="Suche"
-                  onClick={openSearch}
-                >
-                  <MagnifyingGlass size={15} weight="regular" />
-                </button>
-                <button
-                  type="button"
-                  className="fas-sidebar-icon"
-                  aria-label="Benachrichtigungen"
-                  title="Benachrichtigungen"
-                  aria-expanded={notifOpen}
-                  onClick={() => {
-                    setWsOpen(false)
-                    setNotifOpen((v) => !v)
-                  }}
-                >
-                  <Bell size={15} weight="regular" />
-                  {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
-                </button>
-              </>
-            ) : null}
-            <button
-              type="button"
-              className="fas-sidebar-icon fas-sidebar-collapse"
-              aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
-              title={collapsed ? 'Ausklappen' : 'Einklappen'}
-              onClick={onToggleCollapse}
-            >
-              <SidebarSimple size={15} weight="regular" />
-            </button>
-          </div>
+          {!collapsed ? (
+            <div className="fas-sidebar-utils">
+              <button
+                type="button"
+                className="fas-sidebar-icon"
+                aria-label="Suche"
+                title="Suche"
+                onClick={openSearch}
+              >
+                <MagnifyingGlass size={15} weight="regular" />
+              </button>
+              <button
+                type="button"
+                className="fas-sidebar-icon"
+                aria-label="Benachrichtigungen"
+                title="Benachrichtigungen"
+                aria-expanded={notifOpen}
+                onClick={() => {
+                  setWsOpen(false)
+                  setNotifOpen((v) => !v)
+                }}
+              >
+                <Bell size={15} weight="regular" />
+                {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {wsOpen ? (

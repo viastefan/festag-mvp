@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import AppShellSidebar from '@/components/app-shell/AppShellSidebar'
@@ -22,13 +22,9 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   const { user } = useUser()
   const pathname = usePathname() || '/overview'
   const [collapsed, setCollapsed] = useState(true)
-  const [peek, setPeek] = useState(false)
   const [chromeReady, setChromeReady] = useState(false)
-  const peekTimer = useRef<number | null>(null)
   const isSettingsWorkspace =
     pathname === '/settings' || pathname.startsWith('/settings/')
-  /** Main layout stays collapsed when pinned; peek expands the rail as an overlay. */
-  const sidebarVisuallyCollapsed = collapsed && !peek
 
   useEffect(() => {
     applyAppearanceForPath(pathname)
@@ -66,30 +62,23 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
-    return () => {
-      if (peekTimer.current) globalThis.clearTimeout(peekTimer.current)
+    if (collapsed) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setCollapsed(true)
+        try { localStorage.setItem(COLLAPSE_KEY, '1') } catch { /* noop */ }
+      }
     }
-  }, [])
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [collapsed])
 
   function toggleCollapse() {
-    setPeek(false)
     setCollapsed((prev) => {
       const next = !prev
       try { localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0') } catch { /* noop */ }
       return next
     })
-  }
-
-  function onPeekEnter() {
-    if (!collapsed) return
-    if (peekTimer.current) globalThis.clearTimeout(peekTimer.current)
-    setPeek(true)
-  }
-
-  function onPeekLeave() {
-    if (!collapsed) return
-    if (peekTimer.current) globalThis.clearTimeout(peekTimer.current)
-    peekTimer.current = globalThis.setTimeout(() => setPeek(false), 180) as unknown as number
   }
 
   const deferredChrome = chromeReady ? (
@@ -114,15 +103,13 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className={`fas-root${collapsed ? ' is-sidebar-collapsed' : ''}${peek ? ' is-sidebar-peek' : ''}`} data-app-shell="">
+    <div className={`fas-root${collapsed ? ' is-sidebar-collapsed' : ' is-sidebar-expanded'}`} data-app-shell="">
       <style>{APP_SHELL_STYLES}</style>
-      {collapsed ? <div className="fas-sidebar-spacer" aria-hidden /> : null}
+      <div className="fas-sidebar-spacer" aria-hidden />
       <AppShellSidebar
         user={user}
-        collapsed={sidebarVisuallyCollapsed}
+        collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
-        onPeekEnter={onPeekEnter}
-        onPeekLeave={onPeekLeave}
       />
       <div className="fas-main-col">
         <AppShellTopBar user={user} />
