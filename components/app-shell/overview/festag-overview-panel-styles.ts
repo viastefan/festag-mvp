@@ -25,9 +25,9 @@ export const FESTAG_OVERVIEW_PANEL_STYLES = `
   margin-top: 8px;
   padding: 22px 20px 20px;
   border-radius: 16px;
-  background: var(--fos-sheet);
-  border: 1px solid rgba(26, 25, 23, 0.05);
-  box-shadow: 0 18px 48px rgba(20, 20, 20, 0.06), 0 2px 8px rgba(20, 20, 20, 0.03);
+  background: transparent;
+  border: 1px solid rgba(26, 25, 23, 0.08);
+  box-shadow: none;
   animation: ospPanelIn 0.65s var(--fos-ease) both;
 }
 .osp-rail .fos-panel:first-child { margin-top: 0; }

@@ -177,14 +177,14 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     0 0 0 0.5px rgba(15,23,42,0.03),
     0 8px 24px rgba(15,23,42,0.04);
 
-  /* Elevated surfaces — nested cards keep white; portal main is full-bleed. */
+  /* Elevated surfaces — dissolve into sand canvas (white only on CTAs). */
   --festag-plate-radius:12px;
   --festag-plate-inset:0px;
   --festag-plate-nest-radius:10px;
-  --festag-plate-bg:#FFFFFF;
+  --festag-plate-bg:#FBF7EE;
   --festag-plate-border:rgba(40,34,28,0.08);
-  --festag-plate-shadow:var(--festag-glass-shadow);
-  --festag-plate-shadow-soft:var(--festag-glass-shadow-soft);
+  --festag-plate-shadow:none;
+  --festag-plate-shadow-soft:none;
 
   /* Codex elevated controls — white disc + subtle bottom lift only */
   --festag-elev-bg:#FFFFFF;
@@ -198,8 +198,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   /* Portal light = Login paper ivory (continuous canvas, no floating plate gap). */
   --festag-portal-canvas:#FBF7EE;
   --festag-portal-canvas-desktop:#FBF7EE;
-  --festag-portal-sheet:#FFFFFF;
-  --festag-portal-panel:#FFFFFF;
+  --festag-portal-sheet:#FBF7EE;
+  --festag-portal-panel:#FBF7EE;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:36px;
@@ -454,8 +454,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-on-bg:#F0EEE6;
   --festag-portal-canvas:#FBF7EE;
   --festag-portal-canvas-desktop:#FBF7EE;
-  --festag-portal-sheet:#FFFFFF;
-  --festag-portal-panel:#FFFFFF;
+  --festag-portal-sheet:#FBF7EE;
+  --festag-portal-panel:#FBF7EE;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#8a8378;
   --festag-tagro-fab-size:36px;
@@ -463,17 +463,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-plate-radius:12px;
   --festag-plate-inset:0px;
   --festag-plate-nest-radius:10px;
-  --festag-plate-bg:#FFFFFF;
+  --festag-plate-bg:#FBF7EE;
   --festag-plate-border:rgba(40,34,28,0.08);
-  --festag-plate-shadow:
-    0 1px 0 rgba(255,255,255,0.88) inset,
-    0 0 0 0.5px rgba(40,34,28,0.04),
-    0 2px 6px rgba(40,34,28,0.03),
-    0 14px 40px rgba(40,34,28,0.05);
-  --festag-plate-shadow-soft:
-    0 1px 0 rgba(255,255,255,0.7) inset,
-    0 0 0 0.5px rgba(40,34,28,0.03),
-    0 8px 24px rgba(40,34,28,0.04);
+  --festag-plate-shadow:none;
+  --festag-plate-shadow-soft:none;
   --festag-content-panel:var(--festag-plate-bg);
   --festag-content-panel-border:var(--festag-plate-border);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -530,25 +523,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-on-bg:#F0EEE6;
   --festag-portal-canvas:#FBF7EE;
   --festag-portal-canvas-desktop:#FBF7EE;
-  --festag-portal-sheet:#FFFFFF;
-  --festag-portal-panel:#FFFFFF;
+  --festag-portal-sheet:#FBF7EE;
+  --festag-portal-panel:#FBF7EE;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#8891a0;
   --festag-tagro-fab-size:36px;
   --festag-plate-radius:12px;
   --festag-plate-inset:0px;
   --festag-plate-nest-radius:10px;
-  --festag-plate-bg:#FFFFFF;
+  --festag-plate-bg:#FBF7EE;
   --festag-plate-border:rgba(15,23,42,0.055);
-  --festag-plate-shadow:
-    0 1px 0 rgba(255,255,255,0.88) inset,
-    0 0 0 0.5px rgba(15,23,42,0.035),
-    0 2px 6px rgba(15,23,42,0.028),
-    0 14px 40px rgba(15,23,42,0.055);
-  --festag-plate-shadow-soft:
-    0 1px 0 rgba(255,255,255,0.7) inset,
-    0 0 0 0.5px rgba(15,23,42,0.03),
-    0 8px 24px rgba(15,23,42,0.04);
+  --festag-plate-shadow:none;
+  --festag-plate-shadow-soft:none;
   --festag-content-panel:var(--festag-plate-bg);
   --festag-content-panel-border:var(--festag-plate-border);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -2320,14 +2306,14 @@ html[data-theme-surface="dev"][data-theme="read"] {
   --festag-elev-on-bg: #F0EEE6;
   --festag-portal-canvas: #FBF7EE;
   --festag-portal-canvas-desktop: #F0EEE6;
-  --festag-portal-sheet: #FFFFFF;
-  --festag-portal-panel: #FFFFFF;
+  --festag-portal-sheet: #FBF7EE;
+  --festag-portal-panel: #FBF7EE;
   --festag-portal-ink: #0F0F10;
   --festag-portal-muted: #8a8378;
   --workspace-bg: #F0EEE6;
   --portal-bg: #F0EEE6;
   --portal-card: #FFFFFF;
-  --festag-plate-bg: #FFFFFF;
+  --festag-plate-bg: #FBF7EE;
   --festag-plate-border: rgba(40, 34, 28, 0.08);
   --festag-plate-shadow:
     0 1px 0 rgba(255, 255, 255, 0.88) inset,

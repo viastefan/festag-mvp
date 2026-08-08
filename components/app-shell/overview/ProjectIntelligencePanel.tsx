@@ -61,8 +61,8 @@ const PROJECT_INTELLIGENCE_STYLES = `
   padding: 18px 20px;
   border-radius: 12px;
   border: 1px solid rgba(15, 15, 18, 0.07);
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  background: transparent;
+  box-shadow: none;
 }
 .fas-pi-head {
   display: flex;

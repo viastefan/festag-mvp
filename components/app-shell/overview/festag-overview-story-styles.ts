@@ -136,14 +136,14 @@ ${FESTAG_CANVAS_STYLES}
   max-width: 18em;
 }
 
-/* Floating paper panels */
+/* Floating paper panels — hairline only, sand canvas shows through. */
 .fos-panel {
   margin-top: 8px;
   padding: 22px 20px 20px;
   border-radius: 16px;
-  background: var(--fos-sheet);
-  border: 1px solid rgba(26, 25, 23, 0.05);
-  box-shadow: 0 18px 48px rgba(20, 20, 20, 0.06), 0 2px 8px rgba(20, 20, 20, 0.03);
+  background: transparent;
+  border: 1px solid rgba(26, 25, 23, 0.08);
+  box-shadow: none;
   animation: fosPanelEmerge 0.65s var(--fos-ease) both;
 }
 .fos-panel.is-tagro {
@@ -313,9 +313,9 @@ ${FESTAG_CANVAS_STYLES}
   width: min(240px, calc(100% - 48px));
   padding: 16px 16px 14px;
   border-radius: 14px;
-  background: var(--fos-sheet);
-  border: 1px solid rgba(26, 25, 23, 0.06);
-  box-shadow: 0 14px 36px rgba(20, 20, 20, 0.07);
+  background: transparent;
+  border: 1px solid rgba(26, 25, 23, 0.08);
+  box-shadow: none;
   animation: fosPanelEmerge 0.5s var(--fos-ease) both;
 }
 .fos-explain-title {

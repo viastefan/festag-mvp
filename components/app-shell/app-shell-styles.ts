@@ -1,6 +1,7 @@
 /**
  * Festag App Shell — scoped styles on `.fas-root`.
- * Soft rail · white stage · Linear-calm nav (fill only, no underlines / section rules).
+ * Soft rail · sand canvas (no white stage plates) · Linear-calm nav.
+ * Light/Read: white only on buttons / CTAs / popovers — never on main plate.
  */
 
 import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
@@ -10,13 +11,13 @@ export const APP_SHELL_STYLES = `
 .fas-root {
   --fas-canvas: ${FESTAG_SAND.canvas};
   --fas-sidebar-bg: transparent;
-  --fas-main-bg: #FFFFFF;
+  --fas-main-bg: transparent;
   --fas-ink: ${FESTAG_SAND.ink};
   --fas-ink-muted: #8891a0;
   --fas-ink-faint: rgba(30, 30, 32, 0.42);
-  --fas-card: #ffffff;
-  --fas-card-border: rgba(30, 30, 32, 0.07);
-  --fas-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --fas-card: transparent;
+  --fas-card-border: rgba(30, 30, 32, 0.08);
+  --fas-card-shadow: none;
   --fas-sep: rgba(30, 30, 32, 0.08);
   --fas-nav-idle: rgba(30, 30, 32, 0.58);
   --fas-nav-hover: rgba(30, 30, 32, 0.055);
@@ -96,7 +97,9 @@ html[data-theme="classic-dark"] .fas-root {
 html[data-theme="read"] .fas-root {
   --fas-canvas: ${FESTAG_SAND.canvas};
   --fas-sidebar-bg: transparent;
-  --fas-main-bg: #FFFFFF;
+  --fas-main-bg: transparent;
+  --fas-card: transparent;
+  --fas-card-shadow: none;
 }
 
 /* ── Floating sidebar (desktop) — expands from top-left control ── */
@@ -113,12 +116,13 @@ html[data-theme="read"] .fas-root {
   flex-direction: column;
   gap: 4px;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.92);
+  /* Sand glass — not a white card plate. */
+  background: color-mix(in srgb, ${FESTAG_SAND.canvas} 78%, transparent);
   border: 1px solid rgba(30, 30, 32, 0.08);
   border-radius: 16px;
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 18px 48px rgba(15, 23, 42, 0.10);
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 14px 36px rgba(15, 23, 42, 0.06);
   filter: none !important;
   overflow: hidden;
   transform-origin: top left;
@@ -1182,11 +1186,13 @@ ${FESTAG_CANVAS_STYLES}
   visibility: hidden;
 }
 .fas-root:has(.fas-wb) {
-  --fas-canvas: #FBF7EE;
+  --fas-canvas: ${FESTAG_SAND.canvas};
   --fas-main-bg: transparent;
   --fas-sidebar-bg: transparent;
   --fas-sidebar-collapsed-w: 220px;
-  background: #F8F6F2 !important;
+}
+html:not([data-theme="dark"]):not([data-theme="classic-dark"]) .fas-root:has(.fas-wb) {
+  background: ${FESTAG_SAND.canvas} !important;
 }
 .fas-root:has(.fas-wb) .fas-main-col,
 .fas-root:has(.fas-wb) .fas-content,
@@ -1197,8 +1203,27 @@ ${FESTAG_CANVAS_STYLES}
 }
 .fas-root:has(.fas-wb) .fas-content { padding: 0 !important; }
 .fas-root:has(.fas-wb) .fas-sidebar {
-  background: rgba(255, 255, 255, 0.88) !important;
+  background: color-mix(in srgb, ${FESTAG_SAND.canvas} 78%, transparent) !important;
   border: 1px solid rgba(30, 30, 32, 0.07) !important;
+}
+
+/* Overview flow — full-bleed sand, no white stage plate. */
+.fas-root:has(.ffl) {
+  --fas-main-bg: transparent;
+}
+html:not([data-theme="dark"]):not([data-theme="classic-dark"]) .fas-root:has(.ffl) {
+  background: ${FESTAG_SAND.canvas} !important;
+}
+.fas-root:has(.ffl) .fas-main-col,
+.fas-root:has(.ffl) .fas-content,
+.fas-root:has(.ffl) .fas-topbar {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.fas-root:has(.ffl) .fas-content {
+  padding: 0 !important;
+  overflow: hidden;
 }
 .fas-root:has(.fas-wb) .fas-sidebar-spacer {
   width: calc(var(--fas-sidebar-collapsed-w) + var(--fas-sidebar-float-inset));
@@ -1222,9 +1247,9 @@ ${FESTAG_CANVAS_STYLES}
 .fas-wb-invites > * { pointer-events: auto; }
 .fas-wb .fas-pending { margin: 0; }
 .fas-wb .fas-pending-card {
-  border: none;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 30px rgba(20, 20, 20, 0.04);
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  background: transparent;
+  box-shadow: none;
   border-radius: 16px;
 }
 

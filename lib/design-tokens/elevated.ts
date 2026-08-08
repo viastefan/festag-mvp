@@ -16,25 +16,13 @@ export const FESTAG_ELEVATED = {
   canvasDesktop: '#FBF7EE',
   canvasMobile: '#FBF7EE',
 
-  /** Nested elevated cards — soft porcelain white on ivory. */
-  plateBg: '#FFFFFF',
+  /** Plate dissolves into sand canvas — white reserved for CTAs. */
+  plateBg: '#FBF7EE',
   /** Whisper edge — felt more than seen. */
   plateBorder: 'rgba(40, 34, 28, 0.08)',
-  /**
-   * Elevation: soft inner light + contact + ambient.
-   * Reads as presence, not a drop-shadow gadget.
-   */
-  plateShadow: [
-    '0 1px 0 rgba(255, 255, 255, 0.88) inset',
-    '0 0 0 0.5px rgba(15, 23, 42, 0.035)',
-    '0 2px 6px rgba(15, 23, 42, 0.028)',
-    '0 14px 40px rgba(15, 23, 42, 0.055)',
-  ].join(', '),
-  plateShadowSoft: [
-    '0 1px 0 rgba(255, 255, 255, 0.7) inset',
-    '0 0 0 0.5px rgba(15, 23, 42, 0.03)',
-    '0 8px 24px rgba(15, 23, 42, 0.04)',
-  ].join(', '),
+  /** No floating white stage — continuous sand presence. */
+  plateShadow: 'none',
+  plateShadowSoft: 'none',
 
   /** Nested tile radius inside the plate. */
   nestRadius: '10px',

@@ -146,9 +146,9 @@ const PENDING_CSS = `
   gap: 16px;
   padding: 18px 18px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: transparent;
+  box-shadow: none;
 }
 html[data-theme="dark"] .fas-pending-card {
   background: rgba(186, 194, 210, 0.06);
