@@ -63,10 +63,23 @@ export default function FestagPath({
     >
       <path className="festag-path-track" d={d} vectorEffect="non-scaling-stroke" />
       <path className="festag-path-flow" d={d} vectorEffect="non-scaling-stroke" />
+      {/* Endpoints are zero-length round-capped strokes, not <circle>s: this SVG
+          stretches (preserveAspectRatio="none"), which turns a real circle into
+          an oval. A non-scaling-stroke round cap is stroked in device space, so
+          the dot stays perfectly round at any aspect — the same reason the paths
+          above use vectorEffect for their width. */}
       {showEndpoints ? (
         <>
-          <circle className="festag-path-start" cx={start.x} cy={start.y} r="2" />
-          <circle className="festag-path-end" cx={end.x} cy={end.y} r="2.6" />
+          <path
+            className="festag-path-start"
+            d={`M ${start.x} ${start.y} l 0 0`}
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            className="festag-path-end"
+            d={`M ${end.x} ${end.y} l 0 0`}
+            vectorEffect="non-scaling-stroke"
+          />
         </>
       ) : null}
     </svg>

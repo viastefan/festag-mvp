@@ -231,8 +231,18 @@ function MarkChip({
   )
 }
 
+/**
+ * Marks the topic words that open a panel.
+ *
+ * Only the FIRST mention of each topic across the whole read becomes a control.
+ * The rules match common words — "Aufgaben", "Risiken", "Freigaben" — so marking
+ * every hit sprayed an edit icon through most sentences and made the prose look
+ * like a form. `claimed` is shared across every sentence in one render pass, so
+ * each topic offers its control once and the rest of the text stays text.
+ */
 function renderMarkedText(
   text: string,
+  claimed: Set<MarkTone>,
   opts?: {
     onOpenMark?: (tone: MarkTone, itemId?: string) => void
     markPreviews?: MarkPreviews
@@ -242,14 +252,14 @@ function renderMarkedText(
   type Hit = { start: number; end: number; tone: MarkTone }
   const hits: Hit[] = []
   for (const rule of MARK_RULES) {
+    if (claimed.has(rule.tone)) continue
     rule.re.lastIndex = 0
-    let m: RegExpExecArray | null
-    while ((m = rule.re.exec(text)) !== null) {
-      const start = m.index
-      const end = start + m[0].length
-      if (hits.some((h) => start < h.end && end > h.start)) continue
-      hits.push({ start, end, tone: rule.tone })
-    }
+    const m = rule.re.exec(text)
+    if (!m) continue
+    const start = m.index
+    const end = start + m[0].length
+    if (hits.some((h) => start < h.end && end > h.start)) continue
+    hits.push({ start, end, tone: rule.tone })
   }
   if (!hits.length) return text
   hits.sort((a, b) => a.start - b.start)
@@ -258,6 +268,7 @@ function renderMarkedText(
   hits.forEach((h, i) => {
     if (h.start > cursor) nodes.push(text.slice(cursor, h.start))
     const chunk = text.slice(h.start, h.end)
+    claimed.add(h.tone)
     nodes.push(
       <MarkChip
         key={`${h.start}-${i}`}
@@ -570,6 +581,9 @@ export default function OverviewReadStack({
       ? 'Weiter'
       : 'Pause'
 
+  /* Fresh per render — the first mention of each topic claims its control. */
+  const claimedMarks = new Set<MarkTone>()
+
   return (
     <div
       ref={rootRef}
@@ -602,7 +616,7 @@ export default function OverviewReadStack({
                   ref={(node) => { sentRefs.current[globalIndex] = node }}
                   className={`ffl-read-sent${live ? ' is-live' : ''}`}
                 >
-                  {renderMarkedText(text, { onOpenMark, markPreviews, markGates })}
+                  {renderMarkedText(text, claimedMarks, { onOpenMark, markPreviews, markGates })}
                   {i < p.parts.length - 1 ? ' ' : ''}
                 </span>
               )

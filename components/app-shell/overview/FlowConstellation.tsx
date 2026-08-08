@@ -1,5 +1,10 @@
 /**
- * Flow node mark — soft tone disc with a quiet dual pulse.
+ * Station mark — a solid tone core inside a soft halo of the same colour.
+ *
+ * The halo is what lets the spine run underneath without a hard mask: the route
+ * fades into the glow instead of being cut by a ring in the canvas colour, so
+ * the mark still reads correctly on any background. Pulse only changes weight —
+ * a busier station glows wider, it does not gain extra geometry.
  */
 
 import type { FlowTone } from '@/components/app-shell/overview/overview-nodes'
@@ -14,14 +19,14 @@ type Props = {
 
 export default function FlowConstellation({
   tone = 'ink',
-  size = 28,
+  size = 34,
   className,
   pulse = 'calm',
 }: Props) {
   const fill = TONE_HEX[tone] || TONE_HEX.ink
-  const r = size / 2
-  const core = pulse === 'hot' ? 4.2 : pulse === 'soft' ? 3.8 : 3.4
-  const sat = pulse === 'hot' ? 5.6 : 5.1
+  const c = size / 2
+  const core = pulse === 'hot' ? 6 : pulse === 'soft' ? 5.4 : 5
+  const halo = pulse === 'hot' ? 16 : pulse === 'soft' ? 14 : 12
 
   return (
     <svg
@@ -31,17 +36,9 @@ export default function FlowConstellation({
       viewBox={`0 0 ${size} ${size}`}
       aria-hidden
     >
-      <circle cx={r} cy={r} r={r - 0.5} fill={`${fill}14`} />
-      <circle
-        cx={r}
-        cy={r}
-        r={r - 3.5}
-        fill="none"
-        stroke={`${fill}${pulse === 'hot' ? '55' : '33'}`}
-        strokeWidth="1.25"
-      />
-      <circle cx={r - 3.2} cy={r} r={core} fill={fill} />
-      <circle cx={r + 3.6} cy={r} r={sat * 0.55} fill={`${fill}66`} />
+      <circle cx={c} cy={c} r={halo} fill={`${fill}1A`} />
+      {pulse === 'hot' ? <circle cx={c} cy={c} r={halo * 0.66} fill={`${fill}22`} /> : null}
+      <circle cx={c} cy={c} r={core} fill={fill} />
     </svg>
   )
 }

@@ -17,6 +17,8 @@ export const FESTAG_FLOW_STYLES = `
   --ffl-amber: #C9932B;
   --ffl-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ffl-surface: transparent;
+  /* Canvas behind the flow — the rail-punch ring around each node dot. */
+  --ffl-canvas: ${FESTAG_SAND.canvas};
   --ffl-btn: #FFFFFF;
   --ffl-pad-x: clamp(24px, 4.5vw, 64px);
   --ffl-read: 0;
@@ -596,11 +598,13 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
   color: #A7ADB8;
   max-width: 34ch;
 }
+/* Hint and toolbar stack on the text's own left edge — the whole read column
+   shares one x-axis, so the controls line up with T1 rather than floating. */
 .ffl-read-foot {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   width: 100%;
   margin-top: 14px;
 }
@@ -613,7 +617,7 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
   letter-spacing: 0.01em;
   color: #C4C8D0;
   transition: opacity 0.25s var(--ffl-ease), max-width 0.35s var(--ffl-ease);
-  flex: 1;
+  flex: none;
   min-width: 0;
 }
 .ffl-read.is-audio .ffl-read-hint {
@@ -858,12 +862,15 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
 .ffl-lrow-l { flex: 1; font-size: 17px; color: var(--ffl-soft); }
 .ffl-lrow svg { color: var(--ffl-muted); }
 
-/* ── Stage ── */
+/* ── Stage ── the map canvas ──
+   Locked to the viewBox ratio so the SVG (xMidYMid meet) fills it exactly and
+   the HTML station labels, positioned in %, land on the same coordinates. */
 .ffl-stage {
   position: relative;
-  height: 100%;
-  min-height: 760px;
   width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+  aspect-ratio: 360 / 470;
   transform: none;
   opacity: 1;
   filter: none;
@@ -892,172 +899,138 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
-.ffl-edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.ffl-edges path {
-  fill: none; stroke: rgba(30, 30, 32, 0.11); stroke-width: 1.1; stroke-linecap: round;
-  transition: stroke 0.4s var(--ffl-ease);
+/* ── The flow: smooth connectors, nothing behind them ── */
+.ffl-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
 }
-.ffl.has-detail .ffl-edges path { stroke: rgba(30, 30, 32, 0.06); }
+.ffl-route {
+  fill: none;
+  stroke: rgba(30, 30, 32, 0.16);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition: stroke 0.35s var(--ffl-ease), stroke-width 0.35s var(--ffl-ease);
+}
+.ffl-route.is-lit { stroke: rgba(30, 30, 32, 0.34); stroke-width: 2; }
+.ffl.has-detail .ffl-route { stroke: rgba(30, 30, 32, 0.11); }
+.ffl.has-detail .ffl-route.is-lit { stroke: rgba(30, 30, 32, 0.3); }
 
+/* A station: the dot sits exactly on its coordinate, the label hangs off it in
+   the direction that keeps it clear of the routes. No card, no border, no
+   shadow — the map carries the structure. */
 .ffl-node {
   position: absolute;
-  transform: translate(-50%, -50%);
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  width: min(292px, 34vw);
-  max-width: 34ch;
-  padding: 11px 14px 12px 11px;
-  border: 1px solid rgba(15, 15, 18, 0.06);
-  border-radius: 16px;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  max-width: 150px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
   outline: none;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 1px 2px rgba(15, 15, 18, 0.04),
-    0 10px 28px rgba(15, 15, 18, 0.045);
+  background: transparent;
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
   font-weight: 400;
   cursor: pointer;
   text-align: left;
   white-space: normal;
   z-index: 3;
-  pointer-events: auto;
   transition:
-    transform 0.4s var(--ffl-ease),
+    background 0.22s var(--ffl-ease),
     opacity 0.35s var(--ffl-ease),
-    filter 0.35s var(--ffl-ease),
-    background 0.25s var(--ffl-ease),
-    border-color 0.25s var(--ffl-ease),
-    box-shadow 0.25s var(--ffl-ease);
+    filter 0.35s var(--ffl-ease);
 }
-.ffl-node:hover {
-  transform: translate(-50%, -50%) translateY(-1px);
-  border-color: rgba(15, 15, 18, 0.09);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 2px 4px rgba(15, 15, 18, 0.05),
-    0 14px 32px rgba(15, 15, 18, 0.06);
-}
-.ffl-node:active {
-  transform: translate(-50%, -50%) scale(0.992);
-}
-.ffl-node:focus,
+/* Translate so the DOT, not the box, lands on the station coordinate. */
+.ffl-node.is-anchor-right { transform: translate(-25px, -50%); }
+.ffl-node:hover { background: rgba(30, 30, 32, 0.04); }
+.ffl-node:active { background: rgba(30, 30, 32, 0.06); }
+.ffl-node:focus { outline: none; }
 .ffl-node:focus-visible {
-  outline: none;
+  outline: 2px solid rgba(59, 111, 212, 0.4);
+  outline-offset: -2px;
 }
-.ffl-node.is-blue {
-  background: linear-gradient(180deg, rgba(59, 111, 212, 0.07), rgba(255, 255, 255, 0.86));
-  border-color: rgba(59, 111, 212, 0.14);
-}
-.ffl-node.is-red {
-  background: linear-gradient(180deg, rgba(196, 60, 60, 0.07), rgba(255, 255, 255, 0.86));
-  border-color: rgba(196, 60, 60, 0.13);
-}
-.ffl-node.is-green {
-  background: linear-gradient(180deg, rgba(46, 155, 82, 0.08), rgba(255, 255, 255, 0.86));
-  border-color: rgba(46, 155, 82, 0.14);
-}
-.ffl-node.is-ink {
-  background: linear-gradient(180deg, rgba(58, 58, 66, 0.05), rgba(255, 255, 255, 0.88));
-}
-.ffl-node.is-pulse-hot {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 1px 2px rgba(15, 15, 18, 0.04),
-    0 10px 28px rgba(15, 15, 18, 0.05),
-    0 0 0 1px rgba(91, 100, 125, 0.08);
-}
+
+/* The halo carries the mark — the spine runs under it, no hard mask needed. */
 .ffl-node-mark {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-top: 1px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
+  transition: transform 0.28s var(--ffl-ease);
 }
+.ffl-node-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.ffl-node:hover .ffl-node-mark { transform: scale(1.08); }
+.ffl-node.is-focus .ffl-node-mark { transform: scale(1.16); }
+
+/* Name over a tone-coloured status line — the reading rhythm of the reference. */
 .ffl-node-copy {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
   min-width: 0;
-  flex: 1;
 }
 .ffl-node-head {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
   min-width: 0;
 }
+/* The station name is the primary text now that the sentence is on demand. */
 .ffl-node-label {
-  font-size: 12.5px;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: rgba(30, 30, 32, 0.48);
+  font-size: 15.5px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.016em;
+  color: var(--ffl-ink);
   white-space: nowrap;
+  transition: color 0.22s var(--ffl-ease);
 }
+/* Meta carries the station's tone — a coloured status line, not a pill. */
 .ffl-node-meta {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 11px;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: rgba(30, 30, 32, 0.55);
-  background: rgba(30, 30, 32, 0.05);
+  font-size: 13px;
+  line-height: 1.25;
+  letter-spacing: -0.008em;
+  color: rgba(30, 30, 32, 0.42);
   white-space: nowrap;
 }
-.ffl-node-meta.is-blue {
-  color: #3B6FD4;
-  background: rgba(59, 111, 212, 0.1);
-}
-.ffl-node-meta.is-red {
-  color: #C43C3C;
-  background: rgba(196, 60, 60, 0.1);
-}
-.ffl-node-meta.is-green {
-  color: #2E9B52;
-  background: rgba(46, 155, 82, 0.12);
-}
+.ffl-node-meta.is-blue { color: rgba(59, 111, 212, 0.92); }
+.ffl-node-meta.is-red { color: rgba(196, 60, 60, 0.92); }
+.ffl-node-meta.is-green { color: rgba(46, 155, 82, 0.92); }
+
+/* A small standing note under the station name — two lines, then it clips. */
 .ffl-node-line {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  text-align: left;
-  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
-  font-weight: 400;
-  font-size: 14.5px;
-  line-height: 1.38;
-  letter-spacing: -0.016em;
-  color: var(--ffl-ink);
-  transition: color 0.25s var(--ffl-ease), -webkit-line-clamp 0.2s linear;
+  max-width: 24ch;
+  margin-top: 1px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+  color: rgba(30, 30, 32, 0.5);
+  transition: color 0.22s var(--ffl-ease);
 }
-.ffl-node-line.is-idle-line {
-  color: rgba(30, 30, 32, 0.82);
-}
+.ffl-node:hover .ffl-node-line { color: rgba(30, 30, 32, 0.68); }
 .ffl-node-line.is-focus-line {
-  -webkit-line-clamp: 3;
-  font-size: 15px;
-  line-height: 1.4;
-  color: var(--ffl-ink);
+  -webkit-line-clamp: 4;
+  font-size: 12.5px;
+  color: rgba(30, 30, 32, 0.78);
 }
 
-.ffl-node.is-focus {
-  transform: translate(-50%, -50%) scale(1.02);
-  z-index: 5;
-  border-color: rgba(91, 100, 125, 0.22);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 2px 6px rgba(15, 15, 18, 0.05),
-    0 16px 36px rgba(15, 15, 18, 0.08);
-}
-.ffl-node.is-focus:hover {
-  transform: translate(-50%, -50%) scale(1.02);
-}
-.ffl-node.is-dim { opacity: 0.38; filter: saturate(0.6); }
+.ffl-node:hover .ffl-node-label { color: var(--ffl-ink); }
+.ffl-node.is-focus { background: rgba(30, 30, 32, 0.05); }
+.ffl-node.is-focus .ffl-node-label { color: var(--ffl-ink); }
+.ffl-node.is-dim { opacity: 0.42; }
 
 /* ── Detail ── */
 .ffl-detail {
@@ -1162,7 +1135,7 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
     min-height: 0;
   }
   .ffl-bridge { display: none; }
-  .ffl-stage { min-height: 440px; }
+  .ffl-stage { max-width: 100%; }
   .ffl-read,
   .fas-root.is-sidebar-collapsed .ffl-read,
   .fas-root.is-sidebar-expanded .ffl-read {
@@ -1185,7 +1158,21 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
     padding-top: 64px;
   }
   .ffl-greet { font-size: clamp(28px, 7vw, 36px); }
-  .ffl-stage { min-height: 400px; }
+
+  /* The map keeps its ratio — only the station chrome tightens, so the routes
+     stay at the same angles and nothing has to be re-laid-out. */
+  /* Same spine and the same curves — only the station chrome tightens, so
+     nothing has to be re-laid-out at the breakpoint. */
+  .ffl-node {
+    gap: 5px;
+    padding: 4px 5px;
+    max-width: 132px;
+  }
+  .ffl-node.is-anchor-right { transform: translate(-19px, -50%); }
+  .ffl-node-mark { width: 26px; height: 26px; }
+  .ffl-node-label { font-size: 13.5px; }
+  .ffl-node-meta { font-size: 11.5px; }
+  .ffl-node-line { font-size: 11px; max-width: 20ch; }
 }
 
 html[data-theme="dark"] .ffl,
@@ -1193,46 +1180,52 @@ html[data-theme="classic-dark"] .ffl {
   background: #0C0D12;
   --ffl-ink: #F5F4F1; --ffl-soft: #B8B6B0; --ffl-line: rgba(255, 255, 255, 0.09);
 }
-html[data-theme="dark"] .ffl-node,
-html[data-theme="classic-dark"] .ffl-node {
-  background: rgba(26, 26, 30, 0.92);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 10px 28px rgba(0, 0, 0, 0.28);
-}
-html[data-theme="dark"] .ffl-node.is-blue,
-html[data-theme="classic-dark"] .ffl-node.is-blue {
-  background: linear-gradient(180deg, rgba(59, 111, 212, 0.16), rgba(26, 26, 30, 0.95));
-  border-color: rgba(59, 111, 212, 0.22);
-}
-html[data-theme="dark"] .ffl-node.is-red,
-html[data-theme="classic-dark"] .ffl-node.is-red {
-  background: linear-gradient(180deg, rgba(196, 60, 60, 0.16), rgba(26, 26, 30, 0.95));
-  border-color: rgba(196, 60, 60, 0.2);
-}
-html[data-theme="dark"] .ffl-node.is-green,
-html[data-theme="classic-dark"] .ffl-node.is-green {
-  background: linear-gradient(180deg, rgba(46, 155, 82, 0.16), rgba(26, 26, 30, 0.95));
-  border-color: rgba(46, 155, 82, 0.22);
-}
-html[data-theme="dark"] .ffl-node.is-ink,
-html[data-theme="classic-dark"] .ffl-node.is-ink {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(26, 26, 30, 0.95));
+html[data-theme="dark"] .ffl,
+html[data-theme="classic-dark"] .ffl { --ffl-canvas: #0C0D12; }
+html[data-theme="dark"] .ffl-grid-line,
+html[data-theme="classic-dark"] .ffl-grid-line { stroke: rgba(255, 255, 255, 0.06); }
+html[data-theme="dark"] .ffl-grid-line.is-major,
+html[data-theme="classic-dark"] .ffl-grid-line.is-major { stroke: rgba(255, 255, 255, 0.1); }
+html[data-theme="dark"] .ffl-route,
+html[data-theme="classic-dark"] .ffl-route { stroke: rgba(255, 255, 255, 0.22); }
+html[data-theme="dark"] .ffl-route.is-lit,
+html[data-theme="classic-dark"] .ffl-route.is-lit { stroke: rgba(255, 255, 255, 0.46); }
+html[data-theme="dark"] .ffl-node:hover,
+html[data-theme="classic-dark"] .ffl-node:hover { background: rgba(255, 255, 255, 0.045); }
+html[data-theme="dark"] .ffl-node:active,
+html[data-theme="classic-dark"] .ffl-node:active { background: rgba(255, 255, 255, 0.07); }
+html[data-theme="dark"] .ffl-node.is-focus,
+html[data-theme="classic-dark"] .ffl-node.is-focus { background: rgba(255, 255, 255, 0.06); }
+html[data-theme="dark"] .ffl-node:hover .ffl-node-mark,
+html[data-theme="classic-dark"] .ffl-node:hover .ffl-node-mark {
+  box-shadow: 0 0 0 4px #14151B;
 }
 html[data-theme="dark"] .ffl-node-label,
 html[data-theme="classic-dark"] .ffl-node-label {
-  color: rgba(245, 245, 247, 0.48);
+  color: rgba(245, 245, 247, 0.44);
 }
-html[data-theme="dark"] .ffl-node-line.is-idle-line,
-html[data-theme="classic-dark"] .ffl-node-line.is-idle-line {
-  color: rgba(230, 230, 234, 0.88);
+html[data-theme="dark"] .ffl-node.is-focus .ffl-node-label,
+html[data-theme="classic-dark"] .ffl-node.is-focus .ffl-node-label {
+  color: rgba(245, 245, 247, 0.66);
+}
+html[data-theme="dark"] .ffl-node-line,
+html[data-theme="classic-dark"] .ffl-node-line {
+  color: rgba(230, 230, 234, 0.74);
+}
+html[data-theme="dark"] .ffl-node:hover .ffl-node-line,
+html[data-theme="classic-dark"] .ffl-node:hover .ffl-node-line {
+  color: rgba(235, 235, 239, 0.92);
 }
 html[data-theme="dark"] .ffl-node-meta,
 html[data-theme="classic-dark"] .ffl-node-meta {
-  color: rgba(230, 230, 234, 0.62);
-  background: rgba(255, 255, 255, 0.06);
+  color: rgba(230, 230, 234, 0.5);
 }
+html[data-theme="dark"] .ffl-node-meta.is-blue,
+html[data-theme="classic-dark"] .ffl-node-meta.is-blue { color: #7FA3E8; }
+html[data-theme="dark"] .ffl-node-meta.is-red,
+html[data-theme="classic-dark"] .ffl-node-meta.is-red { color: #E28080; }
+html[data-theme="dark"] .ffl-node-meta.is-green,
+html[data-theme="classic-dark"] .ffl-node-meta.is-green { color: #6FC98C; }
 html[data-theme="dark"] .ffl-node-orb,
 html[data-theme="dark"] .ffl-cta,
 html[data-theme="dark"] .ffl-play,

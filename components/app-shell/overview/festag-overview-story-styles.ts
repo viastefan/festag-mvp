@@ -20,7 +20,10 @@ ${FESTAG_CANVAS_STYLES}
   position: relative;
   min-height: calc(100dvh - var(--fas-topbar-h, 56px));
   height: calc(100dvh - var(--fas-topbar-h, 56px));
-  margin: -16px -16px -12px;
+  /* No negative bleed: the fas-content rule below already forces the shell
+     padding to 0, so the old -16px pull only shoved the story off the left
+     edge and cut the right one off. */
+  margin: 0;
   background: var(--fos-paper);
   background-image: radial-gradient(ellipse 85% 55% at 50% 12%, rgba(255,255,255,0.5) 0%, transparent 70%);
   color: var(--fos-ink);

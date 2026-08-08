@@ -68,16 +68,23 @@ export const FESTAG_CANVAS_STYLES = `
   transition-duration: 0.5s;
 }
 
+/* Endpoints are round stroke caps — device-space, so they never squash. */
 .festag-path-start,
 .festag-path-end,
 .fos-path-start,
 .fos-path-end,
 .fas-wb-path-start,
 .fas-wb-path-end {
-  fill: var(--festag-canvas-primary, #5B647D);
+  fill: none;
+  stroke: var(--festag-canvas-primary, #5B647D);
+  stroke-linecap: round;
+  stroke-width: 6;
   opacity: 0;
   transition: opacity 0.4s var(--festag-canvas-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
+.festag-path-end,
+.fos-path-end,
+.fas-wb-path-end { stroke-width: 7.5; }
 .festag-path.is-on .festag-path-start,
 .fos-path.is-on .fos-path-start,
 .fas-wb-path.is-on .fas-wb-path-start,

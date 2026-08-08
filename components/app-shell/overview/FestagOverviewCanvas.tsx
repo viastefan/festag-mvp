@@ -39,7 +39,15 @@ import {
   type DecisionCanvasTopic,
 } from '@/lib/overview/decision-canvas'
 import { buildFlowNews, countDecisionUrgency } from '@/lib/overview/flow-news'
-import { FLOW_EDGES, FLOW_LAYOUT, type FlowNode, type FlowNodeId } from './overview-nodes'
+import {
+  FLOW_GRID,
+  FLOW_LAYOUT,
+  FLOW_ROUTES,
+  FLOW_VIEWBOX,
+  flowRoutePath,
+  type FlowNode,
+  type FlowNodeId,
+} from './overview-nodes'
 
 type Props = {
   greeting: string
@@ -328,10 +336,23 @@ export default function FestagOverviewCanvas({
           aria-label="Projektfluss"
           aria-hidden={view === 'report' || undefined}
         >
-          <svg className="ffl-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-            {FLOW_EDGES.map((d) => (
-              <path key={d} d={d} vectorEffect="non-scaling-stroke" />
-            ))}
+          <svg
+            className="ffl-map"
+            viewBox={`0 0 ${FLOW_VIEWBOX.w} ${FLOW_VIEWBOX.h}`}
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden
+          >
+            {FLOW_ROUTES.map(([from, to]) => {
+              const lit = focus === from || focus === to
+              return (
+                <path
+                  key={`${from}-${to}`}
+                  d={flowRoutePath(from, to)}
+                  className={`ffl-route${lit ? ' is-lit' : ''}`}
+                  vectorEffect="non-scaling-stroke"
+                />
+              )
+            })}
           </svg>
           {nodes.map((node) => {
             const isFocus = focus === node.id
@@ -345,12 +366,16 @@ export default function FestagOverviewCanvas({
                 className={[
                   'ffl-node',
                   `is-${node.tone}`,
+                  `is-anchor-${node.anchor}`,
                   `is-pulse-${node.pulse || 'calm'}`,
                   isFocus ? 'is-focus' : '',
                   focus && !isFocus ? 'is-dim' : '',
                   reportFilter !== 'all' && reportFilter !== node.id ? 'is-filter-dim' : '',
                 ].filter(Boolean).join(' ')}
-                style={{ left: `${node.x}%`, top: `${node.y}%` }}
+                style={{
+                  left: `${(node.x / FLOW_VIEWBOX.w) * 100}%`,
+                  top: `${(node.y / FLOW_VIEWBOX.h) * 100}%`,
+                }}
                 onClick={() => {
                   if (view !== 'flow') return
                   setReportFilter(node.id)
@@ -367,7 +392,7 @@ export default function FestagOverviewCanvas({
                 <span className="ffl-node-mark" aria-hidden>
                   <FlowConstellation
                     tone={node.metaTone || node.tone}
-                    size={isFocus ? 30 : 28}
+                    size={14}
                     pulse={node.pulse}
                   />
                 </span>
@@ -380,9 +405,13 @@ export default function FestagOverviewCanvas({
                       </span>
                     ) : null}
                   </span>
-                  <span className={`ffl-node-line${isFocus ? ' is-focus-line' : ' is-idle-line'}`}>
-                    {node.news}
-                  </span>
+                  {/* A note only where something is actually going on — calm
+                      stations stay a name on the map. Focus always opens it. */}
+                  {isFocus || node.pulse === 'hot' ? (
+                    <span className={`ffl-node-line${isFocus ? ' is-focus-line' : ''}`}>
+                      {node.news}
+                    </span>
+                  ) : null}
                 </span>
               </button>
             )
