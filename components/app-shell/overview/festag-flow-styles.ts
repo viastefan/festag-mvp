@@ -55,6 +55,10 @@ export const FESTAG_FLOW_STYLES = `
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
   font-weight: 400;
 }
+.ffl h1.ffl-greet {
+  font-family: 'Editors Note', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+}
 
 /* ── View switch ── */
 .ffl-views {
@@ -90,7 +94,7 @@ export const FESTAG_FLOW_STYLES = `
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* ── Report column ── */
+/* ── Report column — Figma editorial read stack ── */
 .ffl-report { min-width: 0; width: 100%; }
 .ffl-report.is-centered {
   max-width: 62ch;
@@ -103,11 +107,61 @@ export const FESTAG_FLOW_STYLES = `
   to { opacity: 1; transform: none; }
 }
 
+.ffl-read {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 34ch;
+  width: 100%;
+}
 .ffl-greet {
-  margin: 0 0 16px;
-  font-size: clamp(30px, 3.1vw, 46px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  margin: 0 0 22px;
+  font-family: 'Editors Note', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: clamp(34px, 3.6vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.018em;
+  color: #2F3544;
+}
+.ffl-read-scroll {
+  position: relative;
+  width: 100%;
+  max-height: min(38vh, 280px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 42%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 42%, transparent 96%);
+}
+.ffl-read-scroll::-webkit-scrollbar { display: none; }
+.ffl-read-scroll.is-end {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.ffl-read-body {
+  margin: 0;
+  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
+  font-weight: 400;
+  font-size: clamp(16px, 1.35vw, 18.5px);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  color: #A7ADB8;
+  max-width: 34ch;
+}
+.ffl-read-hint {
+  margin: 18px 0 0;
+  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: #C4C8D0;
+  transition: opacity 0.25s var(--ffl-ease);
+}
+.ffl-read-hint.is-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 .ffl-line {
   margin: 0;

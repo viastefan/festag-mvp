@@ -11,7 +11,7 @@
  * that has nothing to say stays silent.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ChatCircle,
   Warning,
@@ -31,7 +31,6 @@ import {
 import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
 import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import { FESTAG_FLOW_STYLES } from '@/components/app-shell/overview/festag-flow-styles'
-import OverviewSidequests, { buildOverviewSidequests } from '@/components/app-shell/overview/OverviewSidequests'
 import type { OverviewPayload } from '@/components/app-shell/WorkspaceOverviewLive'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { openNewProject } from '@/lib/new-project-open'
@@ -73,6 +72,9 @@ export default function FestagOverviewCanvas({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showRecommend, setShowRecommend] = useState(false)
+  const [readAtEnd, setReadAtEnd] = useState(false)
+  const [readCanScroll, setReadCanScroll] = useState(false)
+  const readScrollRef = useRef<HTMLDivElement | null>(null)
 
   const focusDecision = data.decisions[0] || null
   const hasProjects = data.projects.length > 0
@@ -139,19 +141,6 @@ export default function FestagOverviewCanvas({
     return out
   }, [data, greeting, firstName, atRisk])
 
-  const sidequests = useMemo(
-    () =>
-      buildOverviewSidequests({
-        team: data.team,
-        activity: data.activity,
-        atRisk,
-        pendingDecisions: data.summary.pendingDecisions,
-        intelligence: data.intelligence,
-        firstName,
-      }),
-    [data, atRisk, firstName],
-  )
-
   const { play, stop, speaking, activeIndex } = useStatusReportPlayback({
     sentences: lines,
     onComplete: useCallback(() => {}, []),
@@ -162,6 +151,59 @@ export default function FestagOverviewCanvas({
     if (view !== 'report') stop()
   }, [view, stop])
   useEffect(() => () => stop(), [stop])
+
+  const editorialBody = useMemo(() => {
+    const fromBriefing = (data.briefing?.lines || [])
+      .map(softenBriefingLine)
+      .map((l) => l.trim())
+      .filter(Boolean)
+    if (fromBriefing.length > 0) return fromBriefing.join(' ')
+
+    const parts: string[] = [softenCalmLine(data.summary.calmLine)]
+    if (data.summary.pendingDecisions > 0) {
+      parts.push(
+        data.summary.pendingDecisions === 1
+          ? 'Optional könnten wir die offene Entscheidung prüfen.'
+          : `Optional könnten wir die ${data.summary.pendingDecisions} offenen Entscheidungen prüfen.`,
+      )
+    } else if (openTasks > 0) {
+      parts.push(
+        openTasks === 1
+          ? 'Eine Aufgabe bleibt noch offen — sonst ist der Tag ruhig.'
+          : `${openTasks} Aufgaben bleiben noch offen — sonst ist der Tag ruhig.`,
+      )
+    } else {
+      parts.push('Abgesehen davon gibt es keine auffälligen Vorkommnisse.')
+    }
+    if (atRisk > 0) {
+      parts.push(
+        atRisk === 1
+          ? 'Ein Risiko bleibt im Blick.'
+          : `${atRisk} Risiken bleiben im Blick.`,
+      )
+    } else if (data.summary.pendingDecisions === 0) {
+      parts.push('Bei Bedarf können wir den bisherigen Fortschritt noch einmal durchgehen.')
+    }
+    return parts.join(' ')
+  }, [data, atRisk, openTasks])
+
+  const syncReadScroll = useCallback(() => {
+    const el = readScrollRef.current
+    if (!el) return
+    const can = el.scrollHeight > el.clientHeight + 4
+    setReadCanScroll(can)
+    const atEnd = !can || el.scrollTop + el.clientHeight >= el.scrollHeight - 8
+    setReadAtEnd(atEnd)
+  }, [])
+
+  useEffect(() => {
+    syncReadScroll()
+    const el = readScrollRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => syncReadScroll())
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [editorialBody, view, syncReadScroll])
 
   const nodes: FlowNode[] = useMemo(() => {
     const copy: Record<FlowNodeId, { label: string; meta: string; metaTone?: FlowNode['tone'] }> = {
@@ -228,20 +270,25 @@ export default function FestagOverviewCanvas({
       {/* ── Report column ── */}
       <section className={`ffl-report${view === 'report' ? ' is-centered' : ''}`}>
         {view !== 'report' ? (
-          <>
+          <div className="ffl-read">
             <h1 className="ffl-greet">{greeting}, {firstName}.</h1>
-            <p className="ffl-line">{softenCalmLine(data.summary.calmLine)}</p>
-
-            <OverviewSidequests
-              items={sidequests}
-              onOpenScore={() => setView('report')}
-            />
-
-            <button type="button" className={`ffl-cta${hasProjects ? ' ffl-cta-quiet' : ''}`} onClick={() => openNewProject()}>
-              <Plus size={16} weight="bold" />
-              {hasProjects ? 'Neues Projekt' : 'Erstes Projekt anlegen'}
-            </button>
-          </>
+            <div
+              ref={readScrollRef}
+              className={`ffl-read-scroll${readAtEnd ? ' is-end' : ''}`}
+              onScroll={syncReadScroll}
+            >
+              <p className="ffl-read-body">{editorialBody}</p>
+            </div>
+            <p className={`ffl-read-hint${!readCanScroll || readAtEnd ? ' is-hidden' : ''}`}>
+              Scrollen um zu lesen
+            </p>
+            {!hasProjects ? (
+              <button type="button" className="ffl-cta" onClick={() => openNewProject()}>
+                <Plus size={16} weight="bold" />
+                Erstes Projekt anlegen
+              </button>
+            ) : null}
+          </div>
         ) : (
           /* ── Spoken report: the text carries the room ── */
           <div className="ffl-lyrics">

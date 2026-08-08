@@ -8,8 +8,12 @@
   font-weight: 500; font-style: normal; font-display: swap;
 }
 
-/* Editors Note — für editorial Kursive (statt Aeonik italic).
-   Verwende ausschließlich für betonte/zitierte Wörter in Blog/Help-UI. */
+/* Editors Note — editorial display (Overview greet) + italic for emphasis. */
+@font-face {
+  font-family: 'Editors Note';
+  src: url('/fonts/EditorsNote-Regular.otf') format('opentype');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
 @font-face {
   font-family: 'Editors Note';
   src: url('/fonts/EditorsNote-MediumItalic.otf') format('opentype');
