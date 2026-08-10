@@ -1487,6 +1487,16 @@ html:not([data-theme="dark"]):not([data-theme="classic-dark"]) .fas-root:has(.ff
   overflow-x: hidden;
   scrollbar-gutter: stable;
 }
+/* Below the stacking breakpoint the report and stage sit one above the
+   other and routinely exceed the viewport — without scroll here, whatever
+   doesn't fit above the fold is just gone, not "scroll down for more". */
+@media (max-width: 1180px) {
+  .fas-root:has(.ffl) .fas-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+  }
+}
 /* Floating chip overlays — don't push the Overview off-center. */
 .fas-root:has(.ffl) .fas-sidebar-spacer {
   width: 0;

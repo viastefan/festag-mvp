@@ -1,70 +1,66 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowsClockwise,
-  FunnelSimple,
-  PencilSimple,
-  Receipt,
+  Check, FilePdf, Handshake, PaperPlaneTilt, PenNib, PencilSimple, Plus,
 } from '@phosphor-icons/react'
-import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
+import { FESTAG_PAGE_STYLES } from '@/components/app-shell/festag-page-styles'
 import { createClient } from '@/lib/supabase/client'
 import type { PortalWorkspaceMode } from '@/lib/portal-nav'
-import PortalPageHeader from '@/components/portal/PortalPageHeader'
-import MobilePageDock from '@/components/mobile/MobilePageDock'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import TagroContentFab from '@/components/TagroContentFab'
-import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicker'
-import DocumentCardRow from '@/components/documents/DocumentCardRow'
-import DocumentsEmptyState from '@/components/documents/DocumentsEmptyState'
 import { createDocument, listDocuments } from '@/lib/documents/document-api'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { issuerSummaryLine, type InvoiceIssuer } from '@/lib/documents/issuer'
 import { subscribeIssuerSync } from '@/lib/documents/issuer-sync'
-import { DOCUMENTS_CSS } from '@/components/documents/documents-styles'
-import type { DocKind } from '@/lib/documents/templates'
+import { DOC_TEMPLATES, type DocKind } from '@/lib/documents/templates'
 import {
   buildDocumentsLead,
   DOC_TABS,
   filterDocumentItems,
   mergeDocumentItems,
   printAgencyDocument,
+  STATUS_LABEL,
+  KIND_LABEL,
+  dateLabel,
+  formatAmount,
   type AgencyDocRow,
   type DocTab,
   type DocumentListItem,
   type UploadDocRow,
 } from '@/components/documents/documents-shared'
-import { openTagro } from '@/components/TagroOverlay'
+
+const KIND_ICON_LABEL: Record<DocKind, string> = { angebot: 'Angebot', rechnung: 'Rechnung', vertrag: 'Vertrag' }
+
+function statusTone(status: string, kind: string): 'green' | 'blue' | 'amber' | undefined {
+  if (status === 'paid' || status === 'signed' || status === 'accepted') return 'green'
+  if (status === 'sent') return 'blue'
+  if (kind === 'rechnung' && status === 'pending') return 'amber'
+  return undefined
+}
+
+function displayStatus(item: DocumentListItem): string {
+  if (item.signedAt) return 'signed'
+  if (item.acceptedAt) return 'accepted'
+  return item.status
+}
 
 export default function DocumentsPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
-  const filterWrapRef = useRef<HTMLDivElement>(null)
-  const mobileFilterWrapRef = useRef<HTMLDivElement>(null)
-  const pageRootRef = useRef<HTMLDivElement>(null)
-  const shellRef = useRef<HTMLDivElement>(null)
-  const scrollBodyRef = useRef<HTMLDivElement>(null)
-  const staticTopRef = useRef<HTMLDivElement>(null)
-  const prevStaticTopHeightRef = useRef(0)
 
   const [listReady, setListReady] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [wsMode, setWsMode] = useState<PortalWorkspaceMode>('delivery')
   const [tab, setTab] = useState<DocTab>('all')
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
-  const [navOpen, setNavOpen] = useState(false)
   const [agencyDocs, setAgencyDocs] = useState<AgencyDocRow[]>([])
   const [uploads, setUploads] = useState<UploadDocRow[]>([])
   const [legacyInvoices, setLegacyInvoices] = useState<UploadDocRow[]>([])
   const [wsReady, setWsReady] = useState(false)
   const [wsId, setWsId] = useState<string | null>(null)
-  const [issuerOnboardingPending, setIssuerOnboardingPending] = useState(false)
   const [issuer, setIssuer] = useState<InvoiceIssuer | null>(null)
   const [issuerReady, setIssuerReady] = useState(false)
-  const [invoiceCount, setInvoiceCount] = useState(0)
   const [creating, setCreating] = useState<DocKind | null>(null)
   const [createError, setCreateError] = useState('')
 
@@ -79,9 +75,7 @@ export default function DocumentsPage() {
       ])
       setLegacyInvoices(((inv as UploadDocRow[]) ?? []).map((row) => ({ ...row, type: 'invoice' })))
       setUploads((files as UploadDocRow[]) ?? [])
-    } catch {
-      /* legacy tables optional */
-    }
+    } catch { /* legacy tables optional */ }
   }, [supabase])
 
   const loadIssuer = useCallback(async () => {
@@ -90,21 +84,7 @@ export default function DocumentsPage() {
       if (!res.ok) return
       if (j?.issuer) setIssuer(j.issuer as InvoiceIssuer)
       setIssuerReady(Boolean(j?.ready))
-      setInvoiceCount(Number(j?.invoiceCount ?? 0))
-      if (Number(j?.invoiceCount ?? 0) === 0 && !j?.ready) {
-        try {
-          if (!sessionStorage.getItem('festag-issuer-onboard-dismissed')) {
-            setIssuerOnboardingPending(true)
-          }
-        } catch {
-          setIssuerOnboardingPending(true)
-        }
-      } else {
-        setIssuerOnboardingPending(false)
-      }
-    } catch {
-      /* optional */
-    }
+    } catch { /* optional */ }
   }, [])
 
   const load = useCallback(async () => {
@@ -114,28 +94,19 @@ export default function DocumentsPage() {
       if (!user) { window.location.href = '/login'; return }
 
       const { data: personal } = await supabase
-        .from('workspaces')
-        .select('id, mode')
-        .eq('primary_owner_id', user.id)
-        .eq('is_personal', true)
-        .maybeSingle()
+        .from('workspaces').select('id, mode')
+        .eq('primary_owner_id', user.id).eq('is_personal', true).maybeSingle()
 
       let ws = personal
       if (!ws) {
         const { data: owned } = await supabase
-          .from('workspaces')
-          .select('id, mode')
-          .eq('primary_owner_id', user.id)
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle()
+          .from('workspaces').select('id, mode')
+          .eq('primary_owner_id', user.id).order('created_at', { ascending: true }).limit(1).maybeSingle()
         ws = owned
       }
 
       const mode = (ws as { mode?: string } | null)?.mode
-      if (mode === 'team' || mode === 'agency' || mode === 'delivery') {
-        setWsMode(mode)
-      }
+      if (mode === 'team' || mode === 'agency' || mode === 'delivery') setWsMode(mode)
       setWsReady(Boolean(ws))
       setWsId((ws as { id?: string } | null)?.id ?? null)
 
@@ -149,146 +120,32 @@ export default function DocumentsPage() {
 
       await loadLegacyDocs(user.id)
       if (ws) await loadIssuer()
-    } catch {
-      /* keep partial state */
-    } finally {
+    } catch { /* keep partial state */ } finally {
       setListReady(true)
     }
   }, [supabase, loadLegacyDocs, loadIssuer])
 
   useEffect(() => { void load() }, [load])
+  useEffect(() => subscribeIssuerSync(({ issuer: next, ready }) => { setIssuer(next); setIssuerReady(ready) }), [])
 
-  useEffect(() => {
-    return subscribeIssuerSync(({ issuer: next, ready }) => {
-      setIssuer(next)
-      setIssuerReady(ready)
-    })
-  }, [])
-
-  useEffect(() => {
-    function refreshIssuer() {
-      void loadIssuer()
-    }
-    function onVisibilityChange() {
-      if (document.visibilityState === 'visible') refreshIssuer()
-    }
-    window.addEventListener('focus', refreshIssuer)
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => {
-      window.removeEventListener('focus', refreshIssuer)
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-    }
-  }, [loadIssuer])
-
-  useEffect(() => {
-    if (!wsReady || !issuerOnboardingPending) return
-    setIssuerOnboardingPending(false)
-    try { sessionStorage.setItem('festag-issuer-onboard-dismissed', '1') } catch {}
-  }, [wsReady, issuerOnboardingPending])
-
-  useEffect(() => {
-    function closeMenus(event: PointerEvent) {
-      const target = event.target as Node
-      if (filterWrapRef.current?.contains(target) || mobileFilterWrapRef.current?.contains(target)) return
-      setFilterMenuOpen(false)
-    }
-    function onEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') setFilterMenuOpen(false)
-    }
-    document.addEventListener('pointerdown', closeMenus)
-    document.addEventListener('keydown', onEscape)
-    return () => {
-      document.removeEventListener('pointerdown', closeMenus)
-      document.removeEventListener('keydown', onEscape)
-    }
-  }, [])
-
-  const allItems = useMemo(
-    () => mergeDocumentItems(agencyDocs, uploads, legacyInvoices),
-    [agencyDocs, uploads, legacyInvoices],
-  )
+  const allItems = useMemo(() => mergeDocumentItems(agencyDocs, uploads, legacyInvoices), [agencyDocs, uploads, legacyInvoices])
   const shown = useMemo(() => filterDocumentItems(allItems, tab), [allItems, tab])
-
   const counts = useMemo(() => ({
     total: allItems.length,
     openInvoices: allItems.filter((i) => i.kind === 'rechnung' && i.status !== 'paid').length,
     pendingContracts: allItems.filter((i) => i.kind === 'vertrag' && !i.signedAt && i.status !== 'paid').length,
     openOffers: allItems.filter((i) => i.kind === 'angebot' && i.status === 'sent' && !i.acceptedAt).length,
   }), [allItems])
-
   const pageLead = buildDocumentsLead(counts)
-  const filterActive = tab !== 'all'
-
-  useEffect(() => {
-    const root = pageRootRef.current
-    if (!root) return
-
-    const mq = window.matchMedia('(max-width: 768px)')
-    const collapseRange = 132
-    let raf = 0
-    let faded = false
-
-    const updateScrollChrome = () => {
-      raf = 0
-      const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
-      if (!scroller) return
-      const scrollTop = scroller.scrollTop
-      const progress = Math.min(1, Math.max(0, scrollTop / collapseRange))
-      const staticTopHeight = staticTopRef.current?.offsetHeight ?? 0
-      const prevHeight = prevStaticTopHeightRef.current
-      if (prevHeight > 0 && staticTopHeight < prevHeight - 1 && !mq.matches) {
-        scroller.scrollTop += prevHeight - staticTopHeight
-      }
-      root.style.setProperty('--doc-head-collapse', String(progress))
-      root.dataset.docHeadCompact = progress > 0.9 ? 'true' : 'false'
-      const nextFaded = scrollTop > 8
-      if (nextFaded !== faded) {
-        faded = nextFaded
-        root.dataset.docScrollFaded = nextFaded ? 'true' : 'false'
-      }
-      prevStaticTopHeightRef.current = staticTopHeight
-    }
-
-    const onScroll = () => {
-      if (raf) return
-      raf = window.requestAnimationFrame(updateScrollChrome)
-    }
-
-    let activeScroller: HTMLElement | null = null
-    const bindScroller = () => {
-      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
-      activeScroller = mq.matches ? shellRef.current : scrollBodyRef.current
-      activeScroller?.addEventListener('scroll', onScroll, { passive: true })
-      updateScrollChrome()
-    }
-
-    bindScroller()
-    mq.addEventListener('change', bindScroller)
-    return () => {
-      if (raf) window.cancelAnimationFrame(raf)
-      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
-      mq.removeEventListener('change', bindScroller)
-      root.style.removeProperty('--doc-head-collapse')
-      delete root.dataset.docHeadCompact
-      delete root.dataset.docScrollFaded
-    }
-  }, [wsReady])
+  const issuerSummary = issuerSummaryLine(issuer)
 
   async function handleCreate(kind: DocKind) {
     if (!wsId || creating) return
     setCreating(kind)
     setCreateError('')
     try {
-      const { res, json } = await createDocument({
-        kind,
-        workspace_id: wsId,
-        status: 'draft',
-        data: defaultDocumentData(kind),
-      })
-      if (res.ok && json?.document?.id) {
-        router.push(`/documents/${json.document.id}`)
-        return
-      }
+      const { res, json } = await createDocument({ kind, workspace_id: wsId, status: 'draft', data: defaultDocumentData(kind) })
+      if (res.ok && json?.document?.id) { router.push(`/documents/${json.document.id}`); return }
       setCreateError(json?.error || 'Entwurf konnte nicht erstellt werden.')
     } catch {
       setCreateError('Entwurf konnte nicht erstellt werden.')
@@ -297,23 +154,12 @@ export default function DocumentsPage() {
     }
   }
 
-  function tagroHandler() {
-    openTagro({
-      contextType: 'document',
-      id: 'list',
-      title: 'Dokumente, Übersicht',
-      subtitle: pageLead,
-    })
-  }
-
   async function patchAgencyDocument(id: string, body: Record<string, unknown>) {
     setBusyId(id)
     try {
       const res = await fetch(`/api/documents/${id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.document) {
@@ -324,226 +170,143 @@ export default function DocumentsPage() {
     }
   }
 
-  function handleOpenDocument(item: DocumentListItem) {
-    if (item.source !== 'agency') return
-    router.push(`/documents/${item.id}`)
-  }
+  return (
+    <div className="fps">
+      <style>{FESTAG_PAGE_STYLES}</style>
 
-  function handleOpenPdf(item: DocumentListItem) {
-    if (item.source !== 'agency') return
-    printAgencyDocument(item.raw as AgencyDocRow)
-  }
+      <header className="fps-head">
+        <h1 className="fps-title">Dokumente</h1>
+        <p className="fps-stat-line">{pageLead}</p>
+      </header>
 
-  const issuerSummary = issuerSummaryLine(issuer)
+      {canCreateDocs ? (
+        <div className="fps-filters" role="group" aria-label="Neues Dokument">
+          {DOC_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.kind}
+              type="button"
+              className="fps-filter"
+              disabled={Boolean(creating)}
+              onClick={() => void handleCreate(tpl.kind)}
+            >
+              <Plus size={12} weight="bold" style={{ marginRight: 5, verticalAlign: -1 }} />
+              {creating === tpl.kind ? 'Wird erstellt…' : KIND_ICON_LABEL[tpl.kind] || tpl.title}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {createError ? <p className="fps-stat-line" style={{ color: 'var(--fps-red)', marginTop: -12, marginBottom: 16 }}>{createError}</p> : null}
 
-  function renderFilterMenu() {
-    return (
-      <div className="dec-filter-menu" role="menu">
-        <p className="dec-filter-menu-label dec-dt">Kategorie</p>
+      {canCreateDocs ? (
+        <p className="fps-stat-line" style={{ marginBottom: 20 }}>
+          Rechnungssteller: <strong>{issuer?.name?.trim() || 'noch keine Angaben'}</strong>
+          {issuerSummary ? `, ${issuerSummary}` : ''}
+          {' — '}
+          <Link href="/settings/documents">{issuerReady ? 'bearbeiten' : 'Angaben ergänzen'}</Link>
+        </p>
+      ) : null}
+
+      <div className="fps-filters">
         {DOC_TABS.map((item) => (
           <button
             key={item.id}
             type="button"
-            role="menuitem"
-            className={`dec-filter-menu-item${tab === item.id ? ' on' : ''}`}
-            onClick={() => { setTab(item.id); setFilterMenuOpen(false) }}
+            className={`fps-filter${tab === item.id ? ' is-on' : ''}`}
+            onClick={() => setTab(item.id)}
           >
-            <span>{item.label}</span>
-            {tab === item.id && <span className="dec-filter-check">✓</span>}
+            {item.label}{item.id === 'all' ? ` (${allItems.length})` : ''}
           </button>
         ))}
       </div>
-    )
-  }
 
-  return (
-    <div className="dec-os doc-os-page" ref={pageRootRef}>
-      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENTS_CSS }} />
+      {!listReady ? (
+        <p className="fps-empty">Lade Dokumente…</p>
+      ) : shown.length === 0 ? (
+        <div className="fps-list">
+          <p className="fps-empty">
+            {allItems.length > 0 ? 'Keine Dokumente in dieser Kategorie.' : 'Noch keine Dokumente — leg dein erstes Angebot oder deine erste Rechnung an.'}
+          </p>
+        </div>
+      ) : (
+        <div className="fps-list">
+          {shown.map((item) => {
+            const statusKey = displayStatus(item)
+            const canOpen = isAgencyMode && item.source === 'agency'
+            const canSend = isAgencyMode && item.source === 'agency' && item.status === 'final'
+            const canMarkPaid = isAgencyMode && item.kind === 'rechnung' && item.status === 'sent'
+            const canMarkSigned = isAgencyMode && item.kind === 'vertrag' && item.status === 'sent' && !item.signedAt
+            const canMarkAccepted = isAgencyMode && item.kind === 'angebot' && item.status === 'sent' && !item.acceptedAt
+            const showPdf = item.source === 'agency' || Boolean(item.downloadUrl)
+            const needsAttention = canSend || canMarkPaid || canMarkSigned || canMarkAccepted
+            const tone = statusTone(statusKey, item.kind)
+            const busy = busyId === item.id
 
-      {filterMenuOpen && (
-        <button type="button" className="dec-m-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterMenuOpen(false)} />
-      )}
-
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
-
-      <div className="dec-m-shell" ref={shellRef}>
-        <div className="dec-static-top doc-static-top" ref={staticTopRef}>
-          <PortalPageHeader
-            title="Dokumente."
-            onMenu={() => setNavOpen(true)}
-            actions={(
-              <>
-                <div className="dec-page-actions-group">
-                  <div className="dec-filter-wrap" ref={filterWrapRef}>
-                    <button
-                      type="button"
-                      className={`dec-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
-                      aria-label="Filter"
-                      aria-expanded={filterMenuOpen}
-                      onClick={() => setFilterMenuOpen((v) => !v)}
-                    >
-                      <FunnelSimple size={15} weight="regular" />
-                    </button>
-                    {filterMenuOpen && renderFilterMenu()}
-                  </div>
+            return (
+              <div key={`${item.source}-${item.id}`} className="fps-row" style={{ flexWrap: 'wrap', rowGap: 10 }}>
+                <div className="fps-row-body">
+                  <span className={`fps-mark${needsAttention ? ' is-attn is-blue' : ''}`} aria-hidden>
+                    {needsAttention ? <span className="fps-mark-dot" /> : <Check size={10} weight="bold" />}
+                  </span>
+                  <span className="fps-row-copy">
+                    <span className="fps-row-title">
+                      {item.numberLabel ? `${KIND_LABEL[item.kind] || item.kind}, ${item.numberLabel}` : item.title}
+                    </span>
+                    <span className="fps-row-sub">
+                      {[item.recipient, item.projectTitle].filter(Boolean).join(', ') || dateLabel(item.createdAt)}
+                    </span>
+                  </span>
                 </div>
-                <button type="button" className="dec-head-tool" aria-label="Aktualisieren" onClick={() => void load()}>
-                  <ArrowsClockwise size={15} weight="regular" />
-                </button>
-              </>
-            )}
-          />
-
-          {canCreateDocs && (
-            <div className="doc-list-chrome-desktop dec-dt">
-              <DocumentTemplatePicker
-                disabled={!wsReady}
-                creating={creating}
-                onSelect={(kind) => void handleCreate(kind)}
-              />
-              {createError ? <p className="doc-create-error">{createError}</p> : null}
-              <div className="doc-filters">
-                {DOC_TABS.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`doc-filter${tab === item.id ? ' on' : ''}`}
-                    onClick={() => setTab(item.id)}
-                  >
-                    {item.label}
-                    {item.id === 'all' ? ` (${allItems.length})` : ''}
-                  </button>
-                ))}
+                <div className="fps-row-right">
+                  {formatAmount(item.amountCents) ? (
+                    <span className="fps-row-meta">{formatAmount(item.amountCents)}</span>
+                  ) : null}
+                  <span className={`fps-row-tag${tone ? ` is-${tone}` : ''}`}>{STATUS_LABEL[statusKey] || item.status}</span>
+                </div>
+                {(canOpen || showPdf || canSend || canMarkPaid || canMarkSigned || canMarkAccepted) ? (
+                  <div className="fps-filters" style={{ width: '100%', marginBottom: 0 }}>
+                    {canOpen ? (
+                      <button type="button" className="fps-filter" disabled={busy} onClick={() => router.push(`/documents/${item.id}`)}>
+                        <PencilSimple size={12} weight="regular" style={{ marginRight: 5, verticalAlign: -1 }} />Öffnen
+                      </button>
+                    ) : null}
+                    {showPdf ? (
+                      item.source === 'agency' ? (
+                        <button type="button" className="fps-filter" disabled={busy} onClick={() => printAgencyDocument(item.raw as AgencyDocRow)}>
+                          <FilePdf size={12} weight="bold" style={{ marginRight: 5, verticalAlign: -1 }} />PDF
+                        </button>
+                      ) : item.downloadUrl ? (
+                        <a className="fps-filter" href={item.downloadUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                          <FilePdf size={12} weight="bold" style={{ marginRight: 5, verticalAlign: -1 }} />PDF
+                        </a>
+                      ) : null
+                    ) : null}
+                    {canSend ? (
+                      <button type="button" className="fps-filter" disabled={busy} onClick={() => void patchAgencyDocument(item.id, { status: 'sent' })}>
+                        <PaperPlaneTilt size={12} weight="regular" style={{ marginRight: 5, verticalAlign: -1 }} />Senden
+                      </button>
+                    ) : null}
+                    {canMarkPaid ? (
+                      <button type="button" className="fps-filter" disabled={busy} onClick={() => void patchAgencyDocument(item.id, { status: 'paid' })}>
+                        <Check size={12} weight="bold" style={{ marginRight: 5, verticalAlign: -1 }} />Bezahlt
+                      </button>
+                    ) : null}
+                    {canMarkSigned ? (
+                      <button type="button" className="fps-filter" disabled={busy} onClick={() => void patchAgencyDocument(item.id, { mark_signed: true })}>
+                        <PenNib size={12} weight="fill" style={{ marginRight: 5, verticalAlign: -1 }} />Unterschrieben
+                      </button>
+                    ) : null}
+                    {canMarkAccepted ? (
+                      <button type="button" className="fps-filter" disabled={busy} onClick={() => void patchAgencyDocument(item.id, { mark_accepted: true })}>
+                        <Handshake size={12} weight="regular" style={{ marginRight: 5, verticalAlign: -1 }} />Angenommen
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
-            </div>
-          )}
-
-          <div className="dec-m-actions">
-            <div className="dec-m-actions-group">
-              <div className="dec-filter-wrap" ref={mobileFilterWrapRef}>
-                <button
-                  type="button"
-                  className={`dec-m-ctl${filterMenuOpen ? ' on' : ''}${filterActive ? ' has-active' : ''}`}
-                  aria-label="Filter"
-                  aria-expanded={filterMenuOpen}
-                  onClick={() => setFilterMenuOpen((v) => !v)}
-                >
-                  <FunnelSimple size={17} weight="regular" />
-                </button>
-                {filterMenuOpen && renderFilterMenu()}
-              </div>
-              <button type="button" className="dec-m-ctl" aria-label="Aktualisieren" onClick={() => void load()}>
-                <ArrowsClockwise size={17} weight="regular" />
-              </button>
-            </div>
-          </div>
+            )
+          })}
         </div>
-
-        <div className="dec-scroll-body" ref={scrollBodyRef}>
-          {canCreateDocs && (
-            <div className="doc-list-chrome-mobile">
-              <DocumentTemplatePicker
-                disabled={!wsReady}
-                creating={creating}
-                onSelect={(kind) => void handleCreate(kind)}
-              />
-              {createError ? <p className="doc-create-error">{createError}</p> : null}
-            </div>
-          )}
-
-          {canCreateDocs && (
-            <section className="doc-issuer-card dec-dt" aria-label="Rechnungssteller">
-              <div className="doc-issuer-copy">
-                <h2 className="doc-issuer-title">Rechnungssteller</h2>
-                <p className="doc-issuer-lead">
-                  {issuer?.name?.trim() || 'Noch keine Angaben'}
-                  {issuerSummary ? `, ${issuerSummary}` : ''}
-                </p>
-                {!issuerReady && (
-                  <p className="doc-issuer-note">
-                    Name, Adresse und Bank einmalig hinterlegen — erscheint auf jeder Rechnung.
-                  </p>
-                )}
-                <Link href="/settings/documents" className="doc-issuer-settings-link">
-                  In Einstellungen verwalten
-                </Link>
-              </div>
-              <Link href="/settings/documents" className="doc-issuer-btn">
-                <PencilSimple size={15} weight="regular" />
-                {issuerReady ? 'Bearbeiten' : 'Angaben ergänzen'}
-              </Link>
-            </section>
-          )}
-
-          {canCreateDocs && (
-            <p className="doc-inbox-hint dec-dt">
-              Gesendete Angebote, Rechnungen und Verträge erscheinen beim Empfänger unter{' '}
-              <Link href="/benachrichtigungen">Benachrichtigungen</Link>
-              {isAgencyMode ? ' (Kunde)' : ''}.
-              Ohne Senden kannst du jederzeit über PDF den Druckdialog nutzen.
-            </p>
-          )}
-
-          {!listReady ? null : shown.length === 0 ? (
-            <DocumentsEmptyState
-              filtered={allItems.length > 0}
-              canCreate={canCreateDocs}
-              onCreateAngebot={() => void handleCreate('angebot')}
-              onCreateRechnung={() => void handleCreate('rechnung')}
-            />
-          ) : (
-            shown.map((item, index) => (
-              <DocumentCardRow
-                key={`${item.source}-${item.id}`}
-                item={item}
-                isLast={index === shown.length - 1}
-                agencyMode={canCreateDocs}
-                busy={busyId === item.id}
-                onOpen={item.source === 'agency' ? handleOpenDocument : undefined}
-                onOpenPdf={item.source === 'agency' ? handleOpenPdf : undefined}
-                onSend={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'sent' }) : undefined}
-                onMarkPaid={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'paid' }) : undefined}
-                onMarkSigned={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { mark_signed: true }) : undefined}
-                onMarkAccepted={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { mark_accepted: true }) : undefined}
-              />
-            ))
-          )}
-        </div>
-      </div>
-
-      <div className="dec-fab-desktop">
-        <TagroContentFab
-          context={{
-            contextType: 'document',
-            id: 'list',
-            title: 'Dokumente, Übersicht',
-            subtitle: pageLead,
-          }}
-        />
-      </div>
-
-      <MobilePageDock
-        onDragUp={canCreateDocs ? () => void handleCreate('rechnung') : tagroHandler}
-        primary={canCreateDocs ? {
-          id: 'invoice',
-          label: 'Rechnung erstellen',
-          icon: <Receipt size={14} weight="regular" />,
-          onClick: () => void handleCreate('rechnung'),
-          ariaLabel: 'Rechnung erstellen',
-        } : {
-          id: 'tagro',
-          label: 'Dokumente besprechen…',
-          icon: <TagroComposeIcon size={14} />,
-          onClick: tagroHandler,
-          ariaLabel: 'Mit Tagro besprechen',
-        }}
-        secondary={{
-          id: 'tagro',
-          icon: <TagroComposeIcon size={20} />,
-          onClick: tagroHandler,
-          ariaLabel: 'Mit Tagro besprechen',
-        }}
-      />
+      )}
     </div>
   )
 }

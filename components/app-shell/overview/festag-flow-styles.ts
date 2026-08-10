@@ -1380,6 +1380,13 @@ html[data-theme="classic-dark"] .ffl-inbox-row-project {
     max-height: none;
     min-height: 0;
   }
+  /* Stacked: the report's desktop min-height (near-full-viewport, meant to
+     vertically centre it beside the stage) just leaves a dead gap above the
+     inbox here — the column should be exactly as tall as its text. */
+  .ffl-report, .ffl.has-detail .ffl-report {
+    min-height: 0;
+    align-items: flex-start;
+  }
   .ffl-bridge { display: none; }
   /* Single column: the map must not grow into the full text width — its fixed
      ratio would turn a 680px stage into a 888px-tall one. */
