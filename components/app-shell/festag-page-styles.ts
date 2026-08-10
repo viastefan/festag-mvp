@@ -254,6 +254,11 @@ button.fps-row:focus-visible, a.fps-row:focus-visible {
 @media (max-width: 480px) {
   .fps-row-right { gap: 6px; }
   .fps-row-tag { display: none; }
+  /* Long titles (activity sentences) wrap instead of truncating — a name
+     can afford a single line, a whole event can't. */
+  .fps-row { align-items: flex-start; flex-wrap: wrap; }
+  .fps-row-title { white-space: normal; overflow: visible; text-overflow: clip; }
+  .fps-row-right { padding-top: 2px; }
 }
 
 html[data-theme="dark"] .fps,

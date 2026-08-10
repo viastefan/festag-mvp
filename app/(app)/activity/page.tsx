@@ -1,38 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  ArrowsClockwise, ChartBar, ChatCircle, CheckCircle, Circle, ClipboardText,
-  FileText, Flag, FunnelSimple, Key, Lightning, Lock, PencilSimple, PuzzlePiece, Target, Tray, UserPlus, WarningCircle,
-  type Icon,
-} from '@phosphor-icons/react'
-import PortalPageHeader from '@/components/portal/PortalPageHeader'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import MobilePageDock from '@/components/mobile/MobilePageDock'
-import TagroContentFab from '@/components/TagroContentFab'
-import { openTagro } from '@/components/TagroOverlay'
-import { DECISION_CSS } from '@/components/decisions/decisions-styles'
-import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
-import { fetchJson } from '@/lib/portal/fetch-api'
+import { Check } from '@phosphor-icons/react'
+import { FESTAG_PAGE_STYLES } from '@/components/app-shell/festag-page-styles'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
+import { fetchJson } from '@/lib/portal/fetch-api'
 import { DEMO_ACTIVITY_FEED, shouldUseDemoFallback } from '@/lib/demo/portal-preview'
-
-const EVENT_ICONS: Record<string, Icon> = {
-  task_created: ClipboardText, task_done: CheckCircle, task_status: ArrowsClockwise,
-  dev_joined: UserPlus, ai_report: FileText, project_status: Flag, message_sent: ChatCircle,
-  addon_added: PuzzlePiece, ai_priority: Target, login: Lock, password_changed: Key,
-  report_generated: ChartBar, progress: CheckCircle, blocker: WarningCircle, risk: WarningCircle,
-  issue: Circle, system: Circle,
-}
-
-function EventIcon({ type }: { type: string }) {
-  const Ico = EVENT_ICONS[type] ?? Circle
-  return <Ico size={18} weight="regular" color="var(--dec-soft)" />
-}
-
-const EVENT_ACTOR_COLORS: Record<string, string> = {
-  ai: 'var(--blue)', dev: 'var(--green-dark)', client: 'var(--text)', system: 'var(--amber)',
-}
 
 type FilterId = 'all' | 'ai' | 'dev' | 'system'
 const FILTERS: { id: FilterId; label: string }[] = [
@@ -41,6 +14,10 @@ const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'dev', label: 'Developer' },
   { id: 'system', label: 'System' },
 ]
+
+const ACTOR_LABEL: Record<string, string> = {
+  ai: 'Tagro', dev: 'Developer', client: 'Du', system: 'System',
+}
 
 type FeedItem = {
   id: string
@@ -53,13 +30,25 @@ type FeedItem = {
   risk?: boolean
 }
 
+function fmtTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })
+}
+
+function dateLabel(iso: string): string {
+  const d = new Date(iso)
+  const today = new Date()
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
+  if (d.toDateString() === today.toDateString()) return 'Heute'
+  if (d.toDateString() === yesterday.toDateString()) return 'Gestern'
+  return d.toLocaleDateString('de', { weekday: 'long', day: '2-digit', month: 'long' })
+}
+
 export default function ActivityPage() {
   const [feed, setFeed] = useState<FeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDemo, setIsDemo] = useState(false)
   const [filter, setFilter] = useState<FilterId>('all')
-  const [navOpen, setNavOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -103,137 +92,89 @@ export default function ActivityPage() {
 
   useEffect(() => { void load() }, [load])
 
-  const filtered = filter === 'all' ? feed : feed.filter(f => f.actor_role === filter)
+  const filtered = filter === 'all' ? feed : feed.filter((f) => f.actor_role === filter)
 
   const grouped = useMemo(() => {
-    const g: Record<string, FeedItem[]> = {}
-    filtered.forEach(item => {
-      const d = new Date(item.created_at)
-      const today = new Date()
-      const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
-      let label = d.toLocaleDateString('de', { weekday: 'long', day: '2-digit', month: 'long' })
-      if (d.toDateString() === today.toDateString()) label = 'Heute'
-      else if (d.toDateString() === yesterday.toDateString()) label = 'Gestern'
-      if (!g[label]) g[label] = []
-      g[label].push(item)
-    })
+    const g: Array<{ label: string; items: FeedItem[] }> = []
+    for (const item of filtered) {
+      const label = dateLabel(item.created_at)
+      const last = g[g.length - 1]
+      if (last && last.label === label) last.items.push(item)
+      else g.push({ label, items: [item] })
+    }
     return g
   }, [filtered])
 
-  const tagroActivity = () => openTagro({
-    contextType: 'empty',
-    id: 'activity',
-    title: 'Aktivität',
-    subtitle: `${feed.length} Ereignisse`,
-  })
-
   return (
-    <div className="dec-os">
-      <style>{DECISION_CSS}</style>
-      <style>{ACTIVITY_CSS}</style>
+    <div className="fps">
+      <style>{FESTAG_PAGE_STYLES}</style>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <header className="fps-head">
+        <h1 className="fps-title">Activity</h1>
+        <p className="fps-stat-line">
+          <strong>{feed.length}</strong> {feed.length === 1 ? 'Ereignis' : 'Ereignisse'} insgesamt
+        </p>
+      </header>
 
-      <div className="dec-m-shell">
-        <div className="dec-static-top">
-          <PortalPageHeader
-            title="Aktivität"
-            onMenu={() => setNavOpen(true)}
-            actions={(
-              <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
-                <ArrowsClockwise size={15} />
-              </button>
-            )}
-          />
+      {isDemo && <DemoPreviewBanner />}
 
-          <div className="act-filters dec-dt">
-            {FILTERS.map(f => (
-              <button
-                key={f.id}
-                type="button"
-                className={`act-filter${filter === f.id ? ' on' : ''}`}
-                onClick={() => setFilter(f.id)}
-              >
-                {f.id === 'all' ? `Alle (${feed.length})` : f.label}
-              </button>
-            ))}
-          </div>
+      <div className="fps-filters">
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className={`fps-filter${filter === f.id ? ' is-on' : ''}`}
+            onClick={() => setFilter(f.id)}
+          >
+            {f.id === 'all' ? `Alle (${feed.length})` : f.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <p className="fps-empty">Lade Aktivität…</p>
+      ) : error ? (
+        <div className="fps-empty">
+          <p>{error}</p>
+          <button type="button" className="fps-filter" style={{ marginTop: 12 }} onClick={() => void load()}>
+            Erneut laden
+          </button>
         </div>
-
-        <div className="dec-scroll-body">
-          {isDemo && <DemoPreviewBanner />}
-
-          {loading ? (
-            <p className="dec-empty">Lade Aktivität…</p>
-          ) : error ? (
-            <div className="dec-empty">
-              <WarningCircle size={16} />
-              <p>{error}</p>
-              <button type="button" className="dec-cta" style={{ marginTop: 16 }} onClick={() => void load()}>Erneut laden</button>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="dec-empty">
-              <Tray size={16} />
-              <p>Noch keine Aktivitäten</p>
-              <small>Anbindungen verbinden oder Work Signals erzeugen — Tagro klassifiziert automatisch.</small>
-            </div>
-          ) : (
-            <div className="act-groups">
-              {Object.entries(grouped).map(([date, items]) => (
-                <section key={date} className="act-group">
-                  <p className="act-date">{date}</p>
-                  {items.map((item, i) => (
-                    <div key={item.id}>
-                      <div className="act-row">
-                        <div className="act-icon"><EventIcon type={item.event_type} /></div>
-                        <div className="act-body">
-                          <div className="act-row-top">
-                            <p className="act-title">{item.title}</p>
-                            <span className="act-time">
-                              {new Date(item.created_at).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <div className="act-meta">
-                            <span className="act-role" style={{ color: EVENT_ACTOR_COLORS[item.actor_role] || 'var(--dec-soft)' }}>
-                              {item.actor_role.toUpperCase()}
-                            </span>
-                            {item.projects?.title && <span className="act-project">{item.projects.title}</span>}
-                            {item.risk && <span className="act-impact">{item.impact || 'Risiko'}</span>}
-                          </div>
-                        </div>
-                      </div>
-                      {i < items.length - 1 && <div className="dec-divider-gradient" />}
-                    </div>
-                  ))}
-                </section>
+      ) : filtered.length === 0 ? (
+        <div className="fps-list">
+          <p className="fps-empty">Noch keine Aktivitäten. Anbindungen verbinden oder Work Signals erzeugen — Tagro klassifiziert automatisch.</p>
+        </div>
+      ) : (
+        grouped.map((group) => (
+          <section key={group.label} className="fps-section">
+            <p className="fps-section-title">{group.label}</p>
+            <div className="fps-list">
+              {group.items.map((item) => (
+                <div key={item.id} className="fps-row">
+                  <div className="fps-row-body">
+                    <span
+                      className={`fps-mark${item.risk ? ' is-attn is-red' : ''}`}
+                      aria-hidden
+                    >
+                      {item.risk ? <span className="fps-mark-dot" /> : <Check size={10} weight="bold" />}
+                    </span>
+                    <span className="fps-row-copy">
+                      <span className="fps-row-title">{item.title}</span>
+                      <span className="fps-row-sub">
+                        {ACTOR_LABEL[item.actor_role] || item.actor_role}
+                        {item.projects?.title ? ` · ${item.projects.title}` : ''}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="fps-row-right">
+                    <span className="fps-row-meta">{fmtTime(item.created_at)}</span>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-        </div>
-      </div>
-
-      <div className="dec-fab-desktop">
-        <TagroContentFab
-          context={{ contextType: 'empty', id: 'activity', title: 'Aktivität', subtitle: `${feed.length} Ereignisse` }}
-        />
-      </div>
-
-      <MobilePageDock
-        onDragUp={tagroActivity}
-        primary={{
-          id: 'discuss',
-          label: 'Aktivität mit Tagro besprechen…',
-          icon: <Lightning size={14} weight="regular" />,
-          onClick: tagroActivity,
-          ariaLabel: 'Mit Tagro besprechen',
-        }}
-        secondary={{
-          id: 'tagro',
-          icon: <PencilSimple size={20} weight="regular" />,
-          onClick: tagroActivity,
-          ariaLabel: 'Mit Tagro bearbeiten',
-        }}
-      />
+          </section>
+        ))
+      )}
     </div>
   )
 }
