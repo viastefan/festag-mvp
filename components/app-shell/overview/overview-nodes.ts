@@ -65,52 +65,58 @@ type Station = Omit<FlowNode, 'label' | 'meta' | 'news' | 'line' | 'metaTone' | 
  * river instead of stepping like a diagram. Labels always sit to the right, so
  * every station keeps the same reading rhythm.
  */
+/**
+ * Anchors follow the bend: a station that is a right-hand crest carries its
+ * label on the right, a left-hand crest on the left. Labels then always sit on
+ * the OUTSIDE of the curve, which is the only placement the spine cannot run
+ * through — with no station marker to hide behind, a label centred on the point
+ * gets a line straight across its text.
+ */
 export const FLOW_LAYOUT: Station[] = [
-  { id: 'communication', x: 126, y: 42, anchor: 'right', tone: 'blue' },
-  { id: 'decisions', x: 208, y: 128, anchor: 'right', tone: 'green' },
-  { id: 'risks', x: 94, y: 214, anchor: 'right', tone: 'red' },
-  { id: 'status', x: 186, y: 296, anchor: 'right', tone: 'blue' },
-  { id: 'team', x: 108, y: 378, anchor: 'right', tone: 'ink' },
-  { id: 'project', x: 166, y: 446, anchor: 'right', tone: 'ink' },
+  { id: 'communication', x: 118, y: 46, anchor: 'left', tone: 'blue' },
+  { id: 'decisions', x: 218, y: 132, anchor: 'right', tone: 'green' },
+  { id: 'risks', x: 88, y: 218, anchor: 'left', tone: 'red' },
+  { id: 'status', x: 200, y: 300, anchor: 'right', tone: 'blue' },
+  { id: 'team', x: 94, y: 374, anchor: 'left', tone: 'ink' },
+  { id: 'project', x: 170, y: 438, anchor: 'right', tone: 'ink' },
 ]
 
-/** One continuous spine — consecutive stations, so no route can ever cross. */
-export const FLOW_ROUTES: Array<[FlowNodeId, FlowNodeId]> = FLOW_LAYOUT
-  .slice(0, -1)
-  .map((s, i) => [s.id, FLOW_LAYOUT[i + 1].id])
-
-const BY_ID = new Map(FLOW_LAYOUT.map((s) => [s.id, s]))
+export const BY_ID = new Map(FLOW_LAYOUT.map((s) => [s.id, s]))
 
 /**
- * Smooth flow connector between two stations.
+ * The whole flow as ONE continuous stroke through every station.
  *
- * The handles follow the dominant axis: a route that mostly falls leaves and
- * enters vertically, a route that mostly runs across leaves and enters
- * horizontally. Both handles are always mirrored, so the curve is symmetric
- * about its midpoint and meets each station head-on.
+ * Built with a Catmull-Rom spline converted to cubic Béziers: each control
+ * handle is derived from the neighbouring points, which makes the tangents
+ * match across every join. Drawing the spine as independent segments only
+ * guarantees the ends meet — the direction still jumps at each station, and
+ * those kinks are what made the earlier curves look hand-drawn.
  *
- * This is what the old freehand curves got wrong — their handles pointed in
- * arbitrary directions, so lines hit the stations at inconsistent angles and
- * read as crooked. Deriving the handles from the actual delta means an
- * irregular, hand-placed layout still produces clean curves.
+ * There are no station markers, so the line has to carry the whole shape: it
+ * passes through each point and the label sits beside it.
  */
-export function flowRoutePath(from: FlowNodeId, to: FlowNodeId): string {
-  const a = BY_ID.get(from)
-  const b = BY_ID.get(to)
-  if (!a || !b) return ''
-  const dx = b.x - a.x
-  const dy = b.y - a.y
-  if (Math.abs(dx) > Math.abs(dy)) {
-    const k = dx * 0.5
-    return `M ${a.x} ${a.y} C ${a.x + k} ${a.y}, ${b.x - k} ${b.y}, ${b.x} ${b.y}`
+export function flowSpinePath(): string {
+  const p = FLOW_LAYOUT
+  if (p.length < 2) return ''
+  let d = `M ${p[0].x} ${p[0].y}`
+  for (let i = 0; i < p.length - 1; i++) {
+    const prev = p[i - 1] || p[i]
+    const cur = p[i]
+    const next = p[i + 1]
+    const after = p[i + 2] || next
+    /* Catmull-Rom → Bézier: handles are a sixth of the neighbour span. */
+    const c1x = cur.x + (next.x - prev.x) / 6
+    const c1y = cur.y + (next.y - prev.y) / 6
+    const c2x = next.x - (after.x - cur.x) / 6
+    const c2y = next.y - (after.y - cur.y) / 6
+    d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${next.x} ${next.y}`
   }
-  const k = dy * 0.5
-  return `M ${a.x} ${a.y} C ${a.x} ${a.y + k}, ${b.x} ${b.y - k}, ${b.x} ${b.y}`
+  return d
 }
 
 export const TONE_HEX: Record<FlowTone, string> = {
-  blue: '#3B6FD4',
-  red: '#C43C3C',
-  green: '#2E9B52',
-  ink: '#3A3A42',
+  blue: '#3B82F6',
+  red: '#E14B4B',
+  green: '#25A55B',
+  ink: '#343841',
 }

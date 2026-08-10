@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from '@phosphor-icons/react'
 import type { DecisionCanvasTopic } from '@/lib/overview/decision-canvas'
 
 type Props = {
@@ -17,28 +18,13 @@ type Props = {
   layout?: 'stack' | 'rail'
 }
 
-function Triad({ active }: { active?: boolean }) {
+/* Same mark language as the overview list: a check reads as chosen, a dot as
+   Tagro's pending pick, nothing at all as a quiet, unpicked option. */
+function OptionMark({ on, recommended }: { on: boolean; recommended: boolean }) {
   return (
-    <svg className="fos-triad" width={18} height={16} viewBox="0 0 18 16" aria-hidden>
-      <circle cx="9" cy="3.2" r="2.1" className={active ? 'is-on' : ''} />
-      <circle cx="3.4" cy="12.2" r="2.1" className={active ? 'is-on' : ''} />
-      <circle cx="14.6" cy="12.2" r="2.1" className={active ? 'is-on' : ''} />
-      <path
-        d="M9 3.2 L3.4 12.2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="0.85"
-        opacity={active ? 0.55 : 0.28}
-      />
-      <path
-        d="M9 3.2 L14.6 12.2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="0.85"
-        opacity={active ? 0.55 : 0.28}
-      />
-      {/* bottom edge left open */}
-    </svg>
+    <span className={`ffl-node-mark${on ? ' is-check' : recommended ? ' is-attn is-green' : ' is-idle'}`} aria-hidden>
+      {on ? <Check size={10} weight="bold" /> : recommended ? <span className="ffl-node-dot" /> : null}
+    </span>
   )
 }
 
@@ -85,10 +71,7 @@ export default function OverviewStoryPanel({
                       .join(' ')}
                     onClick={() => onSelect(opt.id)}
                   >
-                    <span className="fos-option-mark" aria-hidden>
-                      <Triad active={on || opt.recommended} />
-                      <Triad active={false} />
-                    </span>
+                    <OptionMark on={on} recommended={!!opt.recommended} />
                     <span className="fos-option-copy">
                       <span className="fos-option-label">{opt.label}</span>
                       {opt.hint ? (

@@ -1,10 +1,13 @@
 /**
- * Station mark — a solid tone core inside a soft halo of the same colour.
+ * Station mark — a solid tone core inside a soft radial glow.
  *
- * The halo is what lets the spine run underneath without a hard mask: the route
- * fades into the glow instead of being cut by a ring in the canvas colour, so
- * the mark still reads correctly on any background. Pulse only changes weight —
- * a busier station glows wider, it does not gain extra geometry.
+ * The glow is a real gradient, not a flat disc: a single low-alpha circle reads
+ * as a grey plate sitting behind the dot, while a gradient falls off to nothing
+ * and reads as light. That falloff is also what lets the spine pass underneath
+ * without a hard mask in the canvas colour.
+ *
+ * Pulse only changes weight — a busier station glows a little wider and warmer,
+ * it never gains extra geometry.
  */
 
 import type { FlowTone } from '@/components/app-shell/overview/overview-nodes'
@@ -19,14 +22,23 @@ type Props = {
 
 export default function FlowConstellation({
   tone = 'ink',
-  size = 34,
+  size = 44,
   className,
   pulse = 'calm',
 }: Props) {
   const fill = TONE_HEX[tone] || TONE_HEX.ink
   const c = size / 2
-  const core = pulse === 'hot' ? 6 : pulse === 'soft' ? 5.4 : 5
-  const halo = pulse === 'hot' ? 16 : pulse === 'soft' ? 14 : 12
+  const core = pulse === 'hot' ? 8 : pulse === 'soft' ? 7.5 : 7
+  /* How far the light reaches, as a fraction of the box. */
+  const reach = pulse === 'hot' ? 1 : pulse === 'soft' ? 0.94 : 0.86
+  const peak = pulse === 'hot' ? 0.4 : 0.32
+  /* The centre of the gradient is hidden under the core, so the alpha has to
+     still be near its peak where the core ends — otherwise the only part you
+     can actually see is the tail, and the glow reads as absent. */
+  const coreEdge = `${Math.round((core / (c * reach)) * 100)}%`
+
+  /* Shared per tone+pulse — identical defs, so a repeated id is harmless. */
+  const gid = `ffl-glow-${tone}-${pulse}`
 
   return (
     <svg
@@ -36,8 +48,15 @@ export default function FlowConstellation({
       viewBox={`0 0 ${size} ${size}`}
       aria-hidden
     >
-      <circle cx={c} cy={c} r={halo} fill={`${fill}1A`} />
-      {pulse === 'hot' ? <circle cx={c} cy={c} r={halo * 0.66} fill={`${fill}22`} /> : null}
+      <defs>
+        <radialGradient id={gid}>
+          <stop offset="0%" stopColor={fill} stopOpacity={peak} />
+          <stop offset={coreEdge} stopColor={fill} stopOpacity={peak * 0.92} />
+          <stop offset="62%" stopColor={fill} stopOpacity={peak * 0.42} />
+          <stop offset="100%" stopColor={fill} stopOpacity={0} />
+        </radialGradient>
+      </defs>
+      <circle cx={c} cy={c} r={c * reach} fill={`url(#${gid})`} />
       <circle cx={c} cy={c} r={core} fill={fill} />
     </svg>
   )

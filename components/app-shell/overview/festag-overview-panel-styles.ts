@@ -87,27 +87,6 @@ export const FESTAG_OVERVIEW_PANEL_STYLES = `
 .fos-option.is-on {
   background: transparent !important;
 }
-.fos-option-mark {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-  color: #5B647D;
-}
-.fos-option.is-rec .fos-option-mark,
-.fos-option.is-on .fos-option-mark {
-  color: var(--fos-primary);
-}
-.fos-triad circle {
-  fill: currentColor;
-  opacity: 0.28;
-}
-.fos-triad circle.is-on {
-  opacity: 0.92;
-}
-.fos-option-mark .fos-triad:last-child {
-  opacity: 0.38;
-}
 .fos-option-copy {
   display: flex;
   flex-direction: column;

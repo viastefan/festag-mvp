@@ -14,6 +14,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowRight,
+  CaretRight,
+  Check,
   X,
   GraphIcon,
   ListBullets,
@@ -21,8 +23,6 @@ import {
   CirclesThreePlus,
 } from '@phosphor-icons/react'
 import OverviewStoryPanel from '@/components/app-shell/overview/OverviewStoryPanel'
-import FlowDetailBridge from '@/components/app-shell/overview/FlowDetailBridge'
-import FlowConstellation from '@/components/app-shell/overview/FlowConstellation'
 import { FESTAG_OVERVIEW_PANEL_STYLES } from '@/components/app-shell/overview/festag-overview-panel-styles'
 import { FESTAG_FLOW_STYLES } from '@/components/app-shell/overview/festag-flow-styles'
 import OverviewReadStack, {
@@ -40,11 +40,7 @@ import {
 } from '@/lib/overview/decision-canvas'
 import { buildFlowNews, countDecisionUrgency } from '@/lib/overview/flow-news'
 import {
-  FLOW_GRID,
   FLOW_LAYOUT,
-  FLOW_ROUTES,
-  FLOW_VIEWBOX,
-  flowRoutePath,
   type FlowNode,
   type FlowNodeId,
 } from './overview-nodes'
@@ -73,6 +69,8 @@ export default function FestagOverviewCanvas({
   const [showRecommend, setShowRecommend] = useState(false)
   const [reportFilter, setReportFilter] = useState<ReportFilter>('all')
   const [focusDecisionId, setFocusDecisionId] = useState<string | null>(null)
+  /* null = follow the briefing's project; set once the user picks one. */
+  const [pickedProjectId, setPickedProjectId] = useState<string | null>(null)
 
   const focusDecision =
     data.decisions.find((d) => d.id === focusDecisionId) || data.decisions[0] || null
@@ -84,6 +82,15 @@ export default function FestagOverviewCanvas({
   )
   const healthLabel = !hasProjects ? '—' : atRisk > 0 ? 'Achtung' : 'Stabil'
   const openTasks = data.tasks?.length ?? 0
+
+  /** The project the Overview is currently about — the Projekt station sets it. */
+  const activeProject = useMemo(() => {
+    const byPick = pickedProjectId && data.projects.find((p) => p.id === pickedProjectId)
+    if (byPick) return byPick
+    const byBriefing =
+      data.briefing?.projectId && data.projects.find((p) => p.id === data.briefing?.projectId)
+    return byBriefing || data.projects[0] || null
+  }, [pickedProjectId, data.projects, data.briefing?.projectId])
 
   const topic: DecisionCanvasTopic | null = useMemo(() => {
     const f = focusDecision
@@ -153,7 +160,7 @@ export default function FestagOverviewCanvas({
   const nodes: FlowNode[] = useMemo(() => {
     const { soft, urgent } = countDecisionUrgency(data.decisions)
     const activityHint = data.activity[0]?.title || null
-    const projectTitle = data.briefing?.projectTitle || data.projects[0]?.title || null
+    const projectTitle = activeProject?.title || data.briefing?.projectTitle || null
     const input = {
       atRisk,
       pendingDecisions: data.summary.pendingDecisions,
@@ -171,14 +178,69 @@ export default function FestagOverviewCanvas({
       return {
         ...n,
         label: news.label,
-        meta: news.meta,
+        /* Projekt names the active project — that is what makes the station a
+           control rather than another restatement of the summary. */
+        meta: n.id === 'project' && activeProject ? activeProject.title : news.meta,
         metaTone: news.metaTone,
         news: news.news,
         line: news.news,
         pulse: news.pulse,
       }
     })
-  }, [data, atRisk, healthLabel, hasProjects, openTasks])
+  }, [data, atRisk, healthLabel, hasProjects, openTasks, activeProject])
+
+  /** Open items, used to weight the stations that can actually be acted on. */
+  const queue = useMemo(() => {
+    type QueueItem = {
+      id: string
+      node: FlowNodeId
+      tone: 'green' | 'red'
+      title: string
+      sub: string
+      cta: string
+      decisionId?: string
+    }
+    const items: QueueItem[] = []
+
+    for (const d of data.decisions) {
+      const title = d.title || d.summary || 'Entscheidung offen'
+      const parts = [d.projectTitle].filter(Boolean) as string[]
+      if (d.urgency === 'high') parts.push('dringend')
+      items.push({
+        id: `d-${d.id}`,
+        node: 'decisions',
+        tone: 'green',
+        title,
+        sub: parts.join(' · ') || 'Wartet auf deine Freigabe',
+        cta: 'Entscheiden',
+        decisionId: d.id,
+      })
+    }
+
+    for (const p of data.projects) {
+      if (p.health !== 'risk' && p.health !== 'blocked') continue
+      items.push({
+        id: `r-${p.id}`,
+        node: 'risks',
+        tone: 'red',
+        title: p.title,
+        sub: p.health === 'blocked' ? 'Blockiert' : 'Zeigt Risiko',
+        cta: 'Ansehen',
+      })
+    }
+
+    /* Three is what a person can act on in one sitting. */
+    return items.slice(0, 3)
+  }, [data.decisions, data.projects])
+
+  /** The calm facts — one quiet line, never six equal-weight nodes. */
+  const ambient = useMemo(() => {
+    const out: string[] = []
+    if (hasProjects) out.push(`Status ${healthLabel.toLowerCase()}`)
+    if (openTasks > 0) out.push(`${openTasks} ${openTasks === 1 ? 'Aufgabe' : 'Aufgaben'} in Arbeit`)
+    if (data.summary.teamMembers > 0) out.push(`${data.summary.teamMembers} im Team`)
+    return out
+  }, [hasProjects, healthLabel, openTasks, data.summary.teamMembers])
 
   const openDecisions = useCallback(() => {
     setFocus('decisions')
@@ -205,6 +267,20 @@ export default function FestagOverviewCanvas({
     setFocus('status')
     setShowRecommend(false)
   }, [])
+
+  /** One click path for every node in the graph. */
+  const openNode = useCallback(
+    (id: FlowNodeId) => {
+      setReportFilter(id)
+      if (focus === id) {
+        setFocus(null)
+        return
+      }
+      if (id === 'decisions') openDecisions()
+      else setFocus(id)
+    },
+    [focus, openDecisions],
+  )
 
   useEffect(() => {
     if (focus !== 'decisions') return
@@ -287,18 +363,96 @@ export default function FestagOverviewCanvas({
     onDecided?.()
   }
 
+  /** Detail for whichever node is focused — swaps straight into the right rail. */
+  function renderNodeDetail(id: FlowNodeId) {
+    switch (id) {
+      case 'decisions':
+        return topic ? (
+          <OverviewStoryPanel
+            topic={topic}
+            selected={selected}
+            onSelect={setSelected}
+            showDecision
+            showRecommend={showRecommend}
+            onOpenRecommend={() => setShowRecommend(true)}
+            onAccept={() => void accept()}
+            busy={busy}
+            error={error}
+            layout="rail"
+          />
+        ) : (
+          <p className="ffl-empty">Gerade wartet keine Entscheidung auf dich.</p>
+        )
+      case 'risks':
+        return atRisk === 0 ? (
+          <p className="ffl-empty">Aktuell keine offenen Risiken.</p>
+        ) : (
+          data.projects
+            .filter((p) => p.health === 'risk' || p.health === 'blocked')
+            .map((p) => (
+              <article key={p.id} className="ffl-item">
+                <div className="ffl-item-top">
+                  <span className="ffl-item-title">{p.title}</span>
+                  <span className={`ffl-chip is-${p.health === 'blocked' ? 'high' : 'mid'}`}>
+                    {p.health === 'blocked' ? 'Hoch' : 'Mittel'}
+                  </span>
+                </div>
+                {p.nextMilestone ? <p className="ffl-item-body">{p.nextMilestone}</p> : null}
+                <span className="ffl-item-foot">Tagro empfiehlt Klärung <ArrowRight size={15} weight="bold" /></span>
+              </article>
+            ))
+        )
+      case 'team':
+        return data.team.map((m) => (
+          <div key={m.id} className="ffl-row">
+            <span className="ffl-row-name">{m.name}</span>
+            {m.role ? <span className="ffl-chip is-quiet">{m.role}</span> : null}
+          </div>
+        ))
+      case 'project':
+      case 'status':
+        return hasProjects ? (
+          data.projects.map((p) => {
+            const isActive = activeProject?.id === p.id
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={`ffl-row is-pick${isActive ? ' is-active' : ''}`}
+                aria-pressed={isActive}
+                onClick={() => setPickedProjectId(p.id)}
+              >
+                <span className="ffl-row-name">{p.title}</span>
+                <span className="ffl-row-meta">
+                  {isActive ? 'Aktiv' : p.phase || p.status || '—'}
+                </span>
+              </button>
+            )
+          })
+        ) : (
+          <p className="ffl-empty">Noch kein Projekt. Leg dein erstes an — Tagro übernimmt danach Planung und Entscheidungen.</p>
+        )
+      case 'communication':
+        return data.activity.length > 0 ? (
+          data.activity.slice(0, 6).map((a) => (
+            <div key={a.id} className="ffl-row">
+              <span className="ffl-row-name">{a.title}</span>
+            </div>
+          ))
+        ) : (
+          <p className="ffl-empty">Heute war es still.</p>
+        )
+      default:
+        return null
+    }
+  }
+
   const detailOpen = view === 'flow' && focus !== null
 
   return (
     <div ref={rootRef} className={`ffl is-view-${view}${detailOpen ? ' has-detail' : ''}`}>
       <style>{FESTAG_FLOW_STYLES}</style>
       <style>{FESTAG_OVERVIEW_PANEL_STYLES}</style>
-
-      <FlowDetailBridge
-        active={detailOpen}
-        focus={focus}
-        rootRef={rootRef}
-      />
 
       <OverviewViewMenu
         view={view}
@@ -329,93 +483,63 @@ export default function FestagOverviewCanvas({
         </section>
       ) : null}
 
-      {/* ── Flow — stays mounted in Bericht so it can exit glassy to the right ── */}
+      {/* ── Stage — a flat, hairline list. A row opens its detail on the right. ──
+          Stays mounted in Bericht so it can exit glassy to the right. */}
       {view === 'flow' || view === 'report' ? (
         <section
           className={`ffl-stage${view === 'report' ? ' is-report-exit' : ''}`}
-          aria-label="Projektfluss"
+          aria-label="Projektübersicht"
           aria-hidden={view === 'report' || undefined}
         >
-          <svg
-            className="ffl-map"
-            viewBox={`0 0 ${FLOW_VIEWBOX.w} ${FLOW_VIEWBOX.h}`}
-            preserveAspectRatio="xMidYMid meet"
-            aria-hidden
-          >
-            {FLOW_ROUTES.map(([from, to]) => {
-              const lit = focus === from || focus === to
+          <div className="ffl-node-list">
+            {nodes.map((node) => {
+              const isFocus = focus === node.id
+              /* A row earns its mark only when something on it can be acted on. */
+              const open = node.id === 'decisions'
+                ? queue.filter((q) => q.node === 'decisions').length
+                : node.id === 'risks'
+                  ? queue.filter((q) => q.node === 'risks').length
+                  : 0
+              const needsAttention = open > 0 || node.pulse === 'hot'
               return (
-                <path
-                  key={`${from}-${to}`}
-                  d={flowRoutePath(from, to)}
-                  className={`ffl-route${lit ? ' is-lit' : ''}`}
-                  vectorEffect="non-scaling-stroke"
-                />
-              )
-            })}
-          </svg>
-          {nodes.map((node) => {
-            const isFocus = focus === node.id
-            return (
-              <button
-                key={node.id}
-                type="button"
-                data-ffl-node={node.id}
-                tabIndex={view === 'report' ? -1 : 0}
-                disabled={view === 'report'}
-                className={[
-                  'ffl-node',
-                  `is-${node.tone}`,
-                  `is-anchor-${node.anchor}`,
-                  `is-pulse-${node.pulse || 'calm'}`,
-                  isFocus ? 'is-focus' : '',
-                  focus && !isFocus ? 'is-dim' : '',
-                  reportFilter !== 'all' && reportFilter !== node.id ? 'is-filter-dim' : '',
-                ].filter(Boolean).join(' ')}
-                style={{
-                  left: `${(node.x / FLOW_VIEWBOX.w) * 100}%`,
-                  top: `${(node.y / FLOW_VIEWBOX.h) * 100}%`,
-                }}
-                onClick={() => {
-                  if (view !== 'flow') return
-                  setReportFilter(node.id)
-                  if (isFocus) {
-                    setFocus(null)
-                    return
-                  }
-                  if (node.id === 'decisions') openDecisions()
-                  else setFocus(node.id)
-                }}
-                aria-pressed={isFocus}
-                aria-label={`${node.label}. ${node.news}`}
-              >
-                <span className="ffl-node-mark" aria-hidden>
-                  <FlowConstellation
-                    tone={node.metaTone || node.tone}
-                    size={14}
-                    pulse={node.pulse}
-                  />
-                </span>
-                <span className="ffl-node-copy">
-                  <span className="ffl-node-head">
+                <button
+                  key={node.id}
+                  type="button"
+                  data-ffl-node={node.id}
+                  tabIndex={view === 'report' ? -1 : 0}
+                  disabled={view === 'report'}
+                  className={[
+                    'ffl-node',
+                    `is-${node.tone}`,
+                    isFocus ? 'is-focus' : '',
+                    focus && !isFocus ? 'is-dim' : '',
+                    reportFilter !== 'all' && reportFilter !== node.id ? 'is-filter-dim' : '',
+                  ].filter(Boolean).join(' ')}
+                  onClick={() => openNode(node.id)}
+                  aria-pressed={isFocus}
+                  aria-label={`${node.label}. ${node.news}`}
+                >
+                  <span className="ffl-node-body">
+                    <span
+                      className={`ffl-node-mark${needsAttention ? ` is-attn is-${node.tone}` : ''}`}
+                      aria-hidden
+                    >
+                      {needsAttention ? <span className="ffl-node-dot" /> : <Check size={10} weight="bold" />}
+                    </span>
                     <span className="ffl-node-label">{node.label}</span>
+                  </span>
+                  <span className="ffl-node-right">
                     {node.meta ? (
                       <span className={`ffl-node-meta${node.metaTone ? ` is-${node.metaTone}` : ''}`}>
                         {node.meta}
                       </span>
                     ) : null}
+                    <CaretRight size={12} weight="bold" className="ffl-node-chev" aria-hidden />
                   </span>
-                  {/* A note only where something is actually going on — calm
-                      stations stay a name on the map. Focus always opens it. */}
-                  {isFocus || node.pulse === 'hot' ? (
-                    <span className={`ffl-node-line${isFocus ? ' is-focus-line' : ''}`}>
-                      {node.news}
-                    </span>
-                  ) : null}
-                </span>
-              </button>
-            )
-          })}
+                </button>
+              )
+            })}
+          </div>
         </section>
       ) : null}
 
@@ -441,92 +565,7 @@ export default function FestagOverviewCanvas({
           <button type="button" className="ffl-detail-close" onClick={() => setFocus(null)} aria-label="Schließen">
             <X size={16} weight="bold" />
           </button>
-
-          {focus === 'decisions' ? (
-            topic ? (
-              <>
-                <DetailHead title="Entscheidungen" />
-                <OverviewStoryPanel
-                  topic={topic}
-                  selected={selected}
-                  onSelect={setSelected}
-                  showDecision
-                  showRecommend={showRecommend}
-                  onOpenRecommend={() => setShowRecommend(true)}
-                  onAccept={() => void accept()}
-                  busy={busy}
-                  error={error}
-                  layout="rail"
-                />
-              </>
-            ) : (
-              <>
-                <DetailHead title="Entscheidungen" />
-                <p className="ffl-empty" data-ffl-bridge-target>
-                  Gerade wartet keine Entscheidung auf dich.
-                </p>
-              </>
-            )
-          ) : focus === 'risks' ? (
-            <>
-              <DetailHead title="Risiken" />
-              {atRisk === 0 ? (
-                <p className="ffl-empty">Aktuell keine offenen Risiken.</p>
-              ) : (
-                data.projects
-                  .filter((p) => p.health === 'risk' || p.health === 'blocked')
-                  .map((p) => (
-                    <article key={p.id} className="ffl-item" data-ffl-bridge-target>
-                      <div className="ffl-item-top">
-                        <span className="ffl-item-title">{p.title}</span>
-                        <span className={`ffl-chip is-${p.health === 'blocked' ? 'high' : 'mid'}`}>
-                          {p.health === 'blocked' ? 'Hoch' : 'Mittel'}
-                        </span>
-                      </div>
-                      {p.nextMilestone ? <p className="ffl-item-body">{p.nextMilestone}</p> : null}
-                      <span className="ffl-item-foot">Tagro empfiehlt Klärung <ArrowRight size={15} weight="bold" /></span>
-                    </article>
-                  ))
-              )}
-            </>
-          ) : focus === 'team' ? (
-            <>
-              <DetailHead title="Team & Entwickler" />
-              {data.team.map((m) => (
-                <div key={m.id} className="ffl-row" data-ffl-bridge-target>
-                  <span className="ffl-row-name">{m.name}</span>
-                  {m.role ? <span className="ffl-chip is-quiet">{m.role}</span> : null}
-                </div>
-              ))}
-            </>
-          ) : focus === 'project' || focus === 'status' ? (
-            <>
-              <DetailHead title={focus === 'status' ? 'Projektstatus' : 'Projekte'} />
-              {hasProjects ? (
-                data.projects.map((p) => (
-                  <div key={p.id} className="ffl-row" data-ffl-bridge-target>
-                    <span className="ffl-row-name">{p.title}</span>
-                    <span className="ffl-row-meta">{p.phase || p.status || '—'}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="ffl-empty">Noch kein Projekt. Leg dein erstes an — Tagro übernimmt danach Planung und Entscheidungen.</p>
-              )}
-            </>
-          ) : focus === 'communication' ? (
-            <>
-              <DetailHead title="Kommunikation" />
-              {data.activity.length > 0 ? (
-                data.activity.slice(0, 6).map((a) => (
-                  <div key={a.id} className="ffl-row" data-ffl-bridge-target>
-                    <span className="ffl-row-name">{a.title}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="ffl-empty">Heute war es still.</p>
-              )}
-            </>
-          ) : null}
+          {renderNodeDetail(focus as FlowNodeId)}
         </aside>
       ) : null}
     </div>
@@ -610,10 +649,3 @@ function ListRow({
   )
 }
 
-function DetailHead({ title }: { title: string }) {
-  return (
-    <header className="ffl-detail-head">
-      <h2 className="ffl-detail-title">{title}</h2>
-    </header>
-  )
-}

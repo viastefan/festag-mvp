@@ -862,15 +862,16 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
 .ffl-lrow-l { flex: 1; font-size: 17px; color: var(--ffl-soft); }
 .ffl-lrow svg { color: var(--ffl-muted); }
 
-/* ── Stage ── the map canvas ──
-   Locked to the viewBox ratio so the SVG (xMidYMid meet) fills it exactly and
-   the HTML station labels, positioned in %, land on the same coordinates. */
+/* ── Stage ── a quiet list of small containers ──
+   No graph, no canvas — a table read top to bottom, kept at the same visual
+   weight as the read column so it sits beside T1 rather than under it. */
 .ffl-stage {
   position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
-  max-width: 560px;
+  max-width: 380px;
   margin-inline: auto;
-  aspect-ratio: 360 / 470;
   transform: none;
   opacity: 1;
   filter: none;
@@ -883,13 +884,12 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
 .ffl.has-detail .ffl-stage {
   transform: none;
 }
-/* Bericht: flow slides out right with soft glass blur */
+/* Bericht: the list slides out right with soft glass blur */
 .ffl-stage.is-report-exit {
   position: absolute;
   right: clamp(8px, 2vw, 28px);
   top: 50%;
-  width: min(520px, 44vw);
-  min-height: 520px;
+  width: min(420px, 40vw);
   margin: 0;
   pointer-events: none;
   z-index: 1;
@@ -899,145 +899,283 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
-/* ── The flow: smooth connectors, nothing behind them ── */
-.ffl-map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-}
-.ffl-route {
-  fill: none;
-  stroke: rgba(30, 30, 32, 0.16);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  transition: stroke 0.35s var(--ffl-ease), stroke-width 0.35s var(--ffl-ease);
-}
-.ffl-route.is-lit { stroke: rgba(30, 30, 32, 0.34); stroke-width: 2; }
-.ffl.has-detail .ffl-route { stroke: rgba(30, 30, 32, 0.11); }
-.ffl.has-detail .ffl-route.is-lit { stroke: rgba(30, 30, 32, 0.3); }
 
-/* A station: the dot sits exactly on its coordinate, the label hangs off it in
-   the direction that keeps it clear of the routes. No card, no border, no
-   shadow — the map carries the structure. */
+/* ── The list: one soft frame around the group, flat hairlines inside ──
+   No fill to speak of — border + a whisper of shadow is what grounds the
+   list as one object, not a card. Rows keep the hairline rhythm inside it. */
+.ffl-node-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 5px;
+  border: 1px solid var(--ffl-line);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025), 0 14px 32px -12px rgba(15, 23, 42, 0.09);
+}
+.ffl-node-list > .ffl-node:last-child { border-bottom: none; }
+
+/* ── A row: label left, value + chevron right ──
+   The chevron is always on — an affordance you can see at rest, not one you
+   have to discover by hovering. A left accent bar is the only way to tell
+   "open" from "hovered": hover is a hint, is-focus is a fact. */
 .ffl-node {
-  position: absolute;
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 9px;
-  width: max-content;
-  max-width: 150px;
-  padding: 6px 8px;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  margin: 0;
+  padding: 17px 10px 17px 14px;
   border: 0;
+  border-bottom: 1px solid var(--ffl-line);
   border-radius: 10px;
   outline: none;
   background: transparent;
+  box-shadow: none;
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
   font-weight: 400;
   cursor: pointer;
   text-align: left;
-  white-space: normal;
   z-index: 3;
-  transition:
-    background 0.22s var(--ffl-ease),
-    opacity 0.35s var(--ffl-ease),
-    filter 0.35s var(--ffl-ease);
+  animation: fflNodeIn 0.4s var(--ffl-ease) both;
+  transition: background 0.16s var(--ffl-ease), opacity 0.3s var(--ffl-ease);
 }
-/* Translate so the DOT, not the box, lands on the station coordinate. */
-.ffl-node.is-anchor-right { transform: translate(-25px, -50%); }
+@keyframes fflNodeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.ffl-node-list > .ffl-node:nth-child(1) { animation-delay: 0ms; }
+.ffl-node-list > .ffl-node:nth-child(2) { animation-delay: 35ms; }
+.ffl-node-list > .ffl-node:nth-child(3) { animation-delay: 70ms; }
+.ffl-node-list > .ffl-node:nth-child(4) { animation-delay: 105ms; }
+.ffl-node-list > .ffl-node:nth-child(5) { animation-delay: 140ms; }
+.ffl-node-list > .ffl-node:nth-child(6) { animation-delay: 175ms; }
+.ffl-node::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.18s var(--ffl-ease);
+}
 .ffl-node:hover { background: rgba(30, 30, 32, 0.04); }
-.ffl-node:active { background: rgba(30, 30, 32, 0.06); }
-.ffl-node:focus { outline: none; }
+.ffl-node:hover .ffl-node-label { color: var(--ffl-ink); }
 .ffl-node:focus-visible {
   outline: 2px solid rgba(59, 111, 212, 0.4);
   outline-offset: -2px;
 }
+.ffl-node.is-focus {
+  background: rgba(30, 30, 32, 0.045);
+}
+.ffl-node.is-focus::before {
+  background: rgba(30, 30, 32, 0.55);
+}
+.ffl-node.is-dim { opacity: 0.45; }
 
-/* The halo carries the mark — the spine runs under it, no hard mask needed. */
-.ffl-node-mark {
-  position: relative;
-  z-index: 2;
+.ffl-node-body {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  transition: transform 0.28s var(--ffl-ease);
+  gap: 10px;
+  min-width: 0;
 }
-.ffl-node-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.ffl-node:hover .ffl-node-mark { transform: scale(1.08); }
-.ffl-node.is-focus .ffl-node-mark { transform: scale(1.16); }
 
-/* Name over a tone-coloured status line — the reading rhythm of the reference. */
-.ffl-node-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+/* ── The mark: a quiet, typographic status language, not a to-do checkbox ──
+   Check = calm, resolved by Tagro. A small dot = the one place worth a look.
+   Grayscale by default — the dot is the only place colour is allowed in. */
+.ffl-node-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: rgba(30, 30, 32, 0.34);
+  box-shadow: 0 0 0 1px rgba(30, 30, 32, 0.14) inset;
+  transition: color 0.2s var(--ffl-ease), box-shadow 0.2s var(--ffl-ease);
 }
-.ffl-node-head {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+.ffl-node-mark.is-idle {
+  box-shadow: 0 0 0 1px rgba(30, 30, 32, 0.1) inset;
 }
-/* The station name is the primary text now that the sentence is on demand. */
+.ffl-node-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ffl-node-mark.is-attn {
+  color: rgba(30, 30, 32, 0.5);
+  box-shadow: 0 0 0 1px rgba(30, 30, 32, 0.16) inset;
+}
+.ffl-node-mark.is-attn.is-green { color: rgba(46, 155, 82, 0.85); box-shadow: 0 0 0 1px rgba(46, 155, 82, 0.22) inset; }
+.ffl-node-mark.is-attn.is-red   { color: rgba(196, 60, 60, 0.85); box-shadow: 0 0 0 1px rgba(196, 60, 60, 0.22) inset; }
+.ffl-node.is-focus .ffl-node-mark,
+.ffl-node:hover .ffl-node-mark { color: rgba(30, 30, 32, 0.5); }
+.ffl-node.is-focus .ffl-node-mark.is-attn.is-green,
+.ffl-node:hover .ffl-node-mark.is-attn.is-green { color: rgba(46, 155, 82, 0.95); }
+.ffl-node.is-focus .ffl-node-mark.is-attn.is-red,
+.ffl-node:hover .ffl-node-mark.is-attn.is-red { color: rgba(196, 60, 60, 0.95); }
+
 .ffl-node-label {
-  font-size: 15.5px;
+  font-size: 14.5px;
   font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: -0.016em;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
   color: var(--ffl-ink);
-  white-space: nowrap;
-  transition: color 0.22s var(--ffl-ease);
 }
-/* Meta carries the station's tone — a coloured status line, not a pill. */
 .ffl-node-meta {
   font-size: 13px;
-  line-height: 1.25;
-  letter-spacing: -0.008em;
+  line-height: 1.2;
+  letter-spacing: -0.006em;
   color: rgba(30, 30, 32, 0.42);
   white-space: nowrap;
+  flex-shrink: 0;
 }
-.ffl-node-meta.is-blue { color: rgba(59, 111, 212, 0.92); }
-.ffl-node-meta.is-red { color: rgba(196, 60, 60, 0.92); }
+.ffl-node-meta.is-blue  { color: rgba(59, 111, 212, 0.92); }
+.ffl-node-meta.is-red   { color: rgba(196, 60, 60, 0.92); }
 .ffl-node-meta.is-green { color: rgba(46, 155, 82, 0.92); }
 
-/* A small standing note under the station name — two lines, then it clips. */
-.ffl-node-line {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  max-width: 24ch;
-  margin-top: 1px;
-  font-size: 11.5px;
-  line-height: 1.35;
-  letter-spacing: -0.005em;
-  color: rgba(30, 30, 32, 0.5);
-  transition: color 0.22s var(--ffl-ease);
+.ffl-node-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
-.ffl-node:hover .ffl-node-line { color: rgba(30, 30, 32, 0.68); }
-.ffl-node-line.is-focus-line {
-  -webkit-line-clamp: 4;
+/* Always on — the row reads as a control before you ever touch it. */
+.ffl-node-chev {
+  color: rgba(30, 30, 32, 0.22);
+  transition: color 0.18s var(--ffl-ease), transform 0.18s var(--ffl-ease);
+}
+.ffl-node:hover .ffl-node-chev { color: rgba(30, 30, 32, 0.4); transform: translateX(1px); }
+.ffl-node.is-focus .ffl-node-chev { color: rgba(30, 30, 32, 0.55); transform: rotate(90deg); }
+
+/* ── Queue (list view) ── */
+.ffl-q-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
   font-size: 12.5px;
-  color: rgba(30, 30, 32, 0.78);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(30, 30, 32, 0.38);
+}
+.ffl-q-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(30, 30, 32, 0.07);
+  font-size: 11px;
+  letter-spacing: 0;
+  color: rgba(30, 30, 32, 0.6);
 }
 
-.ffl-node:hover .ffl-node-label { color: var(--ffl-ink); }
-.ffl-node.is-focus { background: rgba(30, 30, 32, 0.05); }
-.ffl-node.is-focus .ffl-node-label { color: var(--ffl-ink); }
-.ffl-node.is-dim { opacity: 0.42; }
+.ffl-q-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* An item is a row, not a card. Tone is a hairline on the leading edge — it
+   reads at a glance without adding a coloured object to the page. */
+.ffl-q-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 13px 12px 13px 16px;
+  border: 0;
+  border-radius: 11px;
+  outline: none;
+  background: transparent;
+  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s var(--ffl-ease);
+}
+.ffl-q-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 13px;
+  bottom: 13px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(30, 30, 32, 0.22);
+  transition: background 0.2s var(--ffl-ease);
+}
+.ffl-q-item.is-green::before { background: #25A55B; }
+.ffl-q-item.is-red::before { background: #E14B4B; }
+.ffl-q-item:hover { background: rgba(30, 30, 32, 0.035); }
+.ffl-q-item.is-focus { background: rgba(30, 30, 32, 0.05); }
+.ffl-q-item:focus-visible {
+  outline: 2px solid rgba(59, 111, 212, 0.4);
+  outline-offset: -2px;
+}
+
+.ffl-q-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.ffl-q-title {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.014em;
+  color: var(--ffl-ink);
+}
+.ffl-q-sub {
+  font-size: 12.5px;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  color: rgba(30, 30, 32, 0.45);
+}
+
+/* The action stays visible — a hover-only affordance is invisible on touch. */
+.ffl-q-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 13px;
+  letter-spacing: -0.008em;
+  color: rgba(30, 30, 32, 0.5);
+  transition: color 0.2s var(--ffl-ease), transform 0.2s var(--ffl-ease);
+}
+.ffl-q-item:hover .ffl-q-cta { color: var(--ffl-ink); transform: translateX(2px); }
+
+.ffl-q-empty {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: -0.014em;
+  color: rgba(30, 30, 32, 0.55);
+}
+.ffl-q-ambient {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  color: rgba(30, 30, 32, 0.36);
+}
+.ffl-q-dot { color: rgba(30, 30, 32, 0.24); }
 
 /* ── Detail ── */
 .ffl-detail {
   position: relative;
   align-self: start;
   display: flex; flex-direction: column; gap: 8px;
-  padding: 4px 0 4px clamp(18px, 2.2vw, 32px);
+  padding: 42px 0 4px clamp(18px, 2.2vw, 32px);
   border-left: 1px solid rgba(15, 15, 18, 0.045);
   max-height: none;
   overflow: visible;
@@ -1092,16 +1230,6 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
 }
 .ffl-detail-close:hover { color: var(--ffl-ink); background: #FCFBF8; }
 
-.ffl-detail-head { display: flex; align-items: center; gap: 10px; padding-right: 40px; margin-bottom: 4px; }
-.ffl-detail-title {
-  margin: 0;
-  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
-  font-weight: 400;
-  font-size: 24px;
-  letter-spacing: -0.022em;
-  color: var(--ffl-ink);
-}
-
 .ffl-item { display: flex; flex-direction: column; gap: 7px; padding: 16px 0; border-top: 1px solid var(--ffl-line); }
 .ffl-item-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .ffl-item-title { font-size: 17px; }
@@ -1117,6 +1245,26 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 11px 0; border-top: 1px solid var(--ffl-line);
 }
+/* A pickable row — the Projekt station's project switcher. */
+.ffl-row.is-pick {
+  width: 100%;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s var(--ffl-ease), color 0.18s var(--ffl-ease);
+}
+.ffl-row.is-pick:hover { background: rgba(30, 30, 32, 0.035); }
+.ffl-row.is-pick:focus-visible {
+  outline: 2px solid rgba(59, 111, 212, 0.4);
+  outline-offset: -2px;
+}
+.ffl-row.is-pick.is-active .ffl-row-name { font-weight: 500; }
+.ffl-row.is-pick.is-active .ffl-row-meta { color: var(--ffl-ink); }
+
 .ffl-row-name { font-size: 16px; }
 .ffl-row-meta { font-size: 15px; color: var(--ffl-muted); }
 .ffl-empty { margin: 0; font-size: 16px; line-height: 1.55; color: var(--ffl-muted); max-width: 30ch; }
@@ -1135,7 +1283,9 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
     min-height: 0;
   }
   .ffl-bridge { display: none; }
-  .ffl-stage { max-width: 100%; }
+  /* Single column: the map must not grow into the full text width — its fixed
+     ratio would turn a 680px stage into a 888px-tall one. */
+  .ffl-stage { max-width: min(460px, 100%); }
   .ffl-read,
   .fas-root.is-sidebar-collapsed .ffl-read,
   .fas-root.is-sidebar-expanded .ffl-read {
@@ -1159,20 +1309,9 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
   }
   .ffl-greet { font-size: clamp(28px, 7vw, 36px); }
 
-  /* The map keeps its ratio — only the station chrome tightens, so the routes
-     stay at the same angles and nothing has to be re-laid-out. */
-  /* Same spine and the same curves — only the station chrome tightens, so
-     nothing has to be re-laid-out at the breakpoint. */
-  .ffl-node {
-    gap: 5px;
-    padding: 4px 5px;
-    max-width: 132px;
-  }
-  .ffl-node.is-anchor-right { transform: translate(-19px, -50%); }
-  .ffl-node-mark { width: 26px; height: 26px; }
+  .ffl-node { padding: 12px 14px; }
   .ffl-node-label { font-size: 13.5px; }
-  .ffl-node-meta { font-size: 11.5px; }
-  .ffl-node-line { font-size: 11px; max-width: 20ch; }
+  .ffl-node-meta { font-size: 12px; }
 }
 
 html[data-theme="dark"] .ffl,
@@ -1186,35 +1325,38 @@ html[data-theme="dark"] .ffl-grid-line,
 html[data-theme="classic-dark"] .ffl-grid-line { stroke: rgba(255, 255, 255, 0.06); }
 html[data-theme="dark"] .ffl-grid-line.is-major,
 html[data-theme="classic-dark"] .ffl-grid-line.is-major { stroke: rgba(255, 255, 255, 0.1); }
-html[data-theme="dark"] .ffl-route,
-html[data-theme="classic-dark"] .ffl-route { stroke: rgba(255, 255, 255, 0.22); }
-html[data-theme="dark"] .ffl-route.is-lit,
-html[data-theme="classic-dark"] .ffl-route.is-lit { stroke: rgba(255, 255, 255, 0.46); }
-html[data-theme="dark"] .ffl-node:hover,
-html[data-theme="classic-dark"] .ffl-node:hover { background: rgba(255, 255, 255, 0.045); }
-html[data-theme="dark"] .ffl-node:active,
-html[data-theme="classic-dark"] .ffl-node:active { background: rgba(255, 255, 255, 0.07); }
-html[data-theme="dark"] .ffl-node.is-focus,
-html[data-theme="classic-dark"] .ffl-node.is-focus { background: rgba(255, 255, 255, 0.06); }
-html[data-theme="dark"] .ffl-node:hover .ffl-node-mark,
-html[data-theme="classic-dark"] .ffl-node:hover .ffl-node-mark {
-  box-shadow: 0 0 0 4px #14151B;
+html[data-theme="dark"] .ffl-node-list,
+html[data-theme="classic-dark"] .ffl-node-list {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
 }
+html[data-theme="dark"] .ffl-node,
+html[data-theme="classic-dark"] .ffl-node {
+  background: transparent;
+  box-shadow: none;
+}
+html[data-theme="dark"] .ffl-node:hover,
+html[data-theme="classic-dark"] .ffl-node:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+html[data-theme="dark"] .ffl-node.is-focus,
+html[data-theme="classic-dark"] .ffl-node.is-focus {
+  background: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .ffl-node.is-focus::before,
+html[data-theme="classic-dark"] .ffl-node.is-focus::before {
+  background: rgba(255, 255, 255, 0.55);
+}
+html[data-theme="dark"] .ffl-node-chev,
+html[data-theme="classic-dark"] .ffl-node-chev {
+  color: rgba(255, 255, 255, 0.22);
+}
+html[data-theme="dark"] .ffl-node:hover .ffl-node-chev,
+html[data-theme="classic-dark"] .ffl-node:hover .ffl-node-chev { color: rgba(255, 255, 255, 0.4); }
+html[data-theme="dark"] .ffl-node.is-focus .ffl-node-chev,
+html[data-theme="classic-dark"] .ffl-node.is-focus .ffl-node-chev { color: rgba(255, 255, 255, 0.6); }
 html[data-theme="dark"] .ffl-node-label,
 html[data-theme="classic-dark"] .ffl-node-label {
-  color: rgba(245, 245, 247, 0.44);
-}
-html[data-theme="dark"] .ffl-node.is-focus .ffl-node-label,
-html[data-theme="classic-dark"] .ffl-node.is-focus .ffl-node-label {
-  color: rgba(245, 245, 247, 0.66);
-}
-html[data-theme="dark"] .ffl-node-line,
-html[data-theme="classic-dark"] .ffl-node-line {
-  color: rgba(230, 230, 234, 0.74);
-}
-html[data-theme="dark"] .ffl-node:hover .ffl-node-line,
-html[data-theme="classic-dark"] .ffl-node:hover .ffl-node-line {
-  color: rgba(235, 235, 239, 0.92);
+  color: var(--ffl-ink);
 }
 html[data-theme="dark"] .ffl-node-meta,
 html[data-theme="classic-dark"] .ffl-node-meta {
@@ -1226,6 +1368,15 @@ html[data-theme="dark"] .ffl-node-meta.is-red,
 html[data-theme="classic-dark"] .ffl-node-meta.is-red { color: #E28080; }
 html[data-theme="dark"] .ffl-node-meta.is-green,
 html[data-theme="classic-dark"] .ffl-node-meta.is-green { color: #6FC98C; }
+html[data-theme="dark"] .ffl-node-mark,
+html[data-theme="classic-dark"] .ffl-node-mark {
+  color: rgba(245, 245, 247, 0.4);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+}
+html[data-theme="dark"] .ffl-node-mark.is-attn.is-green,
+html[data-theme="classic-dark"] .ffl-node-mark.is-attn.is-green { color: #6FC98C; box-shadow: 0 0 0 1px rgba(111, 201, 140, 0.3) inset; }
+html[data-theme="dark"] .ffl-node-mark.is-attn.is-red,
+html[data-theme="classic-dark"] .ffl-node-mark.is-attn.is-red { color: #E28080; box-shadow: 0 0 0 1px rgba(226, 128, 128, 0.3) inset; }
 html[data-theme="dark"] .ffl-node-orb,
 html[data-theme="dark"] .ffl-cta,
 html[data-theme="dark"] .ffl-play,
