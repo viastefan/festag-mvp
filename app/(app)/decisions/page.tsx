@@ -1,39 +1,22 @@
 'use client'
 
 /**
- * /decisions — Festag Entscheidungen.
- *
- * Linear-style flat table (mirrors .task-os DNA) where the client sees
- * every open + recently-decided decision they own. Clicking opens a
- * right-side drawer with the dev's context, Tagro's recommendation
- * (on-demand), and the answer form (option select + free-text note).
- *
- * Data flow: devs POST /api/decisions from their dev panel → DB trigger
- * fans an inbox notification + populates the sidebar badge → client
- * lands here, clicks Tagro, picks an answer → /decide route notifies
- * the dev back.
+ * /decisions — same real data flow as before (API + realtime + demo
+ * fallback + DecisionDrawer for the answer form), presentation moved to
+ * the fps-* shared shell used by Team/Activity/Documents.
  */
 
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import {
-  ArrowsClockwise, FunnelSimple, Lightning, PencilSimple, Question,
-} from '@phosphor-icons/react'
-import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
-import MobilePageDock from '@/components/mobile/MobilePageDock'
-import DecisionCardRow from '@/components/decisions/DecisionCardRow'
-import ExecutiveDecisionCards from '@/components/decisions/ExecutiveDecisionCards'
-import TagroContentFab from '@/components/TagroContentFab'
-import { openTagro } from '@/components/TagroOverlay'
+import { Check } from '@phosphor-icons/react'
+import { FESTAG_PAGE_STYLES } from '@/components/app-shell/festag-page-styles'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import { createClient } from '@/lib/supabase/client'
 import {
   type Decision, type ProjectLite,
-  getDecisionDemoBundle, isDecisionDemoId, isOpenDecisionStatus,
+  getDecisionDemoBundle, isOpenDecisionStatus,
 } from '@/components/decisions/decisions-shared'
 import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
-import DecisionRisksPopover from '@/components/decisions/DecisionRisksPopover'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { deriveDecisionRisks } from '@/lib/decisions/risks'
 
@@ -44,9 +27,25 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'decided', label: 'Entschieden' },
   { id: 'all',     label: 'Alle' },
 ]
+
+function decisionTitle(d: Decision): string {
+  return d.client_title || d.title || 'Entscheidung'
+}
+function decisionSummary(d: Decision): string | null {
+  return d.client_summary || d.description || null
+}
+function fmtDue(iso: string | null): string | null {
+  if (!iso) return null
+  const days = Math.round((new Date(iso).getTime() - Date.now()) / 86400000)
+  if (days < 0) return 'überfällig'
+  if (days === 0) return 'heute fällig'
+  if (days === 1) return 'morgen fällig'
+  return `in ${days} Tagen fällig`
+}
+
 export default function DecisionsPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Entscheidungen werden geladen…</div>}>
+    <Suspense fallback={<div className="fps"><p className="fps-empty">Entscheidungen werden geladen…</p></div>}>
       <DecisionsPageInner />
     </Suspense>
   )
@@ -57,21 +56,11 @@ function DecisionsPageInner() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const filterWrapRef = useRef<HTMLDivElement>(null)
-  const risksWrapRef = useRef<HTMLDivElement>(null)
-  const mobileFilterWrapRef = useRef<HTMLDivElement>(null)
-  const mobileRisksWrapRef = useRef<HTMLDivElement>(null)
-
-  const [navOpen, setNavOpen] = useState(false)
-  const [introOpen, setIntroOpen] = useState(false)
 
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('open')
-  const [projectScope, setProjectScope] = useState<string>(searchParams?.get('project') || 'all')
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
-  const [risksOpen, setRisksOpen] = useState(false)
   const [usingDemo, setUsingDemo] = useState(false)
   const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
   const [me, setMe] = useState<string>('')
@@ -80,31 +69,7 @@ function DecisionsPageInner() {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
   }, [supabase])
 
-  // Router cache can restore filter/risks sheets as "open" after returning from
-  // a detail page — the invisible backdrop then blocks all taps on the list.
-  const dismissSheets = useCallback(() => {
-    setFilterMenuOpen(false)
-    setRisksOpen(false)
-    setNavOpen(false)
-    setOpenId(null)
-  }, [])
-
-  useLayoutEffect(() => {
-    dismissSheets()
-  }, [pathname, dismissSheets])
-
-  useEffect(() => {
-    dismissSheets()
-    function onDismiss() { dismissSheets() }
-    window.addEventListener('festag:decisions-dismiss-overlays', onDismiss)
-    return () => window.removeEventListener('festag:decisions-dismiss-overlays', onDismiss)
-  }, [pathname, dismissSheets])
-
-  useEffect(() => {
-    function onPageShow() { dismissSheets() }
-    window.addEventListener('pageshow', onPageShow)
-    return () => window.removeEventListener('pageshow', onPageShow)
-  }, [dismissSheets])
+  useLayoutEffect(() => { setOpenId(null) }, [pathname])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -176,72 +141,9 @@ function DecisionsPageInner() {
   useEffect(() => {
     const open = searchParams?.get('open')
     setOpenId(open || null)
-    const project = searchParams?.get('project')
-    if (project) setProjectScope(project)
-    if (searchParams?.get('tone') === 'risk') {
-      setFilter('urgent')
-      setRisksOpen(true)
-    }
+    if (searchParams?.get('tone') === 'risk') setFilter('urgent')
   }, [searchParams])
 
-  useEffect(() => {
-    if (!filterMenuOpen) return
-    function onDoc(e: MouseEvent) {
-      const t = e.target as Node
-      const inside =
-        filterWrapRef.current?.contains(t) ||
-        mobileFilterWrapRef.current?.contains(t)
-      if (!inside) setFilterMenuOpen(false)
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setFilterMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDoc)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [filterMenuOpen])
-
-  useEffect(() => {
-    if (!risksOpen) return
-    function onDoc(e: MouseEvent) {
-      const t = e.target as Node
-      const inside =
-        risksWrapRef.current?.contains(t) ||
-        mobileRisksWrapRef.current?.contains(t)
-      if (!inside) setRisksOpen(false)
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setRisksOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDoc)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [risksOpen])
-
-  function closeDrawer() {
-    setOpenId(null)
-    const params = new URLSearchParams(searchParams?.toString() || '')
-    params.delete('open')
-    const qs = params.toString()
-    router.replace(qs ? `/decisions?${qs}` : '/decisions', { scroll: false })
-  }
-
-  function applyProjectScope(next: string) {
-    setProjectScope(next)
-    const params = new URLSearchParams(searchParams?.toString() || '')
-    if (next === 'all') params.delete('project')
-    else params.set('project', next)
-    const qs = params.toString()
-    router.replace(qs ? `/decisions?${qs}` : '/decisions', { scroll: false })
-  }
-
-  // Realtime — pick up new decisions live (skip while demo preview is active)
   useEffect(() => {
     if (!me || usingDemo) return
     const ch = (supabase as any)
@@ -259,28 +161,19 @@ function DecisionsPageInner() {
     return () => { (supabase as any).removeChannel(ch) }
   }, [supabase, me, usingDemo])
 
-  const projectList = useMemo(
-    () => Object.values(projects).sort((a, b) => a.title.localeCompare(b.title, 'de')),
-    [projects]
-  )
-  const hasProjects = projectList.length > 0
-
-  useEffect(() => {
-    if (projectScope === 'all') return
-    if (!projects[projectScope]) setProjectScope('all')
-  }, [projectScope, projects])
-
-  const scopedDecisions = useMemo(() => {
-    if (projectScope === 'all') return decisions
-    return decisions.filter(d => d.project_id === projectScope)
-  }, [decisions, projectScope])
+  function closeDrawer() {
+    setOpenId(null)
+    const params = new URLSearchParams(searchParams?.toString() || '')
+    params.delete('open')
+    const qs = params.toString()
+    router.replace(qs ? `/decisions?${qs}` : '/decisions', { scroll: false })
+  }
 
   const filtered = useMemo(() => {
-    let xs = scopedDecisions
+    let xs = decisions
     if (filter === 'open')    xs = xs.filter(d => isOpenDecisionStatus(d.status))
     if (filter === 'urgent')  xs = xs.filter(d => isOpenDecisionStatus(d.status) && (d.urgency === 'high' || d.urgency === 'critical'))
     if (filter === 'decided') xs = xs.filter(d => d.status === 'decided')
-    // Sort: open first by urgency, then due_date, then created_at
     const order = (d: Decision) => {
       if (!isOpenDecisionStatus(d.status)) return 100
       if (d.urgency === 'critical') return 0
@@ -296,334 +189,95 @@ function DecisionsPageInner() {
       if (aDue !== bDue) return aDue - bDue
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
-  }, [filter, scopedDecisions])
+  }, [filter, decisions])
 
   const counts = useMemo(() => ({
-    open: scopedDecisions.filter(d => isOpenDecisionStatus(d.status)).length,
-    urgent: scopedDecisions.filter(d => isOpenDecisionStatus(d.status) && (d.urgency === 'high' || d.urgency === 'critical')).length,
-    decided: scopedDecisions.filter(d => d.status === 'decided').length,
-  }), [scopedDecisions])
+    open: decisions.filter(d => isOpenDecisionStatus(d.status)).length,
+    urgent: decisions.filter(d => isOpenDecisionStatus(d.status) && (d.urgency === 'high' || d.urgency === 'critical')).length,
+  }), [decisions])
 
-  const risks = useMemo(
-    () => deriveDecisionRisks(scopedDecisions, projects),
-    [scopedDecisions, projects],
-  )
-  const hasCriticalRisks = risks.some(r => r.severity === 'critical')
-
+  const risks = useMemo(() => deriveDecisionRisks(decisions, projects), [decisions, projects])
   const openDecision = openId ? decisions.find(d => d.id === openId) ?? null : null
 
   function patchLocal(id: string, patch: Partial<Decision>) {
-    if (isDecisionDemoId(id)) {
-      setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
-      return
-    }
     setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
   }
 
-  function removeLocal(id: string) {
-    if (isDecisionDemoId(id)) {
-      setDecisions(curr => curr.filter(d => d.id !== id))
-      return
-    }
-    setDecisions(curr => curr.filter(d => d.id !== id))
-  }
+  return (
+    <div className="fps">
+      <style>{FESTAG_PAGE_STYLES}</style>
+      {/* DecisionDrawer (reused as-is for the answer form) depends on this
+          stylesheet for its own fixed-overlay positioning. */}
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
 
-  const filterActive = filter !== 'open' || projectScope !== 'all'
+      <header className="fps-head">
+        <h1 className="fps-title">Entscheidungen</h1>
+        <p className="fps-stat-line">
+          <strong>{counts.open}</strong> offen
+          {counts.urgent > 0 ? <> {' · '}<strong>{counts.urgent}</strong> dringend</> : null}
+          {risks.length > 0 ? <> {' · '}<strong>{risks.length}</strong> {risks.length === 1 ? 'Risiko' : 'Risiken'} damit verbunden</> : null}
+        </p>
+      </header>
 
-  const tagroListHandler = () => openTagro({
-    contextType: 'decision',
-    id: 'list',
-    projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-    title: 'Entscheidungen',
-    subtitle: `${counts.open} offen, ${counts.urgent} dringend`,
-  })
+      {usingDemo && <DemoPreviewBanner note="Vorschau mit Beispieldaten — echte Entscheidungen kommen aus dem Execution Panel." />}
 
-  function renderFilterMenu() {
-    if (!filterMenuOpen) return null
-    return (
-      <div className="dec-filter-menu" role="menu" aria-label="Filter">
-        <p className="dec-m-sheet-title">Filtern</p>
-        <p className="dec-filter-menu-label dec-dt">Status</p>
-        {FILTERS.map(f => (
+      <div className="fps-filters">
+        {FILTERS.map((f) => (
           <button
             key={f.id}
             type="button"
-            role="menuitem"
-            className={`dec-filter-menu-item${filter === f.id ? ' on' : ''}`}
-            onClick={() => { setFilter(f.id); setFilterMenuOpen(false) }}
+            className={`fps-filter${filter === f.id ? ' is-on' : ''}`}
+            onClick={() => setFilter(f.id)}
           >
-            <span>{f.label}</span>
-            {filter === f.id && <span className="dec-filter-check">✓</span>}
+            {f.label}
           </button>
         ))}
-        {hasProjects && (
-          <>
-            <p className="dec-filter-menu-label dec-dt">Projekt</p>
-            <button
-              type="button"
-              role="menuitem"
-              className={`dec-filter-menu-item${projectScope === 'all' ? ' on' : ''}`}
-              onClick={() => { applyProjectScope('all'); setFilterMenuOpen(false) }}
-            >
-              <span>Alle Projekte</span>
-              {projectScope === 'all' && <span className="dec-filter-check">✓</span>}
-            </button>
-            {projectList.map(p => (
-              <button
-                key={p.id}
-                type="button"
-                role="menuitem"
-                className={`dec-filter-menu-item${projectScope === p.id ? ' on' : ''}`}
-                onClick={() => { applyProjectScope(p.id); setFilterMenuOpen(false) }}
-              >
-                <span>{p.title}</span>
-                {projectScope === p.id && <span className="dec-filter-check">✓</span>}
-              </button>
-            ))}
-          </>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <div className="dec-os">
-      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
-
-      {(filterMenuOpen || risksOpen) && (
-        <button
-          type="button"
-          className="dec-m-sheet-backdrop"
-          aria-label="Schließen"
-          onClick={dismissSheets}
-        />
-      )}
-
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
-      <PortalAreaIntro area="decisions" open={introOpen} onOpenChange={setIntroOpen} />
-
-      <div className="dec-hero-bg dec-hero-bg-top" aria-hidden>
-        <img src="/decisions/hero-top.png" alt="" />
-      </div>
-      <div className="dec-hero-bg dec-hero-bg-bottom" aria-hidden>
-        <img src="/decisions/hero-bottom.png" alt="" />
       </div>
 
-      <div className="dec-m-shell">
-        <div className="dec-static-top">
-        <header className="dec-page-head">
-          <div className="dec-page-head-copy dec-m-title">
-            <h1 className="dec-page-title">
-              <span className="dec-dt">Entscheidungen</span>
-              <span className="dec-m-t">Entscheidungen</span>
-            </h1>
-          </div>
-          <div className="dec-m-head-actions">
-            <CodexMobileActionPill
-              onMenu={() => setNavOpen(true)}
-              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-            />
-          </div>
-          <div className="dec-page-actions dec-dt">
-            <div className="dec-page-actions-group">
-              <div className="dec-filter-wrap" ref={filterWrapRef}>
-                <button
-                  type="button"
-                  className={`dec-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
-                  title="Filter"
-                  aria-label="Filter"
-                  aria-expanded={filterMenuOpen}
-                  onClick={() => {
-                    setRisksOpen(false)
-                    setFilterMenuOpen(v => !v)
-                  }}
-                >
-                  <FunnelSimple size={15} weight="regular" />
-                </button>
-                {renderFilterMenu()}
-              </div>
-              <div className="dec-risks-wrap" ref={risksWrapRef}>
-                <button
-                  type="button"
-                  className={`dec-head-tool dec-head-tool--risks${risksOpen ? ' on' : ''}`}
-                  title="Risiken"
-                  aria-label={risks.length ? `${risks.length} Risiken` : 'Risiken'}
-                  aria-expanded={risksOpen}
-                  onClick={() => {
-                    setFilterMenuOpen(false)
-                    setRisksOpen(v => !v)
-                  }}
-                >
-                  <span className="dec-head-tool-ico">
-                    <Lightning size={15} weight={risks.length ? 'fill' : 'regular'} />
-                    {risks.length > 0 && (
-                      <span
-                        className={`dec-risks-badge${hasCriticalRisks ? ' dec-risks-badge--pulse' : ''}`}
-                        aria-hidden
-                      >
-                        {risks.length > 9 ? '9+' : risks.length}
-                      </span>
-                    )}
-                  </span>
-                </button>
-                {risksOpen && (
-                  <DecisionRisksPopover
-                    risks={risks}
-                    openCount={counts.open}
-                    onClose={() => setRisksOpen(false)}
-                  />
-                )}
-              </div>
-            </div>
-            <button
-              type="button"
-              className="dec-head-tool"
-              title="Was sind Entscheidungen?"
-              aria-label="Was sind Entscheidungen?"
-              onClick={() => setIntroOpen(true)}
-            >
-              <Question size={15} weight="regular" />
-            </button>
-            <button
-              type="button"
-              className="dec-head-tool"
-              title="Aktualisieren"
-              aria-label="Aktualisieren"
-              onClick={load}
-            >
-              <ArrowsClockwise size={15} weight="regular" />
-            </button>
-          </div>
-        </header>
-
-        <p className="dec-area-tagline dec-dt">
-          Optionen wählen, wenn das Projekt deine Entscheidung braucht — nicht dasselbe wie Live-Feedback oder fertige Lieferungen.
-        </p>
-
-        <div className="dec-m-actions">
-          <div className="dec-m-risks-wrap" ref={mobileRisksWrapRef}>
-            <button
-              type="button"
-              className={`dec-m-risks-btn${risksOpen ? ' on' : ''}${risks.length > 0 ? ' has-count' : ''}`}
-              aria-label={risks.length ? `${risks.length} Risiken` : 'Risiken'}
-              aria-expanded={risksOpen}
-              onClick={() => {
-                setFilterMenuOpen(false)
-                setRisksOpen(v => !v)
-              }}
-            >
-              <Lightning size={17} weight={risks.length ? 'fill' : 'regular'} />
-              {risks.length > 0 && (
-                <span
-                  className={`dec-m-risks-count${hasCriticalRisks ? ' dec-m-risks-count--pulse' : ''}`}
-                  aria-hidden
-                >
-                  {risks.length > 9 ? '9+' : risks.length}
-                </span>
-              )}
-            </button>
-            {risksOpen && (
-              <DecisionRisksPopover
-                risks={risks}
-                openCount={counts.open}
-                onClose={() => setRisksOpen(false)}
-              />
-            )}
-          </div>
-          <div className="dec-m-actions-group">
-            <div className="dec-filter-wrap" ref={mobileFilterWrapRef}>
-              <button
-                type="button"
-                className={`dec-m-ctl${filterMenuOpen ? ' on' : ''}${filterActive ? ' has-active' : ''}`}
-                aria-label="Filter"
-                aria-expanded={filterMenuOpen}
-                onClick={() => {
-                  setRisksOpen(false)
-                  setFilterMenuOpen(v => !v)
-                }}
-              >
-                <FunnelSimple size={17} weight="regular" />
-              </button>
-              {renderFilterMenu()}
-            </div>
-            <button
-              type="button"
-              className="dec-m-ctl"
-              aria-label="Aktualisieren"
-              onClick={load}
-            >
-              <ArrowsClockwise size={17} weight="regular" />
-            </button>
-          </div>
+      {loading && filtered.length === 0 ? (
+        <p className="fps-empty">Lade Entscheidungen…</p>
+      ) : filtered.length === 0 ? (
+        <div className="fps-list">
+          <p className="fps-empty">
+            {decisions.length === 0
+              ? 'Noch keine Entscheidungen. Wenn ein Developer eine Entscheidung anfordert, landet sie hier.'
+              : 'Keine Entscheidungen in dieser Ansicht.'}
+          </p>
         </div>
-      </div>
-
-      <div className="dec-scroll-body">
-        {usingDemo && (
-          <div className="dec-demo-banner" role="status">
-            <span>Vorschau mit Beispieldaten</span>
-            <small>Leere Datenbank — echte Entscheidungen kommen aus dem Execution Panel. <code>?demo=0</code> blendet die Demo aus.</small>
-          </div>
-        )}
-        {!loading && filter === 'open' && (
-          <ExecutiveDecisionCards
-            decisions={decisions}
-            onOpen={id => setOpenId(id)}
-          />
-        )}
-        {loading && filtered.length === 0 ? (
-          <p className="dec-empty">Lade Entscheidungen…</p>
-        ) : filtered.length === 0 ? (
-          <div className="dec-empty">
-            <FunnelSimple size={14} />
-            <p>{decisions.length === 0 ? 'Noch keine Entscheidungen.' : 'Keine Entscheidungen in dieser Ansicht.'}</p>
-            <small>
-              {decisions.length === 0
-                ? 'Wenn ein Developer eine Entscheidung anfordert, landet sie hier.'
-                : 'Passe den Filter an oder wähle ein anderes Projekt.'}
-            </small>
-          </div>
-        ) : filtered.map((d, i) => (
-          <DecisionCardRow
-            key={d.id}
-            decision={d}
-            project={d.project_id ? projects[d.project_id] : null}
-            isLast={i === filtered.length - 1}
-            onPatch={patchLocal}
-            onRemove={removeLocal}
-          />
-        ))}
-      </div>
-      </div>
-
-      <div className="dec-fab-desktop">
-        <TagroContentFab
-          context={{
-            contextType: 'decision',
-            id: 'list',
-            projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-            title: 'Entscheidungen',
-            subtitle: `${counts.open} offen, ${counts.urgent} dringend`,
-          }}
-        />
-      </div>
-
-      <MobilePageDock
-        onDragUp={tagroListHandler}
-        primary={{
-          id: 'discuss',
-          label: counts.open === 0 ? 'Mit Tagro besprechen...' : 'Entscheidungen besprechen...',
-          icon: <Lightning size={14} weight="regular" />,
-          onClick: tagroListHandler,
-          ariaLabel: 'Mit Tagro besprechen',
-        }}
-        secondary={{
-          id: 'tagro',
-          icon: <PencilSimple size={20} weight="bold" />,
-          onClick: tagroListHandler,
-          ariaLabel: 'Mit Tagro bearbeiten',
-        }}
-      />
+      ) : (
+        <div className="fps-list">
+          {filtered.map((d) => {
+            const open = isOpenDecisionStatus(d.status)
+            const urgent = d.urgency === 'high' || d.urgency === 'critical'
+            const project = d.project_id ? projects[d.project_id] : null
+            const due = fmtDue(d.due_date)
+            return (
+              <button
+                key={d.id}
+                type="button"
+                className="fps-row"
+                onClick={() => setOpenId(d.id)}
+              >
+                <div className="fps-row-body">
+                  <span className={`fps-mark${open ? ` is-attn${urgent ? ' is-red' : ''}` : ''}`} aria-hidden>
+                    {open ? <span className="fps-mark-dot" /> : <Check size={10} weight="bold" />}
+                  </span>
+                  <span className="fps-row-copy">
+                    <span className="fps-row-title">{decisionTitle(d)}</span>
+                    <span className="fps-row-sub">
+                      {[project?.title, decisionSummary(d)].filter(Boolean).join(' · ') || (open ? 'Wartet auf deine Freigabe' : 'Entschieden')}
+                    </span>
+                  </span>
+                </div>
+                <div className="fps-row-right">
+                  {due ? <span className={`fps-row-meta${urgent ? ' is-red' : ''}`}>{due}</span> : null}
+                  {!open ? <span className="fps-row-tag is-green">Entschieden</span> : null}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {openDecision && (
         <DecisionDrawer
@@ -632,7 +286,7 @@ function DecisionsPageInner() {
           me={me}
           isDecider={openDecision.requested_for === me || (!openDecision.requested_for && openDecision.created_by !== me)}
           onClose={closeDrawer}
-          onPatch={patch => patchLocal(openDecision.id, patch)}
+          onPatch={(patch) => patchLocal(openDecision.id, patch)}
         />
       )}
     </div>

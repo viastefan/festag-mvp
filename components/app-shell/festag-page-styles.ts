@@ -34,9 +34,12 @@ export const FESTAG_PAGE_STYLES = `
   font-weight: 400;
   animation: fpsIn 0.36s var(--fps-ease) both;
 }
+/* Opacity only — animating transform here would make .fps the containing
+   block for any position:fixed descendant (e.g. DecisionDrawer/IssueDrawer's
+   .dec-overlay), pinning it to this column instead of the viewport. */
 @keyframes fpsIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .fps-head {
