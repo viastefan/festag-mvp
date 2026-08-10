@@ -14,8 +14,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowRight,
-  CaretRight,
-  Check,
   X,
   GraphIcon,
   ListBullets,
@@ -38,12 +36,7 @@ import {
   enrichDecisionFocus,
   type DecisionCanvasTopic,
 } from '@/lib/overview/decision-canvas'
-import { buildFlowNews, countDecisionUrgency } from '@/lib/overview/flow-news'
-import {
-  FLOW_LAYOUT,
-  type FlowNode,
-  type FlowNodeId,
-} from './overview-nodes'
+import type { FlowNodeId } from './overview-nodes'
 
 type Props = {
   greeting: string
@@ -53,6 +46,19 @@ type Props = {
 }
 
 type ViewMode = 'flow' | 'report' | 'list'
+
+function fmtActivityAge(iso: string): string {
+  const t = new Date(iso).getTime()
+  if (!Number.isFinite(t)) return ''
+  const mins = Math.floor((Date.now() - t) / 60000)
+  if (mins < 1) return 'jetzt'
+  if (mins < 60) return `vor ${mins} Min.`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `vor ${hours} Std.`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `vor ${days} Tg.`
+  return new Date(iso).toLocaleDateString('de', { day: '2-digit', month: 'short' })
+}
 
 export default function FestagOverviewCanvas({
   greeting,
@@ -157,82 +163,6 @@ export default function FestagOverviewCanvas({
     [reportFilter, greeting, firstName, readCtx],
   )
 
-  const nodes: FlowNode[] = useMemo(() => {
-    const { soft, urgent } = countDecisionUrgency(data.decisions)
-    const activityHint = data.activity[0]?.title || null
-    const projectTitle = activeProject?.title || data.briefing?.projectTitle || null
-    const input = {
-      atRisk,
-      pendingDecisions: data.summary.pendingDecisions,
-      softDecisions: soft,
-      urgentDecisions: urgent,
-      teamMembers: data.summary.teamMembers,
-      openTasks,
-      healthLabel,
-      hasProjects,
-      activityHint,
-      projectTitle,
-    }
-    return FLOW_LAYOUT.map((n) => {
-      const news = buildFlowNews(n.id, input)
-      return {
-        ...n,
-        label: news.label,
-        /* Projekt names the active project — that is what makes the station a
-           control rather than another restatement of the summary. */
-        meta: n.id === 'project' && activeProject ? activeProject.title : news.meta,
-        metaTone: news.metaTone,
-        news: news.news,
-        line: news.news,
-        pulse: news.pulse,
-      }
-    })
-  }, [data, atRisk, healthLabel, hasProjects, openTasks, activeProject])
-
-  /** Open items, used to weight the stations that can actually be acted on. */
-  const queue = useMemo(() => {
-    type QueueItem = {
-      id: string
-      node: FlowNodeId
-      tone: 'green' | 'red'
-      title: string
-      sub: string
-      cta: string
-      decisionId?: string
-    }
-    const items: QueueItem[] = []
-
-    for (const d of data.decisions) {
-      const title = d.title || d.summary || 'Entscheidung offen'
-      const parts = [d.projectTitle].filter(Boolean) as string[]
-      if (d.urgency === 'high') parts.push('dringend')
-      items.push({
-        id: `d-${d.id}`,
-        node: 'decisions',
-        tone: 'green',
-        title,
-        sub: parts.join(' · ') || 'Wartet auf deine Freigabe',
-        cta: 'Entscheiden',
-        decisionId: d.id,
-      })
-    }
-
-    for (const p of data.projects) {
-      if (p.health !== 'risk' && p.health !== 'blocked') continue
-      items.push({
-        id: `r-${p.id}`,
-        node: 'risks',
-        tone: 'red',
-        title: p.title,
-        sub: p.health === 'blocked' ? 'Blockiert' : 'Zeigt Risiko',
-        cta: 'Ansehen',
-      })
-    }
-
-    /* Three is what a person can act on in one sitting. */
-    return items.slice(0, 3)
-  }, [data.decisions, data.projects])
-
   /** The calm facts — one quiet line, never six equal-weight nodes. */
   const ambient = useMemo(() => {
     const out: string[] = []
@@ -267,20 +197,6 @@ export default function FestagOverviewCanvas({
     setFocus('status')
     setShowRecommend(false)
   }, [])
-
-  /** One click path for every node in the graph. */
-  const openNode = useCallback(
-    (id: FlowNodeId) => {
-      setReportFilter(id)
-      if (focus === id) {
-        setFocus(null)
-        return
-      }
-      if (id === 'decisions') openDecisions()
-      else setFocus(id)
-    },
-    [focus, openDecisions],
-  )
 
   useEffect(() => {
     if (focus !== 'decisions') return
@@ -491,54 +407,26 @@ export default function FestagOverviewCanvas({
           aria-label="Projektübersicht"
           aria-hidden={view === 'report' || undefined}
         >
-          <div className="ffl-node-list">
-            {nodes.map((node) => {
-              const isFocus = focus === node.id
-              /* A row earns its mark only when something on it can be acted on. */
-              const open = node.id === 'decisions'
-                ? queue.filter((q) => q.node === 'decisions').length
-                : node.id === 'risks'
-                  ? queue.filter((q) => q.node === 'risks').length
-                  : 0
-              const needsAttention = open > 0 || node.pulse === 'hot'
-              return (
-                <button
-                  key={node.id}
-                  type="button"
-                  data-ffl-node={node.id}
-                  tabIndex={view === 'report' ? -1 : 0}
-                  disabled={view === 'report'}
-                  className={[
-                    'ffl-node',
-                    `is-${node.tone}`,
-                    isFocus ? 'is-focus' : '',
-                    focus && !isFocus ? 'is-dim' : '',
-                    reportFilter !== 'all' && reportFilter !== node.id ? 'is-filter-dim' : '',
-                  ].filter(Boolean).join(' ')}
-                  onClick={() => openNode(node.id)}
-                  aria-pressed={isFocus}
-                  aria-label={`${node.label}. ${node.news}`}
-                >
-                  <span className="ffl-node-body">
-                    <span
-                      className={`ffl-node-mark${needsAttention ? ` is-attn is-${node.tone}` : ''}`}
-                      aria-hidden
-                    >
-                      {needsAttention ? <span className="ffl-node-dot" /> : <Check size={10} weight="bold" />}
+          <div className="ffl-inbox">
+            <div className="ffl-inbox-status">
+              <span className="ffl-inbox-pulse" aria-hidden />
+              <span>Tagro beobachtet dein Projekt laufend im Hintergrund.</span>
+            </div>
+            <div className="ffl-inbox-list">
+              {data.activity.length > 0 ? (
+                data.activity.slice(0, 8).map((a) => (
+                  <div key={a.id} className="ffl-inbox-row">
+                    <span className="ffl-inbox-row-title">{a.title}</span>
+                    <span className="ffl-inbox-row-meta">
+                      {a.projectTitle ? <span className="ffl-inbox-row-project">{a.projectTitle}</span> : null}
+                      <span className="ffl-inbox-row-time">{fmtActivityAge(a.createdAt)}</span>
                     </span>
-                    <span className="ffl-node-label">{node.label}</span>
-                  </span>
-                  <span className="ffl-node-right">
-                    {node.meta ? (
-                      <span className={`ffl-node-meta${node.metaTone ? ` is-${node.metaTone}` : ''}`}>
-                        {node.meta}
-                      </span>
-                    ) : null}
-                    <CaretRight size={12} weight="bold" className="ffl-node-chev" aria-hidden />
-                  </span>
-                </button>
-              )
-            })}
+                  </div>
+                ))
+              ) : (
+                <p className="ffl-empty">Heute war es still.</p>
+              )}
+            </div>
           </div>
         </section>
       ) : null}

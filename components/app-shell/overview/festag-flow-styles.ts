@@ -900,6 +900,104 @@ html[data-theme="classic-dark"] .ffl-view-option.is-on {
   backdrop-filter: blur(8px);
 }
 
+/* ── Inbox — the running activity feed that replaces the category rows ──
+   Categories now live in the sidebar; the right column's job is simpler:
+   show what actually happened, quietly, in one soft-framed group. */
+.ffl-inbox {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 16px 18px 6px;
+  border: 1px solid var(--ffl-line);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025), 0 14px 32px -12px rgba(15, 23, 42, 0.09);
+}
+html[data-theme="dark"] .ffl-inbox,
+html[data-theme="classic-dark"] .ffl-inbox {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+
+.ffl-inbox-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ffl-line);
+  font-size: 12.5px;
+  letter-spacing: -0.005em;
+  color: rgba(30, 30, 32, 0.42);
+}
+html[data-theme="dark"] .ffl-inbox-status,
+html[data-theme="classic-dark"] .ffl-inbox-status { color: rgba(230, 230, 234, 0.42); }
+
+/* A quiet breathing dot — Tagro is running, not "loading". Serious, not busy. */
+.ffl-inbox-pulse {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(46, 155, 82, 0.55);
+  flex-shrink: 0;
+}
+.ffl-inbox-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  background: rgba(46, 155, 82, 0.28);
+  animation: fflPulseBreathe 2.6s var(--ffl-ease) infinite;
+}
+@keyframes fflPulseBreathe {
+  0%, 100% { transform: scale(0.6); opacity: 0.55; }
+  50% { transform: scale(1.4); opacity: 0; }
+}
+
+.ffl-inbox-list {
+  display: flex;
+  flex-direction: column;
+}
+.ffl-inbox-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--ffl-line);
+}
+.ffl-inbox-list > .ffl-inbox-row:last-child { border-bottom: none; }
+.ffl-inbox-row-title {
+  font-size: 14.5px;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  color: var(--ffl-ink);
+  min-width: 0;
+}
+.ffl-inbox-row-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: rgba(30, 30, 32, 0.4);
+}
+html[data-theme="dark"] .ffl-inbox-row-meta,
+html[data-theme="classic-dark"] .ffl-inbox-row-meta { color: rgba(230, 230, 234, 0.42); }
+.ffl-inbox-row-project {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(30, 30, 32, 0.05);
+  color: rgba(30, 30, 32, 0.55);
+  white-space: nowrap;
+}
+html[data-theme="dark"] .ffl-inbox-row-project,
+html[data-theme="classic-dark"] .ffl-inbox-row-project {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(230, 230, 234, 0.6);
+}
+.ffl-inbox-row-time { white-space: nowrap; }
+.ffl-inbox .ffl-empty { padding: 4px 0 18px; }
+
 /* ── The list: one soft frame around the group, flat hairlines inside ──
    No fill to speak of — border + a whisper of shadow is what grounds the
    list as one object, not a card. Rows keep the hairline rhythm inside it. */
@@ -1413,6 +1511,10 @@ html[data-theme="classic-dark"] .ffl-read.is-plain .ffl-read-line {
 @media (prefers-reduced-motion: reduce) {
   .ffl, .ffl-node, .ffl-node-orb, .ffl-cta, .ffl-detail, .ffl-lyric, .ffl-report, .ffl-stage, .ffl-greet, .ffl-read {
     transition: none !important; animation: none !important;
+  }
+  .ffl-inbox-pulse::after {
+    animation: none !important;
+    opacity: 0.4;
   }
   .ffl {
     --ffl-read: 0 !important;
