@@ -152,6 +152,10 @@ html[data-theme="classic-dark"] .fas-sidebar {
 }
 .fas-sidebar.is-expanded {
   width: var(--fas-sidebar-w);
+  /* A cap alone doesn't give the flex column real space to grow into — the
+     nav's flex:1 has nothing to fill and collapses to near-zero height
+     whenever the header + recent + footer don't already fill the cap. */
+  height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
   max-height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
 }
 .fas-sidebar-spacer {

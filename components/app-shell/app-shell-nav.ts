@@ -9,9 +9,12 @@ import {
   FolderSimple,
   CheckSquare,
   FileText,
+  Files,
   SquaresFour,
   GitBranch,
   Warning,
+  Users,
+  ClockCounterClockwise,
 } from '@phosphor-icons/react'
 
 export type AppShellNavItem = {
@@ -42,10 +45,14 @@ export const APP_SHELL_WORKSPACE_NAV: AppShellNavItem[] = [
 ]
 
 /**
- * Secondary rail — intentionally empty while we focus on the core loop.
- * Documents / Team / Activity routes still exist for deep links.
+ * Secondary rail — the routes that already have real pages behind them,
+ * just not part of the core daily loop above.
  */
-export const APP_SHELL_SECONDARY_NAV: AppShellNavItem[] = []
+export const APP_SHELL_SECONDARY_NAV: AppShellNavItem[] = [
+  { href: '/documents', label: 'Dokumente', icon: Files },
+  { href: '/teams', label: 'Team', icon: Users },
+  { href: '/activity', label: 'Activity', icon: ClockCounterClockwise },
+]
 
 export const APP_SHELL_ALL_NAV: AppShellNavItem[] = [
   ...APP_SHELL_PRIMARY_NAV,
