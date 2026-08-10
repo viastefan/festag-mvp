@@ -1,31 +1,39 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowsClockwise, Lightning, Plus, UserPlus, WarningCircle } from '@phosphor-icons/react'
-import PortalPageHeader from '@/components/portal/PortalPageHeader'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import MobilePageDock from '@/components/mobile/MobilePageDock'
-import TagroContentFab from '@/components/TagroContentFab'
-import { openTagro } from '@/components/TagroOverlay'
-import TeamMemberCardRow from '@/components/teams/TeamMemberCardRow'
-import TeamSubNav from '@/components/teams/TeamSubNav'
+import Link from 'next/link'
+import { Check, UserPlus } from '@phosphor-icons/react'
+import { FESTAG_PAGE_STYLES } from '@/components/app-shell/festag-page-styles'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
-import { DECISION_CSS } from '@/components/decisions/decisions-styles'
-import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
-import { TEAMS_CSS } from '@/components/teams/teams-styles'
 import { fetchJson } from '@/lib/portal/fetch-api'
 import { DEMO_TEAM_OVERVIEW, shouldUseDemoFallback } from '@/lib/demo/portal-preview'
-import type { TeamWorkloadOverview } from '@/lib/teams/build-workload'
+import type { TeamWorkloadOverview, TeamMember, MemberWorkload } from '@/lib/teams/build-workload'
+
+function initials(m: TeamMember): string {
+  const name = m.full_name || m.first_name || m.email || '?'
+  const parts = name.trim().split(/\s+/)
+  const a = parts[0]?.[0] || ''
+  const b = parts.length > 1 ? parts[parts.length - 1][0] : ''
+  return (a + b).toUpperCase() || '?'
+}
+
+function displayName(m: TeamMember): string {
+  return m.full_name || m.first_name || m.email || 'Unbenannt'
+}
+
+function workloadLabel(w: MemberWorkload | undefined): { text: string; tone?: 'red' | 'blue' } {
+  if (!w) return { text: '—' }
+  if (w.blocked > 0) return { text: `${w.blocked} blockiert`, tone: 'red' }
+  if (w.active > 0) return { text: `${w.active} aktiv`, tone: 'blue' }
+  if (w.review > 0) return { text: `${w.review} in Review`, tone: 'blue' }
+  return { text: 'frei' }
+}
 
 export default function TeamsOverviewPage() {
-  const router = useRouter()
   const [overview, setOverview] = useState<TeamWorkloadOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDemo, setIsDemo] = useState(false)
-  const [navOpen, setNavOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -48,123 +56,78 @@ export default function TeamsOverviewPage() {
 
   useEffect(() => { void load() }, [load])
 
-  const tagroTeams = useCallback(() => {
-    openTagro({
-      contextType: 'empty',
-      id: 'teams',
-      title: 'Team, Kapazität',
-      subtitle: overview ? `${overview.totals.members} Mitglieder` : 'Team Panel',
-    })
-  }, [overview])
-
   return (
-    <div className="dec-os">
-      <style>{DECISION_CSS}</style>
-      <style>{ACTIVITY_CSS}</style>
-      <style>{TEAMS_CSS}</style>
+    <div className="fps">
+      <style>{FESTAG_PAGE_STYLES}</style>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <header className="fps-head">
+        <h1 className="fps-title">Team</h1>
+        {overview ? (
+          <p className="fps-stat-line">
+            <strong>{overview.totals.members}</strong> {overview.totals.members === 1 ? 'Mitglied' : 'Mitglieder'}
+            {' · '}
+            <strong>{overview.totals.available}</strong> verfügbar
+            {overview.totals.reviewBacklog > 0 ? (
+              <> {' · '}<strong>{overview.totals.reviewBacklog}</strong> {overview.totals.reviewBacklog === 1 ? 'Review offen' : 'Reviews offen'}</>
+            ) : null}
+          </p>
+        ) : null}
+      </header>
 
-      <div className="dec-m-shell">
-        <div className="dec-static-top">
-          <PortalPageHeader
-            title="Team"
-            onMenu={() => setNavOpen(true)}
-            actions={(
-              <>
-                <Link href="/invite" className="dec-head-tool" title="Mitglied einladen" aria-label="Mitglied einladen">
-                  <UserPlus size={15} />
-                </Link>
-                <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
-                  <ArrowsClockwise size={15} />
-                </button>
-              </>
-            )}
-          />
+      {isDemo && <DemoPreviewBanner note="Beispiel-Team — echte Workload-Daten nach Anmeldung." />}
 
-          <TeamSubNav active="overview" />
+      {overview?.tagro_insights.length ? (
+        <p className="fps-stat-line" style={{ marginTop: -20, marginBottom: 20 }}>
+          {overview.tagro_insights[0]}
+        </p>
+      ) : null}
+
+      {loading ? (
+        <p className="fps-empty">Lade Team-Überblick…</p>
+      ) : error ? (
+        <div className="fps-empty">
+          <p>{error}</p>
+          <button type="button" className="fps-filter" style={{ marginTop: 12 }} onClick={() => void load()}>
+            Erneut laden
+          </button>
         </div>
-
-        <div className="dec-scroll-body">
-          {isDemo && <DemoPreviewBanner note="Beispiel-Team — echte Workload-Daten nach Anmeldung." />}
-
-          {loading ? (
-            <p className="dec-empty">Lade Team-Überblick…</p>
-          ) : error ? (
-            <div className="dec-empty">
-              <WarningCircle size={16} />
-              <p>{error}</p>
-              <button type="button" className="dec-cta" style={{ marginTop: 16 }} onClick={() => void load()}>Erneut laden</button>
-            </div>
-          ) : overview ? (
-            <>
-              <div className="team-metrics">
-                <div className="team-metric"><p className="team-metric-label">Mitglieder</p><p className="team-metric-value">{overview.totals.members}</p></div>
-                <div className="team-metric"><p className="team-metric-label">Verfügbar</p><p className="team-metric-value">{overview.totals.available}</p></div>
-                <div className="team-metric"><p className="team-metric-label">Reviews</p><p className="team-metric-value">{overview.totals.reviewBacklog}</p></div>
-                <div className="team-metric"><p className="team-metric-label">Blockiert</p><p className="team-metric-value">{overview.totals.blocked}</p></div>
-                <div className="team-metric"><p className="team-metric-label">Velocity 7d</p><p className="team-metric-value">{overview.totals.velocity_7d}</p></div>
+      ) : overview && overview.members.length > 0 ? (
+        <div className="fps-list">
+          {overview.members.map((m) => {
+            const w = overview.workloads[m.id]
+            const memberLoad = workloadLabel(w)
+            const needsAttention = Boolean(w?.blocked || w?.overloaded)
+            return (
+              <div key={m.id} className="fps-row">
+                <div className="fps-row-body">
+                  <span className="fps-row-avatar" aria-hidden>{initials(m)}</span>
+                  <span className="fps-row-copy">
+                    <span className="fps-row-title">{displayName(m)}</span>
+                    {m.position || m.role ? (
+                      <span className="fps-row-sub">{m.position || m.role}</span>
+                    ) : null}
+                  </span>
+                </div>
+                <div className="fps-row-right">
+                  <span className={`fps-row-meta${memberLoad.tone ? ` is-${memberLoad.tone}` : ''}`}>{memberLoad.text}</span>
+                  <span className={`fps-mark${needsAttention ? ' is-attn is-red' : ''}`} aria-hidden>
+                    {needsAttention ? <span className="fps-mark-dot" /> : <Check size={10} weight="bold" />}
+                  </span>
+                </div>
               </div>
-
-              {overview.tagro_insights.length > 0 && (
-                <div className="team-insights" role="status">
-                  {overview.tagro_insights.map(line => (
-                    <p key={line}><WarningCircle size={14} weight="fill" /> {line}</p>
-                  ))}
-                </div>
-              )}
-
-              {overview.members.length === 0 ? (
-                <div className="dec-empty">
-                  <UserPlus size={16} />
-                  <p>Noch keine Teammitglieder.</p>
-                  <small>Lade Developer unter Einstellungen oder über Einladung ein.</small>
-                  <Link href="/invite" className="dec-cta" style={{ marginTop: 16, display: 'inline-flex' }}>
-                    <Plus size={14} /> Mitglied einladen
-                  </Link>
-                </div>
-              ) : overview.members.map((m, i) => (
-                <TeamMemberCardRow
-                  key={m.id}
-                  member={m}
-                  workload={overview.workloads[m.id]}
-                  isLast={i === overview.members.length - 1}
-                />
-              ))}
-            </>
-          ) : null}
+            )
+          })}
         </div>
-      </div>
-
-      <div className="dec-fab-desktop">
-        <TagroContentFab
-          context={{
-            contextType: 'empty',
-            id: 'teams',
-            title: 'Team, Kapazität',
-            subtitle: overview ? `${overview.totals.members} Mitglieder` : 'Team Panel',
-          }}
-        />
-      </div>
-
-      <MobilePageDock
-        onDragUp={tagroTeams}
-        primary={{
-          id: 'discuss',
-          label: overview?.totals.overloaded
-            ? 'Überlast im Team besprechen…'
-            : 'Team mit Tagro besprechen…',
-          icon: <Lightning size={14} weight="regular" />,
-          onClick: tagroTeams,
-          ariaLabel: 'Mit Tagro besprechen',
-        }}
-        secondary={{
-          id: 'invite',
-          icon: <UserPlus size={20} weight="regular" />,
-          onClick: () => router.push('/invite'),
-          ariaLabel: 'Mitglied einladen',
-        }}
-      />
+      ) : (
+        <div className="fps-list">
+          <div className="fps-empty">
+            <p>Noch keine Teammitglieder.</p>
+            <Link href="/invite" className="fps-filter" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12, textDecoration: 'none' }}>
+              <UserPlus size={13} weight="bold" /> Mitglied einladen
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

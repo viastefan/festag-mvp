@@ -155,8 +155,9 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
+  const PREVIEW_ROOTS = ['/onboarding', '/overview', '/teams', '/documents', '/activity', '/decisions', '/issues', '/reports']
   if (
-    (pathname === '/onboarding' || pathname === '/overview' || pathname.startsWith('/overview/')) &&
+    PREVIEW_ROOTS.some(p => pathname === p || pathname.startsWith(`${p}/`)) &&
     (previewOn || skipAuth)
   ) {
     return response
