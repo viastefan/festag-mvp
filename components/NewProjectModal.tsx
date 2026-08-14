@@ -163,13 +163,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: trimmed || 'Please organize these attachments into work.',
+          text: trimmed || 'Bitte organisiere diese Anhänge in konkrete Arbeit.',
           attachmentNames: files.map((f) => f.file.name),
         }),
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok || !data?.ok || !data?.result) {
-        setError('Tagro could not understand that yet. Try again in a moment.')
+        setError('Tagro konnte das noch nicht verstehen. Versuch es gleich noch einmal.')
         setPhase('error')
         return
       }
@@ -182,7 +182,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       setInviteDraft(intake.invite || null)
       setPhase('draft')
     } catch {
-      setError('Tagro could not understand that yet. Try again in a moment.')
+      setError('Tagro konnte das noch nicht verstehen. Versuch es gleich noch einmal.')
       setPhase('error')
     }
   }
@@ -194,7 +194,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
     try {
       if (result.intent === 'question') {
-        setDoneMessage('Tagro answered your question. Nothing was created.')
+        setDoneMessage('Tagro hat deine Frage beantwortet. Es wurde nichts angelegt.')
         setPhase('done')
         return
       }
@@ -205,7 +205,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ kind: 'briefing' }),
         }).catch(() => null)
-        setDoneMessage('Opening your workspace briefing.')
+        setDoneMessage('Dein Workspace-Briefing wird geöffnet.')
         setPhase('done')
         window.setTimeout(() => {
           onClose()
@@ -227,12 +227,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         })
         const data = await response.json().catch(() => ({}))
         if (!response.ok || !data?.ok || !data?.project?.id) {
-          setError('The project draft could not be created.')
+          setError('Der Projekt-Entwurf konnte nicht angelegt werden.')
           setPhase('error')
           return
         }
         await uploadStagedAssets(data.project.id)
-        setDoneMessage(`${projectDraft.name} is ready.`)
+        setDoneMessage(`${projectDraft.name} ist bereit.`)
         setPhase('done')
         onCreated?.(data.project.id)
         return
@@ -240,7 +240,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
       if ((result.intent === 'bug_task' || result.intent === 'feature_task') && taskDraft) {
         if (!taskDraft.projectId) {
-          setError('Choose a project for this task draft.')
+          setError('Wähle ein Projekt für diesen Task-Entwurf.')
           setPhase('editing')
           return
         }
@@ -251,11 +251,11 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         })
         const data = await response.json().catch(() => ({}))
         if (!response.ok || !data?.ok) {
-          setError('The task draft could not be created.')
+          setError('Der Task-Entwurf konnte nicht angelegt werden.')
           setPhase('error')
           return
         }
-        setDoneMessage(`${taskDraft.title} was created.`)
+        setDoneMessage(`${taskDraft.title} wurde erstellt.`)
         setPhase('done')
         window.setTimeout(() => onClose(), 900)
         return
@@ -263,12 +263,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
       if (result.intent === 'invite' && inviteDraft) {
         if (!inviteDraft.projectId) {
-          setError('Choose a project for the invitation.')
+          setError('Wähle ein Projekt für die Einladung.')
           setPhase('editing')
           return
         }
         if (!inviteDraft.username.trim() && !inviteDraft.email.trim()) {
-          setError('Add a username or email.')
+          setError('Gib einen Benutzernamen oder eine E-Mail an.')
           setPhase('editing')
           return
         }
@@ -281,22 +281,22 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         if (!response.ok || !data?.ok) {
           setError(
             data?.error === 'user_not_found'
-              ? 'No Festag user with that username.'
-              : 'The invitation could not be sent.',
+              ? 'Kein Festag-Nutzer mit diesem Benutzernamen.'
+              : 'Die Einladung konnte nicht gesendet werden.',
           )
           setPhase('error')
           return
         }
-        setDoneMessage('Invitation sent.')
+        setDoneMessage('Einladung gesendet.')
         setPhase('done')
         window.setTimeout(() => onClose(), 900)
         return
       }
 
-      setError('Nothing to confirm yet.')
+      setError('Noch nichts zu bestätigen.')
       setPhase('error')
     } catch {
-      setError('Something went wrong. Please try again.')
+      setError('Etwas ist schiefgelaufen. Bitte versuch es erneut.')
       setPhase('error')
     }
   }
@@ -360,7 +360,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     phase === 'compose' || phase === 'understanding'
       ? 'Was möchtest du bauen oder ändern?'
       : phase === 'done'
-        ? doneMessage || 'Ready.'
+        ? doneMessage || 'Fertig.'
         : draftHeadline(result)
 
   const showCompose = phase === 'compose'
@@ -374,20 +374,20 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       {showCompose && (
         <>
           <ModalButton variant="ghost" onClick={onClose}>
-            Cancel
+            Abbrechen
           </ModalButton>
           <ModalButton
             variant="primary"
             onClick={submitIntent}
             disabled={!text.trim() && files.length === 0}
           >
-            Continue with Tagro
+            Weiter mit Tagro
           </ModalButton>
         </>
       )}
       {showUnderstanding && (
         <ModalButton variant="ghost" onClick={onClose} disabled>
-          Working
+          Arbeitet …
         </ModalButton>
       )}
       {showDraft && result?.intent === 'new_project' && (
@@ -414,53 +414,53 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             {editing ? 'Fertig' : 'Entwurf bearbeiten'}
           </ModalButton>
           <ModalButton variant="primary" onClick={confirmDraft} loading={busy} disabled={busy}>
-            Create Task
+            Task erstellen
           </ModalButton>
         </>
       )}
       {showDraft && result?.intent === 'invite' && (
         <>
           <ModalButton variant="ghost" onClick={resetToCompose} disabled={busy}>
-            Back
+            Zurück
           </ModalButton>
           <ModalButton variant="primary" onClick={confirmDraft} loading={busy} disabled={busy}>
-            Send Invitation
+            Einladung senden
           </ModalButton>
         </>
       )}
       {showDraft && result?.intent === 'question' && (
         <>
           <ModalButton variant="ghost" onClick={resetToCompose}>
-            Ask again
+            Erneut fragen
           </ModalButton>
           <ModalButton variant="primary" onClick={confirmDraft}>
-            Done
+            Fertig
           </ModalButton>
         </>
       )}
       {showDraft && result?.intent === 'status_briefing' && (
         <>
           <ModalButton variant="ghost" onClick={resetToCompose} disabled={busy}>
-            Back
+            Zurück
           </ModalButton>
           <ModalButton variant="primary" onClick={confirmDraft} loading={busy} disabled={busy}>
-            Open Briefing
+            Briefing öffnen
           </ModalButton>
         </>
       )}
       {phase === 'error' && (
         <>
           <ModalButton variant="ghost" onClick={onClose}>
-            Close
+            Schließen
           </ModalButton>
           <ModalButton variant="primary" onClick={resetToCompose}>
-            Try again
+            Erneut versuchen
           </ModalButton>
         </>
       )}
       {phase === 'done' && (
         <ModalButton variant="primary" onClick={onClose}>
-          Close
+          Schließen
         </ModalButton>
       )}
     </>
@@ -519,7 +519,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                       <FileIcon size={14} weight="bold" />
                     )}
                     <span>{f.file.name}</span>
-                    <button type="button" aria-label="Remove file" onClick={() => removeFile(f.id)}>
+                    <button type="button" aria-label="Datei entfernen" onClick={() => removeFile(f.id)}>
                       <X size={12} weight="bold" />
                     </button>
                   </li>
@@ -540,36 +540,36 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                         startSpeech()
                       }
                     }}
-                    aria-label={listening ? 'Stop voice input' : 'Voice input'}
+                    aria-label={listening ? 'Spracheingabe stoppen' : 'Spracheingabe'}
                   >
                     {listening ? (
                       <MicrophoneSlash size={16} weight="bold" />
                     ) : (
                       <Microphone size={16} weight="bold" />
                     )}
-                    <span>Voice</span>
+                    <span>Sprache</span>
                   </button>
                 )}
                 <button
                   type="button"
                   className="ti-tool"
                   onClick={() => fileInputRef.current?.click()}
-                  aria-label="Upload file"
+                  aria-label="Datei hochladen"
                 >
                   <Paperclip size={16} weight="bold" />
-                  <span>File</span>
+                  <span>Datei</span>
                 </button>
                 <button
                   type="button"
                   className="ti-tool"
                   onClick={() => imageInputRef.current?.click()}
-                  aria-label="Upload image"
+                  aria-label="Bild hochladen"
                 >
                   <ImageIcon size={16} weight="bold" />
-                  <span>Image</span>
+                  <span>Bild</span>
                 </button>
               </div>
-              <p className="ti-hint">Drop files here, ⌘ Enter to continue</p>
+              <p className="ti-hint">Dateien hierher ziehen · ⌘ Enter zum Fortfahren</p>
             </div>
 
             <input
@@ -602,7 +602,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             <FestagWorkingDots size="md" tone="muted" label={processingLabel} />
             <p className="ti-process-label">{processingLabel}</p>
             <p className="ti-process-sub">
-              Tagro is organizing your request into structured work.
+              Tagro strukturiert deine Anfrage in konkrete Arbeit.
             </p>
           </div>
         )}
@@ -635,7 +635,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
         {showDraft && result?.intent === 'question' && result.answer && (
           <div className="ti-draft">
-            <DraftField label="Your question">
+            <DraftField label="Deine Frage">
               <p className="ti-value ti-value-soft">{result.answer.question}</p>
             </DraftField>
             <DraftField label="Tagro">
@@ -657,13 +657,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
         {phase === 'error' && (
           <div className="ti-error" role="alert">
-            <p>{error || 'Something went wrong.'}</p>
+            <p>{error || 'Etwas ist schiefgelaufen.'}</p>
           </div>
         )}
 
         {phase === 'done' && (
           <div className="ti-done">
-            <p>{doneMessage || 'Ready.'}</p>
+            <p>{doneMessage || 'Fertig.'}</p>
           </div>
         )}
       </div>
@@ -731,7 +731,7 @@ function ProjectDraftView({
               {editing && (
                 <button
                   type="button"
-                  aria-label={`Remove ${f}`}
+                  aria-label={`${f} entfernen`}
                   onClick={() =>
                     setDraft({ ...draft, features: draft.features.filter((x) => x !== f) })
                   }
@@ -748,7 +748,7 @@ function ProjectDraftView({
               className="ti-field"
               value={featureInput}
               onChange={(e) => setFeatureInput(e.target.value)}
-              placeholder="Add feature"
+              placeholder="Baustein hinzufügen"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault()
@@ -757,7 +757,7 @@ function ProjectDraftView({
               }}
             />
             <button type="button" className="ti-add-btn" onClick={onAddFeature}>
-              Add
+              Hinzufügen
             </button>
           </div>
         )}
@@ -797,7 +797,7 @@ function TaskDraftView({
 }) {
   return (
     <div className="ti-draft">
-      <DraftField label="Project">
+      <DraftField label="Projekt">
         {editing ? (
           <select
             className="ti-field"
@@ -812,7 +812,7 @@ function TaskDraftView({
               })
             }}
           >
-            <option value="">Select project</option>
+            <option value="">Projekt wählen</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title}
@@ -835,7 +835,7 @@ function TaskDraftView({
           <p className="ti-value">{draft.title}</p>
         )}
       </DraftField>
-      <DraftField label="Priority">
+      <DraftField label="Priorität">
         {editing ? (
           <select
             className="ti-field"
@@ -852,8 +852,8 @@ function TaskDraftView({
           <p className="ti-value">{PRIORITY_LABELS[draft.priority]}</p>
         )}
       </DraftField>
-      <DraftField label="Assigned">
-        <p className="ti-value ti-value-soft">Unassigned</p>
+      <DraftField label="Zugewiesen">
+        <p className="ti-value ti-value-soft">Nicht zugewiesen</p>
       </DraftField>
       {(editing || draft.description) && (
         <DraftField label="Details">
@@ -885,7 +885,7 @@ function InviteDraftView({
 }) {
   return (
     <div className="ti-draft">
-      <DraftField label="Project">
+      <DraftField label="Projekt">
         <select
           className="ti-field"
           value={draft.projectId || ''}
@@ -899,7 +899,7 @@ function InviteDraftView({
             })
           }}
         >
-          <option value="">Select project</option>
+          <option value="">Projekt wählen</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.title}
@@ -907,7 +907,7 @@ function InviteDraftView({
           ))}
         </select>
       </DraftField>
-      <DraftField label="Username">
+      <DraftField label="Benutzername">
         <input
           className="ti-field"
           value={draft.username}
@@ -924,7 +924,7 @@ function InviteDraftView({
           placeholder="name@company.com"
         />
       </DraftField>
-      <DraftField label="Role">
+      <DraftField label="Rolle">
         <select
           className="ti-field"
           value={draft.role}
@@ -942,22 +942,22 @@ function InviteDraftView({
 }
 
 function draftHeadline(result: TagroIntentResult | null): string {
-  if (!result) return 'Review draft'
+  if (!result) return 'Entwurf prüfen'
   switch (result.intent) {
     case 'new_project':
-      return 'Project draft ready for your confirmation.'
+      return 'Projekt-Entwurf bereit zur Bestätigung.'
     case 'bug_task':
-      return 'Bug task draft ready for your confirmation.'
+      return 'Bug-Task-Entwurf bereit zur Bestätigung.'
     case 'feature_task':
-      return 'Feature task draft ready for your confirmation.'
+      return 'Feature-Task-Entwurf bereit zur Bestätigung.'
     case 'invite':
-      return 'Invitation draft ready for your confirmation.'
+      return 'Einladungs-Entwurf bereit zur Bestätigung.'
     case 'question':
-      return 'Here is Tagro’s answer.'
+      return 'Hier ist Tagros Antwort.'
     case 'status_briefing':
-      return 'Workspace briefing is ready.'
+      return 'Workspace-Briefing ist bereit.'
     default:
-      return 'Review draft'
+      return 'Entwurf prüfen'
   }
 }
 
@@ -967,20 +967,24 @@ const INTENT_MODAL_CSS = `
   flex-direction: column;
   gap: 26px;
   padding: 4px 2px 2px;
+  font-family: var(--font-aeonik, 'Aeonik', Inter, system-ui, sans-serif);
 }
 
 /* ── Compose ── */
 .ti-compose {
-  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  border-radius: 14px;
-  background: var(--fp-inp, #ffffff);
+  border: 1px solid var(--fp-inp-border);
+  border-radius: var(--festag-surface-radius, 14px);
+  background: var(--fp-inp);
   padding: 20px 20px 14px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
-.ti-compose:focus-within { border-color: rgba(30,30,32,0.20); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.ti-compose:focus-within {
+  border-color: var(--fp-inp-focus-border);
+  background: var(--fp-inp-focus);
+}
 .ti-compose.is-drag {
-  border-color: var(--fp-accent, #C9932B);
-  background: var(--fp-accent-soft, rgba(201,147,43,0.06));
+  border-color: var(--fp-accent);
+  background: var(--fp-accent-soft);
 }
 .ti-input {
   width: 100%;
@@ -988,13 +992,13 @@ const INTENT_MODAL_CSS = `
   outline: none;
   resize: none !important;
   background: transparent;
-  color: var(--fp-text, #1e1e20);
-  font: 400 17px/1.6 Aeonik, Inter, system-ui, sans-serif;
+  color: var(--fp-text);
+  font: 400 17px/1.6 var(--font-aeonik, 'Aeonik', Inter, system-ui, sans-serif);
   min-height: 132px;
   field-sizing: content;
   max-block-size: 300px;
 }
-.ti-input::placeholder { color: var(--fp-muted, #8891a0); }
+.ti-input::placeholder { color: var(--fp-muted); }
 
 .ti-toolbar {
   display: flex;
@@ -1003,7 +1007,7 @@ const INTENT_MODAL_CSS = `
   gap: 14px;
   margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid var(--fp-divider, rgba(30,30,32,0.07));
+  border-top: 1px solid var(--fp-divider);
 }
 .ti-tools { display: flex; gap: 8px; flex-wrap: wrap; }
 .ti-tool {
@@ -1012,46 +1016,46 @@ const INTENT_MODAL_CSS = `
   gap: 7px;
   height: 38px;
   padding: 0 14px;
-  border-radius: 8px;
-  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  background: #ffffff;
-  color: var(--fp-soft, #5c5c62);
-  font: 400 14px/1 Aeonik, Inter, system-ui, sans-serif;
+  border-radius: var(--festag-control-radius-lg, 8px);
+  border: 1px solid var(--fp-border);
+  background: transparent;
+  color: var(--fp-soft);
+  font: 400 14px/1 var(--font-aeonik, 'Aeonik', Inter, system-ui, sans-serif);
   white-space: nowrap;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
-.ti-tool:hover { background: #FCFBF8; color: var(--fp-text, #1e1e20); }
+.ti-tool:hover { background: var(--fp-hover); color: var(--fp-text); }
 .ti-tool.is-on {
-  border-color: var(--fp-accent, #C9932B);
-  color: var(--fp-accent, #C9932B);
-  background: rgba(201,147,43,0.07);
+  border-color: var(--fp-accent);
+  color: var(--fp-accent);
+  background: var(--fp-accent-soft);
 }
-.ti-hint { margin: 0; font-size: 14px; color: var(--fp-muted, #8891a0); white-space: nowrap; }
+.ti-hint { margin: 0; font-size: 14px; color: var(--fp-muted); white-space: nowrap; }
 
 .ti-files { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .ti-file {
   display: inline-flex; align-items: center; gap: 8px;
   max-width: 100%; padding: 8px 10px 8px 12px;
-  border-radius: 8px;
-  background: var(--fp-pill, rgba(15,23,42,0.04));
-  color: var(--fp-text, #1e1e20);
+  border-radius: var(--festag-control-radius-lg, 8px);
+  background: var(--fp-pill);
+  color: var(--fp-text);
   font-size: 14px;
 }
 .ti-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
 .ti-file button {
-  border: none; background: transparent; color: var(--fp-muted, #8891a0);
+  border: none; background: transparent; color: var(--fp-muted);
   cursor: pointer; display: inline-flex; padding: 2px;
 }
-.ti-file button:hover { color: var(--fp-text, #1e1e20); }
+.ti-file button:hover { color: var(--fp-text); }
 
 /* ── Processing ── */
 .ti-process {
   display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
   min-height: 150px; justify-content: center; padding: 16px 2px 28px;
 }
-.ti-process-label { margin: 0; font: 400 20px/1.35 Aeonik, Inter, system-ui, sans-serif; color: var(--fp-text, #1e1e20); }
-.ti-process-sub { margin: 0; font-size: 15px; line-height: 1.6; color: var(--fp-muted, #8891a0); max-width: 40rem; }
+.ti-process-label { margin: 0; font: 400 20px/1.35 var(--font-aeonik, 'Aeonik', Inter, system-ui, sans-serif); color: var(--fp-text); }
+.ti-process-sub { margin: 0; font-size: 15px; line-height: 1.6; color: var(--fp-muted); max-width: 40rem; }
 
 /* ── Draft — one calm rhythm, generous room ── */
 .ti-draft { display: flex; flex-direction: column; gap: 24px; }
@@ -1059,63 +1063,65 @@ const INTENT_MODAL_CSS = `
 .ti-label {
   font-size: 14px;
   letter-spacing: 0.01em;
-  color: var(--fp-muted, #8891a0);
+  color: var(--fp-muted);
 }
-.ti-value { margin: 0; font-size: 18px; line-height: 1.5; color: var(--fp-text, #1e1e20); }
-.ti-value-soft { color: var(--fp-soft, #5c5c62); font-size: 16px; line-height: 1.6; }
+.ti-value { margin: 0; font-size: 18px; line-height: 1.5; color: var(--fp-text); }
+.ti-value-soft { color: var(--fp-soft); font-size: 16px; line-height: 1.6; }
 
 .ti-field {
-  width: 100%; height: 48px; border-radius: 8px;
-  border: 1px solid var(--fp-inp-border, rgba(30,30,32,0.12));
-  background: #ffffff;
-  color: var(--fp-text, #1e1e20);
+  width: 100%; height: 48px; border-radius: var(--festag-control-radius-lg, 8px);
+  border: 1px solid var(--fp-inp-border);
+  background: var(--fp-inp);
+  color: var(--fp-text);
   padding: 0 14px;
-  font: 400 16px/1.4 Aeonik, Inter, system-ui, sans-serif;
+  font: 400 16px/1.4 var(--font-aeonik, 'Aeonik', Inter, system-ui, sans-serif);
   outline: none;
-  transition: border-color 140ms ease;
+  transition: border-color 140ms ease, background 140ms ease;
 }
-.ti-field:focus { border-color: var(--fp-inp-focus-border, rgba(30,30,32,0.28)); }
+.ti-field:focus { border-color: var(--fp-inp-focus-border); background: var(--fp-inp-focus); }
 .ti-field-area { height: auto; min-height: 104px; padding: 13px 14px; resize: none !important; line-height: 1.6; }
+.ti-field option { color: var(--fp-text); background: var(--fp-bg); }
 
 .ti-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .ti-chip {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 12px; border-radius: 8px;
-  background: #ffffff;
-  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  font-size: 15px; color: var(--fp-text, #1e1e20);
+  padding: 9px 12px; border-radius: var(--festag-control-radius-lg, 8px);
+  background: var(--fp-pill);
+  border: 1px solid var(--fp-border);
+  font-size: 15px; color: var(--fp-text);
 }
-.ti-chip button { border: none; background: transparent; color: var(--fp-muted, #8891a0); cursor: pointer; display: inline-flex; }
-.ti-chip button:hover { color: var(--fp-text, #1e1e20); }
+.ti-chip button { border: none; background: transparent; color: var(--fp-muted); cursor: pointer; display: inline-flex; }
+.ti-chip button:hover { color: var(--fp-text); }
 
 .ti-add-row { display: flex; gap: 8px; margin-top: 10px; }
 .ti-add-btn {
-  height: 48px; padding: 0 16px; border-radius: 8px;
-  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  background: #ffffff; color: var(--fp-text, #1e1e20);
+  height: 48px; padding: 0 16px; border-radius: var(--festag-control-radius-lg, 8px);
+  border: 1px solid var(--fp-border);
+  background: transparent; color: var(--fp-text);
   cursor: pointer; white-space: nowrap;
-  font: 400 15px/1 Aeonik, Inter, system-ui, sans-serif;
+  font: 400 15px/1 var(--font-aeonik, 'Aeonik', Inter, system-ui, sans-serif);
+  transition: background 140ms ease;
 }
-.ti-add-btn:hover { background: #FCFBF8; }
+.ti-add-btn:hover { background: var(--fp-hover); }
 
 .ti-scope { display: flex; gap: 8px; flex-wrap: wrap; }
 .ti-scope-btn {
-  height: 40px; padding: 0 16px; border-radius: 8px;
-  border: 1px solid var(--fp-border, rgba(30,30,32,0.10));
-  background: #ffffff; color: var(--fp-soft, #5c5c62);
+  height: 40px; padding: 0 16px; border-radius: var(--festag-control-radius-lg, 8px);
+  border: 1px solid var(--fp-border);
+  background: transparent; color: var(--fp-soft);
   cursor: pointer;
-  font: 400 15px/1 Aeonik, Inter, system-ui, sans-serif;
-  transition: all 140ms ease;
+  font: 400 15px/1 var(--font-aeonik, 'Aeonik', Inter, system-ui, sans-serif);
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
-.ti-scope-btn:hover { background: #FCFBF8; }
+.ti-scope-btn:hover { background: var(--fp-hover); }
 .ti-scope-btn.is-on {
-  border-color: var(--fp-accent, #C9932B);
-  color: var(--fp-text, #1e1e20);
-  background: var(--fp-accent-soft, rgba(201,147,43,0.08));
+  border-color: var(--fp-accent);
+  color: var(--fp-text);
+  background: var(--fp-accent-soft);
 }
 
 .ti-error, .ti-done {
-  padding: 12px 2px 16px; color: var(--fp-text, #1e1e20);
+  padding: 12px 2px 16px; color: var(--fp-text);
   font-size: 16px; line-height: 1.6;
 }
 .ti-error { color: var(--red, #C43C3C); }

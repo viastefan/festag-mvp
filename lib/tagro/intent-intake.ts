@@ -81,39 +81,39 @@ export type WorkspaceProjectHint = {
 }
 
 export const INTENT_PLACEHOLDERS = [
-  'I want to build a booking platform for my hotel.',
-  'The login does not work on iPhone.',
-  'We need a new payment feature.',
-  'Invite Max to the project.',
-  'Create a landing page for our new product.',
+  'Ich möchte eine Buchungsplattform für mein Hotel bauen.',
+  'Der Login funktioniert auf dem iPhone nicht.',
+  'Wir brauchen eine neue Bezahlfunktion.',
+  'Lade Max zum Projekt ein.',
+  'Erstelle eine Landingpage für unser neues Produkt.',
 ] as const
 
 export const INTENT_PROCESSING_STEPS = [
-  'Understanding your request…',
-  'Analyzing context…',
-  'Preparing your workspace…',
+  'Anfrage wird verstanden …',
+  'Kontext wird analysiert …',
+  'Workspace wird vorbereitet …',
 ] as const
 
 export const INVITE_ROLE_OPTIONS: { id: InviteDraftRole; label: string }[] = [
-  { id: 'workspace_owner', label: 'Workspace Owner' },
-  { id: 'project_owner', label: 'Project Owner' },
-  { id: 'developer', label: 'Developer' },
+  { id: 'workspace_owner', label: 'Workspace-Inhaber' },
+  { id: 'project_owner', label: 'Projekt-Inhaber' },
+  { id: 'developer', label: 'Entwickler' },
   { id: 'designer', label: 'Designer' },
-  { id: 'client', label: 'Client' },
-  { id: 'viewer', label: 'Observer' },
+  { id: 'client', label: 'Kunde' },
+  { id: 'viewer', label: 'Beobachter' },
 ]
 
 export const SCOPE_LABELS: Record<EstimatedScope, string> = {
-  small: 'Small',
-  medium: 'Medium',
-  large: 'Large',
+  small: 'Klein',
+  medium: 'Mittel',
+  large: 'Groß',
 }
 
 export const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  critical: 'Critical',
+  low: 'Niedrig',
+  medium: 'Mittel',
+  high: 'Hoch',
+  critical: 'Kritisch',
 }
 
 const BUG_RE =

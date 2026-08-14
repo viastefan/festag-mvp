@@ -22,7 +22,13 @@ export async function POST(req: NextRequest) {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ ok: false, error: 'no_session' }, { status: 401 })
+
+    // Dev/Demo: erlaube Tagro ohne Session, damit das Intake lokal testbar ist.
+    const devSkipAuth =
+      process.env.FESTAG_DEV_SKIP_AUTH === '1' ||
+      process.env.NEXT_PUBLIC_FESTAG_DEMO === '1'
+    const userId = user?.id || (devSkipAuth ? 'demo-user' : null)
+    if (!userId) return NextResponse.json({ ok: false, error: 'no_session' }, { status: 401 })
 
     const body = await req.json().catch(() => ({}))
     const text = String(body?.text || body?.description || '').trim().slice(0, 4000)
@@ -35,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     const service = getServiceClient() || supabase
-    const projects = await loadProjectHints(service, user.id)
+    const projects = await loadProjectHints(service, userId)
     const enrichedText =
       attachmentNames.length > 0
         ? `${text}${text ? '\n\n' : ''}Attachments: ${attachmentNames.join(', ')}`
