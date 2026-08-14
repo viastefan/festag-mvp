@@ -1,9 +1,17 @@
 /**
- * Übersetzt einen blockierten Task in das Risiko, das der mobile Flow zeigt.
- * Alles hier ist aus vorhandenen Task-Daten abgeleitet — keine Platzhalter.
+ * Übersetzt ein Risiko in die Form, die der mobile Flow zeigt.
+ *
+ * Zwei Quellen, eine Form:
+ *   • `mobileRiskFromRisk` — das echte Risk-Objekt inklusive Belegen.
+ *   • `buildMobileRisk`    — Notfallpfad aus einem blockierten Task, solange
+ *                            die Risk-Intelligence-Migration noch nicht läuft.
+ *
+ * Alles hier ist aus vorhandenen Daten abgeleitet — keine Platzhalter.
  */
 
 import type { MobileRisk, RiskLevel, RiskMeasure } from '@/components/dashboard/RiskFlowMobile'
+import { delayLabel } from '@/lib/risks/present'
+import type { Risk, RiskSignal } from '@/lib/risks/types'
 
 export type RiskSourceTask = {
   id: string
@@ -81,5 +89,63 @@ export function buildMobileRisk(task: RiskSourceTask, projectTitle?: string | nu
     suggestedImpact: impact,
     suggestedProbability: probability,
     suggestedMeasure: measureFromImpact(impact),
+  }
+}
+
+/* ── Aus dem echten Risk-Objekt ─────────────────────────────────────────── */
+
+/** critical/high → hoch, medium → mittel, low → niedrig. */
+function levelFromImpact(impact: Risk['impact']): RiskLevel {
+  if (impact === 'critical' || impact === 'high') return 'high'
+  if (impact === 'low') return 'low'
+  return 'mid'
+}
+
+function levelFromProbability(p: number | null | undefined): RiskLevel {
+  const value = typeof p === 'number' ? p : 0.5
+  if (value < 0.4) return 'low'
+  if (value < 0.7) return 'mid'
+  return 'high'
+}
+
+/** Der Chip über der Überschrift bleibt ein Wort — der Satz steht im Sheet. */
+function recommendationWord(severity: Risk['severity']): string {
+  if (severity === 'critical' || severity === 'high') return 'Absichern'
+  if (severity === 'low') return 'Beobachten'
+  return 'Prüfen'
+}
+
+function measureFromSeverity(severity: Risk['severity']): RiskMeasure {
+  return severity === 'low' ? 'accept' : 'mitigate'
+}
+
+/**
+ * Die Zeilen im Bottom Sheet sind die tatsächlichen Belege des Risikos —
+ * genau die Signale, aus denen Festag es abgeleitet hat. Fehlen sie, bleibt
+ * die Begründung aus dem Risiko selbst.
+ */
+function reasonsFrom(risk: Risk, signals: RiskSignal[]): string[] {
+  const evidence = signals.map(s => s.label).slice(0, 4)
+  const consequence = delayLabel(risk.potential_delay_days)
+
+  const lines = [...evidence]
+  if (consequence) lines.push(`Mögliche Auswirkung: ${consequence}`)
+  if (risk.recommendation_reason) lines.push(risk.recommendation_reason)
+  else if (risk.recommendation) lines.push(risk.recommendation)
+
+  return lines.length ? lines : ['Festag beobachtet dieses Risiko.']
+}
+
+export function mobileRiskFromRisk(risk: Risk, signals: RiskSignal[] = []): MobileRisk {
+  return {
+    id: risk.id,
+    projectId: risk.project_id,
+    title: risk.title,
+    description: risk.description || risk.client_summary || risk.title,
+    recommendation: recommendationWord(risk.severity),
+    reasons: reasonsFrom(risk, signals),
+    suggestedImpact: levelFromImpact(risk.impact),
+    suggestedProbability: levelFromProbability(risk.probability),
+    suggestedMeasure: measureFromSeverity(risk.severity),
   }
 }

@@ -15,7 +15,7 @@
  *     Trennlinien zwischen Sektionen, keine schwarzen Buttons.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { computeControlStatus } from '@/lib/trust/control-status'
@@ -31,8 +31,7 @@ import {
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import DashboardMobileOverview from '@/components/dashboard/DashboardMobileOverview'
-import type { RiskResult } from '@/components/dashboard/RiskFlowMobile'
-import { buildMobileRisk } from '@/lib/risks/mobile-risk'
+import { useMobileRisks } from '@/hooks/useMobileRisks'
 import PersonalizedWorkspaceStart from '@/components/dashboard/PersonalizedWorkspaceStart'
 import StatusReportPlayer from '@/components/status/StatusReportPlayer'
 import { briefingDurationLabel as formatBriefingDuration, splitBriefingSentences } from '@/lib/client/status-briefing'
@@ -370,51 +369,16 @@ export default function DashboardPageContent() {
   const decisionTasks = allTasks.filter((t) => t.status === 'waiting')
   const riskTasks = allTasks.filter((t) => t.status === 'blocked')
 
-  // Mobile Risiko-Flow: bereits bewertete Risiken fallen aus der Warteschlange.
-  const [assessedRiskIds, setAssessedRiskIds] = useState<Set<string>>(new Set())
-
-  const loadAssessments = useCallback(async () => {
-    try {
-      const res = await fetch('/api/risks/assess')
-      if (!res.ok) return
-      const json = await res.json()
-      const ids = (json.assessments ?? []).map((a: { task_id: string }) => a.task_id)
-      setAssessedRiskIds(new Set(ids))
-    } catch {
-      // Offline oder Migration fehlt — die Schlange bleibt einfach vollständig.
-    }
-  }, [])
-
-  useEffect(() => { void loadAssessments() }, [loadAssessments])
-
-  const openRisks = useMemo(() => {
-    const titles = Object.fromEntries(projects.map(p => [p.id, p.title]))
-    return riskTasks
-      .filter(t => !assessedRiskIds.has(t.id))
-      .map(t => buildMobileRisk(t, t.project_id ? titles[t.project_id] : null))
-  }, [riskTasks, assessedRiskIds, projects])
-
-  const saveRiskAssessment = useCallback(async (riskId: string, result: RiskResult) => {
-    // Optimistisch aus der Schlange nehmen, damit der Flow direkt weiterläuft.
-    setAssessedRiskIds(prev => new Set(prev).add(riskId))
-    try {
-      await fetch('/api/risks/assess', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          task_id: riskId,
-          project_id: allTasks.find(t => t.id === riskId)?.project_id ?? null,
-          impact: result.impact,
-          probability: result.probability,
-          measure: result.measure,
-          source: result.source,
-        }),
-      })
-    } catch {
-      // Fehlgeschlagen: beim nächsten Laden taucht das Risiko wieder auf.
-    }
-    void loadAssessments()
-  }, [allTasks, loadAssessments])
+  // Mobile Risiko-Flow: echte Risk-Objekte inklusive Belegen. Blockierte Tasks
+  // dienen nur noch als Fallback, solange die Risk-Tabelle fehlt.
+  const projectTitles = useMemo(
+    () => Object.fromEntries(projects.map(p => [p.id, p.title])),
+    [projects],
+  )
+  const { risks: openRisks, resolve: saveRiskAssessment } = useMobileRisks({
+    fallbackTasks: riskTasks,
+    projectTitles,
+  })
 
   // Workspace-wide Control Status — the calm dynamic sentence under the greeting.
   // Reuses the shared trust layer; the dashboard doesn't load reports so it
