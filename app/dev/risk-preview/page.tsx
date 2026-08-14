@@ -9,7 +9,7 @@ export default function RiskPreviewPage() {
     <DashboardMobileOverview
       greeting="Guten Morgen, Stefan."
       scopeLabel="Gesamtbericht"
-      riskCount={2}
+      onRiskResolved={(id, result) => console.log('bewertet', id, result)}
     />
   )
 }

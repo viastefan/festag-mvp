@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CaretDown, CaretRight, DotsThree, FolderSimple, SquaresFour } from '@phosphor-icons/react'
-import RiskFlowMobile, { type MobileRisk } from '@/components/dashboard/RiskFlowMobile'
+import RiskFlowMobile, { type MobileRisk, type RiskResult } from '@/components/dashboard/RiskFlowMobile'
 import TagroSpark from '@/components/dashboard/TagroSpark'
 import { RISK_MOBILE_CSS } from '@/components/dashboard/risk-mobile-styles'
 
@@ -68,45 +68,63 @@ function edgePath(a: GraphNode, b: GraphNode) {
   return `M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}`
 }
 
-export const DEFAULT_MOBILE_RISK: MobileRisk = {
-  id: 'third-party-outage',
-  title: 'Drittanbieter-Ausfall',
-  description: 'Ein Ausfall eines integrierten Drittanbieters könnte zu Verzögerungen führen.',
-  recommendation: 'Prüfen',
-  reasons: [
-    'Mittlere Auswirkung auf Projektzeitplan',
-    'Wahrscheinlichkeit: Mittel',
-    'Betroffenes Modul: Integrationen',
-    'Alternativen verfügbar',
-    'Frühzeitige Maßnahmen empfohlen',
-  ],
-  suggestedImpact: 'mid',
-  suggestedProbability: 'mid',
-  suggestedMeasure: 'mitigate',
-}
+/** Demo-Risiken für die Dev-Preview — im Dashboard kommen echte Tasks an. */
+export const DEFAULT_MOBILE_RISKS: MobileRisk[] = [
+  {
+    id: 'third-party-outage',
+    title: 'Drittanbieter-Ausfall',
+    description: 'Ein Ausfall eines integrierten Drittanbieters könnte zu Verzögerungen führen.',
+    recommendation: 'Prüfen',
+    reasons: [
+      'Mittlere Auswirkung auf Projektzeitplan',
+      'Wahrscheinlichkeit: Mittel',
+      'Betroffenes Modul: Integrationen',
+      'Alternativen verfügbar',
+      'Frühzeitige Maßnahmen empfohlen',
+    ],
+    suggestedImpact: 'mid',
+    suggestedProbability: 'mid',
+    suggestedMeasure: 'mitigate',
+  },
+  {
+    id: 'migration-window',
+    title: 'Enges Migrationsfenster',
+    description: 'Die Datenmigration liegt auf dem kritischen Pfad und hat keinen Puffer.',
+    recommendation: 'Absichern',
+    reasons: [
+      'Hohe Auswirkung auf Projektzeitplan',
+      'Wahrscheinlichkeit: Mittel',
+      'Betroffenes Modul: Deployment',
+      'Kein Puffer im Zeitplan',
+      'Frühzeitige Maßnahmen empfohlen',
+    ],
+    suggestedImpact: 'high',
+    suggestedProbability: 'mid',
+    suggestedMeasure: 'mitigate',
+  },
+]
 
 type Props = {
   /** „Guten Morgen, Stefan." */
   greeting: string
   scopeLabel?: string
-  /** Zeilen unter der Begrüßung. */
+  /** Zeile unter der Begrüßung. */
   statusLine?: string
-  riskCount?: number
-  risk?: MobileRisk
+  /** Offene Risiken in der Reihenfolge, in der sie bewertet werden. */
+  risks?: MobileRisk[]
   onOpenScope?: () => void
   onOpenMenu?: () => void
   onOpenProjects?: () => void
   onOpenAddons?: () => void
   onOpenTagro?: () => void
-  onRiskResolved?: () => void
+  onRiskResolved?: (riskId: string, result: RiskResult) => void
 }
 
 export default function DashboardMobileOverview({
   greeting,
   scopeLabel = 'Gesamtbericht',
   statusLine,
-  riskCount = 2,
-  risk = DEFAULT_MOBILE_RISK,
+  risks = DEFAULT_MOBILE_RISKS,
   onOpenScope,
   onOpenMenu,
   onOpenProjects,
@@ -115,7 +133,14 @@ export default function DashboardMobileOverview({
   onRiskResolved,
 }: Props) {
   const [mounted, setMounted] = useState(false)
-  const [flowOpen, setFlowOpen] = useState(false)
+  // Beim Öffnen eingefroren: die Schlange soll nicht unter dem Flow wegschrumpfen,
+  // während das Dashboard im Hintergrund neu lädt.
+  const [queue, setQueue] = useState<MobileRisk[] | null>(null)
+  const [index, setIndex] = useState(0)
+
+  const riskCount = risks.length
+  const active = queue?.[index] ?? null
+  const hasNext = queue ? index < queue.length - 1 : false
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -139,6 +164,11 @@ export default function DashboardMobileOverview({
     () => NODES.map(n => (n.id === 'risiken' ? { ...n, sub: `${riskCount} erkannt` } : n)),
     [riskCount],
   )
+
+  function closeFlow() {
+    setQueue(null)
+    setIndex(0)
+  }
 
   const ui = (
     <>
@@ -203,7 +233,7 @@ export default function DashboardMobileOverview({
             <button
               type="button"
               className="dmo-risk-row"
-              onClick={() => setFlowOpen(true)}
+              onClick={() => { setQueue(risks); setIndex(0) }}
               aria-label={`${riskCount} Risiken erkannt, jetzt bewerten`}
             >
               <span className="dmo-risk-icon"><CheckRing /></span>
@@ -233,11 +263,17 @@ export default function DashboardMobileOverview({
         </nav>
       </div>
 
-      {flowOpen && (
+      {active && (
         <RiskFlowMobile
-          risk={risk}
-          onClose={() => setFlowOpen(false)}
-          onResolved={() => onRiskResolved?.()}
+          key={active.id}
+          risk={active}
+          hasNext={hasNext}
+          onClose={closeFlow}
+          onResolved={(result) => onRiskResolved?.(active.id, result)}
+          onFinish={() => {
+            if (hasNext) setIndex(i => i + 1)
+            else closeFlow()
+          }}
         />
       )}
     </>

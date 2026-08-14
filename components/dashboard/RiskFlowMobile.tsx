@@ -21,6 +21,7 @@ export type RiskMeasure = 'accept' | 'mitigate' | 'delegate'
 
 export type MobileRisk = {
   id: string
+  projectId?: string | null
   title: string
   description: string
   /** Was Tagro empfiehlt — erscheint als Chip über der Überschrift. */
@@ -30,6 +31,14 @@ export type MobileRisk = {
   suggestedImpact: RiskLevel
   suggestedProbability: RiskLevel
   suggestedMeasure: RiskMeasure
+}
+
+export type RiskResult = {
+  impact: RiskLevel
+  probability: RiskLevel
+  measure: RiskMeasure
+  /** 'tagro' = Empfehlung übernommen, 'manual' = selbst gewählt. */
+  source: 'manual' | 'tagro'
 }
 
 type Step = 'assess' | 'measure' | 'saved' | 'outro'
@@ -51,11 +60,17 @@ const MEASURES: { id: RiskMeasure; label: string; sub: string }[] = [
 
 type Props = {
   risk: MobileRisk
+  /** Wartet noch ein Risiko in der Schlange? Steuert die Ansage auf Screen 5. */
+  hasNext?: boolean
+  /** Abbruch — „Später" oder zurück. */
   onClose: () => void
-  onResolved?: (result: { impact: RiskLevel; probability: RiskLevel; measure: RiskMeasure }) => void
+  /** Bewertung steht fest, noch bevor die Bestätigung läuft. */
+  onResolved?: (result: RiskResult) => void
+  /** Screen 5 ist durch: nächstes Risiko oder zurück aufs Dashboard. */
+  onFinish?: () => void
 }
 
-export default function RiskFlowMobile({ risk, onClose, onResolved }: Props) {
+export default function RiskFlowMobile({ risk, hasNext, onClose, onResolved, onFinish }: Props) {
   const [mounted, setMounted] = useState(false)
   const [step, setStep] = useState<Step>('assess')
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -72,16 +87,23 @@ export default function RiskFlowMobile({ risk, onClose, onResolved }: Props) {
     return () => clearTimeout(t)
   }, [step])
 
-  // Screen 5 schließt den Flow wieder zum Dashboard — oder per Tap sofort.
+  // Screen 5 übergibt ans nächste Risiko — oder per Tap sofort.
   useEffect(() => {
     if (step !== 'outro') return
-    const t = setTimeout(() => onClose(), 4200)
+    const t = setTimeout(() => finish(), 4200)
     return () => clearTimeout(t)
-  }, [step, onClose])
+  }, [step]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function save(next: RiskMeasure) {
-    setMeasure(next)
-    onResolved?.({ impact, probability, measure: next })
+  function finish() {
+    if (onFinish) onFinish()
+    else onClose()
+  }
+
+  function save(result: RiskResult) {
+    setImpact(result.impact)
+    setProbability(result.probability)
+    setMeasure(result.measure)
+    onResolved?.(result)
     setStep('saved')
   }
 
@@ -183,11 +205,13 @@ export default function RiskFlowMobile({ risk, onClose, onResolved }: Props) {
         )}
 
         {step === 'outro' && (
-          <button type="button" className="rfm-outro" onClick={onClose}>
+          <button type="button" className="rfm-outro" onClick={finish}>
             <div className="rfm-orb rfm-orb--spark"><TagroSpark size={26} /></div>
             <h1 className="rfm-center-title">Weiter geht&rsquo;s!</h1>
             <p className="rfm-center-sub">
-              Tagro überwacht deine Risiken und schlägt Maßnahmen vor.
+              {hasNext
+                ? 'Das nächste Risiko wartet auf deine Bewertung.'
+                : 'Tagro überwacht deine Risiken und schlägt Maßnahmen vor.'}
             </p>
           </button>
         )}
@@ -207,7 +231,11 @@ export default function RiskFlowMobile({ risk, onClose, onResolved }: Props) {
 
       {step === 'measure' && (
         <footer className="rfm-foot">
-          <button type="button" className="rfm-btn rfm-btn--dark" onClick={() => save(measure)}>
+          <button
+            type="button"
+            className="rfm-btn rfm-btn--dark"
+            onClick={() => save({ impact, probability, measure, source: 'manual' })}
+          >
             Weiter
             <ArrowRight size={17} weight="regular" />
           </button>
@@ -224,9 +252,12 @@ export default function RiskFlowMobile({ risk, onClose, onResolved }: Props) {
           }}
           onAccept={() => {
             setSheetOpen(false)
-            setImpact(risk.suggestedImpact)
-            setProbability(risk.suggestedProbability)
-            save(risk.suggestedMeasure)
+            save({
+              impact: risk.suggestedImpact,
+              probability: risk.suggestedProbability,
+              measure: risk.suggestedMeasure,
+              source: 'tagro',
+            })
           }}
         />
       )}
