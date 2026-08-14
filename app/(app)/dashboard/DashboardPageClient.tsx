@@ -30,7 +30,7 @@ import {
 } from '@/lib/demo/portal-preview'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
-import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
+import DashboardMobileOverview, { DEFAULT_MOBILE_RISK } from '@/components/dashboard/DashboardMobileOverview'
 import PersonalizedWorkspaceStart from '@/components/dashboard/PersonalizedWorkspaceStart'
 import StatusReportPlayer from '@/components/status/StatusReportPlayer'
 import { briefingDurationLabel as formatBriefingDuration, splitBriefingSentences } from '@/lib/client/status-briefing'
@@ -2774,22 +2774,24 @@ export default function DashboardPageContent() {
       <WelcomeTour />
       <ProjectAcceptedCelebration />
 
-      {/* Mobile: Spotify-style Statusbericht teleprompter — hide when personalized empty start */}
+      {/* Mobile: Überblick-Konstellation + Risiko-Flow — hide when personalized empty start */}
       {!(!loading && projects.length === 0 && personalization) ? (
-      <DashboardMobileStart
-        sentences={prompterSentences}
-        busy={statusBusy}
+      <DashboardMobileOverview
+        greeting={contextLine}
         scopeLabel={scopeLabel}
-        scopeOptions={statusScopeOptions}
-        activeScopeId={scope === 'overall' ? 'overall' : scope}
-        onScopeChange={(id) => setScope(id === 'overall' ? 'overall' : id)}
-        periodLabel={period}
-        periodOptions={[...statusPeriodOptions]}
-        onPeriodChange={(next) => {
-          setPeriod(next as typeof period)
-          void refreshStatus()
+        riskCount={riskTasks.length}
+        risk={{
+          ...DEFAULT_MOBILE_RISK,
+          id: riskTasks[0]?.id ?? DEFAULT_MOBILE_RISK.id,
+          title: riskTasks[0]?.title ?? DEFAULT_MOBILE_RISK.title,
         }}
-        onCreateReport={() => { void refreshStatus() }}
+        onOpenProjects={() => { window.location.href = '/overview/projects' }}
+        onOpenAddons={() => { window.location.href = '/settings/integrations' }}
+        onOpenTagro={() => {
+          openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage, Heute' })
+        }}
+        onOpenMenu={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+        onRiskResolved={() => { void refreshStatus() }}
       />
       ) : null}
     </div>
