@@ -116,7 +116,8 @@ const HELP_NEWS_ITEMS = [
 const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
-  { href:'/issues', icon:'issue', label:'Issues' },
+  { href:'/risks', icon:'pulse', label:'Risiken' },
+  { href:'/issues', icon:'issue', label:'Vorfälle' },
   { href:'/decisions', icon:'scales', label:'Entscheidungen' },
   { href:'/documents', icon:'doc', label:'Dokumente' },
   // Statusberichte live now under Statusabfrage (dashboard) → full history;
@@ -147,8 +148,9 @@ const MODE_DELIVERY = {
   core: [
     { href: '/projects', icon: 'project', label: 'Projekte' },
     { href: '/tasks', icon: 'task', label: 'Tasks' },
+    { href: '/risks', icon: 'pulse', label: 'Risiken' },
     { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
-    { href: '/issues', icon: 'issue', label: 'Issues' },
+    { href: '/issues', icon: 'issue', label: 'Vorfälle' },
     { href: '/documents', icon: 'doc', label: 'Dokumente' },
     { href: '/reports', icon: 'activity', label: 'Statusberichte' },
   ] as NavItem[],
@@ -163,8 +165,9 @@ const MODE_AGENCY = {
   core: [
     { href: '/projects', icon: 'project', label: 'Alle Projekte' },
     { href: '/tasks', icon: 'task', label: 'Alle Tasks' },
+    { href: '/risks', icon: 'pulse', label: 'Risiken' },
     { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
-    { href: '/issues', icon: 'issue', label: 'Issues' },
+    { href: '/issues', icon: 'issue', label: 'Vorfälle' },
     { href: '/documents', icon: 'doc', label: 'Dokumente' },
   ] as NavItem[],
 }
@@ -204,7 +207,8 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
 const CLIENT_MOB_QUICK = [
   { href:'/projects?new=1', icon:'plus', label:'Neues Projekt', primary: true },
   { href:'/tasks',       icon:'task',     label:'Tasks' },
-  { href:'/issues',      icon:'issue',    label:'Issues' },
+  { href:'/risks',       icon:'pulse',    label:'Risiken' },
+  { href:'/issues',      icon:'issue',    label:'Vorfälle' },
   { href:'/decisions',   icon:'scales',   label:'Entscheidungen' },
   { href:'/reports',     icon:'activity', label:'Statusberichte' },
   { href:'/notes',       icon:'card',     label:'Notizen' },
@@ -425,6 +429,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     '/projects':  'projects',
     '/reports':   'reports',
     '/tasks':     'tasks',
+    '/risks':     'risks',
     '/issues':    'issues',
     '/decisions': 'decisions',
     '/observers': 'observers',

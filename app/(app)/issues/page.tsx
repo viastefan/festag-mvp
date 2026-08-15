@@ -1,7 +1,11 @@
 'use client'
 
 /**
- * /issues — same real data flow as before (API + realtime + connector sync
+ * /issues — Vorfälle (Bugs, Security, technische Schulden). Risiken leben
+ * seit der Risk Intelligence unter /risks; diese Seite heißt jetzt wieder,
+ * was sie zeigt.
+ *
+ * Same real data flow as before (API + realtime + connector sync
  * + IssueDrawer/IssueCreateModal), presentation moved to the fps-* shared
  * shell used by Team/Activity/Documents/Decisions.
  */
@@ -226,7 +230,7 @@ function IssuesPageInner() {
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS + ISSUE_EXTRA_CSS }} />
 
       <header className="fps-head">
-        <h1 className="fps-title">Risiken</h1>
+        <h1 className="fps-title">Vorfälle</h1>
         <p className="fps-stat-line">
           <strong>{counts.open}</strong> offen
           {counts.critical > 0 ? <> {' · '}<strong>{counts.critical}</strong> kritisch</> : null}

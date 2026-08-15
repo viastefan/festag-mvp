@@ -23,6 +23,7 @@ import {
 } from '@/components/settings/settings-prefs'
 import { readAdaptiveIntelligenceSettings } from '@/lib/intelligence/okm'
 import OkmFactsPanel from '@/components/settings/OkmFactsPanel'
+import RiskIntelligencePanel from '@/components/settings/RiskIntelligencePanel'
 
 type TagroHealth = {
   provider: string
@@ -179,6 +180,8 @@ export default function SettingsExtraSections({
             <Link href="/settings/privacy" className="set-btn">Zu Datenschutz</Link>
           </div>
         </div>
+
+        <RiskIntelligencePanel workspaceId={wsId} flashSaved={flashSaved} setError={setError} />
 
         <p className="set-section-title">Operational DNA</p>
         <div className="set-card">

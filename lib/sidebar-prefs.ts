@@ -22,7 +22,7 @@ export type BadgeStyle = 'count' | 'dot' | 'bold'
 
 export type SidebarItemId =
   | 'inbox' | 'my-issues' | 'drafts' | 'statusabfrage' | 'executive'
-  | 'projects' | 'reports' | 'tasks' | 'issues' | 'decisions' | 'observers'
+  | 'projects' | 'reports' | 'tasks' | 'risks' | 'issues' | 'decisions' | 'observers'
   | 'members' | 'teams' | 'documents'
   | 'tagro-chat' | 'tagro-notes'
   | 'estimator' | 'connectors' | 'addons'
@@ -58,6 +58,7 @@ export const DEFAULT_VISIBILITY: Record<SidebarItemId, SidebarVisibility> = {
   projects:      'always',
   reports:       'always',
   tasks:         'always',
+  risks:         'always',
   issues:        'always',
   decisions:     'always',
   observers:     'badged',
@@ -82,7 +83,8 @@ export const ITEM_LABELS: Record<SidebarItemId, string> = {
   projects:      'Projekte',
   reports:       'Statusberichte',
   tasks:         'Tasks',
-  issues:        'Issues',
+  risks:         'Risiken',
+  issues:        'Vorfälle',
   decisions:     'Entscheidungen',
   observers:     'Mitwirkende',
   members:       'Mitglieder',
@@ -98,7 +100,7 @@ export const ITEM_LABELS: Record<SidebarItemId, string> = {
 export const ITEM_SECTION: Record<SidebarItemId, SidebarSection> = {
   inbox: 'personal', 'my-issues': 'personal', drafts: 'personal', statusabfrage: 'personal', executive: 'personal',
   projects: 'workspace', reports: 'workspace', tasks: 'workspace',
-  issues: 'workspace', decisions: 'workspace', observers: 'workspace',
+  risks: 'workspace', issues: 'workspace', decisions: 'workspace', observers: 'workspace',
   documents: 'workspace',
   members: 'teams', teams: 'teams',
   'tagro-chat': 'tagro', 'tagro-notes': 'tagro',

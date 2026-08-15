@@ -70,7 +70,14 @@ PATCH /api/risks/[id]                      bearbeiten
 POST /api/risks/[id]/respond               Bewertung + Maßnahme aus dem Flow
 POST /api/risks/[id]/status                lösen, verwerfen, akzeptieren, wieder öffnen
 POST /api/risks/detect                     Erkennung anstoßen (idempotent)
+POST /api/risks/[id]/analyze               Tagro formuliert Fassung neu
+GET/PUT /api/risks/settings                Erkennungsverhalten je Workspace
 ```
+
+Die Erkennung läuft nicht nur auf Zuruf, sondern dort, wo Signale entstehen:
+nach einem Pull-Request-Webhook und wenn ein Entwickler eine Aufgabe blockiert
+oder wieder aufnimmt (`lib/risks/trigger.ts`). Push-Events lösen bewusst nichts
+aus — ihre Commits sieht der nächste Lauf ohnehin.
 
 ## Maßnahme → Entscheidung
 
@@ -88,17 +95,40 @@ bestehenden Decision Engine (`decision_type: 'risk_response'`) — keine zweite,
 parallele Freigabemechanik. Gespeichert wird außerdem, ob der Mensch der
 Empfehlung gefolgt ist; die Abweichung ist der interessante Teil des Protokolls.
 
+## Tagro-Anteil
+
+`lib/risks/enrich.ts` schreibt `client_title`, `client_summary`,
+`recommendation`, `recommendation_reason` — und sonst nichts. Wahrscheinlichkeit,
+Auswirkung und Schweregrad kommen aus Erkennung und Formel. Jedes Feld wird vor
+dem Schreiben geprüft; Kundentext mit Entwicklervokabular wird verworfen, nicht
+repariert. Ohne Modell oder bei unbrauchbarer Antwort bleibt die heuristische
+Fassung stehen.
+
 ## Oberfläche
 
+`/risks` ist die vollständige Ansicht: nach Schweregrad sortiert, Detailpanel
+mit Belegen, betroffenen Aufgaben, Empfehlung, Maßnahmen und Verlauf. Manuell
+melden geht dort ebenfalls — niemand muss dafür mit Tagro reden.
+
+`/issues` heißt jetzt wieder **Vorfälle** (Bugs, Security, technische Schulden).
+Beides sind eigene Objekte: ein Vorfall ist etwas, das kaputt ist, ein Risiko
+etwas, das schiefgehen könnte.
+
+Die Einstellungen liegen unter Einstellungen → Tagro & Klarheit →
+Risiko-Intelligenz: Erkennung, Signalquellen, Aufmerksamkeit und Tagros
+Handlungsspielraum.
+
 Der mobile Risiko-Flow (`components/dashboard/RiskFlowMobile.tsx`) zieht seine
-Warteschlange über `hooks/useMobileRisks.ts` aus echten Risiken samt Belegen.
-Solange die Migration nicht eingespielt ist (`table_ready: false`), fällt der
-Hook auf blockierte Tasks und den provisorischen `/api/risks/assess`-Speicher
-zurück, damit der Flow nicht leer wirkt.
+Warteschlange über `hooks/useMobileRisks.ts` aus echten Risiken samt Belegen;
+„Mit Tagro analysieren" schärft die Begründung im Sheet nach. Solange die
+Migration nicht eingespielt ist (`table_ready: false`), zeigt der Hook
+ersatzweise blockierte Tasks — gespeichert wird dann nichts, es gibt bewusst
+nur einen Risiko-Speicher.
 
 ## Noch offen
 
-- GitHub-Webhook stößt die Erkennung nach relevanten Events an
-- Tagro-Anreicherung der Kundenfassung und der Empfehlung (heute heuristisch)
-- Desktop-Risikoseite und Einstellungsoberfläche für `risk_settings`
 - CI-Checks als eigene Signalquelle (`github_check_runs` existiert noch nicht)
+- Autonomiestufen wirken bisher nur als gespeicherte Absicht — die Action Engine,
+  die daraus tatsächlich Aufgaben umpriorisiert, fehlt noch
+- Risiken in Reports und Projekt-Health einbeziehen
+- Benachrichtigungen bei kritischen Erkennungen
