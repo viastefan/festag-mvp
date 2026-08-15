@@ -154,11 +154,14 @@ Dimension (Lieferung, Scope, Technik, Qualität, Budget, Team). Bewusst eine
 Einschätzung, keine Vorhersage: die Zahl steht nie ohne den Grund daneben, und
 sie heißt in der Oberfläche „Festag-Einschätzung".
 
+Statusberichte lesen die offenen Risiken mit (`lib/tagro/generate-status-digest.ts`):
+in der Kundenfassung, bereits eingestuft — das Modell soll sie zusammenfassen,
+nicht neu bewerten. Ohne Risiken bleibt der Bericht, wie er war.
+
 ## Noch offen
 
 - CI-Checks als eigene Signalquelle (`github_check_runs` existiert noch nicht)
-- Risiken in den Statusberichten und im Dashboard-Health einbeziehen
-  (die Berechnung steht, die Berichte lesen sie noch nicht)
+- Dashboard-Health und Executive-Übersicht lesen die Einschätzung noch nicht
 - Benachrichtigungen bei kritischen Erkennungen
 - Weitere Aktionstypen (Termin verschieben, Aufgabe anlegen) — heute nur
   Priorität, Status, Notiz

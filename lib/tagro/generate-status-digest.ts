@@ -88,6 +88,7 @@ function heuristicFromOutput(
   projectTitle: string,
   contextText: string,
   signals: Array<{ text: string; blocker: boolean }>,
+  risks: DigestRisk[] = [],
 ): StatusReportOutput {
   const blockers = signals.filter(s => s.blocker).map(s => s.text)
   const work = signals.filter(s => !s.blocker).map(s => s.text)
@@ -106,7 +107,10 @@ function heuristicFromOutput(
     current_work: work.slice(0, 3),
     next_steps: Number(openDecisions) > 0 ? [`${openDecisions} offene Entscheidung${Number(openDecisions) === 1 ? '' : 'en'} warten`] : [],
     blockers: blockers.slice(0, 2),
-    risks: Number(openTasks) > 5 ? ['Hohe offene Task-Last — Tagro empfiehlt Priorisierung'] : [],
+    // Echte Risiken schlagen jede Schätzung aus der Task-Zahl.
+    risks: risks.length
+      ? risks.slice(0, 3).map(r => r.title)
+      : Number(openTasks) > 5 ? ['Hohe offene Task-Last — Tagro empfiehlt Priorisierung'] : [],
     client_required_actions: Number(openDecisions) > 0 ? ['Offene Entscheidungen prüfen'] : [],
     dev_followups: [],
     decisions_needed: Number(openDecisions) > 0 ? [`${openDecisions} Entscheidung${Number(openDecisions) === 1 ? '' : 'en'} offen`] : [],
@@ -166,6 +170,60 @@ function mapStatusOutput(out: Record<string, unknown>, fallback: StatusReportOut
   }
 }
 
+export type DigestRisk = {
+  title: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  probability: number | null
+  potential_delay_days: number | null
+  recommendation: string | null
+}
+
+/**
+ * Offene Risiken für den Bericht. Für den Kunden zählt die Kundenfassung —
+ * die interne Formulierung taucht in einem Statusbericht nie auf.
+ */
+export async function gatherOpenRisks(
+  sb: SupabaseClient<any>,
+  projectId: string,
+): Promise<DigestRisk[]> {
+  try {
+    const { data } = await sb
+      .from('risks')
+      .select('title,client_title,severity,probability,potential_delay_days,recommendation,status')
+      .eq('project_id', projectId)
+      .in('status', ['detected', 'active', 'monitoring', 'decision_required'])
+      .limit(20)
+
+    const rank = { critical: 0, high: 1, medium: 2, low: 3 } as Record<string, number>
+    return ((data as any[]) ?? [])
+      .map(r => ({
+        title: String(r.client_title || r.title || '').trim(),
+        severity: r.severity,
+        probability: typeof r.probability === 'number' ? r.probability : null,
+        potential_delay_days: r.potential_delay_days ?? null,
+        recommendation: r.recommendation ?? null,
+      }))
+      .filter(r => r.title)
+      .sort((a, b) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9))
+      .slice(0, 5)
+  } catch {
+    // Risk Intelligence noch nicht eingespielt — der Bericht läuft trotzdem.
+    return []
+  }
+}
+
+function risksToText(risks: DigestRisk[]) {
+  if (!risks.length) return 'Festag erkennt derzeit keine offenen Projektrisiken.'
+  return risks
+    .map(r => {
+      const probability = r.probability !== null ? `, ${Math.round(r.probability * 100)}%` : ''
+      const delay = r.potential_delay_days ? `, mögliche Folge +${Math.round(r.potential_delay_days)} Tage` : ''
+      const action = r.recommendation ? ` — empfohlen: ${r.recommendation}` : ''
+      return `- ${r.title} (${r.severity}${probability}${delay})${action}`
+    })
+    .join('\n')
+}
+
 function signalsToText(signals: Array<{ text: string; blocker: boolean; source: string }>) {
   if (!signals.length) return 'Keine neuen Entwickler- oder Systemsignale im Zeitraum.'
   return signals
@@ -181,10 +239,14 @@ export async function generateProjectStatusDigest(
   const since = options?.since ?? hoursAgoIso()
   const context = await buildTagroContext({ sb, projectId, purpose: 'status_report' })
   const projectTitle = options?.projectTitle ?? String(context.project?.title ?? 'das Projekt')
-  const signals = await gatherRecentDevSignals(sb, projectId, since)
+  const [signals, risks] = await Promise.all([
+    gatherRecentDevSignals(sb, projectId, since),
+    gatherOpenRisks(sb, projectId),
+  ])
   const contextText = contextToPromptText(context)
   const promptBody = `${contextText}\n\nSignale der letzten ${DEFAULT_SINCE_HOURS} Stunden:\n${signalsToText(signals)}`
-  const fallback = heuristicFromOutput(projectTitle, contextText, signals)
+    + `\n\nOffene Risiken (von Festag erkannt, bereits eingestuft — nicht neu bewerten):\n${risksToText(risks)}`
+  const fallback = heuristicFromOutput(projectTitle, contextText, signals, risks)
 
   const result = await runOpenAIJson({
     prompt: statusReportPrompt(promptBody),
