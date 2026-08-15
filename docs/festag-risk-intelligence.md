@@ -125,10 +125,40 @@ Migration nicht eingespielt ist (`table_ready: false`), zeigt der Hook
 ersatzweise blockierte Tasks — gespeichert wird dann nichts, es gibt bewusst
 nur einen Risiko-Speicher.
 
+## Nach der Entscheidung
+
+`lib/risks/actions.ts` ist die einzige Stelle, an der aus einem Risiko eine
+Änderung im Projekt wird — über feste Aktionstypen, nie über frei formulierte
+Modellanweisungen:
+
+```
+Aktion vorschlagen → Berechtigung prüfen → ausführen → protokollieren
+```
+
+Die Berechtigung kommt aus der Autonomiestufe (`observe` ändert nichts,
+`recommend` fragt, `assist`/`act` dürfen mehr), pro Aktionsart über
+`action_permissions` überschreibbar. Was nicht automatisch laufen darf, kommt
+als offene Aktion zurück und wird der Person angezeigt — stille Automatik gibt
+es nicht. Jede ausgeführte Aktion steht als ganzer Satz im Verlauf, samt
+Freigeber.
+
+`lib/risks/from-decision.ts` schließt den Kreis: Wird eine Entscheidung
+angewendet, die aus einem Risiko entstand, bewegt sich das Risiko mit —
+Empfehlung angenommen → `monitoring` plus Maßnahmen, bewusst dagegen →
+`accepted`.
+
+## Projektgesundheit
+
+`lib/risks/health.ts` verdichtet offene Risiken zu Zuversicht und Zustand je
+Dimension (Lieferung, Scope, Technik, Qualität, Budget, Team). Bewusst eine
+Einschätzung, keine Vorhersage: die Zahl steht nie ohne den Grund daneben, und
+sie heißt in der Oberfläche „Festag-Einschätzung".
+
 ## Noch offen
 
 - CI-Checks als eigene Signalquelle (`github_check_runs` existiert noch nicht)
-- Autonomiestufen wirken bisher nur als gespeicherte Absicht — die Action Engine,
-  die daraus tatsächlich Aufgaben umpriorisiert, fehlt noch
-- Risiken in Reports und Projekt-Health einbeziehen
+- Risiken in den Statusberichten und im Dashboard-Health einbeziehen
+  (die Berechnung steht, die Berichte lesen sie noch nicht)
 - Benachrichtigungen bei kritischen Erkennungen
+- Weitere Aktionstypen (Termin verschieben, Aufgabe anlegen) — heute nur
+  Priorität, Status, Notiz

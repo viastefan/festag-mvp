@@ -28,6 +28,7 @@ import {
   type RiskFilter,
   type RiskProjectLite,
 } from '@/components/risks/risks-shared'
+import { healthLine, type ProjectHealth } from '@/lib/risks/health'
 import { riskSummaryLine, severityLabel } from '@/lib/risks/present'
 import type { Risk } from '@/lib/risks/types'
 
@@ -51,6 +52,7 @@ function RisksPageInner() {
   const [filter, setFilter] = useState<RiskFilter>('attention')
   const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
   const [createOpen, setCreateOpen] = useState(searchParams?.get('new') === '1')
+  const [health, setHealth] = useState<ProjectHealth | null>(null)
   const [tableReady, setTableReady] = useState(true)
   const [lastScan, setLastScan] = useState<Date | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -73,6 +75,7 @@ function RisksPageInner() {
       }
       const rows: Risk[] = data?.risks ?? []
       setRisks(rows)
+      setHealth(data?.health ?? null)
       setTableReady(data?.table_ready !== false)
 
       const ids = Array.from(new Set(rows.map(r => r.project_id).filter(Boolean)))
@@ -145,6 +148,10 @@ function RisksPageInner() {
       <header className="fps-head">
         <h1 className="fps-title">Risiken</h1>
         <p className="fps-stat-line">{risks.length === 0 ? 'Nichts Auffälliges' : summary}</p>
+        {health && (
+          // Eine Einschätzung, keine Messung — deshalb steht der Grund daneben.
+          <p className="fps-stat-line" style={{ opacity: 0.8 }}>{healthLine(health)}</p>
+        )}
       </header>
 
       <div className="fps-filters">

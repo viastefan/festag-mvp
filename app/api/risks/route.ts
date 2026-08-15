@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { resolveRiskAudience } from '@/lib/risks/audience'
 import { computeSeverity } from '@/lib/risks/severity'
+import { projectHealth } from '@/lib/risks/health'
 import { sanitizeRiskForAudience, sanitizeSignalsForAudience } from '@/lib/risks/present'
 import {
   PROBABILITY_BY_LEVEL,
@@ -66,6 +67,16 @@ export async function GET(req: NextRequest) {
   const rows = (data ?? []) as Risk[]
   const open = rows.filter(r => RISK_OPEN_STATUS_LIST.includes(r.status))
 
+  // Die Einschätzung hängt nicht am gewählten Filter: sie zählt immer alle
+  // offenen Risiken des Ausschnitts, sonst sähe „Erledigt" nach heiler Welt aus.
+  let healthQuery = (supa as any)
+    .from('risks')
+    .select('id,severity,probability,category,status,title,client_title')
+    .in('status', RISK_OPEN_STATUS_LIST)
+    .limit(300)
+  if (projectId) healthQuery = healthQuery.eq('project_id', projectId)
+  const health = projectHealth(await safeTableRows<Risk>(healthQuery))
+
   // The flow's "Warum diese Empfehlung?" sheet needs the evidence with the
   // list, so it doesn't have to fetch each risk separately.
   let signalsByRisk: Record<string, RiskSignal[]> | undefined
@@ -85,6 +96,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     risks: rows.map(r => sanitizeRiskForAudience(r, audience)),
     signals: signalsByRisk,
+    health,
     audience,
     count: rows.length,
     open_count: open.length,

@@ -23,6 +23,31 @@ import type { Risk, RiskEvent, RiskSignal } from '@/lib/risks/types'
 
 type LinkedTask = { id: string; title: string; status?: string | null; dev_status?: string | null }
 
+type ActionOutcome = { status: string; detail?: string }
+
+/**
+ * Nach einer Maßnahme steht hier, was das System tatsächlich getan hat —
+ * und was es nicht durfte. Stille Automatik gibt es nicht.
+ */
+function describeActions(actions: ActionOutcome[] | undefined): string | null {
+  if (!actions?.length) return null
+  const done = actions.filter(a => a.status === 'executed')
+  const open = actions.filter(a => a.status === 'needs_approval')
+  const blocked = actions.filter(a => a.status === 'blocked')
+
+  const parts: string[] = []
+  if (done.length) parts.push(done.map(a => a.detail).filter(Boolean).join(' · '))
+  if (open.length) {
+    parts.push(open.length === 1
+      ? 'Eine weitere Anpassung wartet auf deine Freigabe.'
+      : `${open.length} weitere Anpassungen warten auf deine Freigabe.`)
+  }
+  if (blocked.length && !done.length && !open.length) {
+    parts.push('Automatische Anpassungen sind für diesen Workspace ausgeschaltet.')
+  }
+  return parts.join(' ') || null
+}
+
 type Detail = {
   risk: Risk
   signals: RiskSignal[]
@@ -44,6 +69,8 @@ export default function RiskDrawer({ riskId, onClose, onChanged }: Props) {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
+  // Was die Maßnahme ausgelöst hat — oder was noch auf Freigabe wartet.
+  const [outcome, setOutcome] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -79,6 +106,7 @@ export default function RiskDrawer({ riskId, onClose, onChanged }: Props) {
         setDetail(prev => (prev ? { ...prev, risk: data.risk } : prev))
         onChanged(data.risk)
       }
+      setOutcome(describeActions(data?.actions))
       await load()
       setNote('')
     } catch (e: any) {
@@ -260,6 +288,7 @@ export default function RiskDrawer({ riskId, onClose, onChanged }: Props) {
                   <a className="dec-detail-link" href={`/decisions?open=${risk.decision_id}`}>öffnen</a>
                 </p>
               )}
+              {outcome && <p className="rsk-note">{outcome}</p>}
               {error && <p className="rsk-error">{error}</p>}
 
               {detail!.events.length > 0 && (

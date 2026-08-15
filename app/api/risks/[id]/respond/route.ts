@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import {
+  actionsForAcceptedMeasure,
+  runRiskActions,
+  type ActionOutcome,
+} from '@/lib/risks/actions'
 import { writeEvent } from '@/lib/risks/engine'
 import { computeSeverity } from '@/lib/risks/severity'
 import { RESPONSE_LABEL } from '@/lib/risks/present'
@@ -112,6 +117,20 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     },
   })
 
+  // „Absichern" heißt: es passiert etwas. Was genau, hängt an der Autonomie
+  // des Workspace — was nicht automatisch laufen darf, kommt als offene
+  // Aktion zurück, statt still zu verschwinden.
+  let actions: ActionOutcome[] = []
+  if (response === 'mitigate') {
+    const next = { ...risk, impact, probability, severity, status: STATUS_BY_RESPONSE[response] }
+    actions = await runRiskActions(supa, {
+      risk: next,
+      actions: await actionsForAcceptedMeasure(supa, next),
+      approvedBy: user.id,
+      approvalContext: 'Maßnahme im Risiko-Flow gewählt',
+    }).catch(() => [])
+  }
+
   let decisionId: string | null = risk.decision_id ?? null
   if (response === 'delegate') {
     const created = await createDecisionForRisk(supa, { ...risk, impact, probability, severity }, {
@@ -126,5 +145,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     risk: updated,
     decision_id: decisionId,
     status: STATUS_BY_RESPONSE[response],
+    actions,
   })
 }

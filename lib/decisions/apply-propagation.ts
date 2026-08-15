@@ -14,6 +14,12 @@ export type ApplyPropagationResult = {
     noted_tasks: string[]
     feature_tasks: string[]
   }
+  /** Gesetzt, wenn die Entscheidung aus einem Risiko entstanden ist. */
+  risk?: {
+    risk_id: string
+    followed_recommendation: boolean
+    actions: Array<{ status: string; detail?: string }>
+  } | null
   already_applied?: boolean
 }
 
@@ -207,6 +213,16 @@ export async function propagateDecisionApply(
     })
   }
 
+  // Kam die Entscheidung aus einem Risiko, bewegt sich dieses jetzt mit —
+  // und die freigegebenen Maßnahmen laufen an.
+  let riskOutcome: unknown = null
+  try {
+    const { applyDecisionOutcomeToRisk } = await import('@/lib/risks/from-decision')
+    riskOutcome = await applyDecisionOutcomeToRisk(supa, decisionId, userId)
+  } catch {
+    // Kein Risiko an der Entscheidung, oder die Risk-Tabellen fehlen noch.
+  }
+
   return {
     decision: updated as Record<string, unknown>,
     propagated: {
@@ -214,5 +230,6 @@ export async function propagateDecisionApply(
       noted_tasks: noted,
       feature_tasks: featureTasks,
     },
+    risk: riskOutcome as ApplyPropagationResult['risk'],
   }
 }
