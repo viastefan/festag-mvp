@@ -84,6 +84,30 @@ export function useMobileRisks({ fallbackTasks, projectTitles = {} }: Options) {
       .map(t => buildMobileRisk(t, t.project_id ? projectTitles[t.project_id] : null))
   }, [tableReady, risks, signals, respondedIds, fallbackTasks, projectTitles])
 
+  /**
+   * „Mit Tagro analysieren": Tagro formuliert Begründung und Empfehlung neu.
+   * Zurück kommen die Zeilen fürs Sheet — null, wenn nichts Besseres kam.
+   */
+  const analyze = useCallback(async (riskId: string): Promise<string[] | null> => {
+    try {
+      const res = await fetch(`/api/risks/${riskId}/analyze`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!res.ok) return null
+      const json = await res.json()
+      if (!json.risk) return null
+
+      setRisks(prev => prev?.map(r => (r.id === riskId ? json.risk : r)) ?? prev)
+      if (Array.isArray(json.signals)) {
+        setSignals(prev => ({ ...prev, [riskId]: json.signals }))
+      }
+      return mobileRiskFromRisk(json.risk as Risk, json.signals ?? []).reasons
+    } catch {
+      return null
+    }
+  }, [])
+
   const resolve = useCallback(async (riskId: string, result: RiskResult) => {
     // Optimistisch aus der Schlange nehmen, damit der Flow weiterläuft.
     setRespondedIds(prev => new Set(prev).add(riskId))
@@ -111,5 +135,5 @@ export function useMobileRisks({ fallbackTasks, projectTitles = {} }: Options) {
     void load()
   }, [tableReady, risks, load])
 
-  return { risks: queue, resolve, reload: load, tableReady }
+  return { risks: queue, resolve, analyze, reload: load, tableReady }
 }

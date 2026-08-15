@@ -118,6 +118,8 @@ type Props = {
   onOpenAddons?: () => void
   onOpenTagro?: () => void
   onRiskResolved?: (riskId: string, result: RiskResult) => void
+  /** „Mit Tagro analysieren" im Flow — liefert geschärfte Begründungszeilen. */
+  onAnalyzeRisk?: (riskId: string) => Promise<string[] | null>
 }
 
 export default function DashboardMobileOverview({
@@ -131,6 +133,7 @@ export default function DashboardMobileOverview({
   onOpenAddons,
   onOpenTagro,
   onRiskResolved,
+  onAnalyzeRisk,
 }: Props) {
   const [mounted, setMounted] = useState(false)
   // Beim Öffnen eingefroren: die Schlange soll nicht unter dem Flow wegschrumpfen,
@@ -268,6 +271,7 @@ export default function DashboardMobileOverview({
           key={active.id}
           risk={active}
           hasNext={hasNext}
+          onAnalyze={onAnalyzeRisk}
           onClose={closeFlow}
           onResolved={(result) => onRiskResolved?.(active.id, result)}
           onFinish={() => {

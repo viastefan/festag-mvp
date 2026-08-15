@@ -161,6 +161,15 @@ export async function POST(req: Request) {
       }
     }
 
+    // GitHub activity is a signal source, never a direct project change:
+    // the event is stored first, then interpreted. Only pull-request events
+    // trigger a run — a push fires far too often to re-analyse each time, and
+    // its commits get picked up by the next run anyway.
+    if (repo.project_id && event === 'pull_request') {
+      const { triggerRiskDetection } = await import('@/lib/risks/trigger')
+      await triggerRiskDetection(supabase as any, repo.project_id)
+    }
+
     try {
       await supabase.from('audit_logs').insert({
         actor_id: null,

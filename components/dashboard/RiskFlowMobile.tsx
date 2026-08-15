@@ -62,6 +62,12 @@ type Props = {
   risk: MobileRisk
   /** Wartet noch ein Risiko in der Schlange? Steuert die Ansage auf Screen 5. */
   hasNext?: boolean
+  /**
+   * „Mit Tagro analysieren": lässt Tagro die Begründung neu formulieren.
+   * Liefert die aktualisierten Zeilen zurück; ohne Handler bleibt es beim
+   * bereits erkannten Stand.
+   */
+  onAnalyze?: (riskId: string) => Promise<string[] | null>
   /** Abbruch — „Später" oder zurück. */
   onClose: () => void
   /** Bewertung steht fest, noch bevor die Bestätigung läuft. */
@@ -70,13 +76,16 @@ type Props = {
   onFinish?: () => void
 }
 
-export default function RiskFlowMobile({ risk, hasNext, onClose, onResolved, onFinish }: Props) {
+export default function RiskFlowMobile({ risk, hasNext, onAnalyze, onClose, onResolved, onFinish }: Props) {
   const [mounted, setMounted] = useState(false)
   const [step, setStep] = useState<Step>('assess')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [impact, setImpact] = useState<RiskLevel>(risk.suggestedImpact)
   const [probability, setProbability] = useState<RiskLevel>(risk.suggestedProbability)
   const [measure, setMeasure] = useState<RiskMeasure>(risk.suggestedMeasure)
+  // Tagro darf die Begründung nachschärfen — bis dahin steht die erkannte da.
+  const [reasons, setReasons] = useState<string[]>(risk.reasons)
+  const [analyzing, setAnalyzing] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -97,6 +106,17 @@ export default function RiskFlowMobile({ risk, hasNext, onClose, onResolved, onF
   function finish() {
     if (onFinish) onFinish()
     else onClose()
+  }
+
+  /** Sheet öffnet sofort; die geschärfte Begründung schiebt sich nach. */
+  function openReasons() {
+    setSheetOpen(true)
+    if (!onAnalyze || analyzing) return
+    setAnalyzing(true)
+    onAnalyze(risk.id)
+      .then(next => { if (next?.length) setReasons(next) })
+      .catch(() => null)
+      .finally(() => setAnalyzing(false))
   }
 
   function save(result: RiskResult) {
@@ -134,7 +154,7 @@ export default function RiskFlowMobile({ risk, hasNext, onClose, onResolved, onF
         {step === 'assess' && (
           <>
             <div className="rfm-hint-wrap">
-              <button type="button" className="rfm-hint" onClick={() => setSheetOpen(true)}>
+              <button type="button" className="rfm-hint" onClick={openReasons}>
                 <span className="rfm-hint-spark"><TagroSpark size={15} /></span>
                 <span className="rfm-hint-copy">
                   <span className="rfm-hint-label">Tagro empfiehlt</span>
@@ -222,9 +242,9 @@ export default function RiskFlowMobile({ risk, hasNext, onClose, onResolved, onF
           <button type="button" className="rfm-btn rfm-btn--ghost" onClick={onClose}>
             Später
           </button>
-          <button type="button" className="rfm-btn rfm-btn--dark" onClick={() => setSheetOpen(true)}>
+          <button type="button" className="rfm-btn rfm-btn--dark" onClick={openReasons}>
             <TagroSpark size={15} />
-            Mit Tagro analysieren
+            {analyzing ? 'Tagro analysiert …' : 'Mit Tagro analysieren'}
           </button>
         </footer>
       )}
@@ -244,7 +264,8 @@ export default function RiskFlowMobile({ risk, hasNext, onClose, onResolved, onF
 
       {sheetOpen && (
         <TagroReasonSheet
-          reasons={risk.reasons}
+          reasons={reasons}
+          busy={analyzing}
           onDismiss={() => {
             // Sheet schließen ohne Übernahme → Maßnahme selbst wählen (Screen 4A).
             setSheetOpen(false)
@@ -344,10 +365,12 @@ function Sparkles() {
 
 function TagroReasonSheet({
   reasons,
+  busy,
   onDismiss,
   onAccept,
 }: {
   reasons: string[]
+  busy?: boolean
   onDismiss: () => void
   onAccept: () => void
 }) {
@@ -361,7 +384,7 @@ function TagroReasonSheet({
           <span className="rfs-badge"><TagroSpark size={17} /></span>
           <div>
             <h2 className="rfs-name">Tagro</h2>
-            <p className="rfs-why">Warum diese Empfehlung?</p>
+            <p className="rfs-why">{busy ? 'Tagro schaut sich das an …' : 'Warum diese Empfehlung?'}</p>
           </div>
         </div>
 

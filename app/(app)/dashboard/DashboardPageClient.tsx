@@ -375,7 +375,7 @@ export default function DashboardPageContent() {
     () => Object.fromEntries(projects.map(p => [p.id, p.title])),
     [projects],
   )
-  const { risks: openRisks, resolve: saveRiskAssessment } = useMobileRisks({
+  const { risks: openRisks, resolve: saveRiskAssessment, analyze: analyzeRisk } = useMobileRisks({
     fallbackTasks: riskTasks,
     projectTitles,
   })
@@ -2799,6 +2799,7 @@ export default function DashboardPageContent() {
         }}
         onOpenMenu={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
         onRiskResolved={(riskId, result) => { void saveRiskAssessment(riskId, result) }}
+        onAnalyzeRisk={analyzeRisk}
       />
       ) : null}
     </div>

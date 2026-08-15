@@ -130,6 +130,16 @@ export async function POST(req: Request) {
       }).catch(() => null)
     }
 
+    // „Blockiert" ist das stärkste Signal, das ein Entwickler senden kann —
+    // und der Grund, warum niemand von Hand ein Risiko anlegen muss.
+    if (devStatus === 'blocked' || devStatus === 'in_progress') {
+      const { triggerRiskDetection } = await import('@/lib/risks/trigger')
+      await triggerRiskDetection(
+        (getServiceClient() ?? supabase) as any,
+        (task as any).project_id ?? null,
+      )
+    }
+
     return NextResponse.json({
       ok: true,
       task: { id: taskId, dev_status: devStatus, client_visible_status: clientVisible, status: legacy },

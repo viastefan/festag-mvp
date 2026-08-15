@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   const runs = []
   for (const id of projectIds.slice(0, MAX_PROJECTS)) {
     try {
-      const result = await runRiskDetection(supa, id, { actorUserId: user.id })
+      const result = await runRiskDetection(supa, id, { actorUserId: user.id, enrich: true })
       runs.push({ project_id: id, ...result, risks: undefined })
     } catch (err) {
       // One broken project must not take the whole sweep down.

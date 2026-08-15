@@ -21,6 +21,9 @@ import { safeTableRows } from '@/lib/supabase/safe-table'
 
 type AnyClient = SupabaseClient<any, any, any>
 
+/** Wie viele neu erkannte Risiken pro Lauf höchstens durch das Modell gehen. */
+const ENRICH_PER_RUN = 2
+
 export type DetectionRunResult = {
   created: number
   updated: number
@@ -94,7 +97,7 @@ export async function buildDetectionContext(
     settings.source_github
       ? safeTableRows<any>((supa as any)
           .from('github_pull_requests')
-          .select('id,pr_number,title,state,merged,created_at_github,updated_at_github,raw_payload,pr_url')
+          .select('id,pr_number,title,state,merged,created_at_github,updated_at_github,head_branch,task_id,raw_payload,pr_url')
           .eq('project_id', projectId)
           .order('updated_at_github', { ascending: false })
           .limit(60))
@@ -124,7 +127,8 @@ export async function buildDetectionContext(
       merged: pr.merged,
       created_at_github: pr.created_at_github,
       updated_at_github: pr.updated_at_github,
-      head_ref: pr.raw_payload?.pull_request?.head?.ref ?? null,
+      head_ref: pr.head_branch ?? pr.raw_payload?.head?.ref ?? null,
+      task_id: pr.task_id ?? null,
       pr_url: pr.pr_url,
     })),
     sensitivity: settings.sensitivity,
@@ -142,7 +146,12 @@ export async function buildDetectionContext(
 export async function runRiskDetection(
   supa: AnyClient,
   projectId: string,
-  opts: { now?: Date; actorUserId?: string | null } = {},
+  opts: {
+    now?: Date
+    actorUserId?: string | null
+    /** Let Tagro write the client framing for newly detected risks. */
+    enrich?: boolean
+  } = {},
 ): Promise<DetectionRunResult> {
   const now = opts.now ?? new Date()
   const empty: DetectionRunResult = {
@@ -228,6 +237,21 @@ export async function runRiskDetection(
         summary: 'Die Signale sind zurückgegangen — das Risiko bleibt vorerst in Beobachtung.',
       })
       result.moved_to_monitoring += 1
+    }
+  }
+
+  // Tagro formuliert nach — aber nur für frisch erkannte Risiken und nur
+  // wenige pro Lauf, damit ein Webhook nicht an Modell-Latenz hängt.
+  if (opts.enrich && result.risks.length) {
+    const { enrichRisk } = await import('@/lib/risks/enrich')
+    for (const risk of result.risks.slice(0, ENRICH_PER_RUN)) {
+      const signals = await safeTableRows<any>(
+        (supa as any).from('risk_signals').select('*').eq('risk_id', risk.id),
+      )
+      await enrichRisk(supa, risk, signals, {
+        projectTitle: project.title,
+        targetDate: project.target_date,
+      }).catch(() => null)
     }
   }
 

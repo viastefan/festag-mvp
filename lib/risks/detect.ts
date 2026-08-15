@@ -70,7 +70,10 @@ export type DetectPullRequest = {
   merged?: boolean | null
   created_at_github?: string | null
   updated_at_github?: string | null
+  /** Branch the PR comes from — matched against `tasks.branch_name`. */
   head_ref?: string | null
+  /** Explicit task link, when the PR was connected in Festag. */
+  task_id?: string | null
   pr_url?: string | null
 }
 
@@ -274,9 +277,12 @@ function blockedTaskDrafts(
       })
     }
 
-    // An open pull request on this task's branch that isn't moving.
-    const pr = prs.find(p =>
-      p.state === 'open' && !!task.branch_name && p.head_ref === task.branch_name)
+    // An open pull request belonging to this task that isn't moving. The
+    // explicit link wins; the branch name is the fallback.
+    const pr = prs.find(p => p.state === 'open' && (
+      p.task_id === task.id
+      || (!!task.branch_name && p.head_ref === task.branch_name)
+    ))
     if (pr) {
       const prAge = daysSince(pr.updated_at_github || pr.created_at_github, now)
       if (prAge !== null && prAge >= 2) {
