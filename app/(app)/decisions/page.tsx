@@ -108,7 +108,8 @@ function DecisionsBoard() {
   const [autoOpen, setAutoOpen] = useState(false)
   /** Answered just now — the check is drawn and held before the row retracts. */
   const [completing, setCompleting] = useState<Set<string>>(new Set())
-  const [toast, setToast] = useState<{ title: string; sub?: string } | null>(null)
+  const [toast, setToast] = useState<{ title: string; sub?: string; undoId?: string } | null>(null)
+  const [undoing, setUndoing] = useState(false)
 
   const [sheet, setSheet] = useState<{ id: string; step: ResolveStep } | null>(null)
   const [sheetOptions, setSheetOptions] = useState<DecOption[]>([])
@@ -120,17 +121,22 @@ function DecisionsBoard() {
 
   useLayoutEffect(() => { setDrawerId(null); setSheet(null) }, [pathname])
 
+  /* Depend on the primitive, not the searchParams object: that object gets a
+     new identity on re-render, which re-ran load() and silently reset the list
+     — answers already given reappeared as open. */
+  const demoParam = searchParams?.get('demo') ?? null
+
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(false)
-    const forceDemo = searchParams?.get('demo') === '1'
-    const blockDemo = searchParams?.get('demo') === '0'
+    const forceDemo = demoParam === '1'
+    const blockDemo = demoParam === '0'
 
     const demo = () => {
       const bundle = getDecisionDemoBundle()
       setUsingDemo(true)
       setData({
-        decisions: bundle.decisions,
+        decisions: bundle.decisions.map(d => ({ ...d })),
         projects: bundle.projects,
         affected: bundle.affected as Record<string, AffectedWork>,
         recommendations: {},
@@ -174,7 +180,7 @@ function DecisionsBoard() {
     } finally {
       setLoading(false)
     }
-  }, [searchParams])
+  }, [demoParam])
 
   useEffect(() => { void load() }, [load])
   useEffect(() => { setDrawerId(searchParams?.get('open') || null) }, [searchParams])
@@ -321,7 +327,7 @@ function DecisionsBoard() {
     }
 
     setCompleting(curr => new Set(curr).add(id))
-    setToast({ title: 'Entscheidung getroffen.', sub: 'Tagro bereitet die nächsten Schritte vor.' })
+    setToast({ title: 'Entscheidung getroffen.', sub: 'Tagro bereitet die nächsten Schritte vor.', undoId: id })
     window.setTimeout(() => {
       setCompleting(curr => {
         const next = new Set(curr)
@@ -331,9 +337,43 @@ function DecisionsBoard() {
     }, COMPLETION_HOLD_MS)
   }, [])
 
+  /** Take the answer back — only offered while the row is still on screen. */
+  const undo = useCallback(async (id: string) => {
+    if (undoing) return
+    setUndoing(true)
+    try {
+      if (id.startsWith('mock-')) {
+        patchLocal(id, {
+          status: 'pending_client', response_value: null, selected_option: null,
+          decided_at: null, decided_by: null,
+        })
+      } else {
+        const res = await fetch(`/api/decisions/${id}/reopen`, { method: 'POST', credentials: 'include' })
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          setToast({ title: body?.reason || 'Zurückholen hat nicht geklappt.' })
+          return
+        }
+        const body = await res.json()
+        patchLocal(id, body.decision ?? { status: 'pending_client' })
+      }
+      setCompleting(curr => {
+        const next = new Set(curr)
+        next.delete(id)
+        return next
+      })
+      setToast({ title: 'Zurückgeholt.', sub: 'Die Entscheidung wartet wieder auf dich.' })
+    } catch {
+      setToast({ title: 'Zurückholen hat nicht geklappt.' })
+    } finally {
+      setUndoing(false)
+    }
+  }, [undoing])
+
   useEffect(() => {
     if (!toast) return
-    const t = window.setTimeout(() => setToast(null), 3600)
+    // An undo offer stays exactly as long as the row it belongs to.
+    const t = window.setTimeout(() => setToast(null), toast.undoId ? COMPLETION_HOLD_MS : 3600)
     return () => window.clearTimeout(t)
   }, [toast])
 
@@ -535,8 +575,20 @@ function DecisionsBoard() {
       {toast && (
         <div className="dcb-toast" role="status" aria-live="polite">
           <Check size={14} weight="bold" aria-hidden />
-          {toast.title}
-          {toast.sub && <span className="dcb-toast-sub">{toast.sub}</span>}
+          <span className="dcb-toast-copy">
+            {toast.title}
+            {toast.sub && <span className="dcb-toast-sub">{toast.sub}</span>}
+          </span>
+          {toast.undoId && (
+            <button
+              type="button"
+              className="dcb-toast-undo"
+              onClick={() => void undo(toast.undoId!)}
+              disabled={undoing}
+            >
+              {undoing ? 'Hole zurück…' : 'Rückgängig'}
+            </button>
+          )}
         </div>
       )}
     </BoardShell>

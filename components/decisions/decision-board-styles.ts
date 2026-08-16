@@ -49,16 +49,28 @@ export const DECISION_BOARD_CSS = `
   padding: clamp(28px, 4.5vh, 56px) clamp(20px, 3vw, 48px) clamp(72px, 12vh, 120px);
 }
 
-/* The floating sidebar overlays the canvas when expanded; give the rail room
-   so the board recentres to the right of it instead of sliding underneath. */
-html body .fas-root.is-sidebar-expanded .dcb-inner {
-  padding-left: clamp(20px, 3vw, 48px);
-  max-width: 1180px;
-  transform: translateX(24px);
-  transition: transform 0.28s var(--dcb-ease), max-width 0.28s var(--dcb-ease);
+/* Centre on the screen, not in the leftover column.
+   The shell reserves a 220px spacer for the collapsed sidebar, which pushes the
+   content box right and makes a centred rail sit half a spacer off. Shifting
+   the rail with a transform only clips it — .fas-content hides overflow-x. So
+   the reservation itself is dropped on this route and the rail centres against
+   the real viewport. The collapsed sidebar is a 56px-tall floating chip and the
+   headline starts below it, so nothing is covered.
+   :has() is a progressive enhancement: without it the spacer stays and the
+   board simply sits where it did before. */
+html body .fas-root:has(.dcb) .fas-sidebar-spacer { display: none; }
+html body .fas-root:has(.dcb) .fas-content { scrollbar-gutter: auto; }
+
+/* Expanded, the panel is wider than the old reservation — hold the rail clear
+   of it so the board never slides underneath. */
+@media (min-width: 1100px) {
+  html body .fas-root.is-sidebar-expanded:has(.dcb) .dcb-inner {
+    padding-left: calc(var(--fas-sidebar-w, 268px) + var(--fas-sidebar-float-inset, 12px) + 24px);
+    transition: padding-left 0.3s var(--dcb-ease);
+  }
 }
-html body .fas-root.is-sidebar-collapsed .dcb-inner {
-  transition: transform 0.28s var(--dcb-ease), max-width 0.28s var(--dcb-ease);
+html body .fas-root:has(.dcb) .dcb-inner {
+  transition: padding-left 0.3s var(--dcb-ease);
 }
 
 /* Large displays: more measure, not more emptiness. */
@@ -223,52 +235,55 @@ html body .fas-root.is-sidebar-collapsed .dcb-inner {
 
 .dcb-path-node {
   position: relative;
-  width: 24px; height: 24px;
+  width: 28px; height: 28px;
   flex: 0 0 auto;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 50%;
   background: var(--dcb-canvas);
 }
-/* Idle: a quiet ring with a soft centre — a station on the path. */
-.dcb-path-node::before {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--dcb-primary) 45%, transparent);
-  transition: inset 0.24s var(--dcb-ease), background 0.24s var(--dcb-ease), opacity 0.2s var(--dcb-ease);
-}
-.dcb-path-node.is-urgent::before { background: var(--dcb-primary); inset: 5px; }
-.dcb-path-node.is-overdue::before { background: var(--dcb-red); inset: 5px; }
+.dcb-path-svg { width: 28px; height: 28px; overflow: visible; }
 
-/* The check is drawn, not popped: ring sweeps, then the tick writes itself. */
-.dcb-path-check {
-  position: absolute;
-  inset: 0;
-  width: 24px; height: 24px;
-  opacity: 0;
+/* Waiting: hollow rim, muted arrow. Nothing is filled until something is done. */
+.dcb-path-rim {
+  stroke: color-mix(in srgb, var(--dcb-primary) 34%, transparent);
+  fill: none;
+  transition: stroke 0.24s var(--dcb-ease);
+}
+.dcb-path-arrow {
+  stroke: var(--dcb-faint);
+  fill: none;
+  transition: stroke 0.3s var(--dcb-ease), transform 0.3s var(--dcb-ease);
+  transform-origin: 14px 14px;
+}
+.dcb-path-node.is-urgent .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 62%, transparent); }
+.dcb-path-node.is-urgent .dcb-path-arrow { stroke: var(--dcb-primary); }
+.dcb-path-node.is-overdue .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-red) 55%, transparent); }
+.dcb-path-node.is-overdue .dcb-path-arrow { stroke: var(--dcb-red); }
+.dcb-row:hover .dcb-path-arrow { stroke: var(--dcb-primary); }
+
+/* The five-second sweep: the ring fills once around while the answer settles. */
+.dcb-path-sweep {
+  stroke: var(--dcb-primary);
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 75.4;
+  stroke-dashoffset: 75.4;
   transform: rotate(-90deg);
-  pointer-events: none;
-}
-.dcb-path-ring {
-  stroke: var(--dcb-primary);
-  stroke-dasharray: 63;
-  stroke-dashoffset: 63;
-  fill: none;
-}
-.dcb-path-tick {
-  stroke: var(--dcb-primary);
-  stroke-dasharray: 14;
-  stroke-dashoffset: 14;
-  fill: none;
+  transform-origin: 14px 14px;
+  opacity: 0;
 }
 
-.dcb-row.is-done .dcb-path-node::before { opacity: 0; inset: 12px; }
-.dcb-row.is-done .dcb-path-check { opacity: 1; }
-.dcb-row.is-done .dcb-path-ring { animation: dcbRing 0.5s var(--dcb-ease) forwards; }
-.dcb-row.is-done .dcb-path-tick { animation: dcbTick 0.32s var(--dcb-ease) 0.42s forwards; }
-@keyframes dcbRing { to { stroke-dashoffset: 0; } }
-@keyframes dcbTick { to { stroke-dashoffset: 0; } }
+.dcb-row.is-done .dcb-path-arrow {
+  stroke: var(--dcb-primary);
+  stroke-width: 2.2;
+}
+.dcb-row.is-done .dcb-path-sweep {
+  opacity: 1;
+  animation: dcbSweep 5s linear forwards, dcbSweepFade 0.7s var(--dcb-ease) 4.4s forwards;
+}
+.dcb-row.is-done .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 18%, transparent); }
+@keyframes dcbSweep { to { stroke-dashoffset: 0; } }
+@keyframes dcbSweepFade { to { opacity: 0; } }
 
 /* Held for the beat, then the row retracts and the list closes behind it. */
 .dcb-row.is-done {
@@ -601,7 +616,23 @@ html body .fas-root.is-sidebar-collapsed .dcb-inner {
   from { opacity: 0; transform: translate(-50%, 8px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
-.dcb-toast-sub { color: rgba(242, 244, 247, 0.62); }
+.dcb-toast-copy { display: inline-flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dcb-toast-sub { color: rgba(255, 255, 255, 0.66); }
+/* Undo lives in the toast for exactly as long as the row is still on screen. */
+.dcb-toast-undo {
+  appearance: none;
+  margin-left: 6px;
+  padding: 5px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 7px;
+  background: transparent;
+  color: #FFFFFF;
+  font: inherit; font-size: 13px; cursor: pointer;
+  transition: background 0.16s var(--dcb-ease), border-color 0.16s var(--dcb-ease);
+  flex-shrink: 0;
+}
+.dcb-toast-undo:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.55); }
+.dcb-toast-undo:disabled { opacity: 0.6; cursor: default; }
 
 /* ── Brand marks — always subordinate to the text ──
    Desaturated by default: a single full-colour vendor logo would be the only
@@ -703,17 +734,17 @@ html[data-theme="dark"] .dcb-tool:hover,
 html[data-theme="classic-dark"] .dcb-tool:hover,
 html[data-theme="dark"] .dcb-btn:hover:not(:disabled),
 html[data-theme="classic-dark"] .dcb-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: var(--dcb-ink); }
-/* Dark primary is soft cool-white on dark ink — never a colored fill. */
+/* Dark keeps Primary Blue, lifted so it carries on a dark canvas. */
 html[data-theme="dark"] .dcb-btn--primary,
 html[data-theme="classic-dark"] .dcb-btn--primary {
-  background: #F0F2F5; border-color: #F0F2F5; color: #1A1A1E;
+  background: var(--dcb-primary); border-color: var(--dcb-primary); color: #14151B;
 }
 html[data-theme="dark"] .dcb-btn--primary:hover:not(:disabled),
 html[data-theme="classic-dark"] .dcb-btn--primary:hover:not(:disabled) {
-  background: #FFFFFF; border-color: #FFFFFF; color: #1A1A1E;
+  background: var(--dcb-primary-hover); border-color: var(--dcb-primary-hover); color: #14151B;
 }
 html[data-theme="dark"] .dcb-tool-count,
-html[data-theme="classic-dark"] .dcb-tool-count { background: #F0F2F5; color: #1A1A1E; }
+html[data-theme="classic-dark"] .dcb-tool-count { background: #98A2BE; color: #14151B; }
 html[data-theme="dark"] .dcb-toast,
 html[data-theme="classic-dark"] .dcb-toast { background: #1A1A1E; color: #E8EAF0; }
 html[data-theme="dark"] .dcb-toast-sub,
@@ -1039,11 +1070,11 @@ html[data-theme="dark"] .dcf-chip.is-on,
 html[data-theme="classic-dark"] .dcf-chip.is-on,
 html[data-theme="dark"] .dcf-done,
 html[data-theme="classic-dark"] .dcf-done {
-  background: #F0F2F5; border-color: #F0F2F5; color: #1A1A1E;
+  background: #98A2BE; border-color: #98A2BE; color: #14151B;
 }
 html[data-theme="dark"] .drs-btn--primary:hover:not(:disabled),
 html[data-theme="classic-dark"] .drs-btn--primary:hover:not(:disabled) {
-  background: #FFFFFF; border-color: #FFFFFF; color: #1A1A1E;
+  background: #AEB7CE; border-color: #AEB7CE; color: #14151B;
 }
 html[data-theme="dark"] .drs-overlay,
 html[data-theme="classic-dark"] .drs-overlay { background: rgba(0, 0, 0, 0.5); }
@@ -1276,4 +1307,74 @@ html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
 @media (max-width: 420px) {
   .dcd-facts { grid-template-columns: 1fr; }
 }
+
+/* ── Mobile: the path stays, everything else stacks ── */
+@media (max-width: 760px) {
+  .dcb-bar { gap: 10px; padding-bottom: 10px; }
+  .dcb-views { gap: 2px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .dcb-views::-webkit-scrollbar { display: none; }
+  .dcb-view { flex: 0 0 auto; padding: 6px 8px; font-size: 13.5px; }
+  .dcb-filter { flex: 0 0 auto; }
+
+  .dcb-row {
+    grid-template-columns: var(--dcb-path-w) minmax(0, 1fr);
+    gap: 0 12px;
+    padding: 24px 0 26px;
+  }
+  .dcb-path { margin: -24px 0 -26px; }
+  .dcb-path-line--up { flex: 0 0 34px; }
+  .dcb-icon { display: none; }
+  .dcb-head-m { grid-column: 2 / 3; }
+  .dcb-title { padding-top: 0; font-size: 20px; }
+  .dcb-rec { grid-column: 2 / 3; padding-top: 18px; }
+  .dcb-rec-why, .dcb-rec-none { max-width: none; }
+  .dcb-meta {
+    grid-column: 2 / 3;
+    border-left: none; padding: 16px 0 0; min-height: 0;
+    flex-direction: row; flex-wrap: wrap; gap: 10px 24px;
+  }
+  .dcb-actions { grid-column: 2 / 3; width: 100%; padding-top: 20px; gap: 9px; }
+  .dcb-btn { height: 46px; font-size: 14.5px; }
+
+  .dcb-toast {
+    left: 14px; right: 14px; bottom: 16px; transform: none;
+    flex-wrap: wrap; justify-content: flex-start;
+  }
+  .dcb-toast-undo { margin-left: auto; }
+}
+
+/* ── Festag Night: the path and the blue field ── */
+html[data-theme="dark"] .dcb-path-node,
+html[data-theme="classic-dark"] .dcb-path-node { background: var(--dcb-canvas); }
+html[data-theme="dark"] .dcb-view-count,
+html[data-theme="classic-dark"] .dcb-view-count { background: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .dcb-view:hover,
+html[data-theme="classic-dark"] .dcb-view:hover { background: rgba(255, 255, 255, 0.05); }
+html[data-theme="dark"] .dcb-view.is-on .dcb-view-count,
+html[data-theme="classic-dark"] .dcb-view.is-on .dcb-view-count,
+html[data-theme="dark"] .dcb-filter-count,
+html[data-theme="classic-dark"] .dcb-filter-count { background: var(--dcb-primary); color: #14151B; }
+html[data-theme="dark"] .dcb-btn--primary,
+html[data-theme="classic-dark"] .dcb-btn--primary,
+html[data-theme="dark"] .dcd-cta,
+html[data-theme="classic-dark"] .dcd-cta { color: #14151B; box-shadow: none; }
+html[data-theme="dark"] .dcb-btn--primary:hover:not(:disabled),
+html[data-theme="classic-dark"] .dcb-btn--primary:hover:not(:disabled) { color: #14151B; box-shadow: none; }
+html[data-theme="dark"] .dcb-btn--ghost:hover:not(:disabled),
+html[data-theme="classic-dark"] .dcb-btn--ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.06); }
+html[data-theme="dark"] .dcb-toast,
+html[data-theme="classic-dark"] .dcb-toast { background: #1F2129; color: #E8EAF0; }
+html[data-theme="dark"] .dcb-toast-undo,
+html[data-theme="classic-dark"] .dcb-toast-undo { border-color: rgba(255, 255, 255, 0.24); color: #E8EAF0; }
+html[data-theme="dark"] .dcd-tagro,
+html[data-theme="classic-dark"] .dcd-tagro {
+  background: rgba(152, 162, 190, 0.13);
+  border-color: rgba(152, 162, 190, 0.24);
+}
+html[data-theme="dark"] .dcd-tagro-head,
+html[data-theme="classic-dark"] .dcd-tagro-head { color: #C4CBDD; }
+html[data-theme="dark"] .dcd-ground-key,
+html[data-theme="classic-dark"] .dcd-ground-key { color: #AEB7CE; }
+html[data-theme="dark"] .dcd-meter,
+html[data-theme="classic-dark"] .dcd-meter { background: rgba(152, 162, 190, 0.25); }
 `.trim()

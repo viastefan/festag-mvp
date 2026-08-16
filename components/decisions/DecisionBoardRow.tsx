@@ -112,14 +112,18 @@ export default function DecisionBoardRow({
       className={`dcb-row dcb-path-${position}${completing ? ' is-done' : ''}`}
       aria-busy={completing}
     >
-      {/* The running path: line segments above/below, node in the middle. */}
+      {/* The running path. The node is an outline only: a hollow ring holding a
+          muted arrow while the decision waits. Answering fills the arrow and
+          runs a five-second ring around it, then everything fades as the row
+          moves to closed. */}
       <div className="dcb-path" aria-hidden>
         <span className="dcb-path-line dcb-path-line--up" />
         <span className={`dcb-path-node${urgent ? ' is-urgent' : ''}${overdue ? ' is-overdue' : ''}`}>
-          <svg className="dcb-path-check" viewBox="0 0 24 24" fill="none">
-            <circle className="dcb-path-ring" cx="12" cy="12" r="10" strokeWidth="2" />
-            <path className="dcb-path-tick" d="M7.5 12.4l3.1 3.1 6-6.4" strokeWidth="2.2"
-              strokeLinecap="round" strokeLinejoin="round" />
+          <svg viewBox="0 0 28 28" fill="none" className="dcb-path-svg">
+            <circle className="dcb-path-rim" cx="14" cy="14" r="12" strokeWidth="1.25" />
+            <circle className="dcb-path-sweep" cx="14" cy="14" r="12" strokeWidth="1.75" />
+            <path className="dcb-path-arrow" d="M11.4 9.6l4.6 4.4-4.6 4.4"
+              strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
         <span className="dcb-path-line dcb-path-line--down" />
