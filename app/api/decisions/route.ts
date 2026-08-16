@@ -80,10 +80,13 @@ function escapeHtml(s: string) {
 
 /**
  * GET  /api/decisions
- *   Lists decisions the current user is involved in:
- *     • requested_for == me  (I decide)
- *     • created_by    == me  (I asked)
- *   Sorted by status priority (open first) then urgency then due_date.
+ *   The whole Decision Center in one payload — decisions the current user is
+ *   involved in (requested_for == me, or created_by == me), the projects they
+ *   belong to, and the work each open decision holds up. Sorted server-side
+ *   with the same ranking the page renders with (lib/decisions/center.ts), so
+ *   the first paint is already in the right order.
+ *
+ *   ?open=1  — only decisions still needing attention.
  *
  * POST /api/decisions
  *   Body: { project_id, title, description?, options?[], urgency?,
@@ -93,9 +96,16 @@ function escapeHtml(s: string) {
  */
 
 import { DECISION_OPEN_STATES } from '@/lib/decisions/types'
+import { loadAffectedWork } from '@/lib/decisions/affected'
+import { sortByAttention } from '@/lib/decisions/center'
+import type { Decision } from '@/components/decisions/decisions-shared'
 
 const URGENCY = new Set(['low', 'normal', 'high', 'critical'])
 const OPEN_STATES = DECISION_OPEN_STATES
+
+// Affected work is only resolved for what the user can act on — history rows
+// don't need it, and it keeps the extra two queries bounded.
+const MAX_AFFECTED_LOOKUPS = 40
 
 export async function GET(req: NextRequest) {
   const supa = createClient()
@@ -121,8 +131,80 @@ export async function GET(req: NextRequest) {
   }
 
   const filtered = onlyOpen ? merged.filter(d => OPEN_STATES.has(d.status)) : merged
+  const decisions = sortByAttention(filtered as Decision[]) as any[]
 
-  return NextResponse.json({ decisions: filtered, open_count: merged.filter(d => OPEN_STATES.has(d.status) && d.requested_for === user.id).length })
+  // Projects + affected work, resolved once here instead of N round trips from
+  // the client (the page used to fetch project titles itself after render).
+  const projectIds = Array.from(new Set(decisions.map(d => d.project_id).filter(Boolean)))
+  const openIds = decisions
+    .filter(d => OPEN_STATES.has(d.status))
+    .slice(0, MAX_AFFECTED_LOOKUPS)
+    .map(d => d.id)
+
+  const [projectRows, affected, optionRows] = await Promise.all([
+    projectIds.length
+      ? (supa as any).from('projects').select('id,title,color,status,workspace_id').in('id', projectIds)
+          .then((r: any) => r.data ?? [])
+      : Promise.resolve([]),
+    openIds.length ? loadAffectedWork(supa as any, openIds) : Promise.resolve({}),
+    // Only the recommended option per decision — the board renders its name
+    // ("Stripe", "Google + Apple"); the full option set loads when the user
+    // actually opens the alternatives.
+    openIds.length
+      ? (supa as any).from('decision_options')
+          .select('id,decision_id,external_id,label,client_label,description,recommended_by_tagro,ordinal')
+          .in('decision_id', openIds)
+          .eq('recommended_by_tagro', true)
+          .then((r: any) => r.data ?? [])
+      : Promise.resolve([]),
+  ])
+
+  const projects: Record<string, unknown> = {}
+  for (const p of projectRows as any[]) projects[p.id] = p
+
+  const recommendations: Record<string, unknown> = {}
+  for (const o of optionRows as any[]) {
+    if (!recommendations[o.decision_id]) recommendations[o.decision_id] = o
+  }
+  // Legacy rows carry the recommendation in decisions.recommended_option +
+  // options_json instead of a decision_options row.
+  for (const d of decisions) {
+    if (recommendations[d.id] || !d.recommended_option || d.recommended_option === 'freeform') continue
+    const key = String(d.recommended_option).toLowerCase()
+    const legacy = (Array.isArray(d.options_json) ? d.options_json : []).find(
+      (o: any) => String(o?.id ?? '').toLowerCase() === key || String(o?.label ?? '').toLowerCase() === key,
+    )
+    if (legacy) {
+      recommendations[d.id] = {
+        id: legacy.id,
+        decision_id: d.id,
+        external_id: legacy.id,
+        label: legacy.label,
+        client_label: legacy.label,
+        description: legacy.hint ?? null,
+        recommended_by_tagro: true,
+      }
+    }
+  }
+
+  const openForMe = merged.filter(d => OPEN_STATES.has(d.status) && d.requested_for === user.id)
+
+  return NextResponse.json({
+    decisions,
+    projects,
+    affected,
+    recommendations,
+    counts: {
+      total: merged.length,
+      open: merged.filter(d => OPEN_STATES.has(d.status)).length,
+      open_for_me: openForMe.length,
+      urgent: openForMe.filter(d => d.urgency === 'high' || d.urgency === 'critical').length,
+      queued: merged.filter(d => OPEN_STATES.has(d.status) && d.queued).length,
+      decided: merged.filter(d => !OPEN_STATES.has(d.status)).length,
+    },
+    // Kept for older callers that read the flat count.
+    open_count: openForMe.length,
+  })
 }
 
 export async function POST(req: NextRequest) {

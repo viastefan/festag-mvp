@@ -370,7 +370,9 @@ export default function FestagHelpPanel({
     <div ref={wrapRef} className="fhp-wrap">
       {trigger}
       {panel}
-      <style>{CSS}</style>
+      {/* Raw-text element: a text child would be HTML-escaped server-side only
+          (' → &#x27;), so server and client text disagree and hydration fails. */}
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CSS }} />
     </div>
   )
 }

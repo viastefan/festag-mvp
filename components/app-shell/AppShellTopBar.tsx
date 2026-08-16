@@ -134,7 +134,9 @@ export default function AppShellTopBar({}: Props) {
 
   return (
     <header className="fas-topbar">
-      <style>{AUTH_ENTER_GLYPH_CSS}</style>
+      {/* Raw-text element: see the note in FestagAppShell — a text child would
+          be HTML-escaped on the server only, breaking hydration. */}
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_ENTER_GLYPH_CSS }} />
       <div className="fas-topbar-left" />
 
       <div className="fas-topbar-right">

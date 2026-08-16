@@ -1065,6 +1065,68 @@ ${FESTAG_SCROLL_FADE_CSS}
     font-size:13px; line-height:1.45; color:var(--dec-soft);
   }
 
+  /* ── Trail: affected work + the decision's own history ── */
+  .dec-trail {
+    margin-top:28px;
+    display:flex; flex-direction:column; gap:26px;
+  }
+  .dec-trail-block { min-width:0; }
+  .dec-trail-label {
+    margin:0 0 10px;
+    font-size:11px; font-weight:500; letter-spacing:0.02em;
+    text-transform:uppercase; color:var(--dec-soft);
+    opacity:.85;
+  }
+  .dec-trail-tasks, .dec-trail-events {
+    list-style:none; margin:0; padding:0;
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .dec-trail-task {
+    display:flex; align-items:baseline; gap:10px; min-width:0;
+    font-size:14px; line-height:1.45; color:var(--dec-soft);
+    letter-spacing:-0.01em;
+  }
+  .dec-trail-task-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:var(--dec-soft); opacity:.5;
+    flex-shrink:0; transform:translateY(-2px);
+  }
+  .dec-trail-task.is-blocked .dec-trail-task-dot { background:#FF9500; opacity:1; }
+  .dec-trail-task-name {
+    color:var(--dec-dark);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .dec-trail-task-kind { font-size:12.5px; flex-shrink:0; opacity:.75; }
+
+  .dec-trail-event {
+    display:flex; align-items:flex-start; gap:10px; min-width:0;
+  }
+  .dec-trail-event-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:var(--dec-soft); opacity:.45;
+    flex-shrink:0; margin-top:6px;
+  }
+  .dec-trail-event:first-child .dec-trail-event-dot { background:var(--dec-dark); opacity:.7; }
+  .dec-trail-event-copy { display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .dec-trail-event-title {
+    font-size:14px; line-height:1.4; color:var(--dec-dark);
+    letter-spacing:-0.01em;
+  }
+  .dec-trail-event-meta {
+    font-size:12.5px; line-height:1.4; color:var(--dec-soft); opacity:.85;
+  }
+  /* The history sits below the answer form, so it needs the hero's column
+     geometry itself — it is a sibling of the hero, not a child. */
+  .dec-trail-foot {
+    width:100%;
+    max-width:var(--festag-content-max, 1080px);
+    margin:0 auto;
+    padding:8px var(--festag-content-pad-x, 56px) 56px;
+    box-sizing:border-box;
+    flex:0 0 auto;
+  }
+  .dec-trail-foot .dec-trail { margin-top:0; }
+
   .dec-detail-loading {
     padding:0; color:var(--dec-soft); font-size:15px;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
@@ -2164,6 +2226,9 @@ ${FESTAG_SCROLL_FADE_CSS}
       display: block !important;
       margin-bottom: 16px !important;
     }
+    /* Mobile: the trail is plain text under the brief card, not a second card. */
+    .dec-detail-m-brief .dec-trail { margin-top: 20px !important; gap: 22px !important; }
+    .dec-trail-foot { padding: 4px 0 32px !important; }
     .dec-detail-m-brief .dec-detail-brief {
       padding: 16px !important;
       border-radius: 14px !important;

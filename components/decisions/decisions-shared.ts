@@ -67,6 +67,13 @@ export type Decision = {
   urgency_score?: number | null
   escalation_level?: number | null
   due_at?: string | null
+  /** When the engine acts on silence (auto-resolve or escalation). */
+  auto_resolve_at?: string | null
+  /** Held back by the open-decision cap — surfaced calmly, never nagged. */
+  queued?: boolean | null
+  deadline_hard?: string | null
+  surfaced_at?: string | null
+  reminder_count?: number | null
   // Meta
   urgency: 'low' | 'normal' | 'high' | 'critical'
   due_date: string | null
@@ -86,6 +93,7 @@ function mockDec(opts: {
   title: string
   rec: string
   type: string
+  projectId?: string
   urgency?: Decision['urgency']
   hoursAgo?: number
   escalation?: number
@@ -95,6 +103,8 @@ function mockDec(opts: {
   impact?: string
   status?: string
   altOption?: string
+  altOptions?: Array<{ id: string; label: string; hint?: string }>
+  recHint?: string
   responseType?: ResponseType
   reversibility?: Decision['reversibility']
 }): Decision {
@@ -107,14 +117,14 @@ function mockDec(opts: {
   const tagro = opts.tagro ?? `Tagro empfiehlt ${opts.rec} — schnellste Route zum Projektziel.`
   return {
     id: opts.id,
-    project_id: 'mock-proj-1',
+    project_id: opts.projectId ?? 'mock-proj-1',
     title: opts.title,
     description: impact,
     client_title: opts.title,
     client_summary: impact,
     options_json: [
-      { id: recId, label: opts.rec, hint: opts.rec === 'Stripe' ? 'Zahlungsintegration im Dashboard einrichten' : undefined },
-      { id: 'ablehnen', label: opts.altOption ?? 'Ablehnen' },
+      { id: recId, label: opts.rec, hint: opts.recHint },
+      ...(opts.altOptions ?? [{ id: 'ablehnen', label: opts.altOption ?? 'Ablehnen' }]),
     ],
     recommended_option: recId,
     tagro_reasoning: tagro,
@@ -143,101 +153,142 @@ function mockDec(opts: {
   }
 }
 
-/** Provisional UI preview rows — used when the API returns no decisions. */
+/** A decision Tagro resolved itself under policy — the quiet footer section. */
+function mockAuto(opts: { id: string; title: string; rec: string; type: string; hoursAgo: number; projectId?: string }): Decision {
+  return {
+    ...mockDec({
+      id: opts.id,
+      title: opts.title,
+      rec: opts.rec,
+      type: opts.type,
+      projectId: opts.projectId,
+      urgency: 'low',
+      hoursAgo: opts.hoursAgo,
+      urgencyScore: 18,
+      status: 'applied',
+      tagro: `Tagro hat ${opts.rec} nach Projektrichtlinie übernommen.`,
+    }),
+    status: 'applied',
+    selected_option: opts.rec.toLowerCase(),
+    decided_by: null,
+    decided_at: new Date(Date.now() - opts.hoursAgo * 3600000).toISOString(),
+    tagro_delegation_reason: 'auto_resolved_after_deadline',
+    reversibility: 'two_way_door',
+    auto_resolve_strategy: 'tagro_default',
+  }
+}
+
+/**
+ * Preview rows — used when the API returns no decisions, so an empty account
+ * still shows what the board is for. Deliberately mixed: a named external
+ * product (brand mark), a plain internal variant (no mark), a multi-provider
+ * choice, plus routine decisions Tagro already closed under policy.
+ */
 export const MOCK_DECISIONS: Decision[] = [
   mockDec({
     id: 'mock-1',
-    title: 'Logo Farbe freigeben',
-    rec: 'Freigeben',
-    type: 'direction',
-    urgency: 'high',
-    hoursAgo: 1,
-    urgencyScore: 68,
-    tagro: 'Tagro empfiehlt Freigeben — die Variante verbessert die Lesbarkeit und passt zur Zielgruppe.',
-    impact: 'Die Designphase kann abgeschlossen werden. Entwicklung wartet auf die Freigabe für UI-Assets.',
-    responseType: 'binary',
-  }),
-  mockDec({
-    id: 'mock-2',
     title: 'Zahlungsanbieter wählen',
     rec: 'Stripe',
     type: 'payment',
-    urgency: 'critical',
+    urgency: 'high',
     hoursAgo: 6,
-    escalation: 2,
-    urgencyScore: 88,
-    dueDays: -1,
-    tagro: 'Tagro empfiehlt Stripe — schnellste Integration für Karten und SEPA im deutschen Markt.',
-    impact: 'Ohne Zahlungsanbieter blockiert der Checkout. Eine Wahl heute hält den Launch im Plan.',
-    responseType: 'binary',
+    urgencyScore: 72,
+    dueDays: 2,
+    recHint: 'Karten und SEPA, Einrichtung im Stripe-Dashboard.',
+    altOptions: [
+      { id: 'paypal', label: 'PayPal', hint: 'Schnell startklar, höhere Gebühren pro Transaktion.' },
+      { id: 'adyen', label: 'Adyen', hint: 'Stark bei hohem Volumen, aufwendigeres Onboarding.' },
+    ],
+    tagro: 'Passt am besten zum aktuellen Projekt und kann ohne zusätzliche Komplexität integriert werden.',
+    impact: 'Der Checkout kann danach fertiggestellt werden.',
+    responseType: 'single_choice',
     reversibility: 'one_way_door',
   }),
   mockDec({
-    id: 'mock-3',
-    title: 'Hosting-Provider wählen',
-    rec: 'Vercel',
-    type: 'scope',
+    id: 'mock-2',
+    title: 'Logo-Farbe freigeben',
+    rec: 'Variante A',
+    type: 'direction',
     urgency: 'high',
-    hoursAgo: 18,
-    escalation: 1,
-    urgencyScore: 74,
-    dueDays: 3,
-    tagro: 'Tagro empfiehlt Vercel — passt zum Next.js-Stack und beschleunigt Preview-Deployments.',
-    impact: 'Staging-URL und Produktions-Deploy hängen an dieser Entscheidung.',
-    responseType: 'binary',
+    hoursAgo: 20,
+    urgencyScore: 61,
+    altOptions: [{ id: 'variante-b', label: 'Variante B', hint: 'Dunklerer Ton, geringerer Kontrast auf hellen Flächen.' }],
+    tagro: 'Die Designphase kann damit abgeschlossen werden.',
+    impact: 'Designphase kann abgeschlossen werden.',
+    responseType: 'single_choice',
+    reversibility: 'two_way_door',
   }),
   mockDec({
-    id: 'mock-4',
-    title: 'Domain-Strategie festlegen',
-    rec: 'Freigeben',
-    type: 'tradeoff',
+    id: 'mock-3',
+    title: 'Authentifizierung festlegen',
+    rec: 'Google + Apple',
+    type: 'scope',
+    projectId: 'mock-proj-2',
     urgency: 'normal',
-    hoursAgo: 48,
-    urgencyScore: 48,
-    tagro: 'Tagro empfiehlt die vorgeschlagene Domain-Strategie für SEO und Markenklarheit.',
-    impact: 'DNS und E-Mail-Setup können danach parallel starten.',
+    hoursAgo: 30,
+    urgencyScore: 44,
+    responseType: 'multi_choice',
+    altOptions: [
+      { id: 'email-passwort', label: 'E-Mail + Passwort', hint: 'Volle Kontrolle, mehr Supportaufwand.' },
+      { id: 'magic-link', label: 'Magic Link', hint: 'Kein Passwort, hängt an der Zustellrate von E-Mails.' },
+    ],
+    tagro: 'Bietet die beste Benutzererfahrung und höchste Sicherheit.',
+    impact: 'Login und Registrierung hängen daran.',
+    reversibility: 'two_way_door',
   }),
-  mockDec({
-    id: 'mock-5',
-    title: 'SEO Keywords bestätigen',
-    rec: 'Freigeben',
+  mockAuto({
+    id: 'mock-auto-1',
+    title: 'Zeitzone des Projekts',
+    rec: 'Europe/Berlin',
+    type: 'clarification',
+    hoursAgo: 26,
+  }),
+  mockAuto({
+    id: 'mock-auto-2',
+    title: 'Bildformat für Uploads',
+    rec: 'WebP',
     type: 'tradeoff',
-    urgency: 'normal',
-    hoursAgo: 72,
-    urgencyScore: 42,
-    tagro: 'Tagro empfiehlt die Keyword-Liste für die ersten Landingpages.',
-    impact: 'Content-Team kann Briefings finalisieren.',
+    hoursAgo: 52,
   }),
-  {
-    ...mockDec({
-      id: 'mock-6',
-      title: 'Analytics-Tool freigeben',
-      rec: 'Freigeben',
-      type: 'approval',
-      urgency: 'low',
-      hoursAgo: 120,
-      urgencyScore: 28,
-      status: 'decided',
-      tagro: 'Tagro empfiehlt Plausible — datenschutzfreundlich und schnell eingebunden.',
-      impact: 'Tracking war Voraussetzung für den Soft-Launch.',
-    }),
-    status: 'decided',
-    selected_option: 'freigeben',
-    decided_at: new Date(Date.now() - 86400000).toISOString(),
-    decided_by: 'mock-client',
-  },
 ]
 
 export const MOCK_PROJECTS: Record<string, ProjectLite> = {
   'mock-proj-1': { id: 'mock-proj-1', title: 'Festag Website Relaunch', color: '#5B647D', status: 'active' },
+  'mock-proj-2': { id: 'mock-proj-2', title: 'Festag Platform', color: '#4A7A5C', status: 'active' },
 }
 
 export function isDecisionDemoId(id: string) {
   return id.startsWith('mock-')
 }
 
+/**
+ * Blocked work for the preview rows, so "Betroffene Bereiche" is demonstrated
+ * rather than silently missing. Shape matches lib/decisions/affected.ts.
+ */
+export const MOCK_AFFECTED: Record<string, {
+  blocks: Array<{ id: string; title: string; status: string | null; dev_status: string | null; priority: string | null; link_kind: 'blocks' | 'affects' }>
+  affects: Array<{ id: string; title: string; status: string | null; dev_status: string | null; priority: string | null; link_kind: 'blocks' | 'affects' }>
+}> = {
+  'mock-1': {
+    blocks: [
+      { id: 'mock-task-1', title: 'Checkout-Flow implementieren', status: 'blocked', dev_status: 'blocked', priority: 'high', link_kind: 'blocks' },
+      { id: 'mock-task-2', title: 'Zahlungs-Webhooks anbinden', status: 'blocked', dev_status: 'blocked', priority: 'normal', link_kind: 'blocks' },
+    ],
+    affects: [],
+  },
+  'mock-3': {
+    blocks: [
+      { id: 'mock-task-3', title: 'Login-Screen bauen', status: 'blocked', dev_status: 'blocked', priority: 'high', link_kind: 'blocks' },
+      { id: 'mock-task-4', title: 'Session-Handling einrichten', status: 'blocked', dev_status: 'blocked', priority: 'normal', link_kind: 'blocks' },
+    ],
+    affects: [
+      { id: 'mock-task-5', title: 'Kontowiederherstellung', status: 'ready', dev_status: null, priority: 'low', link_kind: 'affects' },
+    ],
+  },
+}
+
 export function getDecisionDemoBundle() {
-  return { decisions: MOCK_DECISIONS, projects: MOCK_PROJECTS }
+  return { decisions: MOCK_DECISIONS, projects: MOCK_PROJECTS, affected: MOCK_AFFECTED }
 }
 
 export const URGENCY_LABEL: Record<string, string> = {

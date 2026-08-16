@@ -97,7 +97,12 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   if (isSettingsWorkspace) {
     return (
       <div className="fas-root fas-root--settings" data-app-shell="">
-        <style>{APP_SHELL_STYLES}</style>
+        {/* Must be dangerouslySetInnerHTML, not a text child: React escapes
+            text children (' → &#x27;, " → &quot;), and <style> is a raw-text
+            element so the browser never decodes them back. Server and client
+            then disagree on this node's text and hydration fails for the whole
+            tree — which silently stops later text-only updates from applying. */}
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: APP_SHELL_STYLES }} />
         {children}
         {deferredChrome}
       </div>
@@ -106,7 +111,7 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
 
   return (
     <div className={`fas-root${collapsed ? ' is-sidebar-collapsed' : ' is-sidebar-expanded'}`} data-app-shell="">
-      <style>{APP_SHELL_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: APP_SHELL_STYLES }} />
       <div className="fas-sidebar-spacer" aria-hidden />
       <AppShellSidebar
         user={user}

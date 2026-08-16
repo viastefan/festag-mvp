@@ -5,6 +5,7 @@ export const runtime = 'nodejs'
 
 /**
  * GET    /api/decisions/:id   — full row + linked project
+ *                               ?expand=options,events,links,affected
  * PATCH  /api/decisions/:id   — partial update (status, urgency, due_date,
  *                                title, description, options_json,
  *                                requested_for, decision_note)
@@ -13,6 +14,8 @@ export const runtime = 'nodejs'
  * Answering a decision goes through POST /api/decisions/:id/decide, not
  * PATCH, so the audit + notification fan-out can fire cleanly.
  */
+
+import { loadAffectedWorkFor } from '@/lib/decisions/affected'
 
 const PATCHABLE = new Set([
   'title', 'description', 'options_json', 'urgency', 'due_date',
@@ -29,6 +32,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
   const wantOptions = expand.includes('options')
   const wantEvents = expand.includes('events')
   const wantLinks = expand.includes('links')
+  const wantAffected = expand.includes('affected')
 
   const { data, error } = await (supa as any)
     .from('decisions').select('*').eq('id', ctx.params.id).maybeSingle()
@@ -72,6 +76,12 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
         .select('*')
         .eq('decision_id', ctx.params.id)
       expansions.links = links ?? []
+    })())
+  }
+  if (wantAffected) {
+    // Links resolved to task titles — what this decision actually holds up.
+    tasks.push((async () => {
+      expansions.affected = await loadAffectedWorkFor(supa as any, ctx.params.id)
     })())
   }
   if (tasks.length > 0) await Promise.all(tasks)

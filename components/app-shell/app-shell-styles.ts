@@ -2927,6 +2927,10 @@ html[data-theme="classic-dark"] .fas-wo-progress {
     z-index: auto;
     width: 100%;
     max-height: none;
+    /* .is-expanded sets an explicit 100dvh height for the desktop panel.
+       Without resetting it here the rail eats the whole mobile column and
+       collapses .fas-main-col to a few pixels — the page looks blank. */
+    height: auto;
     flex-direction: row;
     align-items: center;
     padding: 8px 12px;

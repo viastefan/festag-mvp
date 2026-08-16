@@ -21,8 +21,10 @@ import {
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
 import DecisionDetailBrief from '@/components/decisions/DecisionDetailBrief'
+import DecisionTrail, { type DecisionEventLite } from '@/components/decisions/DecisionTrail'
 import { DecisionDrawer, type DecisionMobileDock } from '@/components/decisions/DecisionDrawer'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import type { AffectedWork } from '@/lib/decisions/affected'
 import { portalHardNavigate } from '@/lib/portal-hard-nav'
 
 function DecisionDetailInner() {
@@ -32,6 +34,8 @@ function DecisionDetailInner() {
   const supabase = useMemo(() => createClient(), [])
   const [decision, setDecision] = useState<Decision | null>(null)
   const [project, setProject] = useState<ProjectLite | null>(null)
+  const [affected, setAffected] = useState<AffectedWork | null>(null)
+  const [events, setEvents] = useState<DecisionEventLite[]>([])
   const [loading, setLoading] = useState(true)
   const [me, setMe] = useState('')
   const [navOpen, setNavOpen] = useState(false)
@@ -62,7 +66,7 @@ function DecisionDetailInner() {
     }
 
     try {
-      const res = await fetch(`/api/decisions/${id}?expand=options`, { credentials: 'include' })
+      const res = await fetch(`/api/decisions/${id}?expand=options,affected,events`, { credentials: 'include' })
       if (!res.ok) {
         setDecision(null)
         setProject(null)
@@ -71,6 +75,8 @@ function DecisionDetailInner() {
       const data = await res.json()
       setDecision(data.decision ?? null)
       setProject(data.project ?? null)
+      setAffected((data.affected ?? null) as AffectedWork | null)
+      setEvents(Array.isArray(data.events) ? (data.events as DecisionEventLite[]) : [])
     } catch {
       setDecision(null)
       setProject(null)
@@ -215,11 +221,13 @@ function DecisionDetailInner() {
             </div>
 
             <DecisionDetailBrief decision={decision} project={project} />
+            <DecisionTrail affected={affected} />
           </div>
         </header>
 
         <div className="dec-detail-m-brief">
           <DecisionDetailBrief decision={decision} project={project} />
+          <DecisionTrail affected={affected} />
         </div>
 
         <DecisionDrawer
@@ -234,6 +242,12 @@ function DecisionDetailInner() {
           initialDiscussOpen={discussOnLoad}
           onMobileDockChange={handleMobileDockChange}
         />
+
+        {events.length > 0 && (
+          <div className="dec-trail-foot">
+            <DecisionTrail events={events} />
+          </div>
+        )}
       </div>
 
       <div className="dec-fab-desktop">
