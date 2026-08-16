@@ -19,9 +19,10 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowRight, Check, Sparkle, X } from '@phosphor-icons/react'
 import type { AffectedWork } from '@/lib/decisions/affected'
 import { resolveHandoffFromOption, type ExternalHandoff } from '@/lib/decisions/external-handoffs'
+import { buildRationale } from '@/lib/decisions/rationale'
 import DecisionBrandMark from '@/components/decisions/DecisionBrandMark'
 import DecisionExternalHandoffModal from '@/components/decisions/DecisionExternalHandoffModal'
 import {
@@ -33,7 +34,7 @@ import {
   type ResponseValue,
 } from '@/components/decisions/decisions-shared'
 
-export type ResolveStep = 'confirm' | 'options' | 'reject'
+export type ResolveStep = 'confirm' | 'options' | 'reject' | 'why'
 
 type Props = {
   decision: Decision
@@ -187,6 +188,13 @@ export default function DecisionResolveSheet({
   const title = decision.client_title || decision.title
   const pickedLabel = picked ? (picked.client_label || picked.label) : null
 
+  // The grounds behind the recommendation — built from what the engine stored,
+  // never invented. Empty only when the decision carries no reasoning at all.
+  const rationale = useMemo(
+    () => buildRationale(decision, { work: affected, recommendationLabel: pickedLabel }),
+    [decision, affected, pickedLabel],
+  )
+
   return (
     <div className="drs-overlay" role="presentation" onMouseDown={(e) => {
       if (e.target === e.currentTarget) onClose()
@@ -207,18 +215,31 @@ export default function DecisionResolveSheet({
 
         {step === 'confirm' && (
           <div className="drs-step">
-            <p className="drs-kicker">{project?.title || 'Entscheidung'}</p>
+            {/* The headline carries the whole message — what is being chosen and
+                what it changes. No kicker, no scattered small print. */}
             <h2 className="drs-title">
-              {pickedLabel ? `${pickedLabel} auswählen?` : title}
+              {pickedLabel ? `${pickedLabel} für ${project?.title || title} auswählen?` : title}
+              {consequence && <span className="drs-title-second"> {consequence}</span>}
             </h2>
-            {pickedLabel && (
-              <p className="drs-lead">
-                Tagro empfiehlt <span className="drs-em">{pickedLabel}</span>
-                {project?.title ? ` für ${project.title}` : ''}.
-              </p>
+
+            {(pickedLabel || picked?.description) && (
+              <div className="drs-tagro">
+                <p className="drs-tagro-head">
+                  <Sparkle size={14} weight="fill" aria-hidden />
+                  Tagro empfiehlt {pickedLabel}
+                </p>
+                {(decision.tagro_recommendation_reason?.trim() || picked?.description) && (
+                  <p className="drs-tagro-body">
+                    {decision.tagro_recommendation_reason?.trim() || picked?.description}
+                  </p>
+                )}
+                {rationale.length > 0 && (
+                  <button type="button" className="drs-tagro-why" onClick={() => setStep('why')}>
+                    Warum? <ArrowRight size={12} weight="regular" aria-hidden />
+                  </button>
+                )}
+              </div>
             )}
-            {picked?.description && <p className="drs-body">{picked.description}</p>}
-            {consequence && <p className="drs-consequence">{consequence}</p>}
 
             <div className="drs-actions">
               <button
@@ -247,8 +268,7 @@ export default function DecisionResolveSheet({
             <button type="button" className="drs-back" onClick={() => setStep('confirm')}>
               <ArrowLeft size={13} /> Zurück
             </button>
-            <h2 className="drs-title">Optionen</h2>
-            <p className="drs-lead">{title}</p>
+            <h2 className="drs-title">{title}</h2>
 
             <ul className="drs-options">
               {options.map(opt => {
@@ -279,16 +299,52 @@ export default function DecisionResolveSheet({
           </div>
         )}
 
+        {step === 'why' && (
+          <div className="drs-step">
+            <button type="button" className="drs-back" onClick={() => setStep('confirm')}>
+              <ArrowLeft size={13} /> Zurück
+            </button>
+            <h2 className="drs-title">
+              Warum Tagro das vorschlägt.
+              <span className="drs-title-second"> {title}</span>
+            </h2>
+
+            <div className="drs-why">
+              {rationale.map(block => (
+                <section key={block.label} className="drs-why-block">
+                  <p className="drs-why-label">{block.label}</p>
+                  <p className="drs-why-body">{block.body}</p>
+                  {block.detail && block.detail.length > 0 && (
+                    <ul className="drs-why-detail">
+                      {block.detail.map(line => <li key={line}>{line}</li>)}
+                    </ul>
+                  )}
+                </section>
+              ))}
+            </div>
+
+            <p className="drs-why-foot">
+              Tagro bereitet Entscheidungen auf und begründet sie — treffen tust du sie.
+            </p>
+
+            <div className="drs-actions">
+              <button type="button" className="drs-btn drs-btn--primary" onClick={() => setStep('confirm')}>
+                Verstanden
+              </button>
+            </div>
+          </div>
+        )}
+
         {step === 'reject' && (
           <div className="drs-step">
             <button type="button" className="drs-back" onClick={() => setStep('confirm')}>
               <ArrowLeft size={13} /> Zurück
             </button>
-            <h2 className="drs-title">Warum passt das nicht?</h2>
-            <p className="drs-lead">
-              Tagro nutzt deine Antwort, um die Entscheidung neu aufzubereiten. Die bisherige
-              Empfehlung bleibt im Verlauf erhalten.
-            </p>
+            <h2 className="drs-title">
+              Warum passt das nicht?
+              <span className="drs-title-second"> Tagro bereitet die Entscheidung damit neu auf,
+              die bisherige Empfehlung bleibt im Verlauf.</span>
+            </h2>
 
             <div className="drs-reasons">
               {REJECT_REASONS.map(r => (

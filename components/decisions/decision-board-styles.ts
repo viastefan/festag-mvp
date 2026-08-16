@@ -22,28 +22,61 @@ export const DECISION_BOARD_CSS = `
   --dcb-hair: rgba(27, 34, 51, 0.06);
   --dcb-red: #A8434A;
   --dcb-green: #4A7A5C;
-  --dcb-navy: #16202F;
+  /* Festag Primary Blue — attention only, and a primary action is attention. */
+  --dcb-primary: #5B647D;
+  --dcb-primary-hover: #4A5268;
+  --dcb-primary-soft: #E8ECF5;
+  --dcb-primary-edge: rgba(91, 100, 125, 0.20);
   --dcb-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --dcb-action-w: 192px;
+  --dcb-action-w: 196px;
+  --dcb-path-w: 34px;
 
   width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
   box-sizing: border-box;
-  /* Left padding clears the expanded floating sidebar; the shell overlays it. */
-  padding: clamp(28px, 4.5vh, 52px) clamp(24px, 3vw, 48px) clamp(72px, 12vh, 120px);
   color: var(--dcb-ink);
   font-family: var(--font-ui, 'Aeonik', system-ui, sans-serif);
   font-weight: 400;
 }
 
-/* ── Header row: headline left, controls right ── */
+/* The measure lives on an inner rail so the page can be centred in whatever
+   space the shell leaves, and grow on large displays instead of stranding the
+   content on the left. */
+.dcb-inner {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: clamp(28px, 4.5vh, 56px) clamp(20px, 3vw, 48px) clamp(72px, 12vh, 120px);
+}
+
+/* The floating sidebar overlays the canvas when expanded; give the rail room
+   so the board recentres to the right of it instead of sliding underneath. */
+html body .fas-root.is-sidebar-expanded .dcb-inner {
+  padding-left: clamp(20px, 3vw, 48px);
+  max-width: 1180px;
+  transform: translateX(24px);
+  transition: transform 0.28s var(--dcb-ease), max-width 0.28s var(--dcb-ease);
+}
+html body .fas-root.is-sidebar-collapsed .dcb-inner {
+  transition: transform 0.28s var(--dcb-ease), max-width 0.28s var(--dcb-ease);
+}
+
+/* Large displays: more measure, not more emptiness. */
+@media (min-width: 1500px) {
+  .dcb-inner { max-width: 1360px; }
+  .dcb { --dcb-action-w: 208px; }
+}
+@media (min-width: 1800px) {
+  .dcb-inner { max-width: 1480px; }
+}
+
+/* ── Header ── */
 .dcb-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 32px;
-  margin-bottom: clamp(24px, 4vh, 40px);
+  margin-bottom: clamp(20px, 3vh, 32px);
 }
 /* Sized so each clause holds one line on desktop — the sentence is the design,
    a mid-clause wrap breaks it. */
@@ -61,56 +94,94 @@ export const DECISION_BOARD_CSS = `
 .dcb-h1-line { display: block; }
 .dcb-h1-muted { color: var(--dcb-faint); }
 
-.dcb-tools {
+/* ── Lifecycle bar: tabs left, filter as plain text right ──
+   No button chrome on either. A container around a funnel icon reads as a
+   control panel; this has to read as a page. */
+.dcb-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  padding-top: 4px;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 0 0 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--dcb-line);
 }
-.dcb-tool {
+.dcb-views {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-left: calc(var(--dcb-path-w) * -0.25);
+}
+.dcb-view {
+  appearance: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.002em;
+  color: var(--dcb-muted);
+  cursor: pointer;
+  transition: color 0.16s var(--dcb-ease), background 0.16s var(--dcb-ease);
+}
+.dcb-view:hover { color: var(--dcb-ink); background: rgba(27, 34, 51, 0.035); }
+.dcb-view.is-on { color: var(--dcb-ink); }
+/* Empty states stay reachable but recede — present, not advertised. */
+.dcb-view.is-empty { color: var(--dcb-faint); }
+.dcb-view.is-empty .dcb-view-count { opacity: 0.55; }
+.dcb-view.is-empty:hover { color: var(--dcb-muted); }
+/* The active tab is marked by the primary path colour, not a filled pill. */
+.dcb-view.is-on .dcb-view-count {
+  background: var(--dcb-primary);
+  color: #FFFFFF;
+}
+.dcb-view-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 6px;
+  background: rgba(27, 34, 51, 0.06);
+  color: var(--dcb-muted);
+  font-size: 11.5px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.16s var(--dcb-ease), color 0.16s var(--dcb-ease);
+}
+
+.dcb-filter {
   appearance: none;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 15px;
-  border: 1px solid var(--dcb-line);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.62);
-  color: var(--dcb-soft);
+  gap: 7px;
+  border: none;
+  background: transparent;
+  padding: 6px 2px;
   font-family: inherit;
   font-size: 13.5px;
-  letter-spacing: 0.004em;
+  color: var(--dcb-muted);
   cursor: pointer;
-  transition: background 0.16s var(--dcb-ease), color 0.16s var(--dcb-ease), border-color 0.16s var(--dcb-ease);
+  transition: color 0.16s var(--dcb-ease);
 }
-.dcb-tool:hover { background: #FFFFFF; color: var(--dcb-ink); }
-.dcb-tool.is-on { border-color: rgba(27, 34, 51, 0.24); color: var(--dcb-ink); }
-.dcb-tool--icon { width: 38px; padding: 0; justify-content: center; }
-.dcb-tool-count {
+.dcb-filter:hover { color: var(--dcb-ink); }
+.dcb-filter.is-on { color: var(--dcb-primary); }
+.dcb-filter-count {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 17px; height: 17px; padding: 0 5px;
   border-radius: 5px;
-  background: var(--dcb-navy); color: #FFF;
+  background: var(--dcb-primary); color: #FFFFFF;
   font-size: 11px; line-height: 1;
 }
 
-/* ── Section labels ── */
-.dcb-label {
-  margin: 0 0 14px;
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--dcb-muted);
-}
-.dcb-rule { height: 1px; background: var(--dcb-line); margin: 0 0 4px; }
-
 /* ── Decision row ── */
+.dcb-list { position: relative; }
+
 .dcb-row {
   display: grid;
-  grid-template-columns: 30px 52px minmax(210px, 1.15fr) minmax(250px, 1.35fr) minmax(170px, 0.8fr) var(--dcb-action-w);
+  grid-template-columns: var(--dcb-path-w) 52px minmax(200px, 1.1fr) minmax(250px, 1.4fr) minmax(168px, 0.78fr) var(--dcb-action-w);
   align-items: start;
   gap: 0 24px;
   padding: 30px 0 32px;
@@ -120,22 +191,101 @@ export const DECISION_BOARD_CSS = `
 .dcb-row:last-child { border-bottom: none; }
 @keyframes dcbIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-/* Resolving: the row leaves to the left, the list closes behind it. */
-.dcb-row.is-resolving {
-  animation: dcbOut 0.42s var(--dcb-ease) forwards;
+/* ── The running path ──
+   One line through every open decision, a node per row. The line is the Flow
+   path from the design constitution: one path, Primary Blue, retracting when
+   the work is done. */
+.dcb-path {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  /* Cancel the row's own padding so the line runs edge to edge and joins the
+     next row's segment — otherwise the path breaks at every gap. */
+  margin: -30px 0 -32px;
+}
+.dcb-path-line {
+  width: 1.5px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--dcb-primary) 32%, transparent),
+    color-mix(in srgb, var(--dcb-primary) 22%, transparent));
+  flex: 0 0 auto;
+}
+.dcb-path-line--up { flex: 0 0 48px; }
+.dcb-path-line--down { flex: 1 1 auto; min-height: 20px; }
+/* The path starts at the first node and ends at the last — no loose ends. */
+.dcb-path-first .dcb-path-line--up,
+.dcb-path-single .dcb-path-line--up { background: none; }
+.dcb-path-last .dcb-path-line--down,
+.dcb-path-single .dcb-path-line--down { background: none; }
+
+.dcb-path-node {
+  position: relative;
+  width: 24px; height: 24px;
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--dcb-canvas);
+}
+/* Idle: a quiet ring with a soft centre — a station on the path. */
+.dcb-path-node::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--dcb-primary) 45%, transparent);
+  transition: inset 0.24s var(--dcb-ease), background 0.24s var(--dcb-ease), opacity 0.2s var(--dcb-ease);
+}
+.dcb-path-node.is-urgent::before { background: var(--dcb-primary); inset: 5px; }
+.dcb-path-node.is-overdue::before { background: var(--dcb-red); inset: 5px; }
+
+/* The check is drawn, not popped: ring sweeps, then the tick writes itself. */
+.dcb-path-check {
+  position: absolute;
+  inset: 0;
+  width: 24px; height: 24px;
+  opacity: 0;
+  transform: rotate(-90deg);
   pointer-events: none;
 }
-@keyframes dcbOut {
-  to { opacity: 0; transform: translateX(-26px); }
+.dcb-path-ring {
+  stroke: var(--dcb-primary);
+  stroke-dasharray: 63;
+  stroke-dashoffset: 63;
+  fill: none;
+}
+.dcb-path-tick {
+  stroke: var(--dcb-primary);
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  fill: none;
 }
 
-.dcb-num {
-  margin: 0;
-  padding-top: 15px;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: var(--dcb-faint);
-  letter-spacing: 0.02em;
+.dcb-row.is-done .dcb-path-node::before { opacity: 0; inset: 12px; }
+.dcb-row.is-done .dcb-path-check { opacity: 1; }
+.dcb-row.is-done .dcb-path-ring { animation: dcbRing 0.5s var(--dcb-ease) forwards; }
+.dcb-row.is-done .dcb-path-tick { animation: dcbTick 0.32s var(--dcb-ease) 0.42s forwards; }
+@keyframes dcbRing { to { stroke-dashoffset: 0; } }
+@keyframes dcbTick { to { stroke-dashoffset: 0; } }
+
+/* Held for the beat, then the row retracts and the list closes behind it. */
+.dcb-row.is-done {
+  animation: dcbIn 0.4s var(--dcb-ease) both, dcbSettle 0.6s var(--dcb-ease) 4.4s forwards;
+  pointer-events: none;
+}
+.dcb-row.is-done .dcb-title,
+.dcb-row.is-done .dcb-project,
+.dcb-row.is-done .dcb-rec,
+.dcb-row.is-done .dcb-meta,
+.dcb-row.is-done .dcb-actions,
+.dcb-row.is-done .dcb-icon {
+  transition: opacity 0.4s var(--dcb-ease);
+  opacity: 0.4;
+}
+@keyframes dcbSettle {
+  to { opacity: 0; transform: translateY(-6px); }
 }
 
 .dcb-icon {
@@ -253,29 +403,59 @@ export const DECISION_BOARD_CSS = `
   justify-content: center;
   position: relative;
   width: 100%;
-  height: 40px;
+  height: 41px;
   padding: 0 16px;
   border: 1px solid var(--dcb-line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.55);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.62);
   color: var(--dcb-soft);
   font-family: inherit;
   font-weight: 400;
   font-size: 13.5px;
   letter-spacing: 0.004em;
   cursor: pointer;
-  transition: background 0.16s var(--dcb-ease), border-color 0.16s var(--dcb-ease), color 0.16s var(--dcb-ease), opacity 0.16s var(--dcb-ease);
+  transition: background 0.18s var(--dcb-ease), border-color 0.18s var(--dcb-ease),
+              color 0.18s var(--dcb-ease), box-shadow 0.18s var(--dcb-ease),
+              transform 0.18s var(--dcb-ease), opacity 0.16s var(--dcb-ease);
 }
-.dcb-btn:hover:not(:disabled) { background: #FFFFFF; color: var(--dcb-ink); }
-.dcb-btn:focus-visible { outline: 2px solid rgba(27, 34, 51, 0.35); outline-offset: 2px; }
-.dcb-btn:disabled { opacity: 0.5; cursor: default; }
+.dcb-btn:hover:not(:disabled) {
+  background: #FFFFFF;
+  border-color: color-mix(in srgb, var(--dcb-primary) 30%, transparent);
+  color: var(--dcb-ink);
+}
+.dcb-btn:active:not(:disabled) { transform: translateY(0.5px); }
+.dcb-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--dcb-primary) 65%, transparent);
+  outline-offset: 2px;
+}
+.dcb-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* Primary Blue carries the one action that matters — never black. */
 .dcb-btn--primary {
-  background: var(--dcb-navy);
-  border-color: var(--dcb-navy);
+  background: var(--dcb-primary);
+  border-color: var(--dcb-primary);
   color: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(27, 34, 51, 0.08), 0 6px 16px -10px rgba(91, 100, 125, 0.75);
 }
-.dcb-btn--primary:hover:not(:disabled) { background: #0D1622; border-color: #0D1622; color: #FFFFFF; }
-/* The arrow sits at the right edge without shifting the centred label. */
+.dcb-btn--primary:hover:not(:disabled) {
+  background: var(--dcb-primary-hover);
+  border-color: var(--dcb-primary-hover);
+  color: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(27, 34, 51, 0.1), 0 10px 22px -12px rgba(91, 100, 125, 0.9);
+}
+/* The third action is a text button — three equal boxes is a toolbar, not a
+   decision. Same width and height, so the column still aligns. */
+.dcb-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--dcb-muted);
+}
+.dcb-btn--ghost:hover:not(:disabled) {
+  background: rgba(27, 34, 51, 0.04);
+  border-color: transparent;
+  color: var(--dcb-ink);
+}
+
 .dcb-btn-arrow {
   position: absolute;
   right: 14px;
@@ -283,6 +463,31 @@ export const DECISION_BOARD_CSS = `
   transition: transform 0.2s var(--dcb-ease);
 }
 .dcb-btn--primary:hover:not(:disabled) .dcb-btn-arrow { transform: translateX(2px); }
+
+/* ── "Warum?" — the grounds, always one click away ── */
+.dcb-why {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 12px 0 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  max-width: 100%;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--dcb-primary);
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--dcb-primary) 26%, transparent);
+  transition: color 0.16s var(--dcb-ease), border-color 0.16s var(--dcb-ease);
+}
+.dcb-why:hover {
+  color: var(--dcb-primary-hover);
+  border-bottom-color: color-mix(in srgb, var(--dcb-primary) 55%, transparent);
+}
 
 /* ── Automatic decisions footer ── */
 .dcb-auto { margin-top: clamp(30px, 5vh, 46px); }
@@ -385,8 +590,8 @@ export const DECISION_BOARD_CSS = `
   display: flex; align-items: center; gap: 10px;
   padding: 11px 18px;
   border-radius: 10px;
-  background: var(--dcb-navy);
-  color: #F2F4F7;
+  background: var(--dcb-primary);
+  color: #FFFFFF;
   font-size: 13.5px;
   letter-spacing: 0.004em;
   box-shadow: 0 12px 34px rgba(15, 20, 30, 0.28);
@@ -483,7 +688,10 @@ html[data-theme="classic-dark"] .dcb {
   --dcb-hair: rgba(255, 255, 255, 0.06);
   --dcb-red: #E0787E;
   --dcb-green: #78B090;
-  --dcb-navy: #F0F2F5;
+  --dcb-primary: #98A2BE;
+  --dcb-primary-hover: #AEB7CE;
+  --dcb-primary-soft: rgba(152, 162, 190, 0.16);
+  --dcb-primary-edge: rgba(152, 162, 190, 0.26);
 }
 html[data-theme="dark"] .dcb-tool,
 html[data-theme="classic-dark"] .dcb-tool,
@@ -547,11 +755,11 @@ export const DECISION_SHEET_CSS = `
 
 .drs-panel {
   position: relative;
-  width: min(468px, 100%);
+  width: min(516px, 100%);
   max-height: min(82vh, 720px);
   overflow-y: auto;
   box-sizing: border-box;
-  padding: 30px 30px 26px;
+  padding: 34px 34px 28px;
   border-radius: 16px;
   background: #FDFBF7;
   border: 1px solid rgba(27, 34, 51, 0.08);
@@ -594,17 +802,45 @@ export const DECISION_SHEET_CSS = `
 }
 .drs-back:hover { color: #1B2233; }
 
-.drs-kicker {
-  margin: 0 0 10px;
-  font-size: 11px; letter-spacing: 0.11em; text-transform: uppercase;
-  color: #8A93A5;
-}
+/* The headline IS the content: one or two sentences that say everything.
+   The second sentence carries the consequence, set muted so the ask stays
+   first — but at the same size, because it is the same statement. */
 .drs-title {
-  margin: 0 0 12px;
+  margin: 0 0 22px;
   font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
-  font-weight: 400; font-size: 23px; line-height: 1.3;
-  letter-spacing: -0.006em; color: #1B2233;
+  font-weight: 400; font-size: clamp(22px, 2.2vw, 27px); line-height: 1.34;
+  letter-spacing: -0.008em; color: #1B2233;
+  text-wrap: balance;
 }
+.drs-title-second { color: #8A93A5; }
+
+/* ── Tagro's proposal, clearly marked ──
+   Everything Tagro authored lives in this one pale blue field, so the reader
+   never has to guess which words are the machine's. */
+.drs-tagro {
+  margin: 0 0 24px;
+  padding: 16px 18px 15px;
+  border-radius: 13px;
+  background: #E8ECF5;
+  border: 1px solid rgba(91, 100, 125, 0.20);
+}
+.drs-tagro-head {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 7px;
+  font-size: 15px; line-height: 1.4; color: #3E465C;
+}
+.drs-tagro-head svg { color: #5B647D; flex-shrink: 0; }
+.drs-tagro-body {
+  margin: 0;
+  font-size: 14.5px; line-height: 1.6; color: #5A6274;
+}
+.drs-tagro-why {
+  appearance: none; border: none; background: transparent; padding: 0;
+  margin: 12px 0 0;
+  display: inline-flex; align-items: center; gap: 5px;
+  font: inherit; font-size: 13.5px; color: #5B647D; cursor: pointer;
+}
+.drs-tagro-why:hover { color: #3E465C; }
 .drs-lead { margin: 0 0 10px; font-size: 14.5px; line-height: 1.6; color: #5A6274; }
 .drs-em { color: #1B2233; }
 .drs-body { margin: 0 0 10px; font-size: 13.5px; line-height: 1.62; color: #8A93A5; }
@@ -631,8 +867,9 @@ export const DECISION_SHEET_CSS = `
 }
 .drs-btn:hover:not(:disabled) { background: rgba(27, 34, 51, 0.045); color: #1B2233; }
 .drs-btn:disabled { opacity: 0.5; cursor: default; }
-.drs-btn--primary { background: #16202F; border-color: #16202F; color: #FFF; }
-.drs-btn--primary:hover:not(:disabled) { background: #0D1622; border-color: #0D1622; color: #FFF; }
+.drs-btn--primary { background: #5B647D; border-color: #5B647D; color: #FFF;
+  box-shadow: 0 1px 2px rgba(27,34,51,.08), 0 8px 20px -12px rgba(91,100,125,.85); }
+.drs-btn--primary:hover:not(:disabled) { background: #4A5268; border-color: #4A5268; color: #FFF; }
 .drs-btn-arrow { position: absolute; right: 16px; }
 
 .drs-options { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -647,7 +884,10 @@ export const DECISION_SHEET_CSS = `
   transition: background 0.16s ease, border-color 0.16s ease;
 }
 .drs-option:hover { background: rgba(27, 34, 51, 0.035); }
-.drs-option.is-picked { border-color: rgba(27, 34, 51, 0.28); }
+.drs-option.is-picked {
+  border-color: color-mix(in srgb, #5B647D 55%, transparent);
+  background: rgba(91, 100, 125, 0.06);
+}
 .drs-option-main { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .drs-option-name {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -668,7 +908,7 @@ export const DECISION_SHEET_CSS = `
   transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
 .drs-reason:hover { background: rgba(27, 34, 51, 0.04); }
-.drs-reason.is-on { background: #16202F; border-color: #16202F; color: #FFF; }
+.drs-reason.is-on { background: #5B647D; border-color: #5B647D; color: #FFF; }
 
 .drs-note {
   width: 100%; box-sizing: border-box; resize: vertical;
@@ -720,7 +960,7 @@ export const DECISION_SHEET_CSS = `
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dcf-chip:hover { background: rgba(27, 34, 51, 0.04); }
-.dcf-chip.is-on { background: #16202F; border-color: #16202F; color: #FFF; }
+.dcf-chip.is-on { background: #5B647D; border-color: #5B647D; color: #FFF; }
 .dcf-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-top: 18px; padding-top: 14px;
@@ -733,8 +973,8 @@ export const DECISION_SHEET_CSS = `
 .dcf-clear:hover { color: #1B2233; }
 .dcf-done {
   appearance: none; height: 32px; padding: 0 14px;
-  border: 1px solid #16202F; border-radius: 8px;
-  background: #16202F; color: #FFF;
+  border: 1px solid #5B647D; border-radius: 8px;
+  background: #5B647D; color: #FFF;
   font: inherit; font-size: 12.5px; cursor: pointer;
 }
 
@@ -810,5 +1050,230 @@ html[data-theme="classic-dark"] .drs-overlay { background: rgba(0, 0, 0, 0.5); }
 
 @media (prefers-reduced-motion: reduce) {
   .drs-overlay, .drs-panel, .drs-step, .dcf-pop { animation: none !important; }
+}
+
+/* ── Grounds ("Warum Tagro das vorschlägt") ── */
+.drs-why { display: flex; flex-direction: column; gap: 18px; margin: 4px 0 0; }
+.drs-why-block { }
+.drs-why-label {
+  margin: 0 0 5px;
+  font-size: 13px; color: #5B647D;
+}
+.drs-why-body {
+  margin: 0;
+  font-size: 15px; line-height: 1.6; color: #1B2233;
+}
+.drs-why-detail {
+  list-style: none; margin: 9px 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.drs-why-detail li {
+  position: relative; padding-left: 14px;
+  font-size: 13.5px; line-height: 1.55; color: #8A93A5;
+}
+.drs-why-detail li::before {
+  content: ''; position: absolute; left: 0; top: 8px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(91, 100, 125, 0.5);
+}
+.drs-why-foot {
+  margin: 22px 0 0; padding-top: 16px;
+  border-top: 1px solid rgba(27, 34, 51, 0.07);
+  font-size: 13.5px; line-height: 1.55; color: #8A93A5;
+}
+
+html[data-theme="dark"] .drs-tagro,
+html[data-theme="classic-dark"] .drs-tagro {
+  background: rgba(152, 162, 190, 0.14);
+  border-color: rgba(152, 162, 190, 0.22);
+}
+html[data-theme="dark"] .drs-tagro-head,
+html[data-theme="classic-dark"] .drs-tagro-head { color: #E8EAF0; }
+html[data-theme="dark"] .drs-tagro-head svg,
+html[data-theme="classic-dark"] .drs-tagro-head svg,
+html[data-theme="dark"] .drs-tagro-why,
+html[data-theme="classic-dark"] .drs-tagro-why,
+html[data-theme="dark"] .drs-why-label,
+html[data-theme="classic-dark"] .drs-why-label { color: #AEB7CE; }
+html[data-theme="dark"] .drs-tagro-body,
+html[data-theme="classic-dark"] .drs-tagro-body { color: #A9B0BF; }
+html[data-theme="dark"] .drs-title-second,
+html[data-theme="classic-dark"] .drs-title-second,
+html[data-theme="dark"] .drs-why-detail li,
+html[data-theme="classic-dark"] .drs-why-detail li,
+html[data-theme="dark"] .drs-why-foot,
+html[data-theme="classic-dark"] .drs-why-foot { color: #838B9C; }
+html[data-theme="dark"] .drs-why-body,
+html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
+
+/* ── Detail page ──
+   Same canvas and measure as the board; the difference is depth, not style.
+   Type is a step larger throughout because this page is read, not scanned. */
+.dcd-loading { font-size: 15px; color: var(--dcb-muted); padding: 8px 0; }
+
+.dcd-back {
+  appearance: none; border: none; background: transparent; padding: 0;
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 0 0 clamp(22px, 3.5vh, 36px);
+  font-family: inherit; font-size: 13.5px; color: var(--dcb-muted); cursor: pointer;
+  transition: color 0.16s var(--dcb-ease);
+}
+.dcd-back:hover { color: var(--dcb-ink); }
+.dcd-back-cta { width: auto; max-width: 240px; margin-top: 20px; }
+
+.dcd-h1 {
+  margin: 0 0 14px;
+  max-width: 24ch;
+  font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
+  font-weight: 400;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.22;
+  letter-spacing: -0.014em;
+  color: var(--dcb-ink);
+  text-wrap: balance;
+}
+.dcd-h1-second { color: var(--dcb-faint); }
+.dcd-lead { margin: 0; font-size: 16px; line-height: 1.6; color: var(--dcb-soft); }
+.dcd-context {
+  margin: 0 0 clamp(26px, 4vh, 40px);
+  font-size: 14px; color: var(--dcb-muted);
+}
+
+/* Tagro's field — same pale blue as the sheet, so the source is unmistakable. */
+.dcd-tagro {
+  margin: 0 0 clamp(26px, 4vh, 38px);
+  padding: clamp(20px, 2.4vw, 26px);
+  border-radius: 15px;
+  background: var(--dcb-primary-soft);
+  border: 1px solid var(--dcb-primary-edge);
+  max-width: 720px;
+}
+.dcd-tagro-head {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 10px;
+  font-size: 13.5px; letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--dcb-primary) 88%, var(--dcb-ink));
+}
+.dcd-tagro-head svg { color: var(--dcb-primary); }
+.dcd-tagro-pick {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 12px;
+  font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
+  font-weight: 400; font-size: clamp(23px, 2.4vw, 30px); line-height: 1.24;
+  letter-spacing: -0.008em; color: var(--dcb-ink);
+}
+.dcd-tagro-why {
+  margin: 0; max-width: 56ch;
+  font-size: 15.5px; line-height: 1.62; color: var(--dcb-soft);
+}
+.dcd-tagro-confidence {
+  display: flex; align-items: center; gap: 10px;
+  margin: 16px 0 0;
+  font-size: 13px; color: var(--dcb-muted);
+}
+.dcd-meter {
+  position: relative; width: 78px; height: 3px;
+  border-radius: 2px; overflow: hidden;
+  background: color-mix(in srgb, var(--dcb-primary) 22%, transparent);
+}
+.dcd-meter span {
+  position: absolute; inset: 0 auto 0 0;
+  border-radius: 2px; background: var(--dcb-primary);
+}
+
+.dcd-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px 32px;
+  max-width: 720px;
+  margin: 0 0 clamp(26px, 4vh, 36px);
+  padding: clamp(18px, 2.4vh, 24px) 0;
+  border-top: 1px solid var(--dcb-line);
+  border-bottom: 1px solid var(--dcb-line);
+}
+.dcd-fact-key {
+  margin: 0 0 6px;
+  font-size: 12.5px; color: var(--dcb-muted);
+}
+.dcd-fact-val {
+  display: flex; align-items: center; gap: 7px;
+  margin: 0;
+  font-size: 16px; line-height: 1.4; color: var(--dcb-ink);
+}
+.dcd-fact-val.is-red { color: var(--dcb-red); }
+
+.dcd-actions {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+  margin: 0 0 clamp(34px, 5vh, 52px);
+}
+.dcd-cta { width: auto; min-width: 190px; height: 46px; font-size: 14.5px; }
+.dcd-note { margin: 0; font-size: 13.5px; color: var(--dcb-muted); }
+
+.dcd-section {
+  margin: 0 0 clamp(32px, 5vh, 48px);
+  max-width: 760px;
+}
+.dcd-h2 {
+  margin: 0 0 18px;
+  font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
+  font-weight: 400; font-size: clamp(19px, 1.9vw, 24px); line-height: 1.3;
+  letter-spacing: -0.006em; color: var(--dcb-ink);
+}
+
+.dcd-grounds { display: flex; flex-direction: column; gap: 22px; }
+.dcd-ground-key { margin: 0 0 6px; font-size: 13.5px; color: var(--dcb-primary); }
+.dcd-ground-body { margin: 0; font-size: 16px; line-height: 1.62; color: var(--dcb-ink); }
+.dcd-ground-detail {
+  list-style: none; margin: 10px 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.dcd-ground-detail li {
+  position: relative; padding-left: 16px;
+  font-size: 14.5px; line-height: 1.55; color: var(--dcb-muted);
+}
+.dcd-ground-detail li::before {
+  content: ''; position: absolute; left: 0; top: 9px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: color-mix(in srgb, var(--dcb-primary) 55%, transparent);
+}
+
+.dcd-tasks, .dcd-trail { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.dcd-task {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--dcb-hair);
+  font-size: 15.5px; line-height: 1.5; color: var(--dcb-muted);
+}
+.dcd-task:last-child { border-bottom: none; }
+.dcd-task-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--dcb-muted); flex-shrink: 0; transform: translateY(-2px);
+}
+.dcd-task.is-blocked .dcd-task-dot { background: var(--dcb-primary); }
+.dcd-task-name { color: var(--dcb-ink); flex: 1 1 auto; min-width: 0; }
+.dcd-task-kind { font-size: 13px; flex-shrink: 0; }
+
+.dcd-trail-item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; }
+.dcd-trail-dot {
+  width: 5px; height: 5px; border-radius: 50%; margin-top: 8px;
+  background: color-mix(in srgb, var(--dcb-primary) 45%, transparent); flex-shrink: 0;
+}
+.dcd-trail-item:first-child .dcd-trail-dot { background: var(--dcb-primary); }
+.dcd-trail-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dcd-trail-title { font-size: 15px; line-height: 1.45; color: var(--dcb-ink); }
+.dcd-trail-meta { font-size: 13px; color: var(--dcb-muted); }
+
+.dcd-fab { position: fixed; right: 28px; bottom: 28px; z-index: 40; }
+
+@media (max-width: 760px) {
+  .dcd-h1 { font-size: 27px; max-width: none; }
+  .dcd-tagro-pick { font-size: 22px; }
+  .dcd-facts { grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+  .dcd-cta { width: 100%; min-width: 0; height: 48px; }
+  .dcd-actions { gap: 9px; }
+  .dcd-fab { right: 16px; bottom: 88px; }
+}
+@media (max-width: 420px) {
+  .dcd-facts { grid-template-columns: 1fr; }
 }
 `.trim()

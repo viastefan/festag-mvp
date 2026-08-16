@@ -3,12 +3,10 @@
 /**
  * /decisions — the FESTAG decision board.
  *
- * One editorial list of the few things that genuinely need a human. Everything
- * the v2 orchestration engine knows (urgency_score, escalation_level, due_at +
- * effective_due_source, reversibility, queued, auto-resolution) drives the
- * order and the words, but only the parts that help someone decide are on
- * screen — the rest lives one level deeper, in the resolve sheet and the
- * detail route.
+ * One editorial list of the few things that genuinely need a human, threaded on
+ * a single running path. Everything the v2 orchestration engine knows drives
+ * the order and the words; only what helps someone decide is on screen, and the
+ * grounds behind every recommendation are one click away rather than absent.
  *
  * Writes go through the existing endpoints (/decide, /delegate, /discuss), so
  * authority, propagation to tasks, and the audit trail stay server-side.
@@ -16,7 +14,7 @@
 
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowRight, Check, FunnelSimple, SlidersHorizontal } from '@phosphor-icons/react'
+import { ArrowRight, Check, FunnelSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import {
@@ -28,10 +26,11 @@ import {
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
 import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
-import DecisionBoardRow, { type RowAction } from '@/components/decisions/DecisionBoardRow'
+import DecisionBoardRow, { type PathPosition, type RowAction } from '@/components/decisions/DecisionBoardRow'
 import DecisionResolveSheet, { type ResolveStep } from '@/components/decisions/DecisionResolveSheet'
 import DecisionFilterPopover, {
-  EMPTY_FILTERS, applyDecisionFilters, countActiveFilters, type DecisionFilters,
+  EMPTY_FILTERS, VIEWS, applyDecisionFilters, countActiveFilters, matchesView,
+  type DecisionFilters, type DecisionView,
 } from '@/components/decisions/DecisionFilterPopover'
 import { DECISION_BOARD_CSS, DECISION_SHEET_CSS } from '@/components/decisions/decision-board-styles'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
@@ -48,6 +47,9 @@ type Payload = {
 
 const EMPTY_PAYLOAD: Payload = { decisions: [], projects: {}, affected: {}, recommendations: {} }
 
+/** How long a completed decision holds its check before the row retracts. */
+const COMPLETION_HOLD_MS = 5000
+
 export default function DecisionsPage() {
   return (
     <Suspense fallback={<BoardShell><BoardSkeleton /></BoardShell>}>
@@ -62,7 +64,7 @@ function BoardShell({ children }: { children: React.ReactNode }) {
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_BOARD_CSS }} />
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_SHEET_CSS }} />
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
-      {children}
+      <div className="dcb-inner">{children}</div>
     </div>
   )
 }
@@ -71,13 +73,11 @@ function BoardSkeleton() {
   return (
     <>
       <div className="dcb-top">
-        <div style={{ width: 'min(520px, 100%)' }}>
+        <div style={{ width: 'min(560px, 100%)' }}>
           <div className="dcb-skeleton-bar" style={{ height: 26, width: '92%' }} />
           <div className="dcb-skeleton-bar" style={{ height: 26, width: '58%' }} />
         </div>
       </div>
-      <p className="dcb-label">Offen</p>
-      <div className="dcb-rule" />
       {[0, 1, 2].map(i => (
         <div key={i} className="dcb-skeleton">
           <div className="dcb-skeleton-bar" style={{ width: '38%' }} />
@@ -106,10 +106,10 @@ function DecisionsBoard() {
   const filterBtnRef = useRef<HTMLButtonElement>(null)
 
   const [autoOpen, setAutoOpen] = useState(false)
-  const [resolvingId, setResolvingId] = useState<string | null>(null)
+  /** Answered just now — the check is drawn and held before the row retracts. */
+  const [completing, setCompleting] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<{ title: string; sub?: string } | null>(null)
 
-  // The focused resolve surface, and the full drawer it can escalate to.
   const [sheet, setSheet] = useState<{ id: string; step: ResolveStep } | null>(null)
   const [sheetOptions, setSheetOptions] = useState<DecOption[]>([])
   const [drawerId, setDrawerId] = useState<string | null>(searchParams?.get('open') || null)
@@ -150,7 +150,6 @@ function DecisionsBoard() {
       }
 
       if (!res.ok) {
-        // 401 on a preview route is the signed-out case, not a failure.
         if (res.status !== 401) setLoadError(true)
         if (!blockDemo) demo()
         return
@@ -178,11 +177,8 @@ function DecisionsBoard() {
   }, [searchParams])
 
   useEffect(() => { void load() }, [load])
-
   useEffect(() => { setDrawerId(searchParams?.get('open') || null) }, [searchParams])
 
-  // Realtime — another user or the engine's tick can resolve a decision while
-  // this list is open; the row updates rather than going stale.
   useEffect(() => {
     if (!me || usingDemo) return
     const ch = (supabase as any)
@@ -215,19 +211,26 @@ function DecisionsBoard() {
     [data.affected],
   )
 
-  const { open, auto } = useMemo(() => {
-    const openRows: Decision[] = []
-    const autoRows: Decision[] = []
-    for (const d of data.decisions) {
-      if (isOpenDecisionStatus(d.status)) openRows.push(d)
-      else if (d.tagro_delegation_reason) autoRows.push(d)
-    }
-    return { open: sortByAttention(openRows), auto: autoRows }
-  }, [data.decisions])
+  /**
+   * The visible set. A just-answered decision no longer matches the "Offen"
+   * view, but it stays in its ranked slot for the completion beat so the check
+   * is seen where the decision was — then it retracts.
+   */
+  const visible = useMemo(() => {
+    const filtered = applyDecisionFilters(data.decisions, filters, blockedCount)
+    const shown = new Set(filtered.map(d => d.id))
+    const held = data.decisions.filter(d => completing.has(d.id) && !shown.has(d.id))
+    return sortByAttention([...filtered, ...held])
+  }, [data.decisions, filters, blockedCount, completing])
 
-  const visible = useMemo(
-    () => applyDecisionFilters(open, filters, blockedCount),
-    [open, filters, blockedCount],
+  const open = useMemo(
+    () => data.decisions.filter(d => isOpenDecisionStatus(d.status)),
+    [data.decisions],
+  )
+
+  const auto = useMemo(
+    () => data.decisions.filter(d => !isOpenDecisionStatus(d.status) && d.tagro_delegation_reason),
+    [data.decisions],
   )
 
   const headline = useMemo(() => buildDecisionHeadline({
@@ -236,15 +239,25 @@ function DecisionsBoard() {
     actionable: open.filter(canAct).length,
   }), [data.decisions, data.projects, open, canAct])
 
+  /** Counts per tab, so the lifecycle is legible before clicking. */
+  const viewCounts = useMemo(() => {
+    const counts: Record<DecisionView, number> = {
+      offen: 0, kritisch: 0, abgeschlossen: 0, archiviert: 0, alle: data.decisions.length,
+    }
+    for (const d of data.decisions) {
+      for (const v of VIEWS) {
+        if (v.id !== 'alle' && matchesView(d, v.id)) counts[v.id] += 1
+      }
+    }
+    return counts
+  }, [data.decisions])
+
   const activeFilters = countActiveFilters(filters)
   const projectFor = useCallback(
     (d: Decision) => (d.project_id ? data.projects[d.project_id] ?? null : null),
     [data.projects],
   )
-  /**
-   * The recommended option. The API resolves it for real rows; legacy rows and
-   * the demo bundle still carry it as `recommended_option` + `options_json`.
-   */
+
   const recFor = useCallback((d: Decision): DecOption | null => {
     const fromApi = data.recommendations[d.id]
     if (fromApi) return fromApi
@@ -266,15 +279,10 @@ function DecisionsBoard() {
     }))
   }
 
-  // Opening the alternatives needs the real option rows; the list only carries
-  // the recommended one.
   const loadOptions = useCallback(async (d: Decision) => {
     const fallback = (d.options_json || []).map(o => ({ id: o.id, label: o.label, description: o.hint }))
     const rec = recFor(d)
-    if (d.id.startsWith('mock-')) {
-      setSheetOptions(fallback)
-      return
-    }
+    if (d.id.startsWith('mock-')) { setSheetOptions(fallback); return }
     setSheetOptions(rec ? [rec] : fallback)
     try {
       const res = await fetch(`/api/decisions/${d.id}?expand=options`, { credentials: 'include' })
@@ -289,17 +297,18 @@ function DecisionsBoard() {
   }, [recFor])
 
   const handleAction = useCallback((d: Decision, action: RowAction) => {
-    if (action === 'details') {
-      router.push(`/decisions/${d.id}`)
-      return
-    }
+    if (action === 'details') { router.push(`/decisions/${d.id}`); return }
     void loadOptions(d)
-    setSheet({ id: d.id, step: action === 'options' ? 'options' : 'confirm' })
+    setSheet({
+      id: d.id,
+      step: action === 'options' ? 'options' : action === 'why' ? 'why' : 'confirm',
+    })
   }, [router, loadOptions])
 
   /**
-   * A resolved decision leaves the board: confirm quietly, animate the row out,
-   * then drop it from the open list. The headline count follows automatically.
+   * A resolved decision confirms, holds its check for a beat, then retracts
+   * into the closed view. The headline count follows immediately — the number
+   * is the truth, the animation is the courtesy.
    */
   const handleResolved = useCallback((id: string, patch: Partial<Decision>) => {
     const stillOpen = patch.status ? isOpenDecisionStatus(patch.status) : true
@@ -311,9 +320,15 @@ function DecisionsBoard() {
       return
     }
 
-    setResolvingId(id)
-    setToast({ title: 'Entscheidung freigegeben.', sub: 'Tagro bereitet die nächsten Schritte vor.' })
-    window.setTimeout(() => setResolvingId(null), 460)
+    setCompleting(curr => new Set(curr).add(id))
+    setToast({ title: 'Entscheidung getroffen.', sub: 'Tagro bereitet die nächsten Schritte vor.' })
+    window.setTimeout(() => {
+      setCompleting(curr => {
+        const next = new Set(curr)
+        next.delete(id)
+        return next
+      })
+    }, COMPLETION_HOLD_MS)
   }, [])
 
   useEffect(() => {
@@ -331,6 +346,13 @@ function DecisionsBoard() {
     params.delete('open')
     const qs = params.toString()
     router.replace(qs ? `/decisions?${qs}` : '/decisions', { scroll: false })
+  }
+
+  function pathPosition(i: number, total: number): PathPosition {
+    if (total === 1) return 'single'
+    if (i === 0) return 'first'
+    if (i === total - 1) return 'last'
+    return 'middle'
   }
 
   if (loading && data.decisions.length === 0) {
@@ -352,29 +374,6 @@ function DecisionsBoard() {
             </span>
           )}
         </h1>
-
-        <div className="dcb-tools">
-          <button
-            ref={filterBtnRef}
-            type="button"
-            className={`dcb-tool${activeFilters > 0 ? ' is-on' : ''}`}
-            onClick={() => setFilterAnchor(filterBtnRef.current?.getBoundingClientRect() ?? null)}
-            aria-haspopup="dialog"
-            aria-expanded={!!filterAnchor}
-          >
-            <FunnelSimple size={15} weight="regular" aria-hidden />
-            Filter
-            {activeFilters > 0 && <span className="dcb-tool-count">{activeFilters}</span>}
-          </button>
-          <button
-            type="button"
-            className="dcb-tool dcb-tool--icon"
-            onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-            aria-label="Ansicht und Befehle"
-          >
-            <SlidersHorizontal size={15} weight="regular" aria-hidden />
-          </button>
-        </div>
       </div>
 
       {usingDemo && (
@@ -388,10 +387,45 @@ function DecisionsBoard() {
         </p>
       )}
 
+      {/* Lifecycle tabs left, filter as plain text right — no button chrome. */}
+      <div className="dcb-bar">
+        <div className="dcb-views" role="tablist" aria-label="Ansicht">
+          {/* Every state stays visible even at zero — the lifecycle is part of
+              understanding the system, not a list that hides when empty. */}
+          {VIEWS.map(v => {
+            const count = viewCounts[v.id]
+            return (
+              <button
+                key={v.id}
+                type="button"
+                role="tab"
+                aria-selected={filters.view === v.id}
+                className={`dcb-view${filters.view === v.id ? ' is-on' : ''}${count === 0 ? ' is-empty' : ''}`}
+                onClick={() => setFilters(f => ({ ...f, view: v.id }))}
+              >
+                {v.label}
+                <span className="dcb-view-count">{count}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <button
+          ref={filterBtnRef}
+          type="button"
+          className={`dcb-filter${activeFilters > 0 ? ' is-on' : ''}`}
+          onClick={() => setFilterAnchor(filterBtnRef.current?.getBoundingClientRect() ?? null)}
+          aria-haspopup="dialog"
+          aria-expanded={!!filterAnchor}
+        >
+          <FunnelSimple size={14} weight="regular" aria-hidden />
+          Filter
+          {activeFilters > 0 && <span className="dcb-filter-count">{activeFilters}</span>}
+        </button>
+      </div>
+
       {visible.length > 0 ? (
-        <>
-          <p className="dcb-label">Offen</p>
-          <div className="dcb-rule" />
+        <div className="dcb-list">
           {visible.map((d, i) => (
             <DecisionBoardRow
               key={d.id}
@@ -399,29 +433,34 @@ function DecisionsBoard() {
               project={projectFor(d)}
               affected={data.affected[d.id]}
               recommended={recFor(d)}
-              index={i}
-              resolving={resolvingId === d.id}
+              position={pathPosition(i, visible.length)}
+              completing={completing.has(d.id)}
               canAct={canAct(d)}
               onAction={(action) => handleAction(d, action)}
             />
           ))}
-        </>
+        </div>
       ) : (
         <div className="dcb-empty">
           <p className="dcb-empty-title">
-            {open.length > 0 ? 'Keine Entscheidung passt zum Filter.' : 'Alles entschieden.'}
+            {activeFilters > 0
+              ? 'Keine Entscheidung passt zum Filter.'
+              : filters.view === 'offen'
+                ? 'Alles entschieden.'
+                : 'Hier ist noch nichts.'}
           </p>
           <p className="dcb-empty-copy">
-            {open.length > 0
-              ? 'Setze den Filter zurück, um alle offenen Entscheidungen zu sehen.'
-              : 'Tagro hat aktuell nichts, das deine Aufmerksamkeit benötigt. Wir beobachten das Projekt weiter.'}
+            {activeFilters > 0
+              ? 'Setze den Filter zurück, um wieder alle zu sehen.'
+              : filters.view === 'offen'
+                ? 'Tagro hat aktuell nichts, das deine Aufmerksamkeit benötigt. Wir beobachten das Projekt weiter.'
+                : 'Sobald Entscheidungen diesen Zustand erreichen, erscheinen sie hier.'}
           </p>
         </div>
       )}
 
-      {auto.length > 0 && (
+      {auto.length > 0 && filters.view === 'offen' && (
         <section className="dcb-auto">
-          <p className="dcb-label">Automatisch entschieden</p>
           <div className="dcb-auto-row">
             <span className="dcb-auto-check" aria-hidden><Check size={12} weight="bold" /></span>
             <span>
@@ -458,7 +497,7 @@ function DecisionsBoard() {
 
       {filterAnchor && (
         <DecisionFilterPopover
-          decisions={open}
+          decisions={data.decisions}
           projects={data.projects}
           value={filters}
           anchor={filterAnchor}

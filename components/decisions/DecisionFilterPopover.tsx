@@ -11,12 +11,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   URGENCY_LABEL,
+  isOpenDecisionStatus,
   resolveDecisionType,
   type Decision,
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
 
+/**
+ * The lifecycle view. `offen` is the working set; the rest are lookups, so
+ * exactly one is active at a time — a decision cannot be open and archived.
+ */
+export type DecisionView = 'offen' | 'kritisch' | 'abgeschlossen' | 'archiviert' | 'alle'
+
+export const VIEWS: Array<{ id: DecisionView; label: string }> = [
+  { id: 'offen', label: 'Offen' },
+  { id: 'kritisch', label: 'Kritisch' },
+  { id: 'abgeschlossen', label: 'Abgeschlossen' },
+  { id: 'archiviert', label: 'Archiviert' },
+  { id: 'alle', label: 'Alle' },
+]
+
 export type DecisionFilters = {
+  view: DecisionView
   projectIds: string[]
   urgencies: string[]
   types: string[]
@@ -27,6 +43,7 @@ export type DecisionFilters = {
 }
 
 export const EMPTY_FILTERS: DecisionFilters = {
+  view: 'offen',
   projectIds: [],
   urgencies: [],
   types: [],
@@ -34,18 +51,40 @@ export const EMPTY_FILTERS: DecisionFilters = {
   recommendedOnly: false,
 }
 
+/** The view is a tab, not a filter — it never counts toward the badge. */
 export function countActiveFilters(f: DecisionFilters): number {
   return f.projectIds.length + f.urgencies.length + f.types.length
     + (f.blockingOnly ? 1 : 0) + (f.recommendedOnly ? 1 : 0)
 }
 
-/** Applies the filters. Kept pure so the page can memoise it. */
+const ARCHIVED_STATES = new Set(['archived', 'superseded', 'expired'])
+const CLOSED_STATES = new Set(['decided', 'applied', 'rejected', 'closed'])
+
+export function matchesView(d: Decision, view: DecisionView): boolean {
+  switch (view) {
+    case 'offen':
+      return isOpenDecisionStatus(d.status)
+    case 'kritisch':
+      return isOpenDecisionStatus(d.status)
+        && (d.urgency === 'critical' || (d.escalation_level ?? 0) >= 2)
+    case 'abgeschlossen':
+      return CLOSED_STATES.has(d.status)
+    case 'archiviert':
+      return ARCHIVED_STATES.has(d.status)
+    case 'alle':
+    default:
+      return true
+  }
+}
+
+/** Applies view + facets. Kept pure so the page can memoise it. */
 export function applyDecisionFilters(
   decisions: Decision[],
   f: DecisionFilters,
   blockedCount: (id: string) => number,
 ): Decision[] {
   return decisions.filter(d => {
+    if (!matchesView(d, f.view)) return false
     if (f.projectIds.length && (!d.project_id || !f.projectIds.includes(d.project_id))) return false
     if (f.urgencies.length && !f.urgencies.includes(d.urgency)) return false
     if (f.types.length && (!d.decision_type || !f.types.includes(d.decision_type))) return false

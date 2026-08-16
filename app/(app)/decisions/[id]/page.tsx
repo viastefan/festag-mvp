@@ -1,57 +1,73 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
-import { ArrowLeft, CheckCircle, Clock, Lightning, PencilSimple } from '@phosphor-icons/react'
+/**
+ * /decisions/[id] — one decision, at full length.
+ *
+ * Same visual law as the board: warm canvas, editorial headline carrying the
+ * whole statement, everything Tagro authored inside one pale blue field, and
+ * the grounds spelled out rather than hidden behind a link. The list stays
+ * scannable because the depth lives here.
+ *
+ * The answer itself runs through the same resolve sheet as the board, so there
+ * is exactly one confirm/options/reject flow in the product.
+ */
+
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { ArrowLeft, ArrowRight, Clock, Sparkle } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import TagroContentFab from '@/components/TagroContentFab'
-import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import CodexOrbButton from '@/components/mobile/CodexOrbButton'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import MobilePageDock from '@/components/mobile/MobilePageDock'
 import {
+  MOCK_AFFECTED,
   MOCK_DECISIONS,
   MOCK_PROJECTS,
   URGENCY_LABEL,
-  URGENCY_TONE,
   fmtAgo,
   isOpenDecisionStatus,
-  resolveDecisionType,
+  type DecOption,
   type Decision,
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
-import DecisionDetailBrief from '@/components/decisions/DecisionDetailBrief'
-import DecisionTrail, { type DecisionEventLite } from '@/components/decisions/DecisionTrail'
-import { DecisionDrawer, type DecisionMobileDock } from '@/components/decisions/DecisionDrawer'
-import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import DecisionBrandMark from '@/components/decisions/DecisionBrandMark'
+import DecisionResolveSheet, { type ResolveStep } from '@/components/decisions/DecisionResolveSheet'
+import { DECISION_BOARD_CSS, DECISION_SHEET_CSS } from '@/components/decisions/decision-board-styles'
+import { confidencePercent, doorLabel, dueLine, eventActorLabel, eventLabel, isOverdue } from '@/lib/decisions/center'
+import { buildRationale } from '@/lib/decisions/rationale'
 import type { AffectedWork } from '@/lib/decisions/affected'
-import { portalHardNavigate } from '@/lib/portal-hard-nav'
 
-function DecisionDetailInner() {
+type EventLite = {
+  id: string
+  event_type: string
+  actor_kind?: string | null
+  created_at: string
+}
+
+export default function DecisionDetailPage() {
+  return (
+    <Suspense fallback={<div className="dcb"><div className="dcb-inner"><p className="dcd-loading">Lade…</p></div></div>}>
+      <DecisionDetail />
+    </Suspense>
+  )
+}
+
+function DecisionDetail() {
   const { id } = useParams<{ id: string }>()
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const discussOnLoad = searchParams?.get('discuss') === '1'
   const supabase = useMemo(() => createClient(), [])
+
   const [decision, setDecision] = useState<Decision | null>(null)
   const [project, setProject] = useState<ProjectLite | null>(null)
   const [affected, setAffected] = useState<AffectedWork | null>(null)
-  const [events, setEvents] = useState<DecisionEventLite[]>([])
+  const [events, setEvents] = useState<EventLite[]>([])
+  const [options, setOptions] = useState<DecOption[]>([])
   const [loading, setLoading] = useState(true)
   const [me, setMe] = useState('')
-  const [navOpen, setNavOpen] = useState(false)
-  const [mobileDock, setMobileDock] = useState<DecisionMobileDock | null>(null)
+  const [sheet, setSheet] = useState<ResolveStep | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
   }, [supabase])
-
-  useLayoutEffect(() => {
-    document.body.style.overflow = ''
-  }, [])
-
-  function goToList() {
-    portalHardNavigate(window.location.pathname, '/decisions')
-  }
 
   const load = useCallback(async () => {
     if (!id) return
@@ -61,233 +77,273 @@ function DecisionDetailInner() {
     if (mock) {
       setDecision(mock)
       setProject(mock.project_id ? MOCK_PROJECTS[mock.project_id] ?? null : null)
+      setAffected((MOCK_AFFECTED[mock.id] as AffectedWork) ?? null)
+      setOptions((mock.options_json || []).map(o => ({ id: o.id, label: o.label, description: o.hint })))
+      setEvents([])
       setLoading(false)
       return
     }
 
     try {
       const res = await fetch(`/api/decisions/${id}?expand=options,affected,events`, { credentials: 'include' })
-      if (!res.ok) {
-        setDecision(null)
-        setProject(null)
-        return
-      }
+      if (!res.ok) { setDecision(null); return }
       const data = await res.json()
       setDecision(data.decision ?? null)
       setProject(data.project ?? null)
       setAffected((data.affected ?? null) as AffectedWork | null)
-      setEvents(Array.isArray(data.events) ? (data.events as DecisionEventLite[]) : [])
+      setEvents(Array.isArray(data.events) ? (data.events as EventLite[]) : [])
+      setOptions(Array.isArray(data.options) ? (data.options as DecOption[]) : [])
     } catch {
       setDecision(null)
-      setProject(null)
     } finally {
       setLoading(false)
     }
   }, [id])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { void load() }, [load])
+  useEffect(() => { if (searchParams?.get('discuss') === '1') setSheet('reject') }, [searchParams])
 
-  function patchLocal(patch: Partial<Decision>) {
-    setDecision(curr => (curr ? { ...curr, ...patch } : curr))
-  }
+  const recommended = useMemo(
+    () => options.find(o => o.recommended_by_tagro)
+      ?? options.find(o => {
+        const key = decision?.recommended_option?.toLowerCase()
+        return !!key && (String(o.external_id || o.id).toLowerCase() === key || o.label.toLowerCase() === key)
+      })
+      ?? null,
+    [options, decision?.recommended_option],
+  )
 
-  const handleMobileDockChange = useCallback((dock: DecisionMobileDock | null) => {
-    setMobileDock(dock)
-  }, [])
+  const recLabel = recommended ? (recommended.client_label || recommended.label) : null
+
+  const rationale = useMemo(
+    () => (decision ? buildRationale(decision, { work: affected ?? undefined, recommendationLabel: recLabel }) : []),
+    [decision, affected, recLabel],
+  )
+
+  function goBack() { router.push('/decisions') }
 
   if (loading) {
     return (
-      <div className="dec-os dec-os-detail">
-        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
-        <div className="dec-detail-m-shell">
-          <p className="dec-detail-loading">Entscheidung wird geladen…</p>
-        </div>
+      <div className="dcb">
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_BOARD_CSS }} />
+        <div className="dcb-inner"><p className="dcd-loading">Entscheidung wird geladen…</p></div>
       </div>
     )
   }
 
   if (!decision) {
     return (
-      <div className="dec-os dec-os-detail">
-        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
-        <div className="dec-detail-m-shell">
-          <div className="dec-detail-empty">
-            <p className="dec-detail-empty-title">Entscheidung nicht gefunden.</p>
-            <p className="dec-detail-empty-copy">Sie wurde möglicherweise archiviert oder du hast keinen Zugriff.</p>
-            <button type="button" className="dec-detail-back dec-detail-back-pill" onClick={() => goToList()}>
-              <ArrowLeft size={16} />
-              Zurück zur Übersicht
-            </button>
-          </div>
+      <div className="dcb">
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_BOARD_CSS }} />
+        <div className="dcb-inner">
+          <h1 className="dcd-h1">Diese Entscheidung gibt es nicht mehr.</h1>
+          <p className="dcd-lead">Sie wurde archiviert, oder du hast keinen Zugriff darauf.</p>
+          <button type="button" className="dcb-btn dcb-btn--primary dcd-back-cta" onClick={goBack}>
+            Alle Entscheidungen
+          </button>
         </div>
       </div>
     )
   }
 
-  const isDecider =
-    decision.requested_for === me ||
-    (!decision.requested_for && decision.created_by !== me)
-
+  // Identity is empty on first paint and in the demo preview — treating that as
+  // "not the decider" would grey out the action before auth resolves. The
+  // /decide endpoint enforces authority server-side regardless.
+  const isDecider = !me
+    || decision.id.startsWith('mock-')
+    || decision.requested_for === me
+    || (!decision.requested_for && decision.created_by !== me)
+  const open = isOpenDecisionStatus(decision.status)
+  const due = dueLine(decision)
+  const overdue = isOverdue(decision)
+  const door = doorLabel(decision)
+  const confidence = confidencePercent(decision)
+  const blocks = affected?.blocks ?? []
+  const affects = affected?.affects ?? []
   const title = decision.client_title || decision.title
-  const typeMeta = resolveDecisionType(decision.decision_type)
-  const isAnswered = decision.status === 'decided' || decision.status === 'applied'
-  const isOpen = isOpenDecisionStatus(decision.status)
-  const escalation = decision.escalation_level ?? 0
-
-  const mobileSubtitle = [
-    project?.title,
-    isAnswered ? 'Entschieden' : isOpen ? 'Offen' : URGENCY_LABEL[decision.urgency] || 'Normal',
-  ].filter(Boolean).join(' · ')
-
-  const dockPrimaryIcon = isAnswered
-    ? <ArrowLeft size={14} weight="regular" />
-    : isDecider && isOpen
-      ? <CheckCircle size={14} weight="regular" />
-      : <Lightning size={14} weight="regular" />
+  const summary = decision.client_summary || decision.description
+  const primaryLabel = decision.response_type === 'binary' ? 'Freigeben' : 'Entscheiden'
 
   return (
-    <div className={`dec-os dec-os-detail${mobileDock ? ' dec-os-detail--dock' : ''}`}>
-      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
+    <div className="dcb">
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_BOARD_CSS }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_SHEET_CSS }} />
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <div className="dcb-inner dcd">
+        <button type="button" className="dcd-back" onClick={goBack}>
+          <ArrowLeft size={14} weight="regular" aria-hidden />
+          Alle Entscheidungen
+        </button>
 
-      <div className="dec-detail-m-shell">
-        <header className="dec-detail-m-head">
-          <CodexOrbButton ariaLabel="Zurück" onClick={() => goToList()}>
-            <ArrowLeft size={20} weight="regular" />
-          </CodexOrbButton>
-          <div className="dec-detail-m-copy">
-            <h1>{title}</h1>
-            {mobileSubtitle ? <p>{mobileSubtitle}</p> : null}
-          </div>
-          <div className="dec-detail-m-head-actions">
-            <CodexMobileActionPill
-              onMenu={() => setNavOpen(true)}
-              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-            />
-          </div>
-        </header>
+        {/* The headline is the statement: what is being decided, and what it
+            changes. Everything else on the page supports these two sentences. */}
+        <h1 className="dcd-h1">
+          {title}
+          {summary && <span className="dcd-h1-second"> {summary}</span>}
+        </h1>
 
-        <header className="dec-detail-hero dec-detail-hero-desktop">
-          <div className="dec-detail-col">
-            <div className="dec-detail-toolbar">
-              <button
-                type="button"
-                className="dec-detail-back dec-detail-back-pill dec-detail-back-desktop"
-                onClick={() => goToList()}
-              >
-                <ArrowLeft size={14} weight="regular" />
-                Alle Entscheidungen
-              </button>
+        <p className="dcd-context">
+          {[project?.title, open ? 'Wartet auf eine Entscheidung' : 'Entschieden'].filter(Boolean).join(' · ')}
+        </p>
+
+        {recLabel && (
+          <section className="dcd-tagro" aria-label="Tagros Empfehlung">
+            <p className="dcd-tagro-head">
+              <Sparkle size={15} weight="fill" aria-hidden />
+              Tagro empfiehlt
+            </p>
+            <p className="dcd-tagro-pick">
+              <DecisionBrandMark label={recLabel} />
+              {recLabel}
+            </p>
+            {(decision.tagro_recommendation_reason || decision.tagro_reasoning) && (
+              <p className="dcd-tagro-why">
+                {decision.tagro_recommendation_reason || decision.tagro_reasoning}
+              </p>
+            )}
+            {confidence !== null && (
+              <p className="dcd-tagro-confidence">
+                <span className="dcd-meter" aria-hidden><span style={{ width: `${confidence}%` }} /></span>
+                Sicherheit {confidence} %
+              </p>
+            )}
+          </section>
+        )}
+
+        <div className="dcd-facts">
+          {due && (
+            <div className="dcd-fact">
+              <p className="dcd-fact-key">Frist</p>
+              <p className={`dcd-fact-val${overdue ? ' is-red' : ''}`}>
+                <Clock size={15} weight="regular" aria-hidden />
+                {due}
+              </p>
             </div>
-
-            <div className="dec-detail-hero-main">
-              <div className="dec-detail-hero-text">
-                <h1 className="dec-detail-title">{title}</h1>
-              </div>
+          )}
+          {door && (
+            <div className="dcd-fact">
+              <p className="dcd-fact-key">Tragweite</p>
+              <p className="dcd-fact-val">{door}</p>
             </div>
-
-            <div className="dec-detail-meta-row">
-              {project && (
-                <span className="dec-detail-meta-chip">
-                  <span className="dec-detail-project-dot" style={{ background: project.color || '#F0F2F5' }} />
-                  {project.title}
-                </span>
-              )}
-              {decision.decision_type && (
-                <span
-                  className="dec-detail-meta-chip dec-detail-meta-chip--type"
-                  style={{ ['--dec-dot-color' as string]: typeMeta.color }}
-                >
-                  <span className="dec-detail-project-dot" aria-hidden />
-                  {typeMeta.label}
-                </span>
-              )}
-              <span className={`dec-detail-meta-chip dec-detail-meta-chip--${URGENCY_TONE[decision.urgency] || 'muted'}`}>
-                {URGENCY_LABEL[decision.urgency] || 'Normal'}
-              </span>
-              {escalation >= 2 && isOpen && (
-                <span className="dec-detail-meta-chip dec-detail-meta-chip--red">
-                  {escalation >= 3 ? 'Frist abgelaufen' : 'Eskaliert'}
-                </span>
-              )}
-              {isAnswered && (
-                <span className="dec-detail-meta-chip dec-detail-meta-chip--good">Entschieden</span>
-              )}
-              <span className="dec-detail-meta-chip dec-detail-meta-chip--time" suppressHydrationWarning>
-                <Clock size={12} weight="regular" />
-                {fmtAgo(decision.updated_at)}
-              </span>
-            </div>
-
-            <DecisionDetailBrief decision={decision} project={project} />
-            <DecisionTrail affected={affected} />
+          )}
+          <div className="dcd-fact">
+            <p className="dcd-fact-key">Priorität</p>
+            <p className={`dcd-fact-val${decision.urgency === 'critical' ? ' is-red' : ''}`}>
+              {URGENCY_LABEL[decision.urgency] || 'Normal'}
+            </p>
           </div>
-        </header>
-
-        <div className="dec-detail-m-brief">
-          <DecisionDetailBrief decision={decision} project={project} />
-          <DecisionTrail affected={affected} />
+          {blocks.length + affects.length > 0 && (
+            <div className="dcd-fact">
+              <p className="dcd-fact-key">Betroffene Bereiche</p>
+              <p className="dcd-fact-val">{blocks.length + affects.length}</p>
+            </div>
+          )}
         </div>
 
-        <DecisionDrawer
-          variant="page"
-          mobileDock
-          decision={decision}
-          project={project}
-          me={me}
-          isDecider={isDecider}
-          onClose={() => goToList()}
-          onPatch={patchLocal}
-          initialDiscussOpen={discussOnLoad}
-          onMobileDockChange={handleMobileDockChange}
-        />
+        {open && (
+          <div className="dcd-actions">
+            <button
+              type="button"
+              className="dcb-btn dcb-btn--primary dcd-cta"
+              onClick={() => setSheet('confirm')}
+              disabled={!isDecider}
+              title={isDecider ? undefined : 'Diese Entscheidung liegt bei jemand anderem'}
+            >
+              {primaryLabel}
+              <ArrowRight size={14} weight="regular" className="dcb-btn-arrow" aria-hidden />
+            </button>
+            {options.length > 1 && (
+              <button type="button" className="dcb-btn dcd-cta" onClick={() => setSheet('options')}>
+                Optionen ansehen
+              </button>
+            )}
+            {!isDecider && <p className="dcd-note">Wartet auf die entscheidende Person.</p>}
+          </div>
+        )}
+
+        {rationale.length > 0 && (
+          <section className="dcd-section">
+            <h2 className="dcd-h2">Warum Tagro das vorschlägt</h2>
+            <div className="dcd-grounds">
+              {rationale.map(block => (
+                <div key={block.label} className="dcd-ground">
+                  <p className="dcd-ground-key">{block.label}</p>
+                  <p className="dcd-ground-body">{block.body}</p>
+                  {block.detail && block.detail.length > 0 && (
+                    <ul className="dcd-ground-detail">
+                      {block.detail.map(line => <li key={line}>{line}</li>)}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {(blocks.length > 0 || affects.length > 0) && (
+          <section className="dcd-section">
+            <h2 className="dcd-h2">
+              {blocks.length > 0 ? 'Diese Arbeit wartet darauf' : 'Betroffene Arbeit'}
+            </h2>
+            <ul className="dcd-tasks">
+              {[...blocks, ...affects].map(task => (
+                <li key={`${task.link_kind}-${task.id}`} className={`dcd-task${task.link_kind === 'blocks' ? ' is-blocked' : ''}`}>
+                  <span className="dcd-task-dot" aria-hidden />
+                  <span className="dcd-task-name">{task.title}</span>
+                  <span className="dcd-task-kind">{task.link_kind === 'blocks' ? 'blockiert' : 'betroffen'}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {events.length > 0 && (
-          <div className="dec-trail-foot">
-            <DecisionTrail events={events} />
-          </div>
+          <section className="dcd-section">
+            <h2 className="dcd-h2">Verlauf</h2>
+            <ol className="dcd-trail">
+              {events.map(ev => {
+                const actor = eventActorLabel(ev.actor_kind)
+                return (
+                  <li key={ev.id} className="dcd-trail-item">
+                    <span className="dcd-trail-dot" aria-hidden />
+                    <span className="dcd-trail-copy">
+                      <span className="dcd-trail-title">{eventLabel(ev.event_type)}</span>
+                      <span className="dcd-trail-meta" suppressHydrationWarning>
+                        {[actor, fmtAgo(ev.created_at)].filter(Boolean).join(' · ')}
+                      </span>
+                    </span>
+                  </li>
+                )
+              })}
+            </ol>
+          </section>
         )}
       </div>
 
-      <div className="dec-fab-desktop">
-        <TagroContentFab
-          context={{
-            contextType: 'decision',
-            id: decision.id,
-            title,
-            subtitle: project?.title,
+      {sheet && (
+        <DecisionResolveSheet
+          decision={decision}
+          project={project}
+          affected={affected ?? undefined}
+          options={options}
+          recommended={recommended}
+          initialStep={sheet}
+          me={me}
+          onClose={() => setSheet(null)}
+          onResolved={(patch) => {
+            setDecision(curr => (curr ? { ...curr, ...patch } : curr))
+            setSheet(null)
+            void load()
           }}
-        />
-      </div>
-
-      {mobileDock && (
-        <MobilePageDock
-          onDragUp={mobileDock.onTagro}
-          primary={{
-            id: 'primary',
-            label: mobileDock.primaryLoading ? 'Speichere…' : mobileDock.primaryLabel,
-            icon: dockPrimaryIcon,
-            onClick: mobileDock.onPrimary,
-            ariaLabel: mobileDock.primaryLabel,
-            disabled: mobileDock.primaryDisabled,
-          }}
-          secondary={{
-            id: 'tagro',
-            icon: <PencilSimple size={20} weight="bold" />,
-            onClick: mobileDock.onTagro,
-            ariaLabel: 'Mit Tagro bearbeiten',
-          }}
+          onEscalateToDrawer={() => setSheet(null)}
         />
       )}
-    </div>
-  )
-}
 
-export default function DecisionDetailPage() {
-  return (
-    <Suspense fallback={<div className="dec-detail-loading" style={{ padding: 48 }}>Lade…</div>}>
-      <DecisionDetailInner />
-    </Suspense>
+      <div className="dcd-fab">
+        <TagroContentFab
+          context={{ contextType: 'decision', id: decision.id, title, subtitle: project?.title }}
+        />
+      </div>
+    </div>
   )
 }

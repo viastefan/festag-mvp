@@ -1,12 +1,16 @@
 'use client'
 
 /**
- * One decision, as an editorial row.
+ * One decision, as an editorial row on a single running path.
+ *
+ * The left column is not an index — it is the Flow path from the design
+ * constitution: one organic line in Primary Blue running through every open
+ * decision, with a node per row. Answering a decision draws a check into its
+ * node, holds it for a beat so the completion is felt, then the row retracts
+ * and the path closes behind it.
  *
  * Reading order is the decision order: what is being decided → what Tagro
- * recommends → why → what it costs me → what I do. Metadata is never louder
- * than the decision, and the action column is a fixed width so every button on
- * the page lines up regardless of label length.
+ * recommends → why → what it costs me → what I do.
  */
 
 import { useMemo } from 'react'
@@ -16,6 +20,7 @@ import {
 } from '@phosphor-icons/react'
 import type { AffectedWork } from '@/lib/decisions/affected'
 import { dueLine, isOverdue } from '@/lib/decisions/center'
+import { rationaleTeaser } from '@/lib/decisions/rationale'
 import DecisionBrandMark from '@/components/decisions/DecisionBrandMark'
 import {
   URGENCY_LABEL,
@@ -24,22 +29,26 @@ import {
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
 
-export type RowAction = 'resolve' | 'options' | 'details'
+export type RowAction = 'resolve' | 'options' | 'details' | 'why'
+
+/** Where this row sits on the running path. */
+export type PathPosition = 'single' | 'first' | 'middle' | 'last'
 
 type Props = {
   decision: Decision
   project: ProjectLite | null
   affected?: AffectedWork
   recommended: DecOption | null
-  index: number
-  resolving: boolean
+  position: PathPosition
+  /** Answered just now — draw the check and hold before the row retracts. */
+  completing: boolean
   canAct: boolean
   onAction: (action: RowAction) => void
 }
 
 /** Quiet type marks — a hint, never a badge. */
 function TypeIcon({ type }: { type?: string | null }) {
-  const size = 19
+  const size = 18
   switch (type) {
     case 'payment': return <CreditCard size={size} />
     case 'direction': return <PencilSimple size={size} />
@@ -55,10 +64,7 @@ function TypeIcon({ type }: { type?: string | null }) {
   }
 }
 
-/**
- * How long answering realistically takes. Free text and multi-select need
- * thought; a two-option approval does not.
- */
+/** How long answering realistically takes. */
 function effortLabel(d: Decision): string {
   if (d.response_type === 'free_text') return '2 Min.'
   if (d.response_type === 'multi_choice') return '1 Min.'
@@ -66,7 +72,7 @@ function effortLabel(d: Decision): string {
 }
 
 export default function DecisionBoardRow({
-  decision, project, affected, recommended, index, resolving, canAct, onAction,
+  decision, project, affected, recommended, position, completing, canAct, onAction,
 }: Props) {
   const blocked = affected?.blocks.length ?? 0
   const affects = affected?.affects.length ?? 0
@@ -82,15 +88,11 @@ export default function DecisionBoardRow({
     || recommended?.description?.trim()
     || null
 
-  // Binary approvals read as "Freigeben"; a real choice reads as "Entscheiden".
   const primaryLabel = decision.response_type === 'binary' ? 'Freigeben' : 'Entscheiden'
   const secondaryLabel = decision.response_type === 'binary' ? 'Andere Optionen' : 'Optionen ansehen'
 
-  /**
-   * The impact sentence — only when it is short enough to read as a value in a
-   * narrow column. A long summary belongs in the detail view, not wrapped over
-   * four lines of metadata; priority is the honest fallback.
-   */
+  const teaser = useMemo(() => rationaleTeaser(decision, affected), [decision, affected])
+
   const impact = useMemo(() => {
     const raw = decision.client_summary?.trim() || decision.description?.trim()
     if (!raw || raw.length > 52) return null
@@ -106,8 +108,22 @@ export default function DecisionBoardRow({
         : null
 
   return (
-    <article className={`dcb-row${resolving ? ' is-resolving' : ''}`} aria-busy={resolving}>
-      <p className="dcb-num">{String(index + 1).padStart(2, '0')}</p>
+    <article
+      className={`dcb-row dcb-path-${position}${completing ? ' is-done' : ''}`}
+      aria-busy={completing}
+    >
+      {/* The running path: line segments above/below, node in the middle. */}
+      <div className="dcb-path" aria-hidden>
+        <span className="dcb-path-line dcb-path-line--up" />
+        <span className={`dcb-path-node${urgent ? ' is-urgent' : ''}${overdue ? ' is-overdue' : ''}`}>
+          <svg className="dcb-path-check" viewBox="0 0 24 24" fill="none">
+            <circle className="dcb-path-ring" cx="12" cy="12" r="10" strokeWidth="2" />
+            <path className="dcb-path-tick" d="M7.5 12.4l3.1 3.1 6-6.4" strokeWidth="2.2"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <span className="dcb-path-line dcb-path-line--down" />
+      </div>
 
       <span className="dcb-icon" aria-hidden>
         <TypeIcon type={decision.decision_type} />
@@ -134,6 +150,10 @@ export default function DecisionBoardRow({
             {recWhy || 'Mehrere Optionen sind ähnlich geeignet — hier zählt dein Urteil.'}
           </p>
         )}
+        {/* The grounds are always one click away, never a wall of text here. */}
+        <button type="button" className="dcb-why" onClick={() => onAction('why')}>
+          {teaser ? `Warum? ${teaser}` : 'Warum empfiehlt Tagro das?'}
+        </button>
       </div>
 
       <div className="dcb-meta">
@@ -174,7 +194,7 @@ export default function DecisionBoardRow({
           type="button"
           className="dcb-btn dcb-btn--primary"
           onClick={() => onAction('resolve')}
-          disabled={resolving || !canAct}
+          disabled={completing || !canAct}
           title={canAct ? undefined : 'Diese Entscheidung liegt bei jemand anderem'}
         >
           {primaryLabel}
@@ -184,15 +204,15 @@ export default function DecisionBoardRow({
           type="button"
           className="dcb-btn"
           onClick={() => onAction('options')}
-          disabled={resolving}
+          disabled={completing}
         >
           {secondaryLabel}
         </button>
         <button
           type="button"
-          className="dcb-btn"
+          className="dcb-btn dcb-btn--ghost"
           onClick={() => onAction('details')}
-          disabled={resolving}
+          disabled={completing}
         >
           Details
         </button>
