@@ -139,10 +139,11 @@ Aktion vorschlagen → Berechtigung prüfen → ausführen → protokollieren
 Die Berechtigung kommt aus der Autonomiestufe (`observe` ändert nichts,
 `recommend` fragt, `assist`/`act` dürfen mehr), pro Aktionsart über
 `action_permissions` überschreibbar. Einen Termin verschiebt auf keiner Stufe
-die Maschine allein — das ist eine Zusage an jemanden. Was nicht automatisch laufen darf, kommt
-als offene Aktion zurück und wird der Person angezeigt — stille Automatik gibt
-es nicht. Jede ausgeführte Aktion steht als ganzer Satz im Verlauf, samt
-Freigeber.
+die Maschine allein — das ist eine Zusage an jemanden.
+
+Was nicht automatisch laufen darf, kommt als offene Aktion zurück und wird der
+Person angezeigt — stille Automatik gibt es nicht. Jede ausgeführte Aktion
+steht als ganzer Satz im Verlauf, samt Freigeber.
 
 `lib/risks/from-decision.ts` schließt den Kreis: Wird eine Entscheidung
 angewendet, die aus einem Risiko entstand, bewegt sich das Risiko mit —
