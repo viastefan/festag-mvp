@@ -79,6 +79,7 @@ export async function buildProjectTruth(
     tasksRes,
     signals,
     momentsRes,
+    risksRes,
   ] = await Promise.all([
     sb.from('evidence')
       .select('id,title,evidence_type,proof_strength,url,client_visible,created_at')
@@ -112,6 +113,12 @@ export async function buildProjectTruth(
       .is('revoked_at', null)
       .order('created_at', { ascending: false })
       .limit(4),
+    // Risk Intelligence — fehlt sie noch, bleibt der Status wie zuvor.
+    sb.from('risks')
+      .select('id,title,client_title,severity,status')
+      .eq('project_id', projectId)
+      .in('status', ['detected', 'active', 'monitoring', 'decision_required'])
+      .limit(50),
   ])
 
   const evidence = (evidenceRes.data as any[]) ?? []
@@ -133,6 +140,11 @@ export async function buildProjectTruth(
   const clientEvidence = evidence.filter(e => e.client_visible)
   const latestReport = reports[0] || null
 
+  const openRisks = risksRes.error ? [] : ((risksRes.data as any[]) ?? [])
+  const criticalRisks = openRisks.filter(r => r.severity === 'critical')
+  // Für den Kunden zählt die Kundenfassung — der interne Titel bleibt intern.
+  const topRisk = criticalRisks[0] || openRisks.find(r => r.severity === 'high') || openRisks[0]
+
   const control = computeControlStatus({
     taskCount: tasks.length,
     blockedCount: blockedTasks.length,
@@ -145,6 +157,9 @@ export async function buildProjectTruth(
     phase: project.status,
     nextActionTitle: openDecisions[0]?.client_title || openDecisions[0]?.title || blockedTasks[0]?.title || null,
     clientVisibleEvidenceCount: clientEvidence.length,
+    openRiskCount: openRisks.length,
+    criticalRiskCount: criticalRisks.length,
+    topRiskTitle: topRisk ? (topRisk.client_title || topRisk.title) : null,
   })
 
   const readiness = computeReportReadiness({

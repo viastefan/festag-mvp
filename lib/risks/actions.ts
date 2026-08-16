@@ -23,6 +23,8 @@ export type RiskAction =
   | { type: 'raise_task_priority'; task_id: string; to: 'high' | 'critical'; reason: string }
   | { type: 'set_risk_status'; status: RiskStatus; reason: string }
   | { type: 'note_on_task'; task_id: string; text: string }
+  | { type: 'create_followup_task'; title: string; description?: string; reason: string }
+  | { type: 'move_task_due_date'; task_id: string; to: string; reason: string }
 
 export type RiskActionType = RiskAction['type']
 
@@ -49,21 +51,31 @@ const BY_AUTONOMY: Record<EffectiveRiskSettings['autonomy'], Record<RiskActionTy
     raise_task_priority: 'off',
     set_risk_status: 'off',
     note_on_task: 'off',
+    create_followup_task: 'off',
+    move_task_due_date: 'off',
   },
   recommend: {
     raise_task_priority: 'ask',
     set_risk_status: 'ask',
     note_on_task: 'ask',
+    create_followup_task: 'ask',
+    move_task_due_date: 'ask',
   },
   assist: {
     raise_task_priority: 'ask',
     set_risk_status: 'auto',
     note_on_task: 'auto',
+    create_followup_task: 'ask',
+    // Ein verschobener Termin ist eine Zusage an jemanden — die trifft
+    // auf keiner Stufe die Maschine allein.
+    move_task_due_date: 'ask',
   },
   act: {
     raise_task_priority: 'auto',
     set_risk_status: 'auto',
     note_on_task: 'auto',
+    create_followup_task: 'auto',
+    move_task_due_date: 'ask',
   },
 }
 
@@ -158,6 +170,45 @@ async function execute(supa: AnyClient, risk: Risk, action: RiskAction): Promise
         .from('risks').update({ status: action.status }).eq('id', risk.id)
       if (error) throw new Error(error.message)
       return `Risiko auf „${action.status}" gesetzt — ${action.reason}`
+    }
+
+    case 'create_followup_task': {
+      const { data, error } = await (supa as any).from('tasks').insert({
+        project_id: risk.project_id,
+        title: action.title.slice(0, 200),
+        description: action.description ?? null,
+        dev_description: action.description ?? null,
+        source: 'risk_measure',
+        origin: 'system',
+        audience: 'developer',
+        created_by: risk.owner_id ?? null,
+        client_visible: false,
+        dev_status: 'todo',
+        status: 'todo',
+        priority: risk.severity === 'critical' ? 'critical' : 'high',
+      }).select('id,title').maybeSingle()
+      if (error) throw new Error(error.message)
+
+      await (supa as any).from('risk_links').upsert(
+        [{ risk_id: risk.id, target_kind: 'task', target_id: data.id, link_kind: 'resolves' }],
+        { onConflict: 'risk_id,target_kind,target_id,link_kind', ignoreDuplicates: true },
+      )
+      return `Aufgabe „${data.title}" angelegt — ${action.reason}`
+    }
+
+    case 'move_task_due_date': {
+      const target = new Date(action.to)
+      if (Number.isNaN(target.getTime())) throw new Error('Ungültiges Datum')
+      const { data: task } = await (supa as any)
+        .from('tasks').select('id,title,due_date').eq('id', action.task_id).maybeSingle()
+      if (!task) throw new Error('Aufgabe nicht gefunden')
+
+      const iso = target.toISOString().slice(0, 10)
+      const { error } = await (supa as any)
+        .from('tasks').update({ due_date: iso }).eq('id', task.id)
+      if (error) throw new Error(error.message)
+      const from = task.due_date ? `von ${task.due_date} ` : ''
+      return `Termin von „${task.title}" ${from}auf ${iso} gesetzt — ${action.reason}`
     }
 
     case 'note_on_task': {

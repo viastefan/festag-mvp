@@ -9,6 +9,9 @@ export type ExecutiveProjectRow = {
   open_issues: number
   critical_issues: number
   open_decisions: number
+  /** Offene Risiken aus der Risk Intelligence. */
+  open_risks?: number
+  critical_risks?: number
   velocity_7d: number
   summary?: string | null
 }
@@ -21,6 +24,8 @@ export type ExecutiveOverview = {
   open_issues: number
   critical_issues: number
   open_decisions: number
+  open_risks?: number
+  critical_risks?: number
   active_objectives: number
   objectives_at_risk: number
   velocity_7d: number

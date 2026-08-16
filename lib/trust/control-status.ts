@@ -51,6 +51,11 @@ export type ControlStatusInput = {
   nextActionTitle?: string | null
   /** Client-visible evidence backing the work; null/undefined → skip the check. */
   clientVisibleEvidenceCount?: number | null
+  /** Offene Risiken aus der Risk Intelligence; undefined → Quelle nicht gelesen. */
+  openRiskCount?: number | null
+  criticalRiskCount?: number | null
+  /** Kundenfassung des schwersten offenen Risikos. */
+  topRiskTitle?: string | null
 }
 
 const COLORS: Record<ControlTone, string> = {
@@ -85,6 +90,15 @@ export function computeControlStatus(input: ControlStatusInput): ControlStatusRe
       'Scope und erste Aufgaben fehlen noch — Tagro wartet auf den Projektinhalt.')
   }
 
+  // Ein kritisches Risiko schlägt den Blocker: es benennt bereits, *warum*
+  // etwas steht, statt nur *dass* etwas steht.
+  if ((input.criticalRiskCount ?? 0) > 0) {
+    return result('risk_detected', 'Risiko erkannt', 'risk',
+      input.topRiskTitle
+        ? `${input.topRiskTitle} — Festag hält das für kritisch.`
+        : `${n(input.criticalRiskCount!, 'kritisches Risiko', 'kritische Risiken')} erkannt.`)
+  }
+
   // A hard blocker is always the most important thing.
   if (blockedCount > 0) {
     return result('risk_detected', 'Risiko erkannt', 'risk',
@@ -95,6 +109,14 @@ export function computeControlStatus(input: ControlStatusInput): ControlStatusRe
   if (approvalCount > 0) {
     return result('waiting_approval', 'Wartet auf Freigabe', 'info',
       `${n(approvalCount, 'Ergebnis', 'Ergebnisse')} ${approvalCount === 1 ? 'wartet' : 'warten'} auf deine Freigabe.`)
+  }
+
+  // Offene Risiken unterhalb von kritisch: ein Hinweis, kein Alarm.
+  if ((input.openRiskCount ?? 0) > 0) {
+    return result('needs_attention', 'Aufmerksamkeit nötig', 'warn',
+      input.topRiskTitle
+        ? `${input.topRiskTitle} — Festag beobachtet das.`
+        : `${n(input.openRiskCount!, 'offenes Risiko', 'offene Risiken')} in Beobachtung.`)
   }
 
   // Open decisions need the client/owner.

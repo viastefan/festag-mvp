@@ -135,5 +135,9 @@ export function useMobileRisks({ fallbackTasks, projectTitles = {} }: Options) {
     void load()
   }, [tableReady, risks, load])
 
-  return { risks: queue, resolve, analyze, reload: load, tableReady }
+  // Der Rohbestand für alles, was neben dem Flow über Risiken spricht —
+  // Kontrollstatus, Zähler, Einschätzung.
+  const openRisks = useMemo(() => (tableReady ? risks ?? [] : []), [tableReady, risks])
+
+  return { risks: queue, openRisks, resolve, analyze, reload: load, tableReady }
 }

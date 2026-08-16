@@ -61,6 +61,20 @@ Remembers *why* decisions were made. Production Intelligence lives inside this O
 Tagro Superintelligence pillar for digital production. **Do not** ship dashboards, cost UIs, or metering yet.  
 Interfaces, events, schema design, modular `production` activation only. Human decides — never Auto Mode.
 
+## Festag · Tagro · Claude architecture (layer law)
+
+**Always apply:** `.cursor/rules/festag-tagro-claude-architecture.mdc`  
+**Human doc:** `docs/festag-tagro-claude-architecture.md`  
+**Code:** `lib/tagro/run.ts` · `lib/tagro/model/` · `lib/tagro/claude.ts`
+
+`Customer → Festag App → Tagro → Claude API → Project Context + Tools + Data → Decision / Structure / Communication / Action`
+
+Festag = product · Tagro = intelligence/orchestration · **Claude = replaceable reasoning
+dependency of Tagro, never the brand or user-facing identity**. Claude never gets a bare chat —
+Tagro assembles purpose-gated context and gets back a **typed intent**, which Festag executes and
+persists. Every run: deterministic fallback + normalize + `tagro_runs` audit. No provider call
+outside `lib/tagro/`.
+
 ## Tagro Superintelligence (Operating Intelligence System)
 
 **Always apply:** `.cursor/rules/festag-tagro-superintelligence.mdc`  

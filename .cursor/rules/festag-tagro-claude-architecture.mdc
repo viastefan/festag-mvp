@@ -1,0 +1,39 @@
+---
+description: Festag/Tagro/Claude layer law — Claude is an infrastructure dependency of Tagro, never the brand; typed intents, never prose
+alwaysApply: true
+---
+
+# Festag · Tagro · Claude — Architecture Master Prompt
+
+**Doc:** `docs/festag-tagro-claude-architecture.md`
+**Code:** `lib/tagro/run.ts` · `lib/tagro/model/` · `lib/tagro/claude.ts`
+**With:** `docs/festag-tagro-model-spine.md` · `docs/festag-tagro-invisible-intelligence.md`
+
+## Layer law
+
+```
+Customer → Festag App → Tagro → Claude API → Project Context + Tools + Data → Decision / Structure / Communication / Action
+```
+
+Festag = product · Tagro = intelligence/orchestration · Claude = reasoning model (replaceable)
+Supabase = persistent project memory · GitHub = execution evidence · Developers = human execution.
+
+**Claude is an infrastructure dependency of Tagro, not the product itself.**
+
+## Non-negotiables
+
+- **Never expose Claude/Anthropic/Gemini/GPT as brand or user-facing identity.** The user
+  interacts with Tagro. Model ids belong in env, logs, `tagro_runs.model`, internal admin only.
+- **Claude never gets a bare chat.** Tagro assembles purpose-gated context (project,
+  communication, decisions, tasks, status, dev activity, GitHub, deadlines, policies, role,
+  phase, OKM) before the call.
+- **The model returns a typed intent, not an opinion.** JSON contract per `runType` —
+  not "I think the next step would be authentication".
+- **Festag writes the DB, not the model.** Model proposes → normalize → Festag persists.
+- **Every run needs a deterministic fallback** and passes through `normalize` + audit
+  (`tagro_runs`). No provider must still ship a valid output.
+- **No provider call outside `lib/tagro/`.** Feature code, routes, and components use the run
+  layer. Dispatcher is `lib/tagro/openai.ts` (Claude → Gemini → OpenAI → heuristic).
+- **Never Auto Mode** on decisions, scope, budget, or client communication — human confirms.
+- New intelligence = new `runType` in `lib/tagro/model/runs.ts` (prompt, fallback, normalize,
+  OKM mode) — never an ad-hoc route that streams prose to the UI.

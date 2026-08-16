@@ -20,9 +20,13 @@ function deriveProjectHealth(args: {
   blockerIssues: number
   openDecisions: number
   openIssues: number
+  criticalRisks: number
+  openRisks: number
 }): ExecutiveHealth {
-  if (args.blockerIssues > 0 || args.criticalIssues > 0) return 'blocked'
-  if (args.openDecisions > 0 || args.openIssues >= 5) return 'risk'
+  // Ein kritisches Risiko wiegt so schwer wie ein Blocker — es sagt bereits,
+  // was das Projekt kosten wird, statt nur, dass etwas offen ist.
+  if (args.blockerIssues > 0 || args.criticalIssues > 0 || args.criticalRisks > 0) return 'blocked'
+  if (args.openDecisions > 0 || args.openIssues >= 5 || args.openRisks > 0) return 'risk'
   if (args.openIssues > 0) return 'watch'
   return 'healthy'
 }
@@ -38,8 +42,12 @@ function deriveOverallHealth(projects: ExecutiveProjectRow[]): ExecutiveHealth {
 function buildHeadline(health: ExecutiveHealth, projects: ExecutiveProjectRow[]): string {
   if (projects.length === 0) return 'Noch keine Projekte im Überblick.'
   switch (health) {
-    case 'blocked':
-      return 'Mindestens ein Projekt ist blockiert.'
+    case 'blocked': {
+      const withRisk = projects.find(p => (p.critical_risks ?? 0) > 0)
+      return withRisk
+        ? `${withRisk.title}: Festag hat ein kritisches Risiko erkannt.`
+        : 'Mindestens ein Projekt ist blockiert.'
+    }
     case 'risk':
       return 'Es gibt Projekte mit erhöhtem Risiko.'
     case 'watch':
@@ -114,7 +122,7 @@ export async function buildExecutiveOverview(
 
   const since7d = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
 
-  const [issueRows, decisionRows, taskRows, objectiveRows] = await Promise.all([
+  const [issueRows, decisionRows, taskRows, objectiveRows, riskRows] = await Promise.all([
     safeTableRows(sb.from('issues')
       .select('id,project_id,severity,issue_type,status,tagro_summary')
       .in('project_id', projectIds)
@@ -130,6 +138,10 @@ export async function buildExecutiveOverview(
       .select('id,project_id,status,target_date,progress_pct')
       .in('project_id', projectIds)
       .eq('status', 'active')),
+    safeTableRows(sb.from('risks')
+      .select('id,project_id,severity,status,title,client_title,client_summary')
+      .in('project_id', projectIds)
+      .in('status', ['detected', 'active', 'monitoring', 'decision_required'])),
   ])
 
   const objectives_at_risk = objectiveRows.filter(o => isObjectiveAtRisk(o as any)).length
@@ -150,7 +162,15 @@ export async function buildExecutiveOverview(
       return u >= new Date(since7d).getTime()
     }).length
 
-    const tagro = projIssues.find(i => i.tagro_summary?.trim())?.tagro_summary?.trim() ?? null
+    const projRisks = riskRows.filter(r => r.project_id === p.id)
+    const criticalRisks = projRisks.filter(r => r.severity === 'critical')
+
+    // Was das Projekt gerade prägt, steht meistens im schwersten Risiko —
+    // und zwar in der Fassung, die auch ein Kunde lesen darf.
+    const leadRisk = criticalRisks[0] ?? projRisks.find(r => r.severity === 'high')
+    const tagro = (leadRisk?.client_summary?.trim() || leadRisk?.client_title?.trim())
+      ?? projIssues.find(i => i.tagro_summary?.trim())?.tagro_summary?.trim()
+      ?? null
 
     return {
       id: p.id,
@@ -161,11 +181,15 @@ export async function buildExecutiveOverview(
         blockerIssues: blockers,
         openDecisions,
         openIssues: projIssues.length,
+        criticalRisks: criticalRisks.length,
+        openRisks: projRisks.length,
       }),
       progress_pct,
       open_issues: projIssues.length,
       critical_issues: critical,
       open_decisions: openDecisions,
+      open_risks: projRisks.length,
+      critical_risks: criticalRisks.length,
       velocity_7d,
       summary: tagro,
     }
@@ -185,6 +209,8 @@ export async function buildExecutiveOverview(
     open_issues: rows.reduce((s, r) => s + r.open_issues, 0),
     critical_issues: rows.reduce((s, r) => s + r.critical_issues, 0),
     open_decisions: rows.reduce((s, r) => s + r.open_decisions, 0),
+    open_risks: rows.reduce((s, r) => s + (r.open_risks ?? 0), 0),
+    critical_risks: rows.reduce((s, r) => s + (r.critical_risks ?? 0), 0),
     active_objectives: objectiveRows.length,
     objectives_at_risk,
     velocity_7d: rows.reduce((s, r) => s + r.velocity_7d, 0),

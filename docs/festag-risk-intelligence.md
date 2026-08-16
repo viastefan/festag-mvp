@@ -128,8 +128,9 @@ nur einen Risiko-Speicher.
 ## Nach der Entscheidung
 
 `lib/risks/actions.ts` ist die einzige Stelle, an der aus einem Risiko eine
-Änderung im Projekt wird — über feste Aktionstypen, nie über frei formulierte
-Modellanweisungen:
+Änderung im Projekt wird — über feste Aktionstypen (Priorität anheben, Status
+setzen, Notiz, Folgeaufgabe anlegen, Termin verschieben), nie über frei
+formulierte Modellanweisungen:
 
 ```
 Aktion vorschlagen → Berechtigung prüfen → ausführen → protokollieren
@@ -137,7 +138,8 @@ Aktion vorschlagen → Berechtigung prüfen → ausführen → protokollieren
 
 Die Berechtigung kommt aus der Autonomiestufe (`observe` ändert nichts,
 `recommend` fragt, `assist`/`act` dürfen mehr), pro Aktionsart über
-`action_permissions` überschreibbar. Was nicht automatisch laufen darf, kommt
+`action_permissions` überschreibbar. Einen Termin verschiebt auf keiner Stufe
+die Maschine allein — das ist eine Zusage an jemanden. Was nicht automatisch laufen darf, kommt
 als offene Aktion zurück und wird der Person angezeigt — stille Automatik gibt
 es nicht. Jede ausgeführte Aktion steht als ganzer Satz im Verlauf, samt
 Freigeber.
@@ -158,10 +160,31 @@ Statusberichte lesen die offenen Risiken mit (`lib/tagro/generate-status-digest.
 in der Kundenfassung, bereits eingestuft — das Modell soll sie zusammenfassen,
 nicht neu bewerten. Ohne Risiken bleibt der Bericht, wie er war.
 
+## Wer wann etwas erfährt
+
+`lib/risks/notify.ts` meldet sparsam: nur kritische, offene Risiken, und jedes
+höchstens einmal — die Dedupe-Sperre ist der Verlauf selbst (`notified`).
+Entscheidungen benachrichtigen bereits über den Decision Engine, hier würde
+dieselbe Sache ein zweites Mal klingeln. Kunde und Team bekommen dieselbe
+Sache in ihrer jeweiligen Fassung, verlinkt auf dieselbe Risikoseite.
+
+Gemeldet wird erst nach der Anreicherung, damit die Nachricht Tagros
+Formulierung trägt und nicht die heuristische Zwischenfassung.
+
+## Wo Risiken sonst auftauchen
+
+- **Kontrollstatus** (`lib/trust/control-status.ts`): ein kritisches Risiko
+  schlägt die reine Blocker-Zahl — es benennt, *warum* etwas steht.
+- **Executive-Übersicht**: kritische Risiken zählen wie Blocker, und die
+  Projektzeile trägt die Kundenfassung des schwersten Risikos.
+- **Statusberichte**: siehe oben.
+
 ## Noch offen
 
 - CI-Checks als eigene Signalquelle (`github_check_runs` existiert noch nicht)
-- Dashboard-Health und Executive-Übersicht lesen die Einschätzung noch nicht
-- Benachrichtigungen bei kritischen Erkennungen
-- Weitere Aktionstypen (Termin verschieben, Aufgabe anlegen) — heute nur
-  Priorität, Status, Notiz
+- Die Zuversichtszahl steht bisher nur auf `/risks`; Dashboard und Executive
+  lesen Zähler und Schweregrad, nicht die Prozentzahl
+- Benachrichtigungen gehen in die Inbox, nicht per E-Mail oder Push
+- `action_permissions` ist im Datenmodell und in der Engine da, aber noch ohne
+  eigene Oberfläche — heute stellt man die Autonomiestufe ein, nicht die
+  einzelne Aktion

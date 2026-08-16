@@ -375,10 +375,23 @@ export default function DashboardPageContent() {
     () => Object.fromEntries(projects.map(p => [p.id, p.title])),
     [projects],
   )
-  const { risks: openRisks, resolve: saveRiskAssessment, analyze: analyzeRisk } = useMobileRisks({
+  const {
+    risks: openRisks,
+    openRisks: riskObjects,
+    resolve: saveRiskAssessment,
+    analyze: analyzeRisk,
+  } = useMobileRisks({
     fallbackTasks: riskTasks,
     projectTitles,
   })
+
+  const criticalRisks = useMemo(
+    () => riskObjects.filter(r => r.severity === 'critical'),
+    [riskObjects],
+  )
+  const topRisk = criticalRisks[0]
+    ?? riskObjects.find(r => r.severity === 'high')
+    ?? riskObjects[0]
 
   // Workspace-wide Control Status — the calm dynamic sentence under the greeting.
   // Reuses the shared trust layer; the dashboard doesn't load reports so it
@@ -392,6 +405,11 @@ export default function DashboardPageContent() {
     reportAgeDays: null,
     phase: null,
     nextActionTitle: riskTasks[0]?.title ?? null,
+    // Ein erkanntes Risiko sagt, *warum* etwas steht — das schlägt die
+    // reine Blocker-Zahl.
+    openRiskCount: riskObjects.length,
+    criticalRiskCount: criticalRisks.length,
+    topRiskTitle: topRisk?.title ?? null,
   })
 
   const activeProjectCount = projects.filter((p) => {

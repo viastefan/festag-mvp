@@ -188,6 +188,7 @@ export async function runRiskDetection(
 
   const result: DetectionRunResult = { ...empty }
   const touched = new Set<string>()
+  const escalated: Risk[] = []
 
   for (const candidate of candidates) {
     touched.add(candidate.fingerprint)
@@ -195,6 +196,10 @@ export async function runRiskDetection(
     if (current) {
       const changed = await updateFromCandidate(supa, current, candidate, now)
       if (changed) result.updated += 1
+      // Eine Verschärfung auf kritisch ist so meldenswert wie eine Neuerkennung.
+      if (changed && candidate.severity === 'critical' && current.severity !== 'critical') {
+        escalated.push({ ...current, ...candidate, id: current.id } as Risk)
+      }
     } else {
       const created = await insertFromCandidate(supa, candidate, project, now)
       if (created) {
@@ -252,6 +257,22 @@ export async function runRiskDetection(
         projectTitle: project.title,
         targetDate: project.target_date,
       }).catch(() => null)
+    }
+  }
+
+  // Melden kommt zuletzt: erst steht das Bild, dann wird jemand gestört.
+  // Frisch nachgelesen, damit die Nachricht Tagros Formulierung trägt und
+  // nicht die heuristische Fassung von vor der Anreicherung.
+  const worthTellingIds = [...result.risks, ...escalated].map(r => r.id)
+  if (worthTellingIds.length) {
+    try {
+      const fresh = await safeTableRows<Risk>(
+        (supa as any).from('risks').select('*').in('id', worthTellingIds),
+      )
+      const { notifyAboutRisks } = await import('@/lib/risks/notify')
+      await notifyAboutRisks(supa, fresh)
+    } catch {
+      // Eine ausgefallene Benachrichtigung darf den Lauf nicht entwerten.
     }
   }
 
