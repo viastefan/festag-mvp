@@ -25,7 +25,6 @@ import {
   type Decision,
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
-import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
 import DecisionBoardRow, { type PathPosition, type RowAction } from '@/components/decisions/DecisionBoardRow'
 import DecisionResolveSheet, { type ResolveStep } from '@/components/decisions/DecisionResolveSheet'
 import DecisionFilterPopover, {
@@ -113,13 +112,25 @@ function DecisionsBoard() {
 
   const [sheet, setSheet] = useState<{ id: string; step: ResolveStep } | null>(null)
   const [sheetOptions, setSheetOptions] = useState<DecOption[]>([])
-  const [drawerId, setDrawerId] = useState<string | null>(searchParams?.get('open') || null)
+  /** The fade under the header only exists once something has scrolled under it. */
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
   }, [supabase])
 
-  useLayoutEffect(() => { setDrawerId(null); setSheet(null) }, [pathname])
+  useLayoutEffect(() => { setSheet(null) }, [pathname])
+
+  useEffect(() => {
+    // The app shell owns the scroll container, so listen there rather than on
+    // window — the page itself never scrolls.
+    const scroller = document.querySelector('.fas-content')
+    if (!scroller) return
+    const onScroll = () => setScrolled(scroller.scrollTop > 8)
+    onScroll()
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    return () => scroller.removeEventListener('scroll', onScroll)
+  }, [])
 
   /* Depend on the primitive, not the searchParams object: that object gets a
      new identity on re-render, which re-ran load() and silently reset the list
@@ -183,7 +194,18 @@ function DecisionsBoard() {
   }, [demoParam])
 
   useEffect(() => { void load() }, [load])
-  useEffect(() => { setDrawerId(searchParams?.get('open') || null) }, [searchParams])
+
+  /* Deep link: /decisions?open=<id> opens the same resolve surface everything
+     else uses. The old drawer is gone — one answer flow, not two. */
+  const openId = searchParams?.get('open') ?? null
+  useEffect(() => {
+    if (!openId) return
+    const target = data.decisions.find(d => d.id === openId)
+    if (!target) return
+    void loadOptions(target)
+    setSheet({ id: openId, step: 'confirm' })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- loadOptions is stable per recommendations
+  }, [openId, data.decisions])
 
   useEffect(() => {
     if (!me || usingDemo) return
@@ -378,10 +400,11 @@ function DecisionsBoard() {
   }, [toast])
 
   const sheetDecision = sheet ? data.decisions.find(d => d.id === sheet.id) ?? null : null
-  const drawerDecision = drawerId ? data.decisions.find(d => d.id === drawerId) ?? null : null
 
-  function closeDrawer() {
-    setDrawerId(null)
+  /** Closing clears the deep link so a refresh doesn't reopen the sheet. */
+  function closeSheet() {
+    setSheet(null)
+    if (!openId) return
     const params = new URLSearchParams(searchParams?.toString() || '')
     params.delete('open')
     const qs = params.toString()
@@ -401,6 +424,8 @@ function DecisionsBoard() {
 
   return (
     <BoardShell>
+      {/* Header and lifecycle hold their place; only the list travels beneath. */}
+      <div className="dcb-head" data-scrolled={scrolled ? 'true' : 'false'}>
       <div className="dcb-top">
         {/* The count is the news — it carries the ink. The lead-in is framing
             and recedes, so the eye lands on the number first. */}
@@ -464,6 +489,8 @@ function DecisionsBoard() {
           Filter
           {activeFilters > 0 && <span className="dcb-filter-count">{activeFilters}</span>}
         </button>
+      </div>
+      <span className="dcb-head-fade" aria-hidden />
       </div>
 
       {visible.length > 0 ? (
@@ -557,20 +584,9 @@ function DecisionsBoard() {
           recommended={recFor(sheetDecision) ?? sheetOptions.find(o => o.recommended_by_tagro) ?? null}
           initialStep={sheet.step}
           me={me}
-          onClose={() => setSheet(null)}
+          onClose={closeSheet}
           onResolved={(patch) => handleResolved(sheetDecision.id, patch)}
-          onEscalateToDrawer={() => { setSheet(null); setDrawerId(sheetDecision.id) }}
-        />
-      )}
-
-      {drawerDecision && (
-        <DecisionDrawer
-          decision={drawerDecision}
-          project={projectFor(drawerDecision)}
-          me={me}
-          isDecider={canAct(drawerDecision)}
-          onClose={closeDrawer}
-          onPatch={(patch) => patchLocal(drawerDecision.id, patch)}
+          onEscalateToDrawer={() => router.push(`/decisions/${sheetDecision.id}`)}
         />
       )}
 

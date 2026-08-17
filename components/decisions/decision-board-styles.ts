@@ -63,14 +63,15 @@ html body .fas-root:has(.dcb) .fas-content { scrollbar-gutter: auto; }
 
 /* Expanded, the panel is wider than the old reservation — hold the rail clear
    of it so the board never slides underneath. */
+/* Expanded: clear the panel on the outer box, then let the rail centre itself
+   in what is left. Padding the rail directly moved the content twice as far. */
 @media (min-width: 1100px) {
-  html body .fas-root.is-sidebar-expanded:has(.dcb) .dcb-inner {
-    padding-left: calc(var(--fas-sidebar-w, 268px) + var(--fas-sidebar-float-inset, 12px) + 24px);
-    transition: padding-left 0.3s var(--dcb-ease);
+  html body .fas-root.is-sidebar-expanded:has(.dcb) .dcb {
+    padding-left: calc(var(--fas-sidebar-w, 268px) + var(--fas-sidebar-float-inset, 12px));
   }
 }
-html body .fas-root:has(.dcb) .dcb-inner {
-  transition: padding-left 0.3s var(--dcb-ease);
+html body .fas-root:has(.dcb) .dcb {
+  transition: padding-left 0.34s var(--dcb-ease);
 }
 
 /* Large displays: more measure, not more emptiness. */
@@ -81,6 +82,30 @@ html body .fas-root:has(.dcb) .dcb-inner {
 @media (min-width: 1800px) {
   .dcb-inner { max-width: 1480px; }
 }
+
+/* ── Sticky header ──
+   The headline and the lifecycle bar hold their place; only the list travels.
+   The fade appears the moment something scrolls under it, so rows dissolve
+   into the header instead of colliding with it. */
+.dcb-head {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0 0 4px;
+  padding-top: 2px;
+  background: var(--dcb-canvas);
+}
+.dcb-head-fade {
+  position: absolute;
+  left: 0; right: 0; top: 100%;
+  height: 34px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--dcb-canvas) 0%, color-mix(in srgb, var(--dcb-canvas) 0%, transparent) 100%);
+  opacity: 0;
+  transition: opacity 0.28s var(--dcb-ease);
+}
+.dcb-head[data-scrolled="true"] .dcb-head-fade { opacity: 1; }
+.dcb-head[data-scrolled="true"] { box-shadow: 0 1px 0 var(--dcb-hair); }
 
 /* ── Header ── */
 .dcb-top {
@@ -238,52 +263,52 @@ html body .fas-root:has(.dcb) .dcb-inner {
   width: 28px; height: 28px;
   flex: 0 0 auto;
   display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 50%;
-  background: var(--dcb-canvas);
 }
 .dcb-path-svg { width: 28px; height: 28px; overflow: visible; }
 
-/* Waiting: hollow rim, muted arrow. Nothing is filled until something is done. */
+/* Waiting: an outline on the line. No fill, no glyph, nothing to decode. */
 .dcb-path-rim {
-  stroke: color-mix(in srgb, var(--dcb-primary) 34%, transparent);
+  stroke: color-mix(in srgb, var(--dcb-primary) 32%, transparent);
   fill: none;
-  transition: stroke 0.24s var(--dcb-ease);
+  transition: stroke 0.35s var(--dcb-ease);
 }
-.dcb-path-arrow {
-  stroke: var(--dcb-faint);
-  fill: none;
-  transition: stroke 0.3s var(--dcb-ease), transform 0.3s var(--dcb-ease);
-  transform-origin: 14px 14px;
-}
-.dcb-path-node.is-urgent .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 62%, transparent); }
-.dcb-path-node.is-urgent .dcb-path-arrow { stroke: var(--dcb-primary); }
-.dcb-path-node.is-overdue .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-red) 55%, transparent); }
-.dcb-path-node.is-overdue .dcb-path-arrow { stroke: var(--dcb-red); }
-.dcb-row:hover .dcb-path-arrow { stroke: var(--dcb-primary); }
+.dcb-path-node.is-urgent .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 68%, transparent); }
+.dcb-path-node.is-overdue .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-red) 62%, transparent); }
+.dcb-row:hover .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 78%, transparent); }
 
-/* The five-second sweep: the ring fills once around while the answer settles. */
+/* The five-second sweep, and the check that lands inside it. */
 .dcb-path-sweep {
   stroke: var(--dcb-primary);
   fill: none;
   stroke-linecap: round;
-  stroke-dasharray: 75.4;
-  stroke-dashoffset: 75.4;
+  stroke-dasharray: 69.1;
+  stroke-dashoffset: 69.1;
   transform: rotate(-90deg);
   transform-origin: 14px 14px;
   opacity: 0;
 }
-
-.dcb-row.is-done .dcb-path-arrow {
+.dcb-path-tick {
   stroke: var(--dcb-primary);
-  stroke-width: 2.2;
+  fill: none;
+  stroke-dasharray: 15;
+  stroke-dashoffset: 15;
+  opacity: 0;
 }
+
 .dcb-row.is-done .dcb-path-sweep {
   opacity: 1;
-  animation: dcbSweep 5s linear forwards, dcbSweepFade 0.7s var(--dcb-ease) 4.4s forwards;
+  animation: dcbSweep 5s cubic-bezier(0.33, 0, 0.2, 1) forwards,
+             dcbFadeOut 0.8s var(--dcb-ease) 4.5s forwards;
 }
-.dcb-row.is-done .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 18%, transparent); }
+.dcb-row.is-done .dcb-path-tick {
+  opacity: 1;
+  animation: dcbTick 0.42s var(--dcb-ease) 0.15s forwards,
+             dcbFadeOut 0.8s var(--dcb-ease) 4.5s forwards;
+}
+.dcb-row.is-done .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 16%, transparent); }
 @keyframes dcbSweep { to { stroke-dashoffset: 0; } }
-@keyframes dcbSweepFade { to { opacity: 0; } }
+@keyframes dcbTick { to { stroke-dashoffset: 0; } }
+@keyframes dcbFadeOut { to { opacity: 0; } }
 
 /* Held for the beat, then the row retracts and the list closes behind it. */
 .dcb-row.is-done {
