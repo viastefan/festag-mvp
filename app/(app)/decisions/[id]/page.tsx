@@ -14,7 +14,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Clock, Sparkle } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowRight, Clock } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import TagroContentFab from '@/components/TagroContentFab'
 import {
@@ -202,10 +202,7 @@ function DecisionDetail() {
 
         {recLabel && (
           <section className="dcd-tagro" aria-label="Tagros Empfehlung">
-            <p className="dcd-tagro-head">
-              <Sparkle size={15} weight="fill" aria-hidden />
-              Tagro empfiehlt
-            </p>
+            <p className="dcd-tagro-head">Tagro empfiehlt</p>
             <p className="dcd-tagro-pick">
               <DecisionBrandMark label={recLabel} />
               {recLabel}

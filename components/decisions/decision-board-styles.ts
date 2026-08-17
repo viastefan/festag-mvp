@@ -29,7 +29,7 @@ export const DECISION_BOARD_CSS = `
   --dcb-primary-edge: rgba(91, 100, 125, 0.20);
   --dcb-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --dcb-action-w: 196px;
-  --dcb-path-w: 34px;
+  --dcb-path-w: 30px;
 
   width: 100%;
   box-sizing: border-box;
@@ -260,11 +260,45 @@ html body .fas-root:has(.dcb) .dcb {
 
 .dcb-path-node {
   position: relative;
-  width: 28px; height: 28px;
+  width: 20px; height: 20px;
   flex: 0 0 auto;
   display: inline-flex; align-items: center; justify-content: center;
+  appearance: none; border: none; background: none; padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s var(--dcb-ease);
 }
-.dcb-path-svg { width: 28px; height: 28px; overflow: visible; }
+.dcb-path-node:disabled { cursor: default; }
+.dcb-path-node:not(:disabled):hover { transform: scale(1.12); }
+.dcb-path-node:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--dcb-primary) 65%, transparent);
+  outline-offset: 3px; border-radius: 50%;
+}
+
+/* Hover tells you what the ring does — a control with no label is decoration. */
+.dcb-path-tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  z-index: 30;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: var(--dcb-ink);
+  color: #FFFFFF;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.004em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s var(--dcb-ease), transform 0.18s var(--dcb-ease);
+}
+.dcb-path-node:not(:disabled):hover .dcb-path-tip,
+.dcb-path-node:focus-visible .dcb-path-tip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+.dcb-path-svg { width: 20px; height: 20px; overflow: visible; }
 
 /* Waiting: an outline on the line. No fill, no glyph, nothing to decode. */
 .dcb-path-rim {
@@ -340,14 +374,14 @@ html body .fas-root:has(.dcb) .dcb {
 .dcb-row:hover .dcb-icon { color: var(--dcb-muted); }
 
 .dcb-title {
-  margin: 0 0 7px;
-  font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
+  margin: 0 0 6px;
+  font-family: var(--font-ui, 'Aeonik', system-ui, sans-serif);
   font-weight: 400;
-  font-size: 19.5px;
-  line-height: 1.32;
-  letter-spacing: -0.004em;
+  font-size: 17px;
+  line-height: 1.38;
+  letter-spacing: -0.008em;
   color: var(--dcb-ink);
-  padding-top: 6px;
+  padding-top: 7px;
 }
 .dcb-project {
   margin: 0;
@@ -388,11 +422,11 @@ html body .fas-root:has(.dcb) .dcb {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin: 0 0 9px;
-  font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
-  font-weight: 400;
-  font-size: 21px;
-  line-height: 1.25;
+  margin: 0 0 8px;
+  font-family: var(--font-ui, 'Aeonik', system-ui, sans-serif);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.35;
   letter-spacing: -0.006em;
   color: var(--dcb-ink);
 }
@@ -544,28 +578,38 @@ html body .fas-root:has(.dcb) .dcb {
 }
 
 /* ── Automatic decisions footer ── */
-.dcb-auto { margin-top: clamp(30px, 5vh, 46px); }
+.dcb-auto {
+  margin-top: clamp(34px, 5vh, 52px);
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--dcb-primary) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dcb-primary) 12%, transparent);
+}
 .dcb-auto-row {
   display: flex;
   align-items: center;
   gap: 13px;
-  padding: 4px 0;
-  font-size: 13.5px;
+  flex-wrap: wrap;
+  font-size: 14px;
   color: var(--dcb-soft);
 }
+.dcb-auto-row > span:not(.dcb-auto-check) { flex: 1 1 auto; min-width: 0; }
 .dcb-auto-check {
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 50%;
-  border: 1px solid rgba(74, 122, 92, 0.35);
-  color: var(--dcb-green);
+  border: none;
+  background: color-mix(in srgb, var(--dcb-primary) 16%, transparent);
+  color: var(--dcb-primary);
   flex-shrink: 0;
 }
 .dcb-auto-link {
   appearance: none;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--dcb-primary) 22%, transparent);
+  border-radius: 8px;
   background: transparent;
-  padding: 0;
+  padding: 7px 13px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -574,7 +618,7 @@ html body .fas-root:has(.dcb) .dcb {
   color: var(--dcb-soft);
   cursor: pointer;
 }
-.dcb-auto-link:hover { color: var(--dcb-ink); }
+.dcb-auto-link:hover { color: var(--dcb-ink); background: color-mix(in srgb, var(--dcb-primary) 10%, transparent); }
 .dcb-auto-list {
   list-style: none;
   margin: 14px 0 0;
@@ -904,7 +948,6 @@ export const DECISION_SHEET_CSS = `
   border: 1px solid rgba(91, 100, 125, 0.20);
 }
 .drs-tagro-head {
-  display: flex; align-items: center; gap: 8px;
   margin: 0 0 7px;
   font-size: 15px; line-height: 1.4; color: #3E465C;
 }
@@ -1238,7 +1281,6 @@ html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
   max-width: none;
 }
 .dcd-tagro-head {
-  display: flex; align-items: center; gap: 8px;
   margin: 0 0 10px;
   font-size: 13.5px; letter-spacing: 0.01em;
   color: color-mix(in srgb, var(--dcb-primary) 88%, var(--dcb-ink));

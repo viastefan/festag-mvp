@@ -19,7 +19,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Check, Sparkle, X } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
 import type { AffectedWork } from '@/lib/decisions/affected'
 import { resolveHandoffFromOption, type ExternalHandoff } from '@/lib/decisions/external-handoffs'
 import { buildRationale } from '@/lib/decisions/rationale'
@@ -224,10 +224,7 @@ export default function DecisionResolveSheet({
 
             {(pickedLabel || picked?.description) && (
               <div className="drs-tagro">
-                <p className="drs-tagro-head">
-                  <Sparkle size={14} weight="fill" aria-hidden />
-                  Tagro empfiehlt {pickedLabel}
-                </p>
+                <p className="drs-tagro-head">Tagro empfiehlt {pickedLabel}</p>
                 {(decision.tagro_recommendation_reason?.trim() || picked?.description) && (
                   <p className="drs-tagro-body">
                     {decision.tagro_recommendation_reason?.trim() || picked?.description}

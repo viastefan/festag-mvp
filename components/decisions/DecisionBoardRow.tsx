@@ -115,17 +115,24 @@ export default function DecisionBoardRow({
       {/* The running path. The node is an outline and nothing else — a ring on
           a line, no fill, no glyph, while the decision waits. Answering runs a
           five-second ring around it and writes a check inside, then it fades. */}
-      <div className="dcb-path" aria-hidden>
-        <span className="dcb-path-line dcb-path-line--up" />
-        <span className={`dcb-path-node${urgent ? ' is-urgent' : ''}${overdue || rejected ? ' is-overdue' : ''}`}>
+      <div className="dcb-path">
+        <span className="dcb-path-line dcb-path-line--up" aria-hidden />
+        <button
+          type="button"
+          className={`dcb-path-node${urgent ? ' is-urgent' : ''}${overdue || rejected ? ' is-overdue' : ''}`}
+          onClick={() => onAction('resolve')}
+          disabled={completing || !canAct}
+          aria-label="Als erledigt markieren"
+        >
+          <span className="dcb-path-tip" aria-hidden>Als erledigt markieren</span>
           <svg viewBox="0 0 28 28" fill="none" className="dcb-path-svg">
             <circle className="dcb-path-rim" cx="14" cy="14" r="11" strokeWidth="1.25" />
             <circle className="dcb-path-sweep" cx="14" cy="14" r="11" strokeWidth="1.75" />
             <path className="dcb-path-tick" d="M9.2 14.3l3.4 3.4 6.2-6.9"
               strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </span>
-        <span className="dcb-path-line dcb-path-line--down" />
+        </button>
+        <span className="dcb-path-line dcb-path-line--down" aria-hidden />
       </div>
 
       <span className="dcb-icon" aria-hidden>
