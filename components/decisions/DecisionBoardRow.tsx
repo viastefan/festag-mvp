@@ -93,16 +93,16 @@ export default function DecisionBoardRow({
 
   const teaser = useMemo(() => rationaleTeaser(decision, affected), [decision, affected])
 
-  const impact = useMemo(() => {
-    const raw = decision.client_summary?.trim() || decision.description?.trim()
-    if (!raw || raw.length > 52) return null
-    return raw
-  }, [decision.client_summary, decision.description])
-
+  /**
+   * A rejected recommendation is not a quiet footnote — it means the last
+   * proposal was turned down and the decision came back. It gets the alert
+   * treatment, same as an expired deadline.
+   */
+  const rejected = decision.status === 'awaiting_clarification'
   const state = escalated
     ? ((decision.escalation_level ?? 0) >= 3 ? 'Frist abgelaufen' : 'An Owner eskaliert')
-    : decision.status === 'awaiting_clarification'
-      ? 'Weitere Informationen benötigt'
+    : rejected
+      ? 'Empfehlung abgelehnt · wartet auf neue Aufbereitung'
       : decision.queued
         ? 'Tagro hält sie zurück'
         : null
@@ -118,7 +118,7 @@ export default function DecisionBoardRow({
           moves to closed. */}
       <div className="dcb-path" aria-hidden>
         <span className="dcb-path-line dcb-path-line--up" />
-        <span className={`dcb-path-node${urgent ? ' is-urgent' : ''}${overdue ? ' is-overdue' : ''}`}>
+        <span className={`dcb-path-node${urgent ? ' is-urgent' : ''}${overdue || rejected ? ' is-overdue' : ''}`}>
           <svg viewBox="0 0 28 28" fill="none" className="dcb-path-svg">
             <circle className="dcb-path-rim" cx="14" cy="14" r="12" strokeWidth="1.25" />
             <circle className="dcb-path-sweep" cx="14" cy="14" r="12" strokeWidth="1.75" />
@@ -136,7 +136,7 @@ export default function DecisionBoardRow({
       <div className="dcb-head-m">
         <h3 className="dcb-title">{decision.client_title || decision.title}</h3>
         {project?.title && <p className="dcb-project">{project.title}</p>}
-        {state && <p className={`dcb-state${escalated ? ' is-red' : ''}`}>{state}</p>}
+        {state && <p className={`dcb-state${escalated || rejected ? ' is-alert' : ''}`}>{state}</p>}
       </div>
 
       <div className="dcb-rec">
@@ -166,17 +166,12 @@ export default function DecisionBoardRow({
           {effortLabel(decision)}
         </span>
 
-        {areas > 0 ? (
+        {areas > 0 && (
           <div>
-            <p className="dcb-meta-key">Betroffene Bereiche</p>
-            <p className="dcb-meta-val">{areas}</p>
+            <p className="dcb-meta-key">Wartet darauf</p>
+            <p className="dcb-meta-val">{areas} {areas === 1 ? 'Aufgabe' : 'Aufgaben'}</p>
           </div>
-        ) : impact ? (
-          <div>
-            <p className="dcb-meta-key">Auswirkung</p>
-            <p className="dcb-meta-val">{impact}</p>
-          </div>
-        ) : null}
+        )}
 
         {due ? (
           <div>

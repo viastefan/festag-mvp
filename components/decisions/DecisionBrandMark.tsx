@@ -66,6 +66,9 @@ const BRANDS: Record<string, BrandEntry> = {
  * Extracts the external products named in a recommendation label.
  * "Google + Apple" → two marks. "Variante A" → none.
  */
+/** Tagro is the product's own intelligence, never a vendor — it gets no mark. */
+const NEVER_MARKED = new Set(['tagro', 'festag'])
+
 export function detectBrands(label?: string | null): BrandEntry[] {
   if (!label?.trim()) return []
   const words = label.toLowerCase().match(/[a-z0-9][a-z0-9.+-]*/g) ?? []
@@ -73,6 +76,7 @@ export function detectBrands(label?: string | null): BrandEntry[] {
   const seen = new Set<string>()
   for (const word of words) {
     const key = word.replace(/[.+-]+$/, '')
+    if (NEVER_MARKED.has(key)) continue
     const entry = BRANDS[key]
     if (entry && !seen.has(key)) {
       seen.add(key)

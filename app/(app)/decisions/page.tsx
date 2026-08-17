@@ -402,15 +402,17 @@ function DecisionsBoard() {
   return (
     <BoardShell>
       <div className="dcb-top">
+        {/* The count is the news — it carries the ink. The lead-in is framing
+            and recedes, so the eye lands on the number first. */}
         <h1 className="dcb-h1">
           <span className="dcb-h1-line">
-            {headline.primary.ink}{' '}
-            <span className="dcb-h1-muted">{headline.primary.muted}</span>
+            <span className="dcb-h1-muted">{headline.primary.ink}</span>{' '}
+            {headline.primary.muted}
           </span>
           {headline.secondary && (
             <span className="dcb-h1-line">
-              {headline.secondary.ink}{' '}
-              <span className="dcb-h1-muted">{headline.secondary.muted}</span>
+              <span className="dcb-h1-muted">{headline.secondary.ink}</span>{' '}
+              {headline.secondary.muted}
             </span>
           )}
         </h1>

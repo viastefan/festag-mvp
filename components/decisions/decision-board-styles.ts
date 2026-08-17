@@ -335,6 +335,19 @@ html body .fas-root:has(.dcb) .dcb-inner {
   color: var(--dcb-soft);
 }
 .dcb-state.is-red { color: var(--dcb-red); }
+.dcb-state.is-alert {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--dcb-red) 11%, transparent);
+  color: var(--dcb-red);
+  font-size: 12px;
+}
+.dcb-state.is-alert::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--dcb-red); flex-shrink: 0;
+}
 
 /* ── Tagro recommendation column ── */
 .dcb-rec { padding-top: 6px; min-width: 0; }
@@ -786,11 +799,11 @@ export const DECISION_SHEET_CSS = `
 
 .drs-panel {
   position: relative;
-  width: min(516px, 100%);
+  width: min(660px, 100%);
   max-height: min(82vh, 720px);
   overflow-y: auto;
   box-sizing: border-box;
-  padding: 34px 34px 28px;
+  padding: 36px 40px 30px;
   border-radius: 16px;
   background: #FDFBF7;
   border: 1px solid rgba(27, 34, 51, 0.08);
@@ -826,12 +839,21 @@ export const DECISION_SHEET_CSS = `
 .drs-close:hover { background: rgba(27, 34, 51, 0.05); color: #1B2233; }
 
 .drs-back {
-  appearance: none; border: none; background: transparent; padding: 0;
-  display: inline-flex; align-items: center; gap: 6px;
-  margin: 0 0 16px;
-  font: inherit; font-size: 13px; color: #8A93A5; cursor: pointer;
+  appearance: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 0 0 20px;
+  height: 30px; padding: 0 12px 0 9px;
+  border: 1px solid rgba(27, 34, 51, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  font: inherit; font-size: 13px; color: #5A6274; cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
-.drs-back:hover { color: #1B2233; }
+.drs-back:hover {
+  background: rgba(91, 100, 125, 0.08);
+  border-color: rgba(91, 100, 125, 0.3);
+  color: #1B2233;
+}
 
 /* The headline IS the content: one or two sentences that say everything.
    The second sentence carries the consequence, set muted so the ask stays
