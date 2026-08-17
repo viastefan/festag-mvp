@@ -46,7 +46,9 @@ export const DECISION_BOARD_CSS = `
   max-width: 1240px;
   margin: 0 auto;
   box-sizing: border-box;
-  padding: clamp(28px, 4.5vh, 56px) clamp(20px, 3vw, 48px) clamp(72px, 12vh, 120px);
+  /* Top padding lives on the sticky header instead, so pinning it at 0 does not
+     make the page jump by the padding amount. */
+  padding: 0 clamp(20px, 3vw, 48px) clamp(72px, 12vh, 120px);
 }
 
 /* Centre on the screen, not in the leftover column.
@@ -59,7 +61,13 @@ export const DECISION_BOARD_CSS = `
    :has() is a progressive enhancement: without it the spacer stays and the
    board simply sits where it did before. */
 html body .fas-root:has(.dcb) .fas-sidebar-spacer { display: none; }
-html body .fas-root:has(.dcb) .fas-content { scrollbar-gutter: auto; }
+html body .fas-root:has(.dcb) .fas-content {
+  scrollbar-gutter: auto;
+  /* The shell pads the scroll container by 8px. A sticky child pins to the
+     padding box, leaving an 8px band above it where rows scroll through in
+     plain sight. The board owns its own top spacing, so drop it here. */
+  padding-top: 0;
+}
 
 /* Expanded, the panel is wider than the old reservation — hold the rail clear
    of it so the board never slides underneath. */
@@ -90,17 +98,21 @@ html body .fas-root:has(.dcb) .dcb {
 .dcb-head {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 30;
   margin: 0 0 4px;
-  padding-top: 2px;
-  background: var(--dcb-canvas);
+  /* Carries the page's own top padding, so nothing shifts when it pins. */
+  padding-top: clamp(28px, 4.5vh, 56px);
+  /* The shell owns the canvas colour — matching it exactly is what keeps rows
+     from showing through. A near-miss reads as a tinted pane. */
+  background: var(--fas-canvas, #FBF7EE);
+  will-change: transform;
 }
 .dcb-head-fade {
   position: absolute;
   left: 0; right: 0; top: 100%;
   height: 34px;
   pointer-events: none;
-  background: linear-gradient(180deg, var(--dcb-canvas) 0%, color-mix(in srgb, var(--dcb-canvas) 0%, transparent) 100%);
+  background: linear-gradient(180deg, var(--fas-canvas, #FBF7EE) 0%, transparent 100%);
   opacity: 0;
   transition: opacity 0.28s var(--dcb-ease);
 }
@@ -218,10 +230,10 @@ html body .fas-root:has(.dcb) .dcb {
 
 .dcb-row {
   display: grid;
-  grid-template-columns: var(--dcb-path-w) 52px minmax(200px, 1.1fr) minmax(250px, 1.4fr) minmax(168px, 0.78fr) var(--dcb-action-w);
+  grid-template-columns: var(--dcb-path-w) 22px minmax(210px, 1.12fr) minmax(250px, 1.4fr) minmax(168px, 0.78fr) var(--dcb-action-w);
   align-items: start;
-  gap: 0 24px;
-  padding: 30px 0 32px;
+  gap: 0 20px;
+  padding: 28px 0 30px;
   border-bottom: 1px solid var(--dcb-hair);
   animation: dcbIn 0.4s var(--dcb-ease) both;
 }
@@ -363,14 +375,16 @@ html body .fas-root:has(.dcb) .dcb {
 }
 
 .dcb-icon {
-  width: 52px; height: 52px;
-  display: inline-flex; align-items: center; justify-content: flex-start;
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
   border: none;
   background: none;
   color: var(--dcb-faint);
-  margin-top: 2px;
+  /* Optically level with the title's cap height, not its box. */
+  margin-top: 11px;
   transition: color 0.24s var(--dcb-ease);
 }
+.dcb-icon svg { width: 18px; height: 18px; }
 .dcb-row:hover .dcb-icon { color: var(--dcb-muted); }
 
 .dcb-title {

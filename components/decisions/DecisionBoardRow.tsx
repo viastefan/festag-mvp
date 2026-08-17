@@ -24,6 +24,7 @@ import { rationaleTeaser } from '@/lib/decisions/rationale'
 import DecisionBrandMark from '@/components/decisions/DecisionBrandMark'
 import {
   URGENCY_LABEL,
+  isOpenDecisionStatus,
   type DecOption,
   type Decision,
   type ProjectLite,
@@ -99,6 +100,7 @@ export default function DecisionBoardRow({
    * treatment, same as an expired deadline.
    */
   const rejected = decision.status === 'awaiting_clarification'
+  const settled = !isOpenDecisionStatus(decision.status)
   const state = escalated
     ? ((decision.escalation_level ?? 0) >= 3 ? 'Frist abgelaufen' : 'An Owner eskaliert')
     : rejected
@@ -121,7 +123,7 @@ export default function DecisionBoardRow({
           type="button"
           className={`dcb-path-node${urgent ? ' is-urgent' : ''}${overdue || rejected ? ' is-overdue' : ''}`}
           onClick={() => onAction('resolve')}
-          disabled={completing || !canAct}
+          disabled={completing || !canAct || settled}
           aria-label="Als erledigt markieren"
         >
           <span className="dcb-path-tip" aria-hidden>Als erledigt markieren</span>
@@ -195,32 +197,44 @@ export default function DecisionBoardRow({
       </div>
 
       <div className="dcb-actions">
-        <button
-          type="button"
-          className="dcb-btn dcb-btn--primary"
-          onClick={() => onAction('resolve')}
-          disabled={completing || !canAct}
-          title={canAct ? undefined : 'Diese Entscheidung liegt bei jemand anderem'}
-        >
-          {primaryLabel}
-          <ArrowRight size={14} weight="regular" className="dcb-btn-arrow" aria-hidden />
-        </button>
-        <button
-          type="button"
-          className="dcb-btn"
-          onClick={() => onAction('options')}
-          disabled={completing}
-        >
-          {secondaryLabel}
-        </button>
-        <button
-          type="button"
-          className="dcb-btn dcb-btn--ghost"
-          onClick={() => onAction('details')}
-          disabled={completing}
-        >
-          Details
-        </button>
+        {settled ? (
+          <button
+            type="button"
+            className="dcb-btn"
+            onClick={() => onAction('details')}
+          >
+            Details ansehen
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="dcb-btn dcb-btn--primary"
+              onClick={() => onAction('resolve')}
+              disabled={completing || !canAct}
+              title={canAct ? undefined : 'Diese Entscheidung liegt bei jemand anderem'}
+            >
+              {primaryLabel}
+              <ArrowRight size={14} weight="regular" className="dcb-btn-arrow" aria-hidden />
+            </button>
+            <button
+              type="button"
+              className="dcb-btn"
+              onClick={() => onAction('options')}
+              disabled={completing}
+            >
+              {secondaryLabel}
+            </button>
+            <button
+              type="button"
+              className="dcb-btn dcb-btn--ghost"
+              onClick={() => onAction('details')}
+              disabled={completing}
+            >
+              Details
+            </button>
+          </>
+        )}
       </div>
     </article>
   )

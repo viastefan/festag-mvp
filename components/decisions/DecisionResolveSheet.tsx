@@ -267,6 +267,13 @@ export default function DecisionResolveSheet({
             </button>
             <h2 className="drs-title">{title}</h2>
 
+            {options.length === 0 && (
+              <p className="drs-lead">
+                Für diese Entscheidung sind keine Optionen hinterlegt — sie wird als
+                freie Antwort oder direkt im Detail beantwortet.
+              </p>
+            )}
+
             <ul className="drs-options">
               {options.map(opt => {
                 const label = opt.client_label || opt.label
