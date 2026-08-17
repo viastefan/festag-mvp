@@ -330,13 +330,14 @@ html body .fas-root:has(.dcb) .dcb {
 
 .dcb-icon {
   width: 52px; height: 52px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 1px solid var(--dcb-line);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--dcb-soft);
-  margin-top: 4px;
+  display: inline-flex; align-items: center; justify-content: flex-start;
+  border: none;
+  background: none;
+  color: var(--dcb-faint);
+  margin-top: 2px;
+  transition: color 0.24s var(--dcb-ease);
 }
+.dcb-row:hover .dcb-icon { color: var(--dcb-muted); }
 
 .dcb-title {
   margin: 0 0 7px;
@@ -488,13 +489,13 @@ html body .fas-root:has(.dcb) .dcb {
   background: var(--dcb-primary);
   border-color: var(--dcb-primary);
   color: #FFFFFF;
-  box-shadow: 0 1px 2px rgba(27, 34, 51, 0.08), 0 6px 16px -10px rgba(91, 100, 125, 0.75);
+  box-shadow: 0 1px 1px rgba(27, 34, 51, 0.04);
 }
 .dcb-btn--primary:hover:not(:disabled) {
   background: var(--dcb-primary-hover);
   border-color: var(--dcb-primary-hover);
   color: #FFFFFF;
-  box-shadow: 0 1px 2px rgba(27, 34, 51, 0.1), 0 10px 22px -12px rgba(91, 100, 125, 0.9);
+  box-shadow: 0 1px 2px rgba(27, 34, 51, 0.07);
 }
 /* The third action is a text button — three equal boxes is a toolbar, not a
    decision. Same width and height, so the column still aligns. */
@@ -832,7 +833,7 @@ export const DECISION_SHEET_CSS = `
   border-radius: 16px;
   background: #FDFBF7;
   border: 1px solid rgba(27, 34, 51, 0.08);
-  box-shadow: 0 24px 64px rgba(15, 20, 30, 0.2), 0 2px 6px rgba(15, 20, 30, 0.05);
+  box-shadow: 0 18px 48px -20px rgba(15, 20, 30, 0.28), 0 1px 2px rgba(15, 20, 30, 0.04);
   font-family: var(--font-ui, 'Aeonik', system-ui, sans-serif);
   color: #1B2233;
   animation: drsEnter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1185,6 +1186,15 @@ html[data-theme="dark"] .drs-why-body,
 html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
 
 /* ── Detail page ──
+   One centred reading column. The board is a table and uses the full rail; a
+   single decision is prose and gets a measure, centred in whatever space the
+   shell leaves. */
+.dcd {
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
    Same canvas and measure as the board; the difference is depth, not style.
    Type is a step larger throughout because this page is read, not scanned. */
 .dcd-loading { font-size: 15px; color: var(--dcb-muted); padding: 8px 0; }
@@ -1200,13 +1210,14 @@ html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
 .dcd-back-cta { width: auto; max-width: 240px; margin-top: 20px; }
 
 .dcd-h1 {
-  margin: 0 0 14px;
-  max-width: 24ch;
+  margin: 0 0 16px;
+  max-width: 18ch;
   font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
   font-weight: 400;
-  font-size: clamp(28px, 3.4vw, 44px);
-  line-height: 1.22;
-  letter-spacing: -0.014em;
+  /* A headline, not a poster. Long client titles must stay readable. */
+  font-size: clamp(26px, 2.6vw, 36px);
+  line-height: 1.26;
+  letter-spacing: -0.012em;
   color: var(--dcb-ink);
   text-wrap: balance;
 }
@@ -1219,12 +1230,12 @@ html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
 
 /* Tagro's field — same pale blue as the sheet, so the source is unmistakable. */
 .dcd-tagro {
-  margin: 0 0 clamp(26px, 4vh, 38px);
-  padding: clamp(20px, 2.4vw, 26px);
+  margin: 0 0 32px;
+  padding: 32px;
   border-radius: 15px;
   background: var(--dcb-primary-soft);
   border: 1px solid var(--dcb-primary-edge);
-  max-width: 720px;
+  max-width: none;
 }
 .dcd-tagro-head {
   display: flex; align-items: center; gap: 8px;
@@ -1263,9 +1274,9 @@ html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 20px 32px;
-  max-width: 720px;
-  margin: 0 0 clamp(26px, 4vh, 36px);
-  padding: clamp(18px, 2.4vh, 24px) 0;
+  max-width: none;
+  margin: 0 0 32px;
+  padding: 24px 0;
   border-top: 1px solid var(--dcb-line);
   border-bottom: 1px solid var(--dcb-line);
 }
@@ -1281,15 +1292,14 @@ html[data-theme="classic-dark"] .drs-why-body { color: #E8EAF0; }
 .dcd-fact-val.is-red { color: var(--dcb-red); }
 
 .dcd-actions {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
-  margin: 0 0 clamp(34px, 5vh, 52px);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+  margin: 0 0 48px;
 }
 .dcd-cta { width: auto; min-width: 190px; height: 46px; font-size: 14.5px; }
 .dcd-note { margin: 0; font-size: 13.5px; color: var(--dcb-muted); }
 
 .dcd-section {
-  margin: 0 0 clamp(32px, 5vh, 48px);
-  max-width: 760px;
+  margin: 0 0 48px;
 }
 .dcd-h2 {
   margin: 0 0 18px;

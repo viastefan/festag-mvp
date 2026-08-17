@@ -161,7 +161,21 @@ function DecisionDetail() {
   const blocks = affected?.blocks ?? []
   const affects = affected?.affects ?? []
   const title = decision.client_title || decision.title
-  const summary = decision.client_summary || decision.description
+  const rawSummary = decision.client_summary || decision.description
+  /**
+   * Legacy rows exist where the summary repeats the title verbatim (or the
+   * title is just the summary's first sentence). Rendering both turns the
+   * headline into an echo, so the second clause only survives if it actually
+   * says something new.
+   */
+  const summary = (() => {
+    const t = title?.trim().replace(/[.…]+$/, '') ?? ''
+    const s = rawSummary?.trim() ?? ''
+    if (!s || !t) return s || null
+    if (s === t) return null
+    if (s.startsWith(t) || t.startsWith(s.slice(0, Math.min(s.length, 40)))) return null
+    return s
+  })()
   const primaryLabel = decision.response_type === 'binary' ? 'Freigeben' : 'Entscheiden'
 
   return (

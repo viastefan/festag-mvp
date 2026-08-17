@@ -232,12 +232,18 @@ export async function handleDecisionOutcome(
       .eq('id', input.decisionId)
       .maybeSingle()
 
+    /**
+     * The question is what the client will read if the framing model is
+     * unavailable — the heuristic fallback copies it straight into
+     * client_title/client_summary. So it has to be the matter itself, never an
+     * instruction to the model. Putting "Formuliere eine präzisere Alternative…"
+     * in here is how an internal prompt ended up as a decision headline.
+     */
+    const subject = original?.client_title || original?.title || 'die vorherige Empfehlung'
     const rejectContext = [
-      `Der Kunde hat die vorherige Empfehlung abgelehnt.`,
-      original?.client_title || original?.title ? `Betreff: ${original?.client_title || original?.title}` : '',
-      input.rationale ? `Begründung: ${input.rationale}` : '',
-      'Formuliere eine präzisere Alternative mit klaren Optionen, die zum Projekt und zur Website passen.',
-    ].filter(Boolean).join('\n')
+      `Alternative zu: ${subject}`,
+      input.rationale ? `Der Kunde hat abgelehnt, weil: ${input.rationale}` : 'Der Kunde hat die vorherige Empfehlung abgelehnt.',
+    ].join('\n')
 
     const signal: DecisionSignal = {
       kind: 'dev_request',
