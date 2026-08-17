@@ -134,8 +134,8 @@ html body .fas-root:has(.dcb) .dcb {
   max-width: min(880px, 100%);
   font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
   font-weight: 400;
-  font-size: clamp(21px, 1.95vw, 28px);
-  line-height: 1.36;
+  font-size: clamp(19px, 1.7vw, 25px);
+  line-height: 1.4;
   letter-spacing: -0.008em;
   color: var(--dcb-ink);
   text-wrap: balance;
