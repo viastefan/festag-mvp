@@ -69,6 +69,9 @@ export type Decision = {
   due_at?: string | null
   /** When the engine acts on silence (auto-resolve or escalation). */
   auto_resolve_at?: string | null
+  /** How the decision came about — 'rejection_followup' after a turned-down
+   *  recommendation, so the board can say so. */
+  source?: string | null
   /** Held back by the open-decision cap — surfaced calmly, never nagged. */
   queued?: boolean | null
   deadline_hard?: string | null

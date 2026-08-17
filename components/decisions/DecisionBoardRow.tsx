@@ -15,7 +15,7 @@
 
 import { useMemo } from 'react'
 import {
-  ArrowRight, Clock, CreditCard, Lock, PencilSimple, Scales,
+  Check, Clock, CreditCard, Lock, PencilSimple, Scales,
   ShieldWarning, Signature, Sparkle, TrendUp,
 } from '@phosphor-icons/react'
 import type { AffectedWork } from '@/lib/decisions/affected'
@@ -99,12 +99,18 @@ export default function DecisionBoardRow({
    * proposal was turned down and the decision came back. It gets the alert
    * treatment, same as an expired deadline.
    */
+  /* Two shapes of "a recommendation was turned down": the decision itself came
+     back for clarification, or Tagro re-framed it as a follow-up. Both must
+     read as an alert — the second one is what actually reaches the client. */
   const rejected = decision.status === 'awaiting_clarification'
+    || decision.source === 'rejection_followup'
   const settled = !isOpenDecisionStatus(decision.status)
   const state = escalated
     ? ((decision.escalation_level ?? 0) >= 3 ? 'Frist abgelaufen' : 'An Owner eskaliert')
     : rejected
-      ? 'Empfehlung abgelehnt · wartet auf neue Aufbereitung'
+      ? (decision.source === 'rejection_followup'
+          ? 'Neu aufbereitet, nachdem die Empfehlung abgelehnt wurde'
+          : 'Empfehlung abgelehnt · wartet auf neue Aufbereitung')
       : decision.queued
         ? 'Tagro hält sie zurück'
         : null
@@ -207,15 +213,22 @@ export default function DecisionBoardRow({
           </button>
         ) : (
           <>
+            {/* Reads as an unticked box: outlined, with a hollow check. It only
+                fills once the decision is actually answered, so the row never
+                looks done before it is. */}
             <button
               type="button"
-              className="dcb-btn dcb-btn--primary"
+              className={`dcb-btn dcb-btn--do${completing ? ' is-done' : ''}`}
               onClick={() => onAction('resolve')}
               disabled={completing || !canAct}
               title={canAct ? undefined : 'Diese Entscheidung liegt bei jemand anderem'}
             >
-              {primaryLabel}
-              <ArrowRight size={14} weight="regular" className="dcb-btn-arrow" aria-hidden />
+              {completing ? 'Erledigt' : (
+                <>
+                  <Check size={15} weight="regular" className="dcb-btn-check" aria-hidden />
+                  {primaryLabel}
+                </>
+              )}
             </button>
             <button
               type="button"

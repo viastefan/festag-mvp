@@ -267,6 +267,21 @@ export async function handleDecisionOutcome(
         const counter = outcome.status === 'created' ? outcome.result.decision : outcome.existing
         counterDecisionId = counter.id
 
+        /**
+         * Mark both ends of the rejection so the UI can say what happened.
+         * Without this the follow-up arrives looking like any other fresh
+         * decision, with no trace that a recommendation was turned down —
+         * which is exactly what it is not.
+         */
+        await sb.from('decisions')
+          .update({ source: 'rejection_followup' })
+          .eq('id', counter.id)
+          .then(() => null, () => null)
+        await sb.from('decisions')
+          .update({ superseded_by: counter.id })
+          .eq('id', input.decisionId)
+          .then(() => null, () => null)
+
         if (input.taskId) {
           await sb.from('decision_links').insert({
             decision_id: counter.id,

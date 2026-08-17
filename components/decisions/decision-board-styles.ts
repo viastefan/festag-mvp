@@ -101,7 +101,7 @@ html body .fas-root:has(.dcb) .dcb {
   z-index: 30;
   margin: 0 0 4px;
   /* Carries the page's own top padding, so nothing shifts when it pins. */
-  padding-top: clamp(28px, 4.5vh, 56px);
+  padding-top: clamp(20px, 3.2vh, 40px);
   /* The shell owns the canvas colour — matching it exactly is what keeps rows
      from showing through. A near-miss reads as a tinted pane. */
   background: var(--fas-canvas, #FBF7EE);
@@ -532,6 +532,29 @@ html body .fas-root:has(.dcb) .dcb {
 }
 .dcb-btn:disabled { opacity: 0.45; cursor: default; }
 
+/* The decide control reads as an unticked box, not a filled CTA: a filled
+   button implies the work is done. Outline + hollow check = "not yet"; on
+   completion the check drops and the label becomes the state. */
+.dcb-btn--do {
+  gap: 8px;
+  border-color: color-mix(in srgb, var(--dcb-primary) 34%, transparent);
+  background: transparent;
+  color: var(--dcb-primary);
+}
+.dcb-btn--do:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--dcb-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--dcb-primary) 62%, transparent);
+  color: var(--dcb-primary-hover);
+}
+.dcb-btn-check { flex-shrink: 0; opacity: 0.7; transition: opacity 0.18s var(--dcb-ease); }
+.dcb-btn--do:hover:not(:disabled) .dcb-btn-check { opacity: 1; }
+.dcb-btn--do.is-done {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--dcb-primary) 12%, transparent);
+  color: var(--dcb-primary);
+  opacity: 1;
+}
+
 /* Primary Blue carries the one action that matters — never black. */
 .dcb-btn--primary {
   background: var(--dcb-primary);
@@ -594,10 +617,8 @@ html body .fas-root:has(.dcb) .dcb {
 /* ── Automatic decisions footer ── */
 .dcb-auto {
   margin-top: clamp(34px, 5vh, 52px);
-  padding: 20px 24px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--dcb-primary) 5%, transparent);
-  border: 1px solid color-mix(in srgb, var(--dcb-primary) 12%, transparent);
+  padding: 22px 0 0;
+  border-top: 1px solid var(--dcb-line);
 }
 .dcb-auto-row {
   display: flex;
@@ -609,20 +630,19 @@ html body .fas-root:has(.dcb) .dcb {
 }
 .dcb-auto-row > span:not(.dcb-auto-check) { flex: 1 1 auto; min-width: 0; }
 .dcb-auto-check {
-  width: 26px; height: 26px;
+  width: 18px; height: 18px;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 50%;
-  border: none;
-  background: color-mix(in srgb, var(--dcb-primary) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dcb-primary) 34%, transparent);
+  background: transparent;
   color: var(--dcb-primary);
   flex-shrink: 0;
 }
 .dcb-auto-link {
   appearance: none;
-  border: 1px solid color-mix(in srgb, var(--dcb-primary) 22%, transparent);
-  border-radius: 8px;
+  border: none;
   background: transparent;
-  padding: 7px 13px;
+  padding: 0;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -632,7 +652,7 @@ html body .fas-root:has(.dcb) .dcb {
   color: var(--dcb-soft);
   cursor: pointer;
 }
-.dcb-auto-link:hover { color: var(--dcb-ink); background: color-mix(in srgb, var(--dcb-primary) 10%, transparent); }
+.dcb-auto-link:hover { color: var(--dcb-ink); }
 .dcb-auto-list {
   list-style: none;
   margin: 14px 0 0;
