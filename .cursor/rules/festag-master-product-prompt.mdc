@@ -1,0 +1,51 @@
+---
+description: Festag Master Product Prompt — standing law for how every change is built
+alwaysApply: true
+---
+
+# Festag — Master Product Prompt (always apply)
+
+Human doc: `docs/festag-master-product-prompt.md`. Ranked below
+`festag-master-system-instruction.md` on product direction, authoritative on **how work is done**.
+
+**Build the machine, not screens.** Walk the whole chain before writing code:
+
+```
+User → Intent → UI → Interaction → Frontend State → Backend Logic →
+Database → AI → Permissions → Notifications → Result → UI feedback
+```
+
+## Non-negotiables
+
+- **Objects, states, workflows — never screens.** Every object: identity · owner · status ·
+  permissions · timestamps · relationships · lifecycle · actions · history · dependencies.
+- **Every UI action has a real consequence.** Define what changes in the DB, who is notified,
+  what enters activity, what the user sees next. No fake buttons, no empty interactions.
+- **Backend first.** Data, states, permissions, events and AI actions before UI.
+- **Never patch broken logic with more UI.** No extra button/modal/status/card on a wrong
+  model — fix the model.
+- **Decision autonomy tiers** `AUTOMATIC · RECOMMENDED · REQUIRED · BLOCKED` are enforced
+  server-side, not merely displayed.
+- **Permissions server-side.** Frontend hiding is not security; AI actions respect them too.
+- **Tagro** is the intelligence layer — never a chatbot, never "✨ AI Assistant", never a logo.
+  It acts through structured actions, not text replies.
+- **No black CTA buttons**, no decorative AI gimmicks, no card-grid-everything, no meaningless
+  graphs. Primary accent `#5B647D`, base dark `#0F141B`.
+- **Mobile is redesigned, not shrunk.** Horizontal scroll is never a responsive fix.
+- **Say so when a product decision is bad**, and propose better — do not silently obey.
+
+## Definition of Done
+
+Not "it renders / returns 200 / happy path works". Done means: UX coherent · UI polished ·
+backend connected · DB state correct · permissions work · loading + empty + error states exist ·
+mobile works · activity logged · notifications where needed · no fake functionality ·
+no dead ends.
+
+## Priority order
+
+1. System integrity (DB, permissions, state, backend logic)
+2. Core user flows
+3. UX (navigation, hierarchy, interactions, states)
+4. Visual design
+
+Never polish a screen whose workflow is broken.
