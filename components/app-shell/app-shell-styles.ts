@@ -24,10 +24,10 @@ export const APP_SHELL_STYLES = `
   --fas-nav-active: rgba(30, 30, 32, 0.09);
   --fas-nav-active-ink: ${FESTAG_SAND.ink};
   --fas-sidebar-w: 268px;
-  --fas-sidebar-collapsed-w: 220px;
+  --fas-sidebar-collapsed-w: 60px;
   --fas-sidebar-float-inset: 12px;
   --festag-sidebar-width: var(--fas-sidebar-collapsed-w);
-  /* Visual height of collapsed floating sidebar chip (max-height stays 72 for expand) */
+  /* Height of the top band the topbar shares with the sidebar's header row */
   --fas-sidebar-chip-h: 56px;
   --fas-topbar-h: calc(var(--fas-sidebar-float-inset) + var(--fas-sidebar-chip-h));
   --fas-radius: 8px;
@@ -112,6 +112,7 @@ html[data-theme="read"] .fas-root {
   bottom: auto;
   z-index: 40;
   width: var(--fas-sidebar-w);
+  height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
   max-height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
   flex-shrink: 0;
   display: flex;
@@ -146,17 +147,27 @@ html[data-theme="classic-dark"] .fas-sidebar {
 }
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
-  max-height: 72px;
-  padding: 8px 10px;
-  gap: 0;
 }
 .fas-sidebar.is-expanded {
   width: var(--fas-sidebar-w);
-  /* A cap alone doesn't give the flex column real space to grow into — the
-     nav's flex:1 has nothing to fill and collapses to near-zero height
-     whenever the header + recent + footer don't already fill the cap. */
-  height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
-  max-height: calc(100dvh - (var(--fas-sidebar-float-inset) * 2));
+}
+/* Peek = hovering an unpinned rail. It floats over the canvas, so it needs to
+   read as a layer above the page, not as part of it. */
+.fas-sidebar.is-peek {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 24px 64px rgba(15, 23, 42, 0.16);
+}
+html[data-theme="dark"] .fas-sidebar.is-peek,
+html[data-theme="classic-dark"] .fas-sidebar.is-peek {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.24),
+    0 28px 72px rgba(0, 0, 0, 0.58);
+}
+/* The panel clips labels while narrow — but a popover has to be able to leave
+   the box, and by the time one is open the panel is expanded anyway. */
+.fas-sidebar.has-popover {
+  overflow: visible;
 }
 .fas-sidebar-spacer {
   width: calc(var(--fas-sidebar-collapsed-w) + var(--fas-sidebar-float-inset));
@@ -183,8 +194,20 @@ pointer-events: none;
   min-width: 0;
   padding: 0;
 }
+/* Rail: one centred icon column instead of a header row. */
 .fas-sidebar.is-collapsed .fas-sidebar-header {
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  row-gap: 2px;
+}
+.fas-sidebar.is-collapsed .fas-ws-trigger {
+  padding: 4px;
+}
+.fas-sidebar.is-collapsed .fas-ws-copy {
+  display: none;
+}
+.fas-sidebar.is-collapsed .fas-sidebar-utils {
+  flex-direction: column;
 }
 
 .fas-ws-trigger {
@@ -297,6 +320,9 @@ html[data-theme="classic-dark"] .fas-ws-mark {
   gap: 2px;
   flex-shrink: 0;
 }
+.fas-sidebar.is-expanded .fas-sidebar-utils {
+  flex-direction: row;
+}
 .fas-sidebar-icon {
   width: 28px;
   height: 28px;
@@ -323,11 +349,26 @@ html[data-theme="classic-dark"] .fas-ws-mark {
   flex-shrink: 0;
 }
 
-/* Body collapses with the floating chip */
-.fas-sidebar.is-collapsed .fas-nav,
-.fas-sidebar.is-collapsed .fas-recent,
-.fas-sidebar.is-collapsed .fas-sidebar-footer {
+/* Rail keeps the nav visible — labels slide out, icons stay put. */
+.fas-nav-label {
+  white-space: nowrap;
+  transition: opacity 0.14s ease;
+}
+.fas-sidebar.is-collapsed .fas-nav-label {
+  opacity: 0;
+}
+.fas-sidebar.is-collapsed .fas-recent {
   display: none;
+}
+.fas-sidebar.is-collapsed .fas-sidebar-footer {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.fas-sidebar.is-collapsed .fas-help-btn {
+  width: 36px;
+  margin-left: 2px;
+  padding: 0;
 }
 
 .fas-ws-popover {
@@ -1446,7 +1487,6 @@ ${FESTAG_CANVAS_STYLES}
   --fas-canvas: ${FESTAG_SAND.canvas};
   --fas-main-bg: transparent;
   --fas-sidebar-bg: transparent;
-  --fas-sidebar-collapsed-w: 220px;
 }
 html:not([data-theme="dark"]):not([data-theme="classic-dark"]) .fas-root:has(.fas-wb) {
   background: ${FESTAG_SAND.canvas} !important;
@@ -2209,6 +2249,10 @@ html[data-theme="classic-dark"] .fas-wb-btn.is-primary {
   .fas-wb-board,
   .fas-wb-project,
   .fas-wb-node { transition: none !important; animation: none !important; }
+  /* Peek fires on every pass along the left edge — the one animation in the
+     shell a reduced-motion user would meet dozens of times an hour. */
+  .fas-sidebar,
+  .fas-nav-label { transition: none !important; }
 }
 
 @media (max-width: 768px) {
@@ -2944,11 +2988,17 @@ html[data-theme="classic-dark"] .fas-wo-progress {
     -webkit-backdrop-filter: none;
     background: var(--fas-sidebar-bg);
   }
-  .fas-sidebar.is-collapsed .fas-nav,
-  .fas-sidebar.is-collapsed .fas-recent,
-  .fas-sidebar.is-collapsed .fas-sidebar-footer {
-    display: flex;
+  .fas-sidebar.is-collapsed .fas-sidebar-header {
+    grid-template-columns: 28px auto max-content;
+    justify-items: stretch;
   }
+  .fas-sidebar.is-collapsed .fas-ws-copy { display: flex; }
+  /* Mobile search/bell live in the top bar (CodexMobileActionPill) — the rail
+     must not duplicate them just because it now carries them on desktop. */
+  .fas-sidebar-utils { display: none; }
+  .fas-sidebar.is-collapsed .fas-nav-label { opacity: 1; }
+  .fas-sidebar.is-collapsed .fas-sidebar-footer { flex-direction: row; }
+  .fas-sidebar.is-collapsed .fas-help-btn { width: auto; }
   .fas-sidebar-top {
     margin: 0;
     flex-shrink: 0;

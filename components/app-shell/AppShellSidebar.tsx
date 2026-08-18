@@ -35,8 +35,11 @@ import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
   user: UserProfile | null
-  collapsed: boolean
-  onToggleCollapse: () => void
+  /** User locked the panel open — the page reflows around it. */
+  pinned: boolean
+  onTogglePin: () => void
+  /** Hover/focus expansion — floats over the canvas, page must not reflow. */
+  onPeekChange: (peek: boolean) => void
 }
 
 type RecentItem = {
@@ -47,6 +50,20 @@ type RecentItem = {
 }
 
 const RECENT_EXPAND_KEY = 'festag-os-recent-expanded'
+
+/* Short in, longer out: opening should feel instant, closing should forgive the
+   diagonal slide toward a nav label. */
+const PEEK_IN_MS = 55
+const PEEK_OUT_MS = 190
+
+/** Hover-to-expand is a pointer affordance — a touch rail must not flicker. */
+function hasFinePointer(): boolean {
+  try {
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  } catch {
+    return false
+  }
+}
 
 function truncateLabel(text: string, max = 34) {
   const t = text.trim().replace(/\s+/g, ' ')
@@ -92,8 +109,9 @@ function writeExpanded(key: string, value: boolean) {
 
 export default function AppShellSidebar({
   user,
-  collapsed,
-  onToggleCollapse,
+  pinned,
+  onTogglePin,
+  onPeekChange,
 }: Props) {
   const pathname = usePathname() || '/overview'
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
@@ -118,8 +136,11 @@ export default function AppShellSidebar({
   const [recent, setRecent] = useState<RecentItem[]>([])
   const [recentExpanded, setRecentExpanded] = useState(true)
   const [deferredReady, setDeferredReady] = useState(false)
+  const [peeking, setPeeking] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
+  const asideRef = useRef<HTMLElement>(null)
   const helpTriggerRef = useRef<HTMLButtonElement>(null)
+  const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { items: notifications, unread, markRead } = useNotifications({
     limit: 12,
     enabled: deferredReady || notifOpen,
@@ -128,6 +149,37 @@ export default function AppShellSidebar({
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
   }, [])
+
+  /* An open popover keeps the panel wide even once the pointer has left it —
+     otherwise the rail snaps shut under the menu the user is reading. */
+  const menuOpen = wsOpen || notifOpen || helpOpen
+  const expanded = pinned || peeking || menuOpen
+
+  const schedulePeek = useCallback((next: boolean) => {
+    if (peekTimer.current !== null) {
+      globalThis.clearTimeout(peekTimer.current)
+      peekTimer.current = null
+    }
+    if (next && !hasFinePointer()) return
+    peekTimer.current = globalThis.setTimeout(() => {
+      peekTimer.current = null
+      setPeeking(next)
+    }, next ? PEEK_IN_MS : PEEK_OUT_MS)
+  }, [])
+
+  useEffect(() => () => {
+    if (peekTimer.current !== null) globalThis.clearTimeout(peekTimer.current)
+  }, [])
+
+  /* Report only the *unpinned* expansion: pinned width is the shell's own class. */
+  useEffect(() => {
+    onPeekChange(!pinned && expanded)
+  }, [onPeekChange, pinned, expanded])
+
+  /* Pinning wins over a stale peek flag left behind by the pointer. */
+  useEffect(() => {
+    if (pinned) setPeeking(false)
+  }, [pinned])
 
   useEffect(() => {
     const run = () => setDeferredReady(true)
@@ -319,23 +371,37 @@ export default function AppShellSidebar({
 
   return (
     <aside
-      className={`fas-sidebar${collapsed ? ' is-collapsed' : ' is-expanded'}`}
+      ref={asideRef}
+      className={
+        `fas-sidebar${expanded ? ' is-expanded' : ' is-collapsed'}` +
+        `${expanded && !pinned ? ' is-peek' : ''}` +
+        `${menuOpen ? ' has-popover' : ''}`
+      }
       aria-label="Festag navigation"
-      data-collapsed={collapsed ? '1' : '0'}
+      data-collapsed={expanded ? '0' : '1'}
+      onMouseEnter={() => schedulePeek(true)}
+      onMouseLeave={() => schedulePeek(false)}
+      onFocusCapture={() => setPeeking(true)}
+      onBlurCapture={(e) => {
+        const next = e.relatedTarget as Node | null
+        if (next && asideRef.current?.contains(next)) return
+        if (asideRef.current?.matches(':hover')) return
+        setPeeking(false)
+      }}
     >
       <div className="fas-sidebar-top" ref={headerRef}>
         <div className="fas-sidebar-header">
           <button
             type="button"
             className="fas-sidebar-icon fas-sidebar-collapse"
-            aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
-            title={collapsed ? 'Ausklappen' : 'Einklappen'}
-            aria-expanded={!collapsed}
+            aria-label={pinned ? 'Sidebar einklappen' : 'Sidebar offen halten'}
+            title={pinned ? 'Einklappen' : 'Offen halten'}
+            aria-pressed={pinned}
             onClick={(e) => {
               e.stopPropagation()
               setWsOpen(false)
               setNotifOpen(false)
-              onToggleCollapse()
+              onTogglePin()
             }}
           >
             <SidebarSimple size={15} weight="regular" />
@@ -365,33 +431,31 @@ export default function AppShellSidebar({
             </span>
           </button>
 
-          {!collapsed ? (
-            <div className="fas-sidebar-utils">
-              <button
-                type="button"
-                className="fas-sidebar-icon"
-                aria-label="Suche"
-                title="Suche"
-                onClick={openSearch}
-              >
-                <MagnifyingGlass size={15} weight="regular" />
-              </button>
-              <button
-                type="button"
-                className="fas-sidebar-icon"
-                aria-label="Benachrichtigungen"
-                title="Benachrichtigungen"
-                aria-expanded={notifOpen}
-                onClick={() => {
-                  setWsOpen(false)
-                  setNotifOpen((v) => !v)
-                }}
-              >
-                <Bell size={15} weight="regular" />
-                {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
-              </button>
-            </div>
-          ) : null}
+          <div className="fas-sidebar-utils">
+            <button
+              type="button"
+              className="fas-sidebar-icon"
+              aria-label="Suche"
+              title="Suche"
+              onClick={openSearch}
+            >
+              <MagnifyingGlass size={15} weight="regular" />
+            </button>
+            <button
+              type="button"
+              className="fas-sidebar-icon"
+              aria-label="Benachrichtigungen"
+              title="Benachrichtigungen"
+              aria-expanded={notifOpen}
+              onClick={() => {
+                setWsOpen(false)
+                setNotifOpen((v) => !v)
+              }}
+            >
+              <Bell size={15} weight="regular" />
+              {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
+            </button>
+          </div>
         </div>
 
         {wsOpen ? (
@@ -484,10 +548,10 @@ export default function AppShellSidebar({
                 href={item.href}
                 className={`fas-nav-link${active ? ' is-active' : ''}`}
                 aria-current={active ? 'page' : undefined}
-                title={collapsed ? item.label : undefined}
+                title={expanded ? undefined : item.label}
               >
                 <Icon size={16} weight="light" />
-                {!collapsed ? <span>{item.label}</span> : null}
+                <span className="fas-nav-label">{item.label}</span>
               </Link>
             )
           })}
@@ -503,17 +567,17 @@ export default function AppShellSidebar({
                 href={item.href}
                 className={`fas-nav-link${active ? ' is-active' : ''}`}
                 aria-current={active ? 'page' : undefined}
-                title={collapsed ? item.label : undefined}
+                title={expanded ? undefined : item.label}
               >
                 <Icon size={16} weight="light" />
-                {!collapsed ? <span>{item.label}</span> : null}
+                <span className="fas-nav-label">{item.label}</span>
               </Link>
             )
           })}
         </div>
       </nav>
 
-      {!collapsed ? (
+      {expanded ? (
         <div className="fas-recent">
           <button
             type="button"
@@ -566,14 +630,14 @@ export default function AppShellSidebar({
           title="Einstellungen"
         >
           <GearSix size={16} weight="light" />
-          {!collapsed ? <span>Einstellungen</span> : null}
+          <span className="fas-nav-label">Einstellungen</span>
         </Link>
         <FestagHelpPanel
           open={helpOpen}
           onOpenChange={setHelpOpen}
           anchorRef={helpTriggerRef}
           userName={displayName}
-          railCollapsed={collapsed}
+          railCollapsed={!expanded}
           trigger={(
             <button
               ref={helpTriggerRef}
@@ -584,7 +648,7 @@ export default function AppShellSidebar({
               aria-expanded={helpOpen}
               onClick={() => setHelpOpen((v) => !v)}
             >
-              {collapsed ? <Question size={15} weight="regular" /> : 'Help'}
+              {expanded ? 'Help' : <Question size={15} weight="regular" />}
             </button>
           )}
         />

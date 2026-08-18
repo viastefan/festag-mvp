@@ -9,6 +9,7 @@ import { APP_SHELL_STYLES } from '@/components/app-shell/app-shell-styles'
 import { useUser } from '@/lib/hooks/useUser'
 import { applyAppearanceForPath } from '@/lib/theme'
 
+/* '0' = pinned open, '1'/absent = rail. Key name kept for existing prefs. */
 const COLLAPSE_KEY = 'festag-os-sidebar-collapsed'
 
 const CommandPalette = dynamic(() => import('@/components/CommandPalette'), { ssr: false })
@@ -22,7 +23,11 @@ const AppShellNewProjectHost = dynamic(() => import('@/components/app-shell/AppS
 export default function FestagAppShell({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
   const pathname = usePathname() || '/overview'
-  const [collapsed, setCollapsed] = useState(true)
+  /* `pinned` = user locked the panel open (content reflows around it).
+     `peek` = transient hover/focus expansion — floats over the canvas, so the
+     page must never reflow for it. Two flags, two very different contracts. */
+  const [pinned, setPinned] = useState(false)
+  const [peek, setPeek] = useState(false)
   const [chromeReady, setChromeReady] = useState(false)
   const isSettingsWorkspace =
     pathname === '/settings' || pathname.startsWith('/settings/')
@@ -33,9 +38,7 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(COLLAPSE_KEY)
-      if (stored === '0') setCollapsed(false)
-      else setCollapsed(true)
+      setPinned(localStorage.getItem(COLLAPSE_KEY) === '0')
     } catch { /* noop */ }
   }, [])
 
@@ -63,21 +66,21 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
-    if (collapsed) return
+    if (!pinned) return
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        setCollapsed(true)
+        setPinned(false)
         try { localStorage.setItem(COLLAPSE_KEY, '1') } catch { /* noop */ }
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [collapsed])
+  }, [pinned])
 
-  function toggleCollapse() {
-    setCollapsed((prev) => {
+  function togglePin() {
+    setPinned((prev) => {
       const next = !prev
-      try { localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0') } catch { /* noop */ }
+      try { localStorage.setItem(COLLAPSE_KEY, next ? '0' : '1') } catch { /* noop */ }
       return next
     })
   }
@@ -110,13 +113,20 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className={`fas-root${collapsed ? ' is-sidebar-collapsed' : ' is-sidebar-expanded'}`} data-app-shell="">
+    <div
+      className={
+        `fas-root${pinned ? ' is-sidebar-expanded' : ' is-sidebar-collapsed'}` +
+        `${!pinned && peek ? ' is-sidebar-peek' : ''}`
+      }
+      data-app-shell=""
+    >
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: APP_SHELL_STYLES }} />
       <div className="fas-sidebar-spacer" aria-hidden />
       <AppShellSidebar
         user={user}
-        collapsed={collapsed}
-        onToggleCollapse={toggleCollapse}
+        pinned={pinned}
+        onTogglePin={togglePin}
+        onPeekChange={setPeek}
       />
       <div className="fas-main-col">
         <AppShellTopBar user={user} />
