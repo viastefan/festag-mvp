@@ -84,10 +84,18 @@ export function buildDecisionHeadline({
     clauses.push(`${critical} ${critical === 1 ? 'Notfall' : 'Notfälle'}`)
   }
 
+  // German agreement: one risk *braucht*, several *brauchen*. Getting this
+  // wrong in a headline is the fastest way to look machine-written.
+  const riskTotal = critical + nonCritical
   return {
     primary,
     secondary: clauses.length > 0
-      ? { ink: `${clauses.join(' und ')}`, muted: 'brauchen ebenfalls Aufmerksamkeit.' }
+      ? {
+          ink: clauses.join(' und '),
+          muted: riskTotal === 1
+            ? 'braucht ebenfalls Aufmerksamkeit.'
+            : 'brauchen ebenfalls Aufmerksamkeit.',
+        }
       : null,
   }
 }
