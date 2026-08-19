@@ -968,8 +968,13 @@ export const DECISION_SHEET_CSS = `
 }
 .drs-panel:focus { outline: none; }
 /* Held in place (state is preserved) but out of sight while the guided-setup
-   modal owns the screen. */
-.drs-panel.is-behind { opacity: 0; pointer-events: none; }
+   modal owns the screen. The entry animation uses fill-mode: both, which keeps
+   writing opacity:1 after it ends — so it has to be cancelled, not overridden. */
+.drs-panel.is-behind {
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
 
 /* Each step arrives from the right — the spatial "one level deeper" cue. */
 .drs-step { animation: drsStep 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
