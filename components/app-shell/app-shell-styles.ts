@@ -125,23 +125,31 @@ html[data-theme="read"] .fas-root {
   background: transparent;
   border: 1px solid transparent;
   border-radius: 16px;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.03),
-    0 14px 36px rgba(15, 23, 42, 0.06);
+  box-shadow: none;
   filter: none !important;
   overflow: hidden;
   transform-origin: top left;
+  /* Closing: the paper has to outlive the labels. Fading both together left
+     the page text reading through them for the length of the fade. */
   transition:
     width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.22s ease,
-    border-color 0.22s ease,
-    box-shadow 0.28s ease;
+    background 0.14s ease 0.16s,
+    border-color 0.14s ease 0.16s,
+    box-shadow 0.24s ease 0.06s;
 }
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
 }
 .fas-sidebar.is-expanded {
   width: var(--fas-sidebar-w);
+  /* Paper lands before the panel is wide enough to cover text — fading it in
+     alongside the width let the page read straight through it. Leaving the
+     state still uses the base transition, so it fades out gently. */
+  transition:
+    width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0s,
+    border-color 0s,
+    box-shadow 0.28s ease;
   background: ${FESTAG_SAND.canvas};
   border-color: rgba(30, 30, 32, 0.07);
   box-shadow:
@@ -186,13 +194,10 @@ pointer-events: none;
   min-width: 0;
   padding: 0;
 }
-/* Rail: the workspace mark alone, on the icon axis. */
+/* Rail: the workspace mark alone — same padding as the open state, so it sits
+   on the icon axis and holds its place when the panel opens. */
 .fas-sidebar.is-collapsed .fas-sidebar-header {
   grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-}
-.fas-sidebar.is-collapsed .fas-ws-trigger {
-  padding: 4px;
 }
 .fas-sidebar.is-collapsed .fas-ws-copy {
   display: none;
@@ -205,7 +210,7 @@ pointer-events: none;
   min-width: 0;
   max-width: 100%;
   margin: 0;
-  padding: 4px 6px 4px 2px;
+  padding: 4px 6px;
   border: none;
   border-radius: var(--fas-nav-radius);
   background: transparent;
