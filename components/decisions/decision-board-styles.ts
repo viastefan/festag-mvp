@@ -1685,13 +1685,35 @@ html[data-theme="classic-dark"] .drv-finding.is-fixed .drv-finding-mark {
 
 /* The optional document field starts collapsed — most submissions do not have
    a PDF behind them, and an empty six-row textarea reads as a demand. */
+.trs-file-input { display: none; }
+.trs-doc-entry { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 18px 0 0; }
+.trs-pick-doc {
+  appearance: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 14px;
+  border: 1px solid rgba(91, 100, 125, 0.3);
+  border-radius: 9px;
+  background: transparent;
+  font: inherit; font-size: 13.5px; color: #5B647D; cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+.trs-pick-doc:hover {
+  background: rgba(91, 100, 125, 0.08);
+  border-color: rgba(91, 100, 125, 0.55);
+}
 .trs-add-doc {
   appearance: none; border: none; background: transparent; padding: 0;
-  margin: 18px 0 0;
+  margin: 0;
   font: inherit; font-size: 13px; color: #5B647D; cursor: pointer;
   border-bottom: 1px solid rgba(91, 100, 125, 0.26);
 }
 .trs-add-doc:hover { color: #3E465C; border-bottom-color: rgba(91, 100, 125, 0.55); }
 html[data-theme="dark"] .trs-add-doc,
 html[data-theme="classic-dark"] .trs-add-doc { color: #AEB7CE; }
+html[data-theme="dark"] .trs-pick-doc,
+html[data-theme="classic-dark"] .trs-pick-doc {
+  color: #AEB7CE; border-color: rgba(152, 162, 190, 0.32);
+}
+html[data-theme="dark"] .trs-pick-doc:hover,
+html[data-theme="classic-dark"] .trs-pick-doc:hover { background: rgba(152, 162, 190, 0.14); }
 `.trim()

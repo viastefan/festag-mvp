@@ -10,7 +10,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowRight, X } from '@phosphor-icons/react'
+import { ArrowRight, FilePdf, X } from '@phosphor-icons/react'
 
 type Props = {
   taskId: string
@@ -25,7 +25,13 @@ export default function TaskReviewSubmitSheet({ taskId, taskTitle, onClose, onSu
   const [showDoc, setShowDoc] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  /* Reading the PDF is its own step with its own failures — a scan has no text,
+     and that needs saying rather than looking like nothing happened. */
+  const [reading, setReading] = useState(false)
+  const [docName, setDocName] = useState<string | null>(null)
+  const [docNote, setDocNote] = useState<string | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) onClose() }
@@ -33,6 +39,36 @@ export default function TaskReviewSubmitSheet({ taskId, taskTitle, onClose, onSu
     panelRef.current?.focus()
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose, busy])
+
+  const readPdf = useCallback(async (file: File) => {
+    setReading(true); setError(''); setDocNote(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/review/extract', {
+        method: 'POST', credentials: 'include', body: fd,
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        // The endpoint distinguishes "scan", "too large" and "unreadable" —
+        // pass its wording through, the fix differs per case.
+        setError(body?.message || 'Das Dokument konnte nicht gelesen werden.')
+        setShowDoc(true)
+        return
+      }
+      setDocumentText(body.text || '')
+      setDocName(body.name || file.name)
+      setDocNote([
+        body.pages ? `${body.pages} ${body.pages === 1 ? 'Seite' : 'Seiten'}` : null,
+        body.truncated ? 'gekürzt auf die ersten 60.000 Zeichen' : null,
+      ].filter(Boolean).join(' · ') || null)
+      setShowDoc(true)
+    } catch {
+      setError('Das Dokument konnte nicht hochgeladen werden.')
+    } finally {
+      setReading(false)
+    }
+  }, [])
 
   const submit = useCallback(async () => {
     if (busy) return
@@ -93,10 +129,39 @@ export default function TaskReviewSubmitSheet({ taskId, taskTitle, onClose, onSu
             autoFocus
           />
 
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="trs-file-input"
+            onChange={e => {
+              const f = e.target.files?.[0]
+              if (f) void readPdf(f)
+              e.target.value = ''
+            }}
+          />
+
+          {!showDoc && !reading && (
+            <div className="trs-doc-entry">
+              <button type="button" className="trs-pick-doc" onClick={() => fileRef.current?.click()}>
+                <FilePdf size={15} aria-hidden />
+                PDF auswählen
+              </button>
+              <button type="button" className="trs-add-doc" onClick={() => setShowDoc(true)}>
+                oder Text einfügen
+              </button>
+            </div>
+          )}
+
+          {reading && (
+            <p className="dask-hint">Tagro liest das PDF…</p>
+          )}
+
           {showDoc ? (
             <>
               <label className="dask-label" htmlFor="trs-doc">
-                Text aus dem Dokument <span>Tagro macht eine Punkteliste daraus</span>
+                {docName ? `Aus ${docName}` : 'Text aus dem Dokument'}
+                <span>{docNote || 'Tagro macht eine Punkteliste daraus'}</span>
               </label>
               <textarea
                 id="trs-doc"
@@ -107,11 +172,7 @@ export default function TaskReviewSubmitSheet({ taskId, taskTitle, onClose, onSu
                 rows={6}
               />
             </>
-          ) : (
-            <button type="button" className="trs-add-doc" onClick={() => setShowDoc(true)}>
-              Text aus einem Dokument einfügen
-            </button>
-          )}
+          ) : null}
 
           {busy && documentText.trim() && (
             <p className="dask-hint">Tagro liest das Dokument und trennt die Punkte…</p>
@@ -121,7 +182,7 @@ export default function TaskReviewSubmitSheet({ taskId, taskTitle, onClose, onSu
 
           <div className="drs-actions">
             <button type="button" className="drs-btn drs-btn--primary" onClick={() => void submit()}
-              disabled={busy}>
+              disabled={busy || reading}>
               {busy ? 'Wird eingereicht…' : 'Zur Abnahme geben'}
               {!busy && <ArrowRight size={14} className="drs-btn-arrow" aria-hidden />}
             </button>
