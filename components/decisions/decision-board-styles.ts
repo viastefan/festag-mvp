@@ -101,7 +101,7 @@ html body .fas-root:has(.dcb) .dcb {
   z-index: 30;
   margin: 0 0 4px;
   /* Carries the page's own top padding, so nothing shifts when it pins. */
-  padding-top: clamp(20px, 3.2vh, 40px);
+  padding-top: clamp(28px, 4.2vh, 52px);
   /* The shell owns the canvas colour — matching it exactly is what keeps rows
      from showing through. A near-miss reads as a tinted pane. */
   background: var(--fas-canvas, #FBF7EE);
@@ -125,7 +125,7 @@ html body .fas-root:has(.dcb) .dcb {
   align-items: flex-start;
   justify-content: space-between;
   gap: 32px;
-  margin-bottom: clamp(20px, 3vh, 32px);
+  margin-bottom: clamp(24px, 3.4vh, 38px);
 }
 /* Sized so each clause holds one line on desktop — the sentence is the design,
    a mid-clause wrap breaks it. */
@@ -134,8 +134,8 @@ html body .fas-root:has(.dcb) .dcb {
   max-width: min(880px, 100%);
   font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
   font-weight: 400;
-  font-size: clamp(19px, 1.7vw, 25px);
-  line-height: 1.4;
+  font-size: clamp(22px, 1.95vw, 29px);
+  line-height: 1.38;
   letter-spacing: -0.008em;
   color: var(--dcb-ink);
   text-wrap: balance;
@@ -199,6 +199,29 @@ html body .fas-root:has(.dcb) .dcb {
   font-size: 11.5px; line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: background 0.16s var(--dcb-ease), color 0.16s var(--dcb-ease);
+}
+
+/* The two things you do TO the list sit together, right of the lifecycle. */
+.dcb-bar-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+
+/* Creating a decision is the one additive act on this page, so it gets the
+   accent — but as an outline, because the list itself is the subject. */
+.dcb-ask {
+  appearance: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 32px; padding: 0 13px;
+  border: 1px solid color-mix(in srgb, var(--dcb-primary) 34%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  font-family: inherit; font-size: 13.5px;
+  color: var(--dcb-primary);
+  cursor: pointer;
+  transition: background 0.16s var(--dcb-ease), border-color 0.16s var(--dcb-ease), color 0.16s var(--dcb-ease);
+}
+.dcb-ask:hover {
+  background: color-mix(in srgb, var(--dcb-primary) 9%, transparent);
+  border-color: color-mix(in srgb, var(--dcb-primary) 62%, transparent);
+  color: var(--dcb-primary-hover);
 }
 
 .dcb-filter {
@@ -352,6 +375,17 @@ html body .fas-root:has(.dcb) .dcb {
              dcbFadeOut 0.8s var(--dcb-ease) 4.5s forwards;
 }
 .dcb-row.is-done .dcb-path-rim { stroke: color-mix(in srgb, var(--dcb-primary) 16%, transparent); }
+
+/* The row itself acknowledges the answer: a wash that arrives with the check
+   and leaves with the row. Quiet enough to read as confirmation, not alarm. */
+.dcb-row.is-done {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--dcb-primary) 7%, transparent) 0%,
+    color-mix(in srgb, var(--dcb-primary) 3%, transparent) 55%,
+    transparent 100%);
+  border-radius: 12px;
+  box-shadow: inset 2px 0 0 var(--dcb-primary);
+}
 @keyframes dcbSweep { to { stroke-dashoffset: 0; } }
 @keyframes dcbTick { to { stroke-dashoffset: 0; } }
 @keyframes dcbFadeOut { to { opacity: 0; } }
@@ -522,10 +556,14 @@ html body .fas-root:has(.dcb) .dcb {
 }
 .dcb-btn:hover:not(:disabled) {
   background: #FFFFFF;
-  border-color: color-mix(in srgb, var(--dcb-primary) 30%, transparent);
+  border-color: color-mix(in srgb, var(--dcb-primary) 34%, transparent);
   color: var(--dcb-ink);
+  box-shadow: 0 1px 2px rgba(27, 34, 51, 0.05);
 }
-.dcb-btn:active:not(:disabled) { transform: translateY(0.5px); }
+.dcb-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
 .dcb-btn:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--dcb-primary) 65%, transparent);
   outline-offset: 2px;
@@ -549,11 +587,19 @@ html body .fas-root:has(.dcb) .dcb {
 .dcb-btn-check { flex-shrink: 0; opacity: 0.7; transition: opacity 0.18s var(--dcb-ease); }
 .dcb-btn--do:hover:not(:disabled) .dcb-btn-check { opacity: 1; }
 .dcb-btn--do.is-done {
-  border-color: transparent;
-  background: color-mix(in srgb, var(--dcb-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--dcb-primary) 30%, transparent);
   color: var(--dcb-primary);
   opacity: 1;
+  /* Two layers: a settled tint, and a fill that sweeps across in five seconds
+     — the same clock as the ring, so both say the same thing. */
+  background-image:
+    linear-gradient(90deg, color-mix(in srgb, var(--dcb-primary) 26%, transparent) 0 100%),
+    linear-gradient(90deg, color-mix(in srgb, var(--dcb-primary) 10%, transparent) 0 100%);
+  background-repeat: no-repeat;
+  background-size: 0% 100%, 100% 100%;
+  animation: dcbFill 5s cubic-bezier(0.33, 0, 0.2, 1) forwards;
 }
+@keyframes dcbFill { to { background-size: 100% 100%, 100% 100%; } }
 
 /* Primary Blue carries the one action that matters — never black. */
 .dcb-btn--primary {
@@ -1510,4 +1556,71 @@ html[data-theme="dark"] .dcd-ground-key,
 html[data-theme="classic-dark"] .dcd-ground-key { color: #AEB7CE; }
 html[data-theme="dark"] .dcd-meter,
 html[data-theme="classic-dark"] .dcd-meter { background: rgba(152, 162, 190, 0.25); }
+
+/* ── Ask sheet ── */
+.dask-label {
+  display: block;
+  margin: 18px 0 7px;
+  font-size: 12.5px; color: #5A6274;
+}
+.dask-label span { color: #A8AFBD; }
+.dask-question { font-size: 16px; line-height: 1.5; }
+.dask-input { font-family: inherit; }
+.dask-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.dask-row .dask-label { margin-bottom: 0; }
+.dask-date { width: auto; min-width: 170px; padding: 9px 12px; }
+
+.dask-people {
+  margin-top: 8px;
+  max-height: 176px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.dask-person {
+  appearance: none; border: none; background: transparent;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  width: 100%; padding: 9px 11px; border-radius: 8px;
+  font: inherit; text-align: left; cursor: pointer;
+  transition: background 0.14s ease;
+}
+.dask-person:hover { background: rgba(91, 100, 125, 0.08); }
+.dask-person-name { font-size: 14.5px; color: #1B2233; }
+.dask-person-sub { font-size: 12.5px; color: #8A93A5; }
+.dask-hint { margin: 8px 2px 0; font-size: 13px; line-height: 1.55; color: #8A93A5; }
+
+.dask-person-picked {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 11px 13px;
+  border-radius: 9px;
+  background: rgba(91, 100, 125, 0.09);
+  border: 1px solid rgba(91, 100, 125, 0.18);
+}
+.dask-person-clear {
+  appearance: none; border: none; background: transparent; padding: 0;
+  margin-left: auto;
+  font: inherit; font-size: 12.5px; color: #5B647D; cursor: pointer;
+}
+.dask-person-clear:hover { color: #3E465C; }
+
+.dask-attach {
+  display: flex; align-items: center; gap: 8px;
+  margin: 18px 0 0;
+  font-size: 12.5px; line-height: 1.5; color: #A8AFBD;
+}
+
+html[data-theme="dark"] .dask-person-name,
+html[data-theme="classic-dark"] .dask-person-name { color: #E8EAF0; }
+html[data-theme="dark"] .dask-person:hover,
+html[data-theme="classic-dark"] .dask-person:hover { background: rgba(152, 162, 190, 0.14); }
+html[data-theme="dark"] .dask-person-picked,
+html[data-theme="classic-dark"] .dask-person-picked {
+  background: rgba(152, 162, 190, 0.13); border-color: rgba(152, 162, 190, 0.22);
+}
+html[data-theme="dark"] .dask-label,
+html[data-theme="classic-dark"] .dask-label { color: #A9B0BF; }
+
+@media (max-width: 760px) {
+  .dcb-bar-actions { width: 100%; justify-content: space-between; }
+  .dask-people { max-height: 140px; }
+  .dask-date { width: 100%; }
+}
 `.trim()

@@ -14,7 +14,7 @@
 
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowRight, Check, FunnelSimple } from '@phosphor-icons/react'
+import { ArrowRight, Check, FunnelSimple, Plus } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import {
@@ -27,6 +27,7 @@ import {
 } from '@/components/decisions/decisions-shared'
 import DecisionBoardRow, { type PathPosition, type RowAction } from '@/components/decisions/DecisionBoardRow'
 import DecisionResolveSheet, { type ResolveStep } from '@/components/decisions/DecisionResolveSheet'
+import DecisionAskSheet from '@/components/decisions/DecisionAskSheet'
 import DecisionFilterPopover, {
   EMPTY_FILTERS, VIEWS, applyDecisionFilters, countActiveFilters, matchesView,
   type DecisionFilters, type DecisionView,
@@ -114,6 +115,8 @@ function DecisionsBoard() {
   const [sheetOptions, setSheetOptions] = useState<DecOption[]>([])
   /** The fade under the header only exists once something has scrolled under it. */
   const [scrolled, setScrolled] = useState(false)
+  /** The "ask someone" surface — the way a decision gets created by hand. */
+  const [asking, setAsking] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
@@ -427,17 +430,17 @@ function DecisionsBoard() {
       {/* Header and lifecycle hold their place; only the list travels beneath. */}
       <div className="dcb-head" data-scrolled={scrolled ? 'true' : 'false'}>
       <div className="dcb-top">
-        {/* The count is the news — it carries the ink. The lead-in is framing
-            and recedes, so the eye lands on the number first. */}
+        {/* The statement carries the ink; the qualifier recedes. The headline
+            says what is true right now, it does not keep score. */}
         <h1 className="dcb-h1">
           <span className="dcb-h1-line">
-            <span className="dcb-h1-muted">{headline.primary.ink}</span>{' '}
-            {headline.primary.muted}
+            {headline.primary.ink}{' '}
+            <span className="dcb-h1-muted">{headline.primary.muted}</span>
           </span>
           {headline.secondary && (
             <span className="dcb-h1-line">
-              <span className="dcb-h1-muted">{headline.secondary.ink}</span>{' '}
-              {headline.secondary.muted}
+              {headline.secondary.ink}{' '}
+              <span className="dcb-h1-muted">{headline.secondary.muted}</span>
             </span>
           )}
         </h1>
@@ -477,6 +480,15 @@ function DecisionsBoard() {
           })}
         </div>
 
+        <div className="dcb-bar-actions">
+        <button
+          type="button"
+          className="dcb-ask"
+          onClick={() => setAsking(true)}
+        >
+          <Plus size={14} weight="regular" aria-hidden />
+          Frage stellen
+        </button>
         <button
           ref={filterBtnRef}
           type="button"
@@ -489,6 +501,7 @@ function DecisionsBoard() {
           Filter
           {activeFilters > 0 && <span className="dcb-filter-count">{activeFilters}</span>}
         </button>
+        </div>
       </div>
       <span className="dcb-head-fade" aria-hidden />
       </div>
@@ -587,6 +600,20 @@ function DecisionsBoard() {
           onClose={closeSheet}
           onResolved={(patch) => handleResolved(sheetDecision.id, patch)}
           onEscalateToDrawer={() => router.push(`/decisions/${sheetDecision.id}`)}
+        />
+      )}
+
+      {asking && (
+        <DecisionAskSheet
+          onClose={() => setAsking(false)}
+          onCreated={({ personLabel, projectTitle }) => {
+            setAsking(false)
+            setToast({
+              title: `Frage an ${personLabel} gesendet.`,
+              sub: `Einsortiert unter ${projectTitle}.`,
+            })
+            void load()
+          }}
         />
       )}
 
