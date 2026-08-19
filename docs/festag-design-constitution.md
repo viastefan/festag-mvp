@@ -41,9 +41,34 @@ Code: `lib/design-tokens/festag-canvas.ts`
 
 ## Typography
 
-Aeonik only. Typography creates hierarchy — not borders, not colors, not cards.
+Typography creates hierarchy — not borders, not colors, not cards.
+**Hierarchy comes from size, not from weight.**
 
-Prefer huge headings, editorial spacing, comfortable line height, minimal labels. The interface should almost read like a magazine.
+Two faces, one law. The reference surfaces are **Auth, Onboarding, Overview-Flow and Popups** —
+the dashboard and every new surface must read the same way.
+
+| Role | Face | Weight | Example |
+|---|---|---|---|
+| Editorial display (large headline) | **Editors Note** | Medium (500) | `.display`, `.ffl-greet` — `clamp(30px, 3.4vw, 44px)` |
+| Headings `h1`–`h6` | **Aeonik** | **Regular (400)** | page titles, section titles, popup H1 (`26px`) |
+| Body / T1 | **Aeonik** | **Regular (400)** | popup body `15.5px`, page copy |
+| UI (buttons, inputs, nav, labels) | **Aeonik** | **Regular (400)** | `.modal-cta`, `.al-btn` |
+| Deliberate emphasis | Aeonik | Medium (500) | `strong`, `.fw-medium`, `.metric` |
+
+Rules:
+
+- **Aeonik Regular is the default everywhere** — body *and* headings. Medium is an opt-in for
+  a single emphasized element, never the baseline.
+- **Aeonik Bold is forbidden.** The `@font-face` for 600/700/800 maps to Medium so a forgotten
+  `font-weight: bold` cannot render.
+- **Editors Note Medium carries the large editorial moments** and stays Editors Note even when
+  the user switches the UI font (`--font-editorial` is independent of `--font-ui`).
+- Inside popups: H1 `26px` Regular, T1 `15.5px` Regular. A heading that sits *between* sections
+  in a popup is Regular too — do not reach for Medium to separate it.
+- Prefer huge headings, editorial spacing, comfortable line height, minimal labels. The
+  interface should almost read like a magazine.
+
+Source of truth: the Festag-Typo-Gesetz block in `app/globals.css` (`--font-ui`, `--font-editorial`).
 
 ---
 

@@ -787,28 +787,41 @@ body.festag-app-mode {
   }
 }
 /* ── Festag-Typo-Gesetz (verbindlich) ──
-   Im gesamten App-Panel KEIN Aeonik Regular und KEIN Aeonik Bold mehr.
-   Default = Aeonik Medium (500). Letter-Spacing per Token:
+   Referenz sind Auth, Onboarding, Overview-Flow und Popups — die Produkt-Typografie
+   der gesamten App richtet sich danach:
+
+     Großer editorialer Display-Text → 'Editors Note' Medium (500)
+     Alles andere (Body UND Überschriften) → Aeonik Regular (400)
+     Aeonik Medium (500) nur als bewusste Betonung — nie als Default
+     Aeonik Bold bleibt verboten (Face mappt auf Medium)
+
+   Letter-Spacing per Token:
    Header → --ls-header  (1.5 %)
    T1     → --ls-body    (2.1 %)
    Sidebar (eigene Selektoren) → --ls-sidebar (0.7 %) */
 p,label,li,td,th {
-  font-weight:500;
+  font-weight:400;
   font-family:var(--font-ui);
 }
-:where(a,button,input,textarea,select) { font-weight:500; }
+:where(a,button,input,textarea,select) { font-weight:400; }
 strong,b { font-weight:500; }
 .fw-medium { font-weight:500; }
 .fw-regular { font-weight:400; }
-/* Editorial display sizes — Apple keynote feel */
-h1,h2,h3,h4,h5,h6 { font-family:var(--font-ui); font-weight:500; letter-spacing: var(--ls-header); }
+/* Überschriften laufen in Aeonik Regular — Hierarchie entsteht über Größe, nicht Gewicht. */
+h1,h2,h3,h4,h5,h6 { font-family:var(--font-ui); font-weight:400; letter-spacing: var(--ls-header); }
 h1 { font-size:24px; line-height:1.2; color:var(--text); }
 h2 { font-size:18px; line-height:1.3; color:var(--text); }
 h3 { font-size:15px; line-height:1.4; color:var(--text); }
 h4 { font-size:13.5px; color:var(--text); }
-p  { color:var(--text-secondary); font-weight:500; letter-spacing: var(--ls-body); }
-.eyebrow { font-size:11px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
-.display { font-size:36px; font-weight:500; letter-spacing: var(--ls-header); line-height:1.1; color:var(--text); }
+p  { color:var(--text-secondary); font-weight:400; letter-spacing: var(--ls-body); }
+.eyebrow { font-size:11px; font-weight:400; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
+/* Editorial display — die großen Editors-Note-Medium-Headlines (wie .ffl-greet). */
+.display {
+  font-family: var(--font-editorial);
+  font-size:36px; font-weight:500; letter-spacing:-0.016em; line-height:1.15; color:var(--text);
+}
+/* Großer Aeonik-Titel ohne Editorial-Charakter — bleibt Regular. */
+.display-ui { font-family:var(--font-ui); font-size:36px; font-weight:400; letter-spacing: var(--ls-header); line-height:1.1; color:var(--text); }
 .metric  { font-size:26px; font-weight:500; letter-spacing: var(--ls-header); line-height:1; color:var(--text); font-variant-numeric:tabular-nums; }
 /* Sidebar nav — eigenes Token; nicht [class*="sidebar"] (trifft portal-sidebar-collapsed). */
 [class*="sb-"], .sidebar, [class*="side-nav"], nav.sb-list, aside.sb-os, .sb-os, .portal-nav {
@@ -1411,6 +1424,9 @@ body.locked { overflow: hidden; touch-action: none; }
   --font-sf-pro: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   --font-primary: var(--font-aeonik-face);
   --font-ui: var(--font-primary);
+  /* Editorial display — große Headlines (Overview-Greet, .display, Hero-Titel).
+     Bleibt Editors Note, auch wenn der Nutzer die UI-Schrift wechselt. */
+  --font-editorial: 'Editors Note', Georgia, 'Times New Roman', serif;
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;
   --button-radius: var(--festag-control-radius, 6px);

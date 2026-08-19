@@ -24,7 +24,24 @@ Festag is a **Software Production Operating System** — not SaaS, not PM, not A
 3. Primary `#5B647D` **only** for active attention (path, decision, focus).
 4. **One** active path at a time — organic ink, never arrows/flowcharts.
 5. Mobile ≠ shrunk desktop — large type, one focus, native story.
-6. Typography (Aeonik) creates hierarchy — not borders, not card chrome.
+6. Typography creates hierarchy — through **size, not weight**; not borders, not card chrome.
+
+## Typography law
+
+Reference surfaces: Auth · Onboarding · Overview-Flow · Popups. Everything else follows them.
+
+| Role | Face / weight |
+|---|---|
+| Editorial display (large headline) | **Editors Note Medium (500)** — `.display`, `.ffl-greet`, `--font-editorial` |
+| Headings `h1`–`h6` (incl. popup H1 `26px`) | **Aeonik Regular (400)** |
+| Body / T1 (`15.5px`) · buttons · inputs · nav | **Aeonik Regular (400)** |
+| Deliberate emphasis only | Aeonik Medium (500) — `strong`, `.fw-medium`, `.metric` |
+
+- **Aeonik Regular is the default — body *and* headings.** Never set `font-weight: 500` as the
+  baseline for a new surface; use `.fw-medium` for one emphasized element.
+- **Aeonik Bold is forbidden** (600/700/800 `@font-face` map to Medium).
+- Headings between sections inside a popup stay Regular — do not separate them with weight.
+- Source of truth: Festag-Typo-Gesetz block in `app/globals.css`.
 
 ## Knowledge vs Flow
 
