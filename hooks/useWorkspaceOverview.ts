@@ -59,18 +59,34 @@ function clearCache() {
   try { sessionStorage.removeItem(CACHE_KEY) } catch { /* noop */ }
 }
 
-function initialState(): WorkspaceOverviewState {
-  if (typeof window === 'undefined') return { status: 'loading' }
+/**
+ * Anything the server cannot know — preview flag, session cache — has to stay
+ * out of the first client render. Reading it there rendered the board where the
+ * server had sent an empty placeholder, and React tore the whole tree down:
+ * "Expected server HTML to contain a matching <style> in <div>."
+ *
+ * It is applied in an effect instead. Nothing flashes: what the server sends
+ * for `loading` is an empty div, and AppShellOverview already holds its
+ * skeleton back 400ms, which an effect beats comfortably.
+ */
+function instantState(): WorkspaceOverviewState | null {
+  if (typeof window === 'undefined') return null
   if (isOverviewPreview()) return { status: 'ready', data: DEMO_OVERVIEW_PAYLOAD }
   const cached = readCache(getActiveWorkspaceId())
-  return cached ? { status: 'ready', data: cached } : { status: 'loading' }
+  return cached ? { status: 'ready', data: cached } : null
 }
 
 export function useWorkspaceOverview(): {
   state: WorkspaceOverviewState
   refresh: () => Promise<void>
 } {
-  const [state, setState] = useState<WorkspaceOverviewState>(initialState)
+  /* Must match the server exactly — see instantState(). */
+  const [state, setState] = useState<WorkspaceOverviewState>({ status: 'loading' })
+
+  useEffect(() => {
+    const instant = instantState()
+    if (instant) setState(instant)
+  }, [])
 
   const refresh = useCallback(async () => {
     if (isOverviewPreview()) {
