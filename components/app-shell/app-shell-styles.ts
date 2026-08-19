@@ -180,26 +180,22 @@ pointer-events: none;
 
 .fas-sidebar-header {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) max-content;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   column-gap: 8px;
   min-width: 0;
   padding: 0;
 }
-/* Rail: one centred icon column instead of a header row. */
+/* Rail: the workspace mark alone, on the icon axis. */
 .fas-sidebar.is-collapsed .fas-sidebar-header {
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  row-gap: 2px;
 }
 .fas-sidebar.is-collapsed .fas-ws-trigger {
   padding: 4px;
 }
 .fas-sidebar.is-collapsed .fas-ws-copy {
   display: none;
-}
-.fas-sidebar.is-collapsed .fas-sidebar-utils {
-  flex-direction: column;
 }
 
 .fas-ws-trigger {
@@ -281,7 +277,7 @@ pointer-events: none;
 .fas-ws-mark {
   width: 28px;
   height: 28px;
-  border-radius: 999px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -311,9 +307,6 @@ html[data-theme="classic-dark"] .fas-ws-mark {
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
-}
-.fas-sidebar.is-expanded .fas-sidebar-utils {
-  flex-direction: row;
 }
 .fas-sidebar-icon {
   width: 28px;
@@ -352,16 +345,7 @@ html[data-theme="classic-dark"] .fas-ws-mark {
 .fas-sidebar.is-collapsed .fas-recent {
   display: none;
 }
-.fas-sidebar.is-collapsed .fas-sidebar-footer {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 4px;
-}
-.fas-sidebar.is-collapsed .fas-help-btn {
-  width: 36px;
-  margin-left: 2px;
-  padding: 0;
-}
+
 
 .fas-ws-popover {
   top: calc(100% + 4px);
@@ -389,7 +373,7 @@ html[data-theme="classic-dark"] .fas-ws-mark {
 .fas-ws-switch-mark {
   width: 22px;
   height: 22px;
-  border-radius: 5px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -712,9 +696,9 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
 
 .fas-sidebar-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
   flex-shrink: 0;
   margin-top: 2px;
   padding: 4px 2px 2px;
@@ -760,25 +744,29 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
 .fas-help-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 28px;
-  padding: 0 11px;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
   border-radius: var(--fas-nav-radius);
   border: none;
   outline: none;
   box-shadow: none;
-  background: var(--fas-nav-active);
-  color: var(--fas-ink);
-  font-size: 12.5px;
+  background: transparent;
+  color: var(--fas-ink-muted);
+  font-size: 13px;
   font-family: inherit;
   font-weight: 400;
   letter-spacing: -0.01em;
+  text-align: left;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.12s ease, color 0.12s ease;
 }
 .fas-help-btn:hover {
-  background: rgba(30, 30, 32, 0.12);
+  color: var(--fas-ink);
+  background: var(--fas-nav-hover);
 }
 .fas-help-btn:focus,
 .fas-help-btn:focus-visible,
@@ -786,14 +774,7 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
   outline: none;
   box-shadow: none;
 }
-html[data-theme="dark"] .fas-help-btn,
-html[data-theme="classic-dark"] .fas-help-btn {
-  background: rgba(255, 255, 255, 0.08);
-}
-html[data-theme="dark"] .fas-help-btn:hover,
-html[data-theme="classic-dark"] .fas-help-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
+.fas-help-btn svg { flex-shrink: 0; opacity: 0.78; }
 
 /* ── Main column ── */
 .fas-main-col {
@@ -2990,7 +2971,6 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   .fas-sidebar-utils { display: none; }
   .fas-sidebar.is-collapsed .fas-nav-label { opacity: 1; }
   .fas-sidebar.is-collapsed .fas-sidebar-footer { flex-direction: row; }
-  .fas-sidebar.is-collapsed .fas-help-btn { width: auto; }
   .fas-sidebar-top {
     margin: 0;
     flex-shrink: 0;
