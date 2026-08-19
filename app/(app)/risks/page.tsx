@@ -142,7 +142,7 @@ function RisksPageInner() {
 
   return (
     <div className="fps">
-      <style>{FESTAG_PAGE_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: FESTAG_PAGE_STYLES }} />
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS + RISK_EXTRA_CSS }} />
 
       <header className="fps-head">

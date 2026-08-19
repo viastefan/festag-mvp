@@ -42,7 +42,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="dec-os wsp-page">
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
       <style>{WORKSPACE_PAGE_CSS}</style>
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 

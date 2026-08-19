@@ -12,7 +12,7 @@ type Props = { fullscreen?: boolean; label?: string }
 export default function FestagLoader({ fullscreen = false, label }: Props) {
   return (
     <div className={`fl-wrap${fullscreen ? ' fl-full' : ''}`} role="status" aria-live="polite">
-      <style>{CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CSS }} />
       <TagroDiamondDots active size={28} />
       {label ? <span className="fl-label">{label}</span> : null}
     </div>

@@ -107,7 +107,7 @@ export default function ExecutivePage() {
 
   return (
     <div className="dec-os">
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
       <style>{EXECUTIVE_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />

@@ -94,7 +94,7 @@ export default function ClientMomentPage() {
   if (loading) {
     return (
       <main className="cm-page">
-        <style>{CM_CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CM_CSS }} />
         <p className="cm-muted">Lade Lieferstand…</p>
       </main>
     )
@@ -103,7 +103,7 @@ export default function ClientMomentPage() {
   if (notFound || !moment) {
     return (
       <main className="cm-page">
-        <style>{CM_CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CM_CSS }} />
         <h1 className="cm-title">Moment nicht verfügbar</h1>
         <p className="cm-body">
           Dieser Link ist abgelaufen, widerrufen oder ungültig. Bitte bitte deine Agentur um einen neuen Stand.
@@ -117,7 +117,7 @@ export default function ClientMomentPage() {
 
   return (
     <main className="cm-page" style={{ ['--cm-brand' as string]: brand.brandColor }}>
-      <style>{CM_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CM_CSS }} />
       <header className="cm-head">
         <div className="cm-mark" aria-hidden>
           {brand.logoUrl ? (

@@ -94,8 +94,8 @@ export default function DevPendingPage() {
       className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}`}
       data-theme="dark"
     >
-      <style>{AUTH_LANDING_STYLES}</style>
-      <style>{AUTH_OS_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
       <style>{PENDING_EXTRA}</style>
       <AuthSandAmbient variant="dev-onboarding" />
 

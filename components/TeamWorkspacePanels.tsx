@@ -316,8 +316,8 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
 
   return (
     <div className="dec-os">
-      <style>{DECISION_CSS}</style>
-      <style>{ACTIVITY_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: ACTIVITY_CSS }} />
       <style>{TEAMS_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />

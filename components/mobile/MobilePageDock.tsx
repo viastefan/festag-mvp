@@ -52,7 +52,7 @@ function bindDragUp(onDragUp: () => void) {
 export default function MobilePageDock({ onDragUp, primary, secondary, inset, shellClassName }: Props) {
   return (
     <>
-      <style>{MOBILE_PAGE_DOCK_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: MOBILE_PAGE_DOCK_CSS }} />
       <div className="mpd-root" role="toolbar" aria-label="Seitenaktionen">
         <div className={`mpd-shell${shellClassName ? ` ${shellClassName}` : ''}`.trim()}>
           <div

@@ -45,7 +45,7 @@ export default function MobilePageHeader({
 
   return (
     <header className="mph">
-      <style>{CODEX_ORB_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CODEX_ORB_CSS }} />
 
       <div className="mph-top">
         {showNav ? (

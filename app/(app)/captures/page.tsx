@@ -211,8 +211,8 @@ export default function CapturesPage() {
 
   return (
     <div className="dec-os cap-os">
-      <style>{DECISION_CSS}</style>
-      <style>{ACTIVITY_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: ACTIVITY_CSS }} />
       <style>{CLIENT_DELIVERABLES_CSS}</style>
       <style>{CAPTURES_CSS}</style>
 

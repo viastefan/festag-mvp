@@ -522,7 +522,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   if (loading) {
     return (
       <div className="doc-ed doc-ed-os dec-os doc-ed--loading">
-        <style>{DOCUMENT_EDITOR_CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENT_EDITOR_CSS }} />
         <div className="dec-m-shell doc-ed-shell">
           <div className="dec-static-top">
             <header className="dec-page-head doc-ed-page-head">
@@ -544,7 +544,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   if (!doc || !template) {
     return (
       <div className="doc-ed doc-ed-os dec-os">
-        <style>{DOCUMENT_EDITOR_CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENT_EDITOR_CSS }} />
         <div className="dec-m-shell doc-ed-shell">
           <div className="dec-static-top">
             <header className="dec-page-head doc-ed-page-head">
@@ -719,7 +719,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       className={`doc-ed doc-ed-os dec-os doc-ed-page${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}
       data-doc-sheet-theme={sheetTheme}
     >
-      <style>{DOCUMENT_EDITOR_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENT_EDITOR_CSS }} />
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 

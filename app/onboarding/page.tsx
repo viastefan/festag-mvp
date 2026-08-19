@@ -728,8 +728,8 @@ function MasterBuildInner() {
 
   return (
     <>
-      <style>{AUTH_GLASSY_HERO_CSS}</style>
-      <style>{MASTER_ONBOARDING_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_GLASSY_HERO_CSS }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: MASTER_ONBOARDING_STYLES }} />
       <div
         ref={mobRootRef}
         className={[

@@ -224,7 +224,7 @@ function IssuesPageInner() {
 
   return (
     <div className="fps">
-      <style>{FESTAG_PAGE_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: FESTAG_PAGE_STYLES }} />
       {/* IssueDrawer/IssueCreateModal (reused as-is) depend on this stylesheet
           for their own fixed-overlay positioning. */}
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS + ISSUE_EXTRA_CSS }} />

@@ -13,7 +13,7 @@ type Props = {
 export default function CodexMobileActionPill({ onMenu, onSearch, dark = false }: Props) {
   return (
     <>
-      <style>{CODEX_ORB_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CODEX_ORB_CSS }} />
       <div className={`cx-orb-group${dark ? ' cx-action-pill--dark' : ''}`}>
         <button type="button" className="cx-orb" aria-label="Suche" onClick={onSearch}>
           <MagnifyingGlass size={18} weight="regular" />

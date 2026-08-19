@@ -30,7 +30,7 @@ export default function AuthSandAmbient({ variant }: { variant?: AuthSandVariant
 
   return (
     <>
-      <style>{DUSK_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DUSK_CSS }} />
       <div className="auth-sand-ambient" aria-hidden>
         <div className="auth-sand-ambient__glow auth-sand-ambient__glow--top" />
         <div className="auth-sand-ambient__glow auth-sand-ambient__glow--bottom" />

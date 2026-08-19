@@ -151,8 +151,8 @@ export default function InvitePage() {
   if (loading) {
     return (
       <div className="dec-os inv-os">
-        <style>{DECISION_CSS}</style>
-        <style>{INVITE_CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: INVITE_CSS }} />
         <div className="dec-m-shell">
           <div className="inv-loading">Workspace wird geladen…</div>
         </div>
@@ -162,8 +162,8 @@ export default function InvitePage() {
 
   return (
     <div className="dec-os inv-os">
-      <style>{DECISION_CSS}</style>
-      <style>{INVITE_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: INVITE_CSS }} />
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 

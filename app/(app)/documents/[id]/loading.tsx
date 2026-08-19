@@ -3,7 +3,7 @@ import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styl
 export default function DocumentEditorLoading() {
   return (
     <div className="doc-ed doc-ed-os dec-os doc-ed-page doc-ed--loading">
-      <style>{DOCUMENT_EDITOR_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENT_EDITOR_CSS }} />
       <div className="dec-m-shell doc-ed-shell">
         <div className="dec-static-top">
           <div className="doc-ed-skel doc-ed-skel-back dec-dt" style={{ width: 96, height: 14, marginBottom: 16 }} />

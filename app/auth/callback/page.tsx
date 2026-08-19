@@ -447,7 +447,7 @@ function CallbackInner() {
 
   return (
     <div className="fl-mini" role="status" aria-live="polite" aria-label={mode === 'verifying' ? 'Anmeldung wird abgeschlossen' : 'Anmeldung'}>
-      <style>{MINI_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: MINI_CSS }} />
       <TagroDiamondDots active size={28} />
     </div>
   )
@@ -503,7 +503,7 @@ export default function AuthCallbackPage() {
     <Suspense
       fallback={(
         <div className="fl-mini" role="status" aria-label="Anmeldung wird abgeschlossen">
-          <style>{MINI_CSS}</style>
+          <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: MINI_CSS }} />
           <TagroDiamondDots active size={28} />
         </div>
       )}

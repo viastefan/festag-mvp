@@ -258,7 +258,7 @@ export default function AuthDocsPopover({
       data-theme={canvasTheme}
       ref={rootRef}
     >
-      <style>{AUTH_DOCS_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_DOCS_CSS }} />
       <button
         type="button"
         className="auth-docs-trigger no-min-tap"

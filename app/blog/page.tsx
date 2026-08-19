@@ -12,7 +12,7 @@ import { BLOG_SECTIONS } from '@/lib/blog'
 export default function BlogIndexPage() {
   return (
     <div className="bi-root">
-      <style>{`
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
         .bi-root {
           min-height: 100dvh;
           background: var(--bi-bg, #FCFCFD);
@@ -143,7 +143,7 @@ export default function BlogIndexPage() {
           color: var(--bi-text-muted);
           font-size: 11.5px;
         }
-      `}</style>
+      ` }} />
 
       <header className="bi-top">
         <Link href="/blog" className="bi-brand">

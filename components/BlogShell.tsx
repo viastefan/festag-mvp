@@ -58,7 +58,7 @@ export default function BlogShell({
 
   return (
     <div className="bs-root">
-      <style>{`
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
         .bs-root {
           min-height: 100dvh;
           background: var(--bs-bg, #FCFCFD);
@@ -289,7 +289,7 @@ export default function BlogShell({
           }
           .bs-menu-toggle { display: inline-flex; align-items: center; }
         }
-      `}</style>
+      ` }} />
 
       <header className="bs-top">
         <Link href="/blog" className="bs-brand">

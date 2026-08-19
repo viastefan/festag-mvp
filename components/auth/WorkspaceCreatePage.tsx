@@ -282,8 +282,8 @@ export default function WorkspaceCreatePage() {
       className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
       data-theme="dark"
     >
-      <style>{AUTH_LANDING_STYLES}</style>
-      <style>{AUTH_OS_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
       <style>{AUTH_ENTER_GLYPH_CSS}</style>
       <style>{WORKSPACE_CREATE_WIZARD_CSS}</style>
       <AuthSandAmbient variant="dev-onboarding" />

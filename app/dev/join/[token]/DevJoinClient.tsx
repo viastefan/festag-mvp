@@ -81,7 +81,7 @@ export default function DevJoinClient({ token, state, invite }: Props) {
 
   return (
     <div className="dji-root" data-theme-surface="dev">
-      <style>{CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ── Security domain badge (top) ───────────────────── */}
       <div className="dji-domain-badge">

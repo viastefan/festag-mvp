@@ -183,8 +183,8 @@ function JoinProjectInner() {
   if (booting) {
     return (
       <main data-theme="light" className="al-root al-root--centered" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <style>{AUTH_LANDING_STYLES}</style>
-        <style>{AUTH_OS_STYLES}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
         <style>{JOIN_CSS}</style>
         <span className="join-boot" aria-hidden />
       </main>
@@ -193,8 +193,8 @@ function JoinProjectInner() {
 
   return (
     <main className="al-root al-root--centered" data-theme="light">
-      <style>{AUTH_LANDING_STYLES}</style>
-      <style>{AUTH_OS_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
       <style>{AUTH_ENTER_GLYPH_CSS}</style>
       <style>{JOIN_CSS}</style>
 
@@ -315,8 +315,8 @@ export default function JoinProjectPage() {
     <Suspense
       fallback={
         <main data-theme="light" className="al-root al-root--centered" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <style>{AUTH_LANDING_STYLES}</style>
-          <style>{AUTH_OS_STYLES}</style>
+          <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+          <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
           <style>{JOIN_CSS}</style>
           <span className="join-boot" aria-hidden />
         </main>

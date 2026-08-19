@@ -449,7 +449,7 @@ export default function WorkspaceCreateWizardModal() {
       }}
       onPointerLeave={() => onOverlayPointer(false)}
     >
-      <style>{AUTH_GLASSY_HERO_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_GLASSY_HERO_CSS }} />
       <style>{FESTAG_TOGGLE_CSS}</style>
       <style>{WIZARD_CSS}</style>
 

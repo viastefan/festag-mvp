@@ -205,7 +205,7 @@ export default function StatusPrompter({
 
   return (
     <>
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
       <style>{STATUSABFRAGE_CSS}</style>
       <div className="st-shell">
         <div className="dec-static-top st-static-top">

@@ -350,7 +350,7 @@ function ObjectivesPageInner() {
 
   return (
     <div className="dec-os obj-os">
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
       <style>{OBJECTIVES_CSS}</style>
 
       {filterMenuOpen && (

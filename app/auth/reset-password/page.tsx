@@ -82,9 +82,9 @@ function ResetPasswordInner() {
 
   return (
     <main className="al-root al-root--centered onb-sand-dark" data-theme="dark" data-auth-mode="login">
-      <style>{AUTH_LANDING_STYLES}</style>
-      <style>{AUTH_OS_STYLES}</style>
-      <style>{AUTH_GLASSY_HERO_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_GLASSY_HERO_CSS }} />
       <AuthSandAmbient variant="dev-onboarding" />
 
       <div className="al-container">

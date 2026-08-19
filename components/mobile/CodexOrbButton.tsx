@@ -14,7 +14,7 @@ type Props = {
 export default function CodexOrbButton({ ariaLabel, onClick, disabled, dark, children }: Props) {
   return (
     <>
-      <style>{CODEX_ORB_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CODEX_ORB_CSS }} />
       <button
         type="button"
         className={`cx-orb${dark ? ' cx-orb--dark' : ''}`}

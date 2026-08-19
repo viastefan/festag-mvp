@@ -168,7 +168,7 @@ export default function DailyStatusLoopArticle() {
   const article = findArticle(SLUG)!
   return (
     <BlogShell article={article} tocItems={tocItems}>
-      <style>{`
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
         .bs-prose h2 {
           margin: 56px 0 14px;
           color: var(--bs-text);
@@ -216,7 +216,7 @@ export default function DailyStatusLoopArticle() {
           line-height: 1.55;
         }
         .bs-callout strong { color: var(--bs-text); font-weight: 500; }
-      `}</style>
+      ` }} />
 
       <div className="bs-prose">
 

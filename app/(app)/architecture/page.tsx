@@ -84,7 +84,7 @@ export default function ArchitecturePage() {
 
   return (
     <div className="dec-os arch-page">
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
       <style>{ARCHITECTURE_PAGE_CSS}</style>
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 

@@ -108,8 +108,8 @@ function InviteAcceptInner() {
 
   return (
     <main className="al-root al-root--centered onb-sand-dark" data-theme="dark">
-      <style>{AUTH_LANDING_STYLES}</style>
-      <style>{AUTH_OS_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
       <AuthSandAmbient variant="dev-onboarding" />
       <div className="al-container">
         <header className="al-header">
@@ -201,8 +201,8 @@ export default function InviteAcceptPage() {
     <Suspense
       fallback={
         <main className="al-root onb-sand-dark" data-theme="dark" style={{ minHeight: '100dvh' }}>
-          <style>{AUTH_LANDING_STYLES}</style>
-      <style>{AUTH_OS_STYLES}</style>
+          <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
         </main>
       }
     >

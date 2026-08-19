@@ -58,7 +58,7 @@ export default function TeamsOverviewPage() {
 
   return (
     <div className="fps">
-      <style>{FESTAG_PAGE_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: FESTAG_PAGE_STYLES }} />
 
       <header className="fps-head">
         <h1 className="fps-title">Team</h1>

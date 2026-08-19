@@ -215,7 +215,7 @@ export default function ConnectorsPage() {
   return (
     <>
     <div className="dec-os conn-page">
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
       <style>{CONN_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />

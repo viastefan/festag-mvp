@@ -26,7 +26,7 @@ export default function CodexMobileTopBar({
 }: Props) {
   return (
     <>
-      <style>{CODEX_ORB_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CODEX_ORB_CSS }} />
       <div className="cx-topbar">
         {left === 'menu' ? (
           <CodexOrbButton ariaLabel="Menü" onClick={onLeft} dark={dark}>

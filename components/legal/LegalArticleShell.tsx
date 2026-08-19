@@ -71,7 +71,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
 
   return (
     <div className="legal-root" data-theme="light">
-      <style>{LEGAL_STYLES}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: LEGAL_STYLES }} />
 
       <header className="legal-nav">
         <div className="legal-nav-right">

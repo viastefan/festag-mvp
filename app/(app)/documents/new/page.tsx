@@ -61,7 +61,7 @@ export default function NewDocumentPage() {
 
   return (
     <div className="doc-ed doc-ed-os dec-os doc-ed--loading">
-      <style>{DOCUMENT_EDITOR_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENT_EDITOR_CSS }} />
       <div className="dec-m-shell doc-ed-shell">
         <div className="dec-static-top">
           <header className="dec-page-head doc-ed-page-head">

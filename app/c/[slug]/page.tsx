@@ -145,7 +145,7 @@ export default function ClientPortalPage() {
   if (loading) {
     return (
       <main className="cp-page">
-        <style>{CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CSS }} />
         <div className="cp-loading">Wird geladen…</div>
       </main>
     )
@@ -153,7 +153,7 @@ export default function ClientPortalPage() {
   if (notFound || !client) {
     return (
       <main className="cp-page">
-        <style>{CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CSS }} />
         <div className="cp-notfound">
           <p className="cp-kicker">Festag</p>
           <h1>{errorMessage ? 'Portal gerade nicht erreichbar' : 'Diese Seite existiert nicht'}</h1>
@@ -172,7 +172,7 @@ export default function ClientPortalPage() {
         ['--p-soft' as any]: 'color-mix(in srgb, ' + brandColor + ' 30%, transparent)',
       }}
     >
-      <style>{CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* Brand strip */}
       <header className="cp-brand">
