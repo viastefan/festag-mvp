@@ -1,0 +1,62 @@
+---
+description: FESTAG Master System Instruction — supreme product law; AI-native operating system for structured software production, governed by decisions
+alwaysApply: true
+---
+
+# FESTAG — Master System Instruction (supreme)
+
+**Doc:** `docs/festag-master-system-instruction.md` (full 56 sections + reconciliation table)
+
+FESTAG is an **AI-native operating system for structured software production** — not a SaaS
+dashboard, not a PM tool, not a chatbot, not a coding agent.
+
+```
+Idea → Decisions → Structure → Plan → Execution → Evidence → Review → Delivery → Next Decision
+```
+
+## Core law
+
+- **Project is the object; Decisions govern it.** Every important action connects to a
+  decision (context · alternatives · recommendation · confidence · owner · status ·
+  consequences). FESTAG evolves toward a Decision Operating System.
+- **Seven layers:** Experience · Intelligence · Decision · Planning · Execution ·
+  Evidence & Quality · Communication.
+- **TAGRO is the intelligence layer, not a chatbot.** Persistent project understanding —
+  never treat a chat message as an isolated prompt. Structured output: summary ·
+  interpretation · decision/recommendation · structure · next steps · questions only if needed.
+- **Evidence over claims.** Distinguish claimed progress from verified progress (commits, PRs,
+  CI, deployments, acceptance criteria).
+- **No vague task exists.** Every task: context · objective · acceptance criteria ·
+  dependencies · evidence · related decision · priority · status.
+- **Autonomy L0→L3** with reason · confidence · policy basis · audit trail · rollback.
+  Never silently change scope, cost, deadlines, or approve high-impact decisions.
+- **Status communicates reality** — never "72% complete"; say what is done and what blocks.
+- **Positioning:** coding agent = Task → Code. FESTAG = Idea → Decisions → Structure → Plan →
+  Execution → Evidence → Review → Delivery. Never sell "AI that writes code".
+
+## Build rules
+
+- Security at DB level (Supabase RLS) — never frontend-only permissions.
+- AI calls live in the intelligence layer (`lib/tagro/`, `lib/intelligence/`), never scattered
+  in UI components; retrieve context intelligently, never dump the DB into a prompt.
+- Roles, never `creator`, for permissions. No duplicate sources of truth.
+- Quality order: correctness → maintainability → security → performance → UX → polish.
+- Extend existing infrastructure before building new systems.
+- Ambiguity: decide from FESTAG principles (less complexity, more clarity, more trust,
+  scalable, OS-like). Ask only when architecture, business logic or user outcome changes.
+- Don't overbuild. MVP core: auth · workspace · project creation · AI structuring · project
+  state · decisions · features · tasks · developer execution · reporting · TAGRO · basic
+  GitHub · client visibility.
+
+## The gate (ask before every implementation)
+
+> Does this make FESTAG more like an operating system for software production,
+> or more like another SaaS dashboard?
+
+Second answer → stop and rethink. **Optimize for system coherence, not feature count.**
+
+## Reconciliation
+
+Locked implementation detail still wins over this doc: nav label **Overview** (not Home),
+one platform (no Client/Developer apps), Festag Night dark tokens (canvas `#070708`, not
+`#0F141B`), AI layer at `lib/tagro/` (not `/lib/ai`). See §57 of the doc.

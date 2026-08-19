@@ -1,5 +1,29 @@
 # Festag Repository Instructions
 
+## Master System Instruction (supreme — read first)
+
+**Always apply:** `.cursor/rules/festag-master-system-instruction.mdc`  
+**Human doc:** `docs/festag-master-system-instruction.md`
+
+FESTAG is an **AI-native operating system for structured software production** — not a SaaS
+dashboard, not a PM tool, not a chatbot, not a coding agent.
+
+`Idea → Decisions → Structure → Plan → Execution → Evidence → Review → Delivery → Next Decision`
+
+Project is the object; **Decisions govern it**. Seven layers: Experience · Intelligence ·
+Decision · Planning · Execution · Evidence & Quality · Communication. TAGRO is the
+intelligence layer with persistent project understanding — never a chatbot. Evidence over
+claims (claimed vs verified progress). No vague tasks. Autonomy L0→L3 with reason,
+confidence, policy basis, audit trail — never silent scope/cost/deadline changes.
+
+**The gate before every implementation:** does this make FESTAG more like an operating system
+for software production, or more like another SaaS dashboard? Second answer → rethink.
+Optimize for system coherence, not feature count.
+
+Where this conflicts with a locked lower doc on *product direction*, the master wins; on
+*implementation detail* (nav label `Overview`, Festag Night tokens, `lib/tagro/` as the AI
+layer), the locked doc wins — see §57 of the doc.
+
 ## Festag OS Constitution v1.0 (platform supreme)
 
 **Stop thinking in features. Think in platform pillars.**
