@@ -405,22 +405,6 @@ export default function AppShellSidebar({
         <div className="fas-sidebar-header">
           <button
             type="button"
-            className="fas-sidebar-icon fas-sidebar-collapse"
-            aria-label={pinned ? 'Sidebar einklappen' : 'Sidebar offen halten'}
-            title={pinned ? 'Einklappen' : 'Offen halten'}
-            aria-pressed={pinned}
-            onClick={(e) => {
-              e.stopPropagation()
-              setWsOpen(false)
-              setNotifOpen(false)
-              onTogglePin()
-            }}
-          >
-            <SidebarSimple size={15} weight="regular" />
-          </button>
-
-          <button
-            type="button"
             className={`fas-ws-trigger${wsOpen ? ' is-open' : ''}`}
             title={workspaceLabel}
             aria-label="Workspace-Menü"
@@ -443,31 +427,50 @@ export default function AppShellSidebar({
             </span>
           </button>
 
-          <div className="fas-sidebar-utils">
-            <button
-              type="button"
-              className="fas-sidebar-icon"
-              aria-label="Suche"
-              title="Suche"
-              onClick={openSearch}
-            >
-              <MagnifyingGlass size={15} weight="regular" />
-            </button>
-            <button
-              type="button"
-              className="fas-sidebar-icon"
-              aria-label="Benachrichtigungen"
-              title="Benachrichtigungen"
-              aria-expanded={notifOpen}
-              onClick={() => {
-                setWsOpen(false)
-                setNotifOpen((v) => !v)
-              }}
-            >
-              <Bell size={15} weight="regular" />
-              {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
-            </button>
-          </div>
+          {/* Search and notifications already live in the top bar — the rail
+              would only duplicate them. They belong to the open panel. */}
+          {expanded ? (
+            <div className="fas-sidebar-utils">
+              <button
+                type="button"
+                className="fas-sidebar-icon"
+                aria-label="Suche"
+                title="Suche"
+                onClick={openSearch}
+              >
+                <MagnifyingGlass size={16} weight="light" />
+              </button>
+              <button
+                type="button"
+                className="fas-sidebar-icon"
+                aria-label="Benachrichtigungen"
+                title="Benachrichtigungen"
+                aria-expanded={notifOpen}
+                onClick={() => {
+                  setWsOpen(false)
+                  setNotifOpen((v) => !v)
+                }}
+              >
+                <Bell size={16} weight="light" />
+                {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
+              </button>
+              <button
+                type="button"
+                className="fas-sidebar-icon fas-sidebar-collapse"
+                aria-label={pinned ? 'Sidebar einklappen' : 'Sidebar offen halten'}
+                title={pinned ? 'Einklappen' : 'Offen halten'}
+                aria-pressed={pinned}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setWsOpen(false)
+                  setNotifOpen(false)
+                  onTogglePin()
+                }}
+              >
+                <SidebarSimple size={16} weight="light" />
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {wsOpen ? (
@@ -656,11 +659,12 @@ export default function AppShellSidebar({
               type="button"
               className="fas-help-btn"
               aria-label="Festag Help"
-              title="Festag Help"
+              title={expanded ? undefined : 'Festag Help'}
               aria-expanded={helpOpen}
               onClick={() => setHelpOpen((v) => !v)}
             >
-              {expanded ? 'Help' : <Question size={15} weight="regular" />}
+              <Question size={16} weight="light" />
+              <span className="fas-nav-label">Help</span>
             </button>
           )}
         />
