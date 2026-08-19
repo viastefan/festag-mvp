@@ -3015,7 +3015,12 @@ html[data-theme="classic-dark"] .fas-wo-progress {
     padding: 0;
     display: flex !important;
   }
+  /* The base sheet stacks the second group via the adjacent-sibling selector
+     (0,2,0). A bare .fas-nav-after-group here is (0,1,0) and loses — media
+     queries add no specificity — so the second group stayed a column and the
+     strip grew to three rows. Match the sibling selector to win on order. */
   .fas-nav-group,
+  .fas-nav-group + .fas-nav-group,
   .fas-nav-after-group {
     display: flex;
     flex-direction: row;
