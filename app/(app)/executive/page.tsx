@@ -184,6 +184,21 @@ export default function ExecutivePage() {
                   <p className="exec-metric-value">{overview.open_decisions}</p>
                   <p className="exec-metric-sub">offen</p>
                 </div>
+                <Link href="/risks" className="exec-metric exec-metric--link">
+                  <p className="exec-metric-label">Risiken</p>
+                  <p className="exec-metric-value">{overview.open_risks ?? 0}</p>
+                  <p className="exec-metric-sub">
+                    {(overview.critical_risks ?? 0) > 0
+                      ? `${overview.critical_risks} kritisch`
+                      : 'nichts Kritisches'}
+                  </p>
+                </Link>
+                <div className="exec-metric">
+                  <p className="exec-metric-label">Zuversicht</p>
+                  <p className="exec-metric-value">{overview.confidence ?? 95}%</p>
+                  {/* Eine Einschätzung, keine Messung — deshalb steht es dabei. */}
+                  <p className="exec-metric-sub">Festag-Einschätzung</p>
+                </div>
                 <Link href="/objectives" className="exec-metric exec-metric--link">
                   <p className="exec-metric-label">Ziele</p>
                   <p className="exec-metric-value">{overview.active_objectives}</p>
@@ -267,6 +282,10 @@ export default function ExecutivePage() {
                     <div className="exec-cell">
                       <strong>{p.open_decisions}</strong>
                       Entscheidungen
+                    </div>
+                    <div className="exec-cell">
+                      <strong>{p.open_risks ?? 0}</strong>
+                      Risiken
                     </div>
                     <div className="exec-cell">
                       <strong>{HEALTH_LABEL[p.health]}</strong>

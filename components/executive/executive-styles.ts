@@ -142,7 +142,7 @@ export const EXECUTIVE_CSS = `
   .exec-projects { display:flex; flex-direction:column; gap:0; }
   .exec-project-row {
     display:grid;
-    grid-template-columns:minmax(0, 1.4fr) repeat(4, minmax(0, 0.6fr));
+    grid-template-columns:minmax(0, 1.4fr) repeat(5, minmax(0, 0.6fr));
     gap:16px;
     align-items:center;
     padding:16px 8px;
