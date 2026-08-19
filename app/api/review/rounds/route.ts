@@ -21,14 +21,16 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supa.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
-  const taskId = new URL(req.url).searchParams.get('task_id')
-  if (!taskId) return NextResponse.json({ error: 'task_id required' }, { status: 400 })
+  const params = new URL(req.url).searchParams
+  const taskId = params.get('task_id')
+  const decisionId = params.get('decision_id')
+  if (!taskId && !decisionId) {
+    return NextResponse.json({ error: 'task_id or decision_id required' }, { status: 400 })
+  }
 
-  const { data: rounds } = await (supa as any)
-    .from('review_rounds')
-    .select('*')
-    .eq('task_id', taskId)
-    .order('round_number', { ascending: false })
+  let query = (supa as any).from('review_rounds').select('*')
+  query = decisionId ? query.eq('decision_id', decisionId) : query.eq('task_id', taskId)
+  const { data: rounds } = await query.order('round_number', { ascending: false })
 
   const ids = (rounds ?? []).map((r: any) => r.id)
   const findings = ids.length
@@ -117,19 +119,68 @@ export async function POST(req: NextRequest) {
     }, { status: 409 })
   }
 
+  /**
+   * A round is something waiting for a named person, which is exactly what the
+   * decisions board is for. Without a decision the round would only exist in a
+   * notification — seen once, then gone. The decision is the durable surface;
+   * the round stays the source of truth for the verdict.
+   */
+  const openCount = findings.length
+  const { data: reviewDecision } = await (supa as any).from('decisions').insert({
+    project_id: task.project_id,
+    source: 'review_round',
+    source_task_id: task.id,
+    title: `Abnahme: ${task.title || 'Aufgabe'}`,
+    client_title: `Passt das so? ${task.title || 'Aufgabe'}`,
+    client_summary: b.summary || analysisNote
+      || (openCount > 0
+        ? `${openCount} ${openCount === 1 ? 'Punkt wurde' : 'Punkte wurden'} umgesetzt und warten auf deine Abnahme.`
+        : 'Die Arbeit wartet auf deine Abnahme.'),
+    description: b.summary || analysisNote || null,
+    status: 'pending_client',
+    decision_type: 'approval',
+    response_type: 'single_choice',
+    authority: 'client',
+    reversibility: 'two_way_door',
+    auto_resolve_strategy: 'escalate_only',
+    delegate_allowed: false,
+    visible_to_client: true,
+    urgency: 'normal',
+    deadline_hard: b.due_at || null,
+    created_by: user.id,
+    requested_for: reviewerId,
+    tagro_reasoning: openCount > 0
+      ? `Runde ${outcome.roundNumber}: ${openCount} ${openCount === 1 ? 'Punkt' : 'Punkte'} zur Abnahme. `
+        + 'Du kannst abnehmen, Änderungen anfordern oder nachfragen.'
+      : `Runde ${outcome.roundNumber} wartet auf deine Abnahme.`,
+  }).select('id').single()
+
+  if (reviewDecision) {
+    await (supa as any).from('review_rounds')
+      .update({ decision_id: reviewDecision.id }).eq('id', outcome.roundId)
+    await (supa as any).from('decision_links').insert({
+      decision_id: reviewDecision.id,
+      target_kind: 'task',
+      target_id: task.id,
+      link_kind: 'blocks',
+      metadata: { review_round: outcome.roundId, round: outcome.roundNumber },
+    }).then(() => null, () => null)
+  }
+
   await notifyDevDecisionEvent(supa as any, {
     userId: reviewerId,
     projectId: task.project_id,
     kind: 'decision_requested',
     title: `Abnahme: ${task.title || 'Aufgabe'}`,
     body: (b.summary || analysisNote || 'Die Arbeit wartet auf deine Abnahme.').slice(0, 200),
-    link: `/decisions?review=${outcome.roundId}`,
+    link: reviewDecision ? `/decisions?open=${reviewDecision.id}` : `/decisions`,
     taskId: task.id,
     payload: { round_id: outcome.roundId, round: outcome.roundNumber, origin: 'review_submit' },
   })
 
   return NextResponse.json({
     round: { id: outcome.roundId, number: outcome.roundNumber },
+    decision: reviewDecision ? { id: reviewDecision.id } : null,
     findings: findings.length,
     analysis: analysisNote,
   })

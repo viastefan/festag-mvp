@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
 
   const { data: round } = await (supa as any)
     .from('review_rounds')
-    .select('id, project_id, task_id, round_number, submitted_by')
+    .select('id, project_id, task_id, round_number, submitted_by, decision_id')
     .eq('id', ctx.params.id).maybeSingle()
   if (!round) {
     return NextResponse.json({ error: 'round_not_found', message: BLOCK_TEXT.round_not_found }, { status: 404 })
@@ -58,6 +58,31 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   const { data: task } = await (supa as any)
     .from('tasks').select('title').eq('id', round.task_id).maybeSingle()
   const taskTitle = task?.title || 'Aufgabe'
+
+  /**
+   * The decision that carried this round to the board has to close with it.
+   * Leaving it open would keep asking for a verdict that has already been
+   * given — the single worst kind of stale item on a board people trust.
+   * A question is the exception: nothing was judged, so it stays open.
+   */
+  if (round.decision_id && outcome.status !== 'question') {
+    const answer = outcome.status === 'accepted' ? 'accepted' : 'changes_requested'
+    await (supa as any).from('decisions').update({
+      status: 'decided',
+      response_value: { selected_option_id: answer },
+      selected_option: answer,
+      decision_note: b.note?.slice(0, 4000) || null,
+      decided_by: user.id,
+      decided_at: new Date().toISOString(),
+    }).eq('id', round.decision_id).then(() => null, () => null)
+  }
+  if (round.decision_id && outcome.status === 'question') {
+    // Still open, but visibly waiting on the other side rather than on you.
+    await (supa as any).from('decisions').update({
+      status: 'awaiting_clarification',
+      decision_note: b.note?.slice(0, 4000) || null,
+    }).eq('id', round.decision_id).then(() => null, () => null)
+  }
 
   // Whoever handed the work over hears the verdict — in the words that match it.
   if (round.submitted_by && round.submitted_by !== user.id) {

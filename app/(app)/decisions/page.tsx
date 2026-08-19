@@ -28,6 +28,7 @@ import {
 import DecisionBoardRow, { type PathPosition, type RowAction } from '@/components/decisions/DecisionBoardRow'
 import DecisionResolveSheet, { type ResolveStep } from '@/components/decisions/DecisionResolveSheet'
 import DecisionAskSheet from '@/components/decisions/DecisionAskSheet'
+import DecisionReviewSheet from '@/components/decisions/DecisionReviewSheet'
 import DecisionFilterPopover, {
   EMPTY_FILTERS, VIEWS, applyDecisionFilters, countActiveFilters, matchesView,
   type DecisionFilters, type DecisionView,
@@ -117,6 +118,8 @@ function DecisionsBoard() {
   const [scrolled, setScrolled] = useState(false)
   /** The "ask someone" surface — the way a decision gets created by hand. */
   const [asking, setAsking] = useState(false)
+  /** A review round opens its own verdict surface, not the answer form. */
+  const [reviewing, setReviewing] = useState<{ decisionId: string; title: string } | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
@@ -329,6 +332,10 @@ function DecisionsBoard() {
 
   const handleAction = useCallback((d: Decision, action: RowAction) => {
     if (action === 'details') { router.push(`/decisions/${d.id}`); return }
+    if (d.source === 'review_round' && action !== 'why') {
+      setReviewing({ decisionId: d.id, title: d.client_title || d.title })
+      return
+    }
     void loadOptions(d)
     setSheet({
       id: d.id,
@@ -600,6 +607,31 @@ function DecisionsBoard() {
           onClose={closeSheet}
           onResolved={(patch) => handleResolved(sheetDecision.id, patch)}
           onEscalateToDrawer={() => router.push(`/decisions/${sheetDecision.id}`)}
+        />
+      )}
+
+      {reviewing && (
+        <DecisionReviewSheet
+          decisionId={reviewing.decisionId}
+          title={reviewing.title}
+          onClose={() => setReviewing(null)}
+          onResolved={({ verdict }) => {
+            const id = reviewing.decisionId
+            setReviewing(null)
+            if (verdict === 'question') {
+              patchLocal(id, { status: 'awaiting_clarification' })
+              setToast({ title: 'Rückfrage gesendet.', sub: 'Die Abnahme bleibt offen.' })
+            } else if (verdict === 'accepted') {
+              handleResolved(id, { status: 'decided', decided_at: new Date().toISOString(), decided_by: me })
+            } else {
+              patchLocal(id, { status: 'decided', decided_at: new Date().toISOString(), decided_by: me })
+              setToast({
+                title: 'Änderungen angefordert.',
+                sub: 'Die nächste Runde läuft beim Team.',
+              })
+            }
+            void load()
+          }}
         />
       )}
 

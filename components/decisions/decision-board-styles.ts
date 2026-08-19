@@ -1628,4 +1628,58 @@ html[data-theme="classic-dark"] .dask-label { color: #A9B0BF; }
   .dask-people { max-height: 140px; }
   .dask-date { width: 100%; }
 }
+
+/* ── Review findings ──
+   A checklist the reviewer reads before judging. Ticks are their own
+   bookkeeping; the verdict below is the deliberate act. */
+.drv-findings {
+  list-style: none;
+  margin: 20px 0 4px;
+  padding: 0;
+  display: flex; flex-direction: column;
+  max-height: 320px; overflow-y: auto;
+}
+.drv-finding {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 2px;
+  border-bottom: 1px solid rgba(27, 34, 51, 0.06);
+}
+.drv-finding:last-child { border-bottom: none; }
+.drv-finding-mark {
+  width: 17px; height: 17px; margin-top: 2px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1.4px solid rgba(91, 100, 125, 0.34);
+  color: #FFFFFF;
+}
+.drv-finding.is-fixed .drv-finding-mark,
+.drv-finding.is-deferred .drv-finding-mark {
+  background: #5B647D; border-color: #5B647D;
+}
+.drv-finding.is-wont_fix .drv-finding-mark {
+  background: #A8AFBD; border-color: #A8AFBD;
+}
+.drv-finding-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.drv-finding-title { font-size: 14.5px; line-height: 1.45; color: #1B2233; }
+.drv-finding.is-fixed .drv-finding-title,
+.drv-finding.is-wont_fix .drv-finding-title { color: #8A93A5; }
+.drv-finding-detail { font-size: 13px; line-height: 1.55; color: #5A6274; }
+.drv-finding-meta { font-size: 12px; color: #A8AFBD; }
+
+html[data-theme="dark"] .drv-finding,
+html[data-theme="classic-dark"] .drv-finding { border-bottom-color: rgba(255, 255, 255, 0.07); }
+html[data-theme="dark"] .drv-finding-title,
+html[data-theme="classic-dark"] .drv-finding-title { color: #E8EAF0; }
+html[data-theme="dark"] .drv-finding-detail,
+html[data-theme="classic-dark"] .drv-finding-detail { color: #A9B0BF; }
+html[data-theme="dark"] .drv-finding-mark,
+html[data-theme="classic-dark"] .drv-finding-mark { border-color: rgba(152, 162, 190, 0.4); }
+html[data-theme="dark"] .drv-finding.is-fixed .drv-finding-mark,
+html[data-theme="classic-dark"] .drv-finding.is-fixed .drv-finding-mark {
+  background: #98A2BE; border-color: #98A2BE; color: #14151B;
+}
+
+@media (max-width: 760px) {
+  .drv-findings { max-height: 260px; }
+}
 `.trim()
