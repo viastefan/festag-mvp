@@ -241,6 +241,7 @@ export const DEV_FLOW = [
   'in_progress',
   'needs_review',
   'blocked',
+  'on_hold',
   'finished_by_dev',
   'verified_by_tagro',
   'approved_by_owner',
@@ -255,6 +256,7 @@ export const DEV_FLOW_LABEL: Record<DevFlow, string> = {
   in_progress: 'In Progress',
   needs_review: 'Needs Review',
   blocked: 'Blocked',
+  on_hold: 'On Hold',
   finished_by_dev: 'Finished by Dev',
   verified_by_tagro: 'Verified by Tagro',
   approved_by_owner: 'Approved by Project Owner',
@@ -297,6 +299,7 @@ export function clientStatusFromDevFlow(flow: DevFlow): ClientVisibleStatus {
       return 'completed'
     case 'blocked':
       return 'waiting'
+    case 'on_hold':
     case 'cancelled':
       return 'on_hold'
     default:
@@ -316,6 +319,7 @@ export function progressFromDevFlow(flow: DevFlow): number {
     case 'approved_by_owner':
     case 'completed':      return 100
     case 'blocked':        return 30  // keep last visible progress
+    case 'on_hold':        return 30  // paused on purpose — progress persists
     case 'cancelled':      return 0
   }
   return 0
@@ -333,6 +337,7 @@ export function devFlowFromLegacy(legacy?: string | null, devStatus?: string | n
   if (['finished_by_dev','finished','submitted_for_review'].includes(raw))  return 'finished_by_dev'
   if (['review','ready_review','ready_for_review','in_review','needs_review'].includes(raw)) return 'needs_review'
   if (['blocked','waiting'].includes(raw))                                  return 'blocked'
+  if (['on_hold','paused','hold'].includes(raw))                            return 'on_hold'
   if (['in_progress','doing','active','accepted'].includes(raw))            return 'in_progress'
   if (['cancelled'].includes(raw))                                          return 'cancelled'
   if (['assigned'].includes(raw))                                           return 'assigned'
