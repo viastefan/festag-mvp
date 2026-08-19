@@ -1710,8 +1710,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           justifyContent: 'center',
         }}
       >
-        <style>{AUTH_LANDING_STYLES}</style>
-        <style>{AUTH_OS_STYLES}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
         <FestagWorkingDots size="lg" label="Lädt" />
       </main>
     )
@@ -1725,10 +1725,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       data-auth-mode={activeMode}
       data-auth-step={authStep}
     >
-      <style>{AUTH_LANDING_STYLES}</style>
-      <style>{AUTH_OS_STYLES}</style>
-      <style>{AUTH_GLASSY_HERO_CSS}</style>
-      <style>{AUTH_ENTER_GLYPH_CSS}</style>
+      {/* Text children get escaped by React (' -> &#x27;, " -> &quot;), and
+          <style> is a raw-text element so the browser never decodes them back.
+          Server and client then disagree on this node and hydration fails for
+          the whole page — see the same note in FestagAppShell. */}
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_LANDING_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_OS_STYLES }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_GLASSY_HERO_CSS }} />
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AUTH_ENTER_GLYPH_CSS }} />
 
       <div className="al-container">
         <header className="al-header">
