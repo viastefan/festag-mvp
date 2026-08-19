@@ -1682,4 +1682,16 @@ html[data-theme="classic-dark"] .drv-finding.is-fixed .drv-finding-mark {
 @media (max-width: 760px) {
   .drv-findings { max-height: 260px; }
 }
+
+/* The optional document field starts collapsed — most submissions do not have
+   a PDF behind them, and an empty six-row textarea reads as a demand. */
+.trs-add-doc {
+  appearance: none; border: none; background: transparent; padding: 0;
+  margin: 18px 0 0;
+  font: inherit; font-size: 13px; color: #5B647D; cursor: pointer;
+  border-bottom: 1px solid rgba(91, 100, 125, 0.26);
+}
+.trs-add-doc:hover { color: #3E465C; border-bottom-color: rgba(91, 100, 125, 0.55); }
+html[data-theme="dark"] .trs-add-doc,
+html[data-theme="classic-dark"] .trs-add-doc { color: #AEB7CE; }
 `.trim()

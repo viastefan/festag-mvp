@@ -22,6 +22,8 @@ import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
 import MobileObjectPrep from '@/components/mobile/MobileObjectPrep'
 import { openTagro } from '@/components/TagroOverlay'
+import TaskReviewSubmitSheet from '@/components/decisions/TaskReviewSubmitSheet'
+import { DECISION_SHEET_CSS } from '@/components/decisions/decision-board-styles'
 import { tagroOpenFromTask } from '@/lib/tagro/open-context'
 import {
   ArrowLeft,
@@ -286,6 +288,11 @@ export default function TaskWorkspaceDetail({ taskId, projectId, variant = 'page
   const [tab, setTab] = useState<'overview' | 'tagro' | 'verlauf'>('overview')
   const [newTaskOpen, setNewTaskOpen] = useState(false)
   const [decisionBusy, setDecisionBusy] = useState(false)
+  /* Handing work over for review. The outcome stays on screen: "eingereicht"
+     alone would not say which round it is, or how many points the other side
+     is about to see. */
+  const [reviewOpen, setReviewOpen] = useState(false)
+  const [reviewResult, setReviewResult] = useState<{ round: number; findings: number } | null>(null)
   const [decisionDone, setDecisionDone] = useState(false)
 
   const isDrawer = variant === 'drawer'
@@ -759,6 +766,18 @@ export default function TaskWorkspaceDetail({ taskId, projectId, variant = 'page
             <button type="button" className="task-action" onClick={requestDecision} disabled={decisionBusy || decisionDone || !(project?.id ?? task.project_id)}>
               <ShieldCheck size={14} /> {decisionDone ? 'Entscheidung erstellt' : decisionBusy ? 'Wird angefragt…' : 'Entscheidung anfordern'}
             </button>
+            <button
+              type="button"
+              className="task-action"
+              onClick={() => setReviewOpen(true)}
+              disabled={!!reviewResult || !(project?.id ?? task.project_id)}
+              title={reviewResult ? 'Läuft bereits' : undefined}
+            >
+              <ShieldCheck size={14} />
+              {reviewResult
+                ? `Runde ${reviewResult.round} läuft`
+                : 'Zur Abnahme geben'}
+            </button>
             <button type="button" className="task-action task-action-primary" onClick={() => openTagro(tagroOpenFromTask(task, project ?? undefined))}>
               <Sparkle size={14} /> Mit Tagro bearbeiten
             </button>
@@ -767,6 +786,23 @@ export default function TaskWorkspaceDetail({ taskId, projectId, variant = 'page
           </div>
         </aside>
       </div>
+
+      {reviewOpen && task && (
+        <>
+          <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_SHEET_CSS }} />
+          <TaskReviewSubmitSheet
+            taskId={task.id}
+            taskTitle={task.title || 'Aufgabe'}
+            onClose={() => setReviewOpen(false)}
+            onSubmitted={({ roundNumber, findings }) => {
+              setReviewOpen(false)
+              setReviewResult({ round: roundNumber, findings })
+              // Straight to the board: the round now lives there as a decision.
+              setTimeout(() => router.push('/decisions'), 700)
+            }}
+          />
+        </>
+      )}
 
       {newTaskOpen && (
         <NewTaskModal
