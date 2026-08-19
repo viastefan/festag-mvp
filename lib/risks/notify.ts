@@ -6,8 +6,9 @@
 // der Risikoseite, wenn man hinschaut.
 //
 // Der Kunde bekommt die Kundenfassung, das Team die Lieferfassung — dieselbe
-// Sache, zwei Sprachen. Und jedes Risiko meldet sich höchstens einmal;
-// dafür steht der Verlauf ein, nicht ein Zähler im Speicher.
+// Sache, zwei Sprachen, in der App und in der Mail. Und jedes Risiko meldet
+// sich höchstens einmal; dafür steht der Verlauf ein, nicht ein Zähler im
+// Speicher.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -116,15 +117,71 @@ export async function notifyAboutRisk(
 
   if (!notified.length) return null
 
+  // Zweiter Kanal für die, die gerade nicht in der App sind. Best effort —
+  // eine nicht zugestellte Mail darf die Meldung im Produkt nicht entwerten.
+  const emailed = await emailRecipients(supa, recipients, {
+    projectTitle: project.title ?? null,
+    clientTitle,
+    clientBody,
+    devTitle: `${severityLabel(risk.severity)}: ${risk.title}`,
+    devBody,
+    riskId: risk.id,
+  })
+
   // Der Verlauf ist zugleich die Dedupe-Sperre: einmal gemeldet, nie wieder.
   await writeEvent(supa, risk.id, {
     event_type: 'notified',
     actor_kind: 'system',
-    summary: 'Über dieses Risiko wurde informiert.',
-    payload: { recipients: notified },
+    summary: emailed.length
+      ? 'Über dieses Risiko wurde informiert — in der App und per E-Mail.'
+      : 'Über dieses Risiko wurde informiert.',
+    payload: { recipients: notified, emailed },
   })
 
   return { notified }
+}
+
+/**
+ * Schickt dieselbe Sache per Mail, in derselben Fassung wie in der App.
+ * Gibt die Empfänger zurück, bei denen es geklappt hat.
+ */
+async function emailRecipients(
+  supa: AnyClient,
+  recipients: Array<{ userId: string; audience: 'client' | 'dev' }>,
+  content: {
+    projectTitle: string | null
+    clientTitle: string
+    clientBody: string
+    devTitle: string
+    devBody: string
+    riskId: string
+  },
+): Promise<string[]> {
+  const sent: string[] = []
+  try {
+    const { sendGenericEmail } = await import('@/lib/email/send')
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://festag.app'
+
+    for (const recipient of recipients) {
+      const { data: profile } = await (supa as any)
+        .from('profiles').select('email').eq('id', recipient.userId).maybeSingle()
+      const to = profile?.email
+      if (!to) continue
+
+      const isClient = recipient.audience === 'client'
+      const result = await sendGenericEmail({
+        to,
+        title: isClient ? content.clientTitle : content.devTitle,
+        subtitle: content.projectTitle ?? undefined,
+        body: `${isClient ? content.clientBody : content.devBody}\n\n${origin}/risks?open=${content.riskId}`,
+        preheader: 'Festag hat ein kritisches Risiko erkannt.',
+      })
+      if ((result as any)?.ok !== false) sent.push(recipient.userId)
+    }
+  } catch {
+    // Kein Mailversand konfiguriert — die Inbox-Meldung steht trotzdem.
+  }
+  return sent
 }
 
 /** Nach einem Erkennungslauf: melden, was wirklich stört. */
