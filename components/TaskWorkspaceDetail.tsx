@@ -331,7 +331,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId, variant = 'page
           .limit(20)
           .then((result: any) => result, () => ({ data: [] })),
         pid ? (supabase as any).from('messages').select('id,message,created_at,is_ai').eq('project_id', pid).order('created_at', { ascending: false }).limit(6).then((result: any) => result, () => ({ data: [] })) : Promise.resolve({ data: [] }),
-        profileIds.length ? (supabase as any).from('profiles').select('id,email,full_name,first_name,avatar_url,avatar_color,role').in('id', profileIds).then((result: any) => result, () => ({ data: [] })) : Promise.resolve({ data: [] }),
+        profileIds.length ? (supabase as any).from('profiles').select('id,email,full_name,first_name,avatar_url,role').in('id', profileIds).then((result: any) => result, () => ({ data: [] })) : Promise.resolve({ data: [] }),
       ])
 
       if (cancelled) return
