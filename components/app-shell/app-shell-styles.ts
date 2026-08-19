@@ -20,8 +20,8 @@ export const APP_SHELL_STYLES = `
   --fas-card-shadow: none;
   --fas-sep: rgba(30, 30, 32, 0.08);
   --fas-nav-idle: rgba(30, 30, 32, 0.58);
-  --fas-nav-hover: rgba(30, 30, 32, 0.055);
-  --fas-nav-active: rgba(30, 30, 32, 0.09);
+  --fas-nav-hover: rgba(30, 30, 32, 0.045);
+  --fas-nav-active: rgba(30, 30, 32, 0.07);
   --fas-nav-active-ink: ${FESTAG_SAND.ink};
   --fas-sidebar-w: 268px;
   --fas-sidebar-collapsed-w: 60px;
@@ -32,7 +32,7 @@ export const APP_SHELL_STYLES = `
   --fas-topbar-h: calc(var(--fas-sidebar-float-inset) + var(--fas-sidebar-chip-h));
   --fas-radius: 8px;
   --fas-radius-btn: 6px;
-  --fas-nav-radius: 7px;
+  --fas-nav-radius: 6px;
   --fas-btn-bg: #ffffff;
   --fas-btn-bg-hover: #fafafa;
   --fas-btn-bg-active: #f5f5f6;
@@ -76,8 +76,8 @@ html[data-theme="classic-dark"] .fas-root {
   --fas-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
   --fas-sep: rgba(255, 255, 255, 0.07);
   --fas-nav-idle: rgba(230, 232, 238, 0.58);
-  --fas-nav-hover: rgba(255, 255, 255, 0.055);
-  --fas-nav-active: rgba(255, 255, 255, 0.09);
+  --fas-nav-hover: rgba(255, 255, 255, 0.045);
+  --fas-nav-active: rgba(255, 255, 255, 0.07);
   --fas-nav-active-ink: #E6E8EE;
   --fas-btn-bg: rgba(186, 194, 210, 0.08);
   --fas-btn-bg-hover: rgba(186, 194, 210, 0.11);
@@ -120,8 +120,10 @@ html[data-theme="read"] .fas-root {
   gap: 4px;
   padding: 10px;
   /* Sand glass — not a white card plate. */
-  background: color-mix(in srgb, ${FESTAG_SAND.canvas} 78%, transparent);
-  border: 1px solid rgba(30, 30, 32, 0.08);
+  /* At rest this is a column of icons on the canvas, not a panel — paper
+     appears only when it opens. */
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 16px;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.03),
@@ -131,38 +133,28 @@ html[data-theme="read"] .fas-root {
   transform-origin: top left;
   transition:
     width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.28s ease,
-    background 0.22s ease;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-html[data-theme="dark"] .fas-sidebar,
-html[data-theme="classic-dark"] .fas-sidebar {
-  background: rgba(26, 26, 30, 0.94);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    0 20px 52px rgba(0, 0, 0, 0.45);
+    background 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.28s ease;
 }
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
 }
 .fas-sidebar.is-expanded {
   width: var(--fas-sidebar-w);
-}
-/* Peek = hovering an unpinned rail. It floats over the canvas, so it needs to
-   read as a layer above the page, not as part of it. */
-.fas-sidebar.is-peek {
+  background: ${FESTAG_SAND.canvas};
+  border-color: rgba(30, 30, 32, 0.07);
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 24px 64px rgba(15, 23, 42, 0.16);
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 16px 40px rgba(15, 23, 42, 0.07);
 }
-html[data-theme="dark"] .fas-sidebar.is-peek,
-html[data-theme="classic-dark"] .fas-sidebar.is-peek {
+html[data-theme="dark"] .fas-sidebar.is-expanded,
+html[data-theme="classic-dark"] .fas-sidebar.is-expanded {
+  background: #14161F;
+  border-color: rgba(255, 255, 255, 0.07);
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.24),
-    0 28px 72px rgba(0, 0, 0, 0.58);
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 18px 44px rgba(0, 0, 0, 0.42);
 }
 /* The panel clips labels while narrow — but a popover has to be able to leave
    the box, and by the time one is open the panel is expanded anyway. */
