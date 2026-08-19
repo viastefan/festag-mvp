@@ -1627,6 +1627,60 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-flow-info strong { color:#1e1e20; font-weight:400; }
 
+        /* Confirmed address: reads as the field it was typed into, one step
+           back from live — same height and rhythm as .al-input, quiet fill
+           instead of a stroke, so it never looks like it wants a caret. */
+        .al-locked-field {
+          display:flex;
+          align-items:center;
+          gap:12px;
+          width:100%;
+          min-height:var(--festag-input-height, 46px);
+          padding:0 14px;
+          border-radius:var(--festag-input-radius, 8px);
+          background:rgba(30, 30, 32, 0.045);
+          box-sizing:border-box;
+        }
+        .al-locked-field-copy {
+          display:flex;
+          flex-direction:column;
+          justify-content:center;
+          gap:1px;
+          min-width:0;
+          flex:1 1 auto;
+        }
+        .al-locked-field-label {
+          font-size:11px;
+          line-height:1.15;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
+          color:var(--al-text-muted, #8891a0);
+        }
+        .al-locked-field-value {
+          font-size:var(--festag-input-font-size, 15px);
+          line-height:1.25;
+          color:#1e1e20;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        }
+        .al-locked-field-edit {
+          flex-shrink:0;
+          font-family:inherit;
+          font-size:14px;
+          font-weight:400;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
+          color:var(--festag-caret, #5B647D);
+          background:none;
+          border:0;
+          padding:12px 0;
+          margin:-8px 0;
+          cursor:pointer;
+          transition:color .15s;
+          -webkit-tap-highlight-color:transparent;
+        }
+        .al-locked-field-edit:hover { color:#515970; }
+        .al-locked-field-edit:disabled { opacity:.5; cursor:not-allowed; }
+
         /* Caret / selection — lighter primary stroke #5B647D */
         .al-root ::selection {
           background: var(--festag-caret-selection, rgba(102, 112, 141, 0.28));
@@ -1715,10 +1769,6 @@ const AUTH_LANDING_STYLES_BASE = `
           margin:4px 0 0;
           gap:4px;
           align-items:flex-start;
-        }
-        .al-signin-stack--code > .al-login-aux.al-code-nav .al-back {
-          margin:0;
-          padding:8px 0;
         }
         .al-login-aux-secondary:hover,
         .al-login-aux-secondary:active {
@@ -2250,6 +2300,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-login-aux-line,
         .al-root[data-theme="dark"] .al-login-aux-secondary,
         .al-root[data-theme="dark"] .al-code-help,
+        .al-root[data-theme="dark"] .al-locked-field-label,
         .al-root[data-theme="dark"] .al-legal,
         .al-root[data-theme="dark"] .al-ssl-badge,
         .al-root[data-theme="dark"] .al-region-note,
@@ -2291,9 +2342,15 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-login-aux-secondary:hover,
         .al-root[data-theme="dark"] .al-login-aux-secondary:active,
         .al-root[data-theme="dark"] .al-code-help-action,
+        .al-root[data-theme="dark"] .al-locked-field-value,
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
+        .al-root[data-theme="dark"] .al-locked-field {
+          background:rgba(255, 255, 255, 0.06);
+        }
+        .al-root[data-theme="dark"] .al-locked-field-edit { color:#f5f5f7; }
+        .al-root[data-theme="dark"] .al-locked-field-edit:hover { color:#ffffff; }
         /* Ghost/primary CTAs — transparent + hairline. Idle stays quiet. */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost,
@@ -4810,7 +4867,6 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-top:2px;
             align-items:flex-start;
           }
-          .al-root[data-auth-step="codeEntry"] .al-code-nav .al-back,
           .al-root[data-auth-step="codeEntry"] .al-code-nav .al-login-aux-secondary {
             font-size:14px;
             text-align:left;

@@ -1607,9 +1607,23 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const codeEntryScreen = (
     <div className="al-signin-stack al-signin-stack--code">
       {error && <p className="al-error">{error}</p>}
-      <p className="al-flow-info">
-        Eine E-Mail wurde an <strong>{email.trim() || 'deine Adresse'}</strong> gesendet.
-      </p>
+      <div className="al-locked-field">
+        <span className="al-locked-field-copy">
+          <span className="al-locked-field-label">E-Mail-Adresse</span>
+          <span className="al-locked-field-value" title={email.trim() || undefined}>
+            {email.trim() || 'deine Adresse'}
+          </span>
+        </span>
+        <button
+          type="button"
+          className="al-locked-field-edit"
+          onClick={switchBack}
+          disabled={loading}
+        >
+          Bearbeiten
+        </button>
+      </div>
+      <p className="al-flow-info">Wir haben dir einen Code geschickt.</p>
       <AuthOtpInput
         value={code}
         onChange={setCode}
@@ -1646,11 +1660,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </button>
         .
       </p>
-      <div className="al-login-aux al-code-nav">
-        <button className="al-back" type="button" onClick={switchBack} disabled={loading}>
-          Zurück
-        </button>
-        {showForgotPassword ? (
+      {showForgotPassword ? (
+        <div className="al-login-aux al-code-nav">
           <button
             type="button"
             className="al-login-aux-secondary"
@@ -1658,8 +1669,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           >
             Passwort vergessen
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   )
 
