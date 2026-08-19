@@ -138,8 +138,13 @@ Aktion vorschlagen → Berechtigung prüfen → ausführen → protokollieren
 
 Die Berechtigung kommt aus der Autonomiestufe (`observe` ändert nichts,
 `recommend` fragt, `assist`/`act` dürfen mehr), pro Aktionsart über
-`action_permissions` überschreibbar. Einen Termin verschiebt auf keiner Stufe
-die Maschine allein — das ist eine Zusage an jemanden.
+`action_permissions` überschreibbar — einstellbar unter „Erweitert" in den
+Risiko-Einstellungen. Katalog, Beschriftungen und Matrix liegen in
+`lib/risks/action-types.ts`, damit Oberfläche und Ausführung dieselbe Wahrheit
+lesen, ohne dass die Engine ins Browser-Bundle rutscht.
+
+Einen Termin verschiebt auf keiner Stufe die Maschine allein — das ist eine
+Zusage an jemanden.
 
 Was nicht automatisch laufen darf, kommt als offene Aktion zurück und wird der
 Person angezeigt — stille Automatik gibt es nicht. Jede ausgeführte Aktion
@@ -170,22 +175,24 @@ dieselbe Sache ein zweites Mal klingeln. Kunde und Team bekommen dieselbe
 Sache in ihrer jeweiligen Fassung, verlinkt auf dieselbe Risikoseite.
 
 Gemeldet wird erst nach der Anreicherung, damit die Nachricht Tagros
-Formulierung trägt und nicht die heuristische Zwischenfassung.
+Formulierung trägt und nicht die heuristische Zwischenfassung. Zusätzlich zur
+Inbox geht eine E-Mail raus — dieselbe Fassung, best effort: ohne konfigurierten
+Versand bleibt es bei der Meldung im Produkt.
 
 ## Wo Risiken sonst auftauchen
 
 - **Kontrollstatus** (`lib/trust/control-status.ts`): ein kritisches Risiko
   schlägt die reine Blocker-Zahl — es benennt, *warum* etwas steht.
-- **Executive-Übersicht**: kritische Risiken zählen wie Blocker, und die
-  Projektzeile trägt die Kundenfassung des schwersten Risikos.
+- **Executive-Übersicht**: kritische Risiken zählen wie Blocker, die
+  Projektzeile trägt die Kundenfassung des schwersten Risikos, und es gibt
+  Kacheln für offene Risiken und Zuversicht. Über mehrere Projekte zählt das
+  schwächste Glied, nicht der Durchschnitt — ein Mittelwert würde ein einzelnes
+  gefährdetes Projekt wegrechnen.
 - **Statusberichte**: siehe oben.
 
 ## Noch offen
 
 - CI-Checks als eigene Signalquelle (`github_check_runs` existiert noch nicht)
-- Die Zuversichtszahl steht bisher nur auf `/risks`; Dashboard und Executive
-  lesen Zähler und Schweregrad, nicht die Prozentzahl
-- Benachrichtigungen gehen in die Inbox, nicht per E-Mail oder Push
-- `action_permissions` ist im Datenmodell und in der Engine da, aber noch ohne
-  eigene Oberfläche — heute stellt man die Autonomiestufe ein, nicht die
-  einzelne Aktion
+- Das Dashboard nennt bewusst nur den wichtigsten Grund, keine Prozentzahl —
+  die Zuversicht steht auf `/risks` und im Executive
+- Kein Push-Kanal; E-Mail und Inbox sind die beiden Wege

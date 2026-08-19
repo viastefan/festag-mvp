@@ -15,7 +15,7 @@ import {
   defaultPermissionFor,
   type RiskActionPermission,
   type RiskActionType,
-} from '@/lib/risks/actions'
+} from '@/lib/risks/action-types'
 import type { RiskSettings } from '@/lib/risks/types'
 import { DEFAULT_RISK_SETTINGS } from '@/lib/risks/types'
 

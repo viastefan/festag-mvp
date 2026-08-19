@@ -13,125 +13,26 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { writeEvent, loadRiskSettings, type EffectiveRiskSettings } from '@/lib/risks/engine'
-import type { Risk, RiskStatus } from '@/lib/risks/types'
+import { resolveActionPermission, type ActionOutcome, type RiskAction } from '@/lib/risks/action-types'
+import type { Risk } from '@/lib/risks/types'
 import { safeTableRows } from '@/lib/supabase/safe-table'
 
 type AnyClient = SupabaseClient<any, any, any>
 
-/** Der vollständige Satz erlaubter Eingriffe. Nichts außerhalb dieser Liste. */
-export type RiskAction =
-  | { type: 'raise_task_priority'; task_id: string; to: 'high' | 'critical'; reason: string }
-  | { type: 'set_risk_status'; status: RiskStatus; reason: string }
-  | { type: 'note_on_task'; task_id: string; text: string }
-  | { type: 'create_followup_task'; title: string; description?: string; reason: string }
-  | { type: 'move_task_due_date'; task_id: string; to: string; reason: string }
-
-export type RiskActionType = RiskAction['type']
-
-/**
- * Reihenfolge und Beschriftung für die Einstellungen. Die Liste ist bewusst
- * dieselbe wie oben — was hier fehlt, kann niemand erlauben.
- */
-export const RISK_ACTION_TYPES: RiskActionType[] = [
-  'set_risk_status',
-  'note_on_task',
-  'raise_task_priority',
-  'create_followup_task',
-  'move_task_due_date',
-]
-
-export const RISK_ACTION_LABEL: Record<RiskActionType, { label: string; sub: string }> = {
-  set_risk_status: {
-    label: 'Risikostatus setzen',
-    sub: 'Ein Risiko in Beobachtung nehmen oder als abgesichert führen.',
-  },
-  note_on_task: {
-    label: 'Notiz an Aufgabe',
-    sub: 'Festhalten, was zu einer Aufgabe entschieden wurde.',
-  },
-  raise_task_priority: {
-    label: 'Priorität anheben',
-    sub: 'Blockierte Arbeit nach vorne holen. Nie herunterstufen.',
-  },
-  create_followup_task: {
-    label: 'Folgeaufgabe anlegen',
-    sub: 'Aus einer Maßnahme wird echte Arbeit im Projekt.',
-  },
-  move_task_due_date: {
-    label: 'Termin verschieben',
-    sub: 'Braucht immer eine Freigabe — ein Termin ist eine Zusage.',
-  },
-}
-
-export type ActionOutcome = {
-  action: RiskAction
-  status: 'executed' | 'needs_approval' | 'blocked' | 'failed'
-  detail?: string
-}
-
-/**
- * Wie eigenständig eine Aktionsart ausgeführt werden darf.
- *   auto → läuft ohne Rückfrage
- *   ask  → braucht eine menschliche Freigabe
- *   off  → gar nicht
- */
-type Permission = 'auto' | 'ask' | 'off'
-
-/**
- * Grundhaltung je Autonomiestufe. Beobachten heißt beobachten: Tagro ändert
- * dann nichts, auch nicht das Naheliegende.
- */
-const BY_AUTONOMY: Record<EffectiveRiskSettings['autonomy'], Record<RiskActionType, Permission>> = {
-  observe: {
-    raise_task_priority: 'off',
-    set_risk_status: 'off',
-    note_on_task: 'off',
-    create_followup_task: 'off',
-    move_task_due_date: 'off',
-  },
-  recommend: {
-    raise_task_priority: 'ask',
-    set_risk_status: 'ask',
-    note_on_task: 'ask',
-    create_followup_task: 'ask',
-    move_task_due_date: 'ask',
-  },
-  assist: {
-    raise_task_priority: 'ask',
-    set_risk_status: 'auto',
-    note_on_task: 'auto',
-    create_followup_task: 'ask',
-    // Ein verschobener Termin ist eine Zusage an jemanden — die trifft
-    // auf keiner Stufe die Maschine allein.
-    move_task_due_date: 'ask',
-  },
-  act: {
-    raise_task_priority: 'auto',
-    set_risk_status: 'auto',
-    note_on_task: 'auto',
-    create_followup_task: 'auto',
-    move_task_due_date: 'ask',
-  },
-}
-
-/** Was ohne Ausnahme gilt — die Oberfläche zeigt das als „Standard". */
-export function defaultPermissionFor(
-  autonomy: EffectiveRiskSettings['autonomy'],
-  type: RiskActionType,
-): Permission {
-  return BY_AUTONOMY[autonomy][type]
-}
-
-export type RiskActionPermission = Permission
-
-function permissionFor(
-  settings: EffectiveRiskSettings,
-  type: RiskActionType,
-): Permission {
-  const override = (settings.action_permissions ?? {})[type]
-  if (override === 'auto' || override === 'ask' || override === 'off') return override
-  return BY_AUTONOMY[settings.autonomy][type]
-}
+// Katalog, Beschriftungen und Berechtigungsmatrix liegen client-sicher in
+// action-types.ts — die Oberfläche braucht dieselbe Wahrheit wie die Ausführung.
+export {
+  RISK_ACTION_TYPES,
+  RISK_ACTION_LABEL,
+  defaultPermissionFor,
+  resolveActionPermission,
+} from '@/lib/risks/action-types'
+export type {
+  RiskAction,
+  RiskActionType,
+  RiskActionPermission,
+  ActionOutcome,
+} from '@/lib/risks/action-types'
 
 export type RunActionsInput = {
   risk: Risk
@@ -158,7 +59,11 @@ export async function runRiskActions(
   const outcomes: ActionOutcome[] = []
 
   for (const action of actions) {
-    const permission = permissionFor(settings, action.type)
+    const permission = resolveActionPermission(
+      settings.autonomy,
+      action.type,
+      settings.action_permissions,
+    )
     const approved = !!input.approvedBy
 
     if (permission === 'off') {
