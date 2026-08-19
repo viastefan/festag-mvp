@@ -45,23 +45,32 @@ export function buildDecisionHeadline({
     return {
       primary: {
         ink: 'Alles entschieden.',
-        muted: 'Tagro beobachtet das Projekt weiter.',
+        muted: 'Tagro beobachtet das Projekt weiter und meldet sich, wenn etwas ansteht.',
       },
       secondary: null,
     }
   }
 
-  // The viewer can act on everything that is open → say it plainly instead of
-  // "8 von 8", which reads like a progress bar rather than a sentence.
-  const primary: HeadlineClause = actionable >= totalOpen
-    ? {
-        ink: 'Treffen Sie heute mit Tagro',
-        muted: `${totalOpen} ${pluralDecisions(totalOpen)}.`,
-      }
-    : {
-        ink: 'Treffen Sie heute mit Tagro',
-        muted: `${actionable} von ${totalOpen} ${pluralDecisions(totalOpen)}.`,
-      }
+  /*
+   * The headline states the situation, not a score. Three cases, because they
+   * mean different things: everything is yours to answer, some of it is,
+   * or none of it is and you are waiting on other people.
+   */
+  const primary: HeadlineClause =
+    actionable === 0
+      ? {
+          ink: 'Nichts wartet auf dich.',
+          muted: `${totalOpen} ${pluralDecisions(totalOpen)} ${totalOpen === 1 ? 'liegt' : 'liegen'} bei anderen.`,
+        }
+      : actionable >= totalOpen
+        ? {
+            ink: `${totalOpen} ${pluralDecisions(totalOpen)}`,
+            muted: 'warten heute auf dich.',
+          }
+        : {
+            ink: `${actionable} von ${totalOpen} Entscheidungen`,
+            muted: 'warten heute auf dich.',
+          }
 
   const risks = deriveDecisionRisks(decisions, projects)
   const critical = risks.filter(r => r.severity === 'critical').length
@@ -78,7 +87,7 @@ export function buildDecisionHeadline({
   return {
     primary,
     secondary: clauses.length > 0
-      ? { ink: 'Weiter haben wir', muted: `${clauses.join(', ')}.` }
+      ? { ink: `${clauses.join(' und ')}`, muted: 'brauchen ebenfalls Aufmerksamkeit.' }
       : null,
   }
 }
