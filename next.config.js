@@ -13,6 +13,10 @@ if (mappedUrl) publicEnv.NEXT_PUBLIC_SUPABASE_URL = mappedUrl
 if (mappedAnon) publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY = mappedAnon
 
 const nextConfig = {
+  // Ein Prüf-Build darf den laufenden Dev-Server nicht abschießen: mit
+  // NEXT_DIST_DIR=.next-check schreibt `next build` in ein eigenes Verzeichnis,
+  // statt das .next des Dev-Servers zu überschreiben (MODULE_NOT_FOUND).
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   typescript: {
     ignoreBuildErrors: true,
   },

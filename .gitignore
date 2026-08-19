@@ -9,3 +9,4 @@ out
 *.tsbuildinfo
 .local-dev-invite-pin.txt
 .env.vercel*
+.next-check
