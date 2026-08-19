@@ -12,6 +12,8 @@ export type ExecutiveProjectRow = {
   /** Offene Risiken aus der Risk Intelligence. */
   open_risks?: number
   critical_risks?: number
+  /** Festag-Einschätzung 0..100 — bewusst keine Vorhersage. */
+  confidence?: number
   velocity_7d: number
   summary?: string | null
 }
@@ -26,6 +28,7 @@ export type ExecutiveOverview = {
   open_decisions: number
   open_risks?: number
   critical_risks?: number
+  confidence?: number
   active_objectives: number
   objectives_at_risk: number
   velocity_7d: number

@@ -3,6 +3,8 @@ import { ISSUE_OPEN_STATUSES } from '@/lib/issues/types'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { isObjectiveAtRisk } from '@/lib/objectives/types'
 import { safeTableRows } from '@/lib/supabase/safe-table'
+import { projectHealth } from '@/lib/risks/health'
+import type { Risk } from '@/lib/risks/types'
 import type { ExecutiveHealth, ExecutiveOverview, ExecutiveProjectRow } from '@/lib/executive/types'
 
 const OPEN_ISSUE_STATUSES = Array.from(ISSUE_OPEN_STATUSES)
@@ -139,7 +141,7 @@ export async function buildExecutiveOverview(
       .in('project_id', projectIds)
       .eq('status', 'active')),
     safeTableRows(sb.from('risks')
-      .select('id,project_id,severity,status,title,client_title,client_summary')
+      .select('id,project_id,severity,probability,category,status,title,client_title,client_summary')
       .in('project_id', projectIds)
       .in('status', ['detected', 'active', 'monitoring', 'decision_required'])),
   ])
@@ -190,6 +192,7 @@ export async function buildExecutiveOverview(
       open_decisions: openDecisions,
       open_risks: projRisks.length,
       critical_risks: criticalRisks.length,
+      confidence: projectHealth(projRisks as Risk[]).confidence,
       velocity_7d,
       summary: tagro,
     }
@@ -211,6 +214,11 @@ export async function buildExecutiveOverview(
     open_decisions: rows.reduce((s, r) => s + r.open_decisions, 0),
     open_risks: rows.reduce((s, r) => s + (r.open_risks ?? 0), 0),
     critical_risks: rows.reduce((s, r) => s + (r.critical_risks ?? 0), 0),
+    // Über alle Projekte zählt das schwächste Glied, nicht der Durchschnitt —
+    // ein Mittelwert würde ein einzelnes gefährdetes Projekt wegrechnen.
+    confidence: rows.length
+      ? Math.min(...rows.map(r => r.confidence ?? 95))
+      : 95,
     active_objectives: objectiveRows.length,
     objectives_at_risk,
     velocity_7d: rows.reduce((s, r) => s + r.velocity_7d, 0),
