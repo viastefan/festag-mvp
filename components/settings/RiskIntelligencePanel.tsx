@@ -9,6 +9,13 @@
  */
 
 import { useCallback, useEffect, useState } from 'react'
+import {
+  RISK_ACTION_LABEL,
+  RISK_ACTION_TYPES,
+  defaultPermissionFor,
+  type RiskActionPermission,
+  type RiskActionType,
+} from '@/lib/risks/actions'
 import type { RiskSettings } from '@/lib/risks/types'
 import { DEFAULT_RISK_SETTINGS } from '@/lib/risks/types'
 
@@ -42,10 +49,18 @@ const SOURCES: { key: keyof Settings; label: string; sub: string }[] = [
   { key: 'source_decisions', label: 'Entscheidungen', sub: 'Offene Freigaben, die die Umsetzung aufhalten.' },
 ]
 
+const PERMISSION_LABEL: Record<RiskActionPermission, string> = {
+  auto: 'Automatisch',
+  ask: 'Nachfragen',
+  off: 'Aus',
+}
+
 export default function RiskIntelligencePanel({ workspaceId, flashSaved, setError }: Props) {
   const [settings, setSettings] = useState<Settings>({ ...DEFAULT_RISK_SETTINGS })
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  // Einzelne Aktionen sind der seltene Fall — die Stufe reicht fast immer.
+  const [advanced, setAdvanced] = useState(false)
 
   useEffect(() => {
     if (!workspaceId) { setLoading(false); return }
@@ -85,6 +100,17 @@ export default function RiskIntelligencePanel({ workspaceId, flashSaved, setErro
       setBusy(false)
     }
   }, [workspaceId, settings, busy, flashSaved, setError])
+
+  /** Ohne Ausnahme (null) gilt wieder, was die Autonomiestufe vorgibt. */
+  const savePermission = useCallback(
+    async (type: RiskActionType, value: RiskActionPermission | null) => {
+      const next = { ...(settings.action_permissions ?? {}) }
+      if (value) next[type] = value
+      else delete next[type]
+      await save({ action_permissions: next })
+    },
+    [settings.action_permissions, save],
+  )
 
   if (!workspaceId) {
     return (
@@ -210,7 +236,57 @@ export default function RiskIntelligencePanel({ workspaceId, flashSaved, setErro
             </div>
           </div>
         </div>
+        <div className="set-row">
+          <div>
+            <div className="set-label">Einzelne Aktionen</div>
+            <div className="set-label-sub">
+              Wenn die Stufe nicht genau passt, lässt sich jede Aktionsart einzeln regeln.
+            </div>
+          </div>
+          <button type="button" className="set-btn" onClick={() => setAdvanced(v => !v)}>
+            {advanced ? 'Ausblenden' : 'Erweitert'}
+          </button>
+        </div>
       </div>
+
+      {advanced && (
+        <div className="set-card">
+          {RISK_ACTION_TYPES.map(type => {
+            const inherited = defaultPermissionFor(settings.autonomy, type)
+            const current = settings.action_permissions?.[type]
+            const meta = RISK_ACTION_LABEL[type]
+            return (
+              <div className="set-row set-row-stack" key={type}>
+                <div>
+                  <div className="set-label">{meta.label}</div>
+                  <div className="set-label-sub">{meta.sub}</div>
+                </div>
+                <div className="set-segment">
+                  <button
+                    type="button"
+                    className={`set-segment-btn${!current ? ' on' : ''}`}
+                    disabled={loading}
+                    onClick={() => void savePermission(type, null)}
+                  >
+                    {`Standard (${PERMISSION_LABEL[inherited]})`}
+                  </button>
+                  {(['auto', 'ask', 'off'] as RiskActionPermission[]).map(value => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`set-segment-btn${current === value ? ' on' : ''}`}
+                      disabled={loading}
+                      onClick={() => void savePermission(type, value)}
+                    >
+                      {PERMISSION_LABEL[value]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </>
   )
 }

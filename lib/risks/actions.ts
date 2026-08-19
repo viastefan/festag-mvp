@@ -28,6 +28,41 @@ export type RiskAction =
 
 export type RiskActionType = RiskAction['type']
 
+/**
+ * Reihenfolge und Beschriftung für die Einstellungen. Die Liste ist bewusst
+ * dieselbe wie oben — was hier fehlt, kann niemand erlauben.
+ */
+export const RISK_ACTION_TYPES: RiskActionType[] = [
+  'set_risk_status',
+  'note_on_task',
+  'raise_task_priority',
+  'create_followup_task',
+  'move_task_due_date',
+]
+
+export const RISK_ACTION_LABEL: Record<RiskActionType, { label: string; sub: string }> = {
+  set_risk_status: {
+    label: 'Risikostatus setzen',
+    sub: 'Ein Risiko in Beobachtung nehmen oder als abgesichert führen.',
+  },
+  note_on_task: {
+    label: 'Notiz an Aufgabe',
+    sub: 'Festhalten, was zu einer Aufgabe entschieden wurde.',
+  },
+  raise_task_priority: {
+    label: 'Priorität anheben',
+    sub: 'Blockierte Arbeit nach vorne holen. Nie herunterstufen.',
+  },
+  create_followup_task: {
+    label: 'Folgeaufgabe anlegen',
+    sub: 'Aus einer Maßnahme wird echte Arbeit im Projekt.',
+  },
+  move_task_due_date: {
+    label: 'Termin verschieben',
+    sub: 'Braucht immer eine Freigabe — ein Termin ist eine Zusage.',
+  },
+}
+
 export type ActionOutcome = {
   action: RiskAction
   status: 'executed' | 'needs_approval' | 'blocked' | 'failed'
@@ -78,6 +113,16 @@ const BY_AUTONOMY: Record<EffectiveRiskSettings['autonomy'], Record<RiskActionTy
     move_task_due_date: 'ask',
   },
 }
+
+/** Was ohne Ausnahme gilt — die Oberfläche zeigt das als „Standard". */
+export function defaultPermissionFor(
+  autonomy: EffectiveRiskSettings['autonomy'],
+  type: RiskActionType,
+): Permission {
+  return BY_AUTONOMY[autonomy][type]
+}
+
+export type RiskActionPermission = Permission
 
 function permissionFor(
   settings: EffectiveRiskSettings,
