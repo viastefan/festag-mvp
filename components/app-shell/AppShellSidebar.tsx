@@ -117,10 +117,10 @@ export default function AppShellSidebar({
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
   const rawInitials = getInitials(user)
   const initials = rawInitials && rawInitials !== '??' ? rawInitials : ''
-  const [workspaceLabel, setWorkspaceLabel] = useState(
-    () => getRememberedWorkspaceName() || 'Kein Workspace',
-  )
-  const [workspaceId, setWorkspaceId] = useState<string | null>(() => getActiveWorkspaceId())
+  /* Server-safe seeds — the remembered workspace is restored after mount,
+     the way this file already restores the Recent section. */
+  const [workspaceLabel, setWorkspaceLabel] = useState('Kein Workspace')
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null)
   const [workspaces, setWorkspaces] = useState<WorkspaceListItem[]>([])
   const hasWorkspace =
     Boolean(workspaceId) ||
@@ -148,6 +148,18 @@ export default function AppShellSidebar({
 
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
+  }, [])
+
+  /* localStorage is invisible to the server. Reading it during render painted
+     the remembered name where the SSR markup said "Kein Workspace", which is
+     the ordinary case for anyone who has opened Festag before:
+       Text content did not match. Server: "Kein Workspace" Client: "Workspace aa"
+     Restoring after mount still beats the workspace fetch, so nothing waits. */
+  useEffect(() => {
+    const name = getRememberedWorkspaceName()
+    if (name) setWorkspaceLabel(name)
+    const id = getActiveWorkspaceId()
+    if (id) setWorkspaceId(id)
   }, [])
 
   /* An open popover keeps the panel wide even once the pointer has left it —
