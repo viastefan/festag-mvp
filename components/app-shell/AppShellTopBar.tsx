@@ -6,6 +6,7 @@ import { Bell, MagnifyingGlass, Sparkle, X } from '@phosphor-icons/react'
 import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnterGlyph'
 import type { UserProfile } from '@/lib/hooks/useUser'
 import { openTagro } from '@/components/TagroOverlay'
+import { resolveRouteContext } from '@/lib/tagro/route-context'
 import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
@@ -95,13 +96,19 @@ export default function AppShellTopBar({}: Props) {
     return () => window.clearTimeout(t)
   }, [q, expanded])
 
+  /**
+   * Der eine globale Notausgang. Er startet nicht bei null: die aktuelle Route
+   * sagt, worum es geht, damit niemand seinen eigenen Standort beschreiben muss.
+   */
   function askTagro(question: string) {
     const text = question.trim()
     if (!text) return
+    const ctx = resolveRouteContext(pathname)
     openTagro({
-      contextType: 'empty',
-      id: `search:${pathname}`,
-      title: 'Suche',
+      contextType: ctx.contextType,
+      id: ctx.id ?? `route:${pathname}`,
+      title: ctx.label,
+      projectId: ctx.projectId,
       prefill: text,
     })
     closeSearch(true)
