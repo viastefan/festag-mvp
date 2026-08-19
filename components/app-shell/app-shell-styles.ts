@@ -781,6 +781,90 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
 }
 .fas-help-btn svg { flex-shrink: 0; opacity: 0.78; }
 
+/* ── Account row ──
+   Der Mensch steht unten, unter der Arbeit. Sie öffnet das Account-Panel,
+   in dem Profil, Erscheinung und Abmelden liegen — die Zeile selbst trifft
+   keine Entscheidung, sie ist nur der Eingang. */
+.fas-account-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  margin-top: 2px;
+  padding: 0 6px;
+  border-radius: var(--fas-nav-radius);
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--fas-ink);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.fas-account-row:hover { background: var(--fas-nav-hover); }
+.fas-account-row:focus,
+.fas-account-row:focus-visible,
+.fas-account-row:active { outline: none; box-shadow: none; }
+.fas-account-row[aria-expanded="true"] { background: var(--fas-nav-active); }
+
+/* Gleiche Marke wie der Workspace — 6px, nie rund (siehe AGENTS.md). */
+.fas-account-mark {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+  color: rgba(30, 30, 32, 0.55);
+  background: rgba(30, 30, 32, 0.07);
+  overflow: hidden;
+}
+.fas-account-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+html[data-theme="dark"] .fas-account-mark,
+html[data-theme="classic-dark"] .fas-account-mark {
+  color: rgba(230, 230, 234, 0.62);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Hierarchie über Größe, nicht Gewicht — beide Zeilen Aeonik Regular. */
+.fas-account-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.fas-account-row-name {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: var(--fas-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fas-account-row-meta {
+  font-size: 11px;
+  color: var(--fas-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rail: nur die Marke, zentriert auf derselben Achse wie die Icons. */
+.fas-sidebar.is-collapsed .fas-account-row {
+  justify-content: center;
+  padding: 0;
+  gap: 0;
+}
+.fas-sidebar.is-collapsed .fas-account-copy { display: none; }
+
 /* ── Main column ── */
 .fas-main-col {
   flex: 1;
@@ -3036,4 +3120,244 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   .fas-wo-briefing-project { font-size: 22px; }
   .fas-wo-decision { flex-direction: column; align-items: flex-start; }
 }
+
+/* ══ Docked flyout — the panel the sidebar unfolds ══
+   Same paper, same height, same radius as the rail; painted one layer behind
+   it and tucked under its right edge, so it reads as the sidebar opening
+   rather than a popup landing on top of the page. */
+.fas-flyout-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+.fas-flyout {
+  position: absolute;
+  top: var(--fas-sidebar-float-inset);
+  bottom: var(--fas-sidebar-float-inset);
+  left: calc(var(--fas-sidebar-float-inset) + var(--fas-sidebar-w) - 22px);
+  width: 344px;
+  max-width: calc(100vw - var(--fas-sidebar-w) - 44px);
+  z-index: 39;
+  display: flex;
+  flex-direction: column;
+  padding-left: 22px;
+  border-radius: 16px;
+  background: ${FESTAG_SAND.canvas};
+  border: 1px solid rgba(30, 30, 32, 0.07);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 22px 54px rgba(15, 23, 42, 0.10);
+  overflow: hidden;
+}
+html[data-theme="dark"] .fas-flyout,
+html[data-theme="classic-dark"] .fas-flyout {
+  background: #14161F;
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.fas-flyout-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 15px 10px 10px 14px;
+}
+.fas-flyout-head-copy { flex: 1; min-width: 0; }
+.fas-flyout-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--fas-ink);
+}
+.fas-flyout-note {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fas-ink-muted);
+}
+.fas-flyout-action {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fas-ink-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.fas-flyout-action:hover { background: var(--fas-nav-hover); color: var(--fas-ink); }
+.fas-flyout-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fas-ink-muted);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.fas-flyout-close:hover { background: var(--fas-nav-hover); color: var(--fas-ink); }
+.fas-flyout-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 8px 10px 10px;
+}
+.fas-flyout-body::-webkit-scrollbar { width: 8px; }
+.fas-flyout-body::-webkit-scrollbar-thumb {
+  background: rgba(30, 30, 32, 0.12);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+html[data-theme="dark"] .fas-flyout-body::-webkit-scrollbar-thumb,
+html[data-theme="classic-dark"] .fas-flyout-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  background-clip: content-box;
+}
+.fas-flyout-foot {
+  flex-shrink: 0;
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--fas-sep);
+}
+.fas-flyout-foot-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  border-radius: var(--fas-nav-radius);
+  color: var(--fas-ink-muted);
+  font-size: 12.5px;
+  text-decoration: none;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.fas-flyout-foot-link:hover { background: var(--fas-nav-hover); color: var(--fas-ink); }
+
+/* ── Notification rows inside the flyout ── */
+.fas-nrow-group {
+  padding: 8px 6px 5px;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fas-ink-faint);
+}
+.fas-nrow {
+  position: relative;
+  display: flex;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px 10px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+.fas-nrow:hover { background: var(--fas-nav-hover); }
+.fas-nrow-mark {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+.fas-nrow.is-unread .fas-nrow-mark { background: #5B647D; }
+.fas-nrow-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fas-nrow-title {
+  font-size: 12.8px;
+  line-height: 1.35;
+  color: var(--fas-ink-muted);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.fas-nrow.is-unread .fas-nrow-title { color: var(--fas-ink); }
+.fas-nrow-body {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fas-ink-faint);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.fas-nrow-age {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--fas-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.fas-flyout-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 34px 16px;
+  text-align: center;
+  color: var(--fas-ink-muted);
+}
+.fas-flyout-empty strong { font-size: 13px; font-weight: 500; color: var(--fas-ink); }
+.fas-flyout-empty span { font-size: 12px; line-height: 1.5; }
+.fas-flyout-skeleton {
+  height: 46px;
+  margin: 4px 2px;
+  border-radius: 8px;
+  background: var(--fas-nav-hover);
+  animation: fasFlyoutPulse 1.3s ease-in-out infinite;
+}
+@keyframes fasFlyoutPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+/* ── Footer: settings and help share one line ── */
+.fas-footer-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.fas-footer-row .fas-settings-link { flex: 1 1 auto; min-width: 0; }
+.fas-footer-row .fas-help-btn {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 10px;
+  color: var(--fas-ink-faint);
+}
+.fas-footer-row .fas-help-btn:hover { color: var(--fas-ink); }
+/* Expanded: help is a word, not an icon — the gear already carries the row. */
+.fas-sidebar.is-expanded .fas-footer-row .fas-help-btn svg { display: none; }
+/* Rail: the word cannot show, so the icon comes back and centres. */
+.fas-sidebar.is-collapsed .fas-footer-row { flex-direction: column; align-items: stretch; gap: 1px; }
+.fas-sidebar.is-collapsed .fas-footer-row .fas-help-btn { width: 100%; padding: 0 10px; }
+
+@media (max-width: 900px) {
+  .fas-flyout {
+    left: var(--fas-sidebar-float-inset);
+    width: min(360px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    padding-left: 14px;
+    z-index: 41;
+  }
+  .fas-flyout-scrim { z-index: 40; background: rgba(15, 18, 26, 0.28); }
+}
+
 `.replace(/\s+/g, ' ').trim()

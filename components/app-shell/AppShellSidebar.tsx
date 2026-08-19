@@ -14,6 +14,7 @@ import {
   Check,
 } from '@phosphor-icons/react'
 import {
+  appShellRoleLabel,
   APP_SHELL_PRIMARY_NAV,
   APP_SHELL_SECONDARY_NAV,
   isAppShellNavActive,
@@ -31,6 +32,7 @@ import {
   WORKSPACE_SWITCHED_EVENT,
 } from '@/lib/active-workspace'
 import { listWorkspacesForUser, type WorkspaceListItem } from '@/lib/workspace/resolve'
+import { openAccountPanel } from '@/lib/account-panel-open'
 import { useNotifications } from '@/hooks/useNotifications'
 
 type Props = {
@@ -638,6 +640,28 @@ export default function AppShellSidebar({
       ) : null}
 
       <div className="fas-sidebar-footer">
+        {/* Der einzige Eingang zum Account-Panel — dort liegen Profil,
+            Erscheinung und Abmelden. Ohne diese Zeile war das Panel im
+            Shell montiert, aber von nirgends erreichbar. */}
+        <button
+          type="button"
+          className="fas-account-row"
+          onClick={openAccountPanel}
+          aria-haspopup="dialog"
+          aria-label={`Account: ${displayName}`}
+          title={expanded ? undefined : displayName}
+        >
+          <span className="fas-account-mark" aria-hidden="true">
+            {user?.avatar_url
+              ? <img src={user.avatar_url} alt="" />
+              : initials}
+          </span>
+          <span className="fas-account-copy">
+            <span className="fas-account-row-name">{displayName}</span>
+            <span className="fas-account-row-meta">{appShellRoleLabel(user?.role)}</span>
+          </span>
+        </button>
+
         <Link
           href="/settings"
           className={`fas-settings-link${settingsActive ? ' is-active' : ''}`}

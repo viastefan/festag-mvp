@@ -55,7 +55,10 @@ export default function AppShellAccountPanel({ user }: Props) {
 
   const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
   const role = appShellRoleLabel(user?.role)
-  const initials = getInitials(user)
+  // getInitials fällt auf '??' zurück, wenn weder Name noch E-Mail da sind —
+  // das ist ein Platzhalter für Code, kein Zeichen für den Nutzer.
+  const rawInitials = getInitials(user)
+  const initials = rawInitials && rawInitials !== '??' ? rawInitials : ''
   const isDark = themeMode === 'dark'
 
   useEffect(() => {
@@ -221,7 +224,9 @@ export default function AppShellAccountPanel({ user }: Props) {
               </button>
 
               <div className="fas-account-identity">
-                <span className="fas-account-avatar" aria-hidden="true">{initials}</span>
+                <span className={`fas-account-avatar${initials ? '' : ' is-empty'}`} aria-hidden="true">
+                  {user?.avatar_url ? <img src={user.avatar_url} alt="" /> : initials}
+                </span>
                 <span className="fas-account-id-copy">
                   <span className="fas-account-name">{displayName}</span>
                   <span className="fas-account-role">{role}</span>
@@ -229,14 +234,8 @@ export default function AppShellAccountPanel({ user }: Props) {
               </div>
 
               <nav className="fas-account-menu" aria-label="Account">
-                <Link
-                  href="/settings"
-                  className="fas-account-item"
-                  onClick={close}
-                >
-                  <GearSix size={16} weight="light" />
-                  Einstellungen
-                </Link>
+                {/* /settings öffnet den Profil-Abschnitt — zwei Einträge auf
+                    dasselbe Ziel waren nur eine Auswahl, die keine war. */}
                 <Link
                   href="/settings"
                   className="fas-account-item"
@@ -244,6 +243,14 @@ export default function AppShellAccountPanel({ user }: Props) {
                 >
                   <User size={16} weight="light" />
                   Profil
+                </Link>
+                <Link
+                  href="/settings/appearance"
+                  className="fas-account-item"
+                  onClick={close}
+                >
+                  <GearSix size={16} weight="light" />
+                  Einstellungen
                 </Link>
                 <button type="button" className="fas-account-item" onClick={toggleTheme}>
                   {isDark ? <Sun size={16} weight="light" /> : <Moon size={16} weight="light" />}
@@ -424,20 +431,27 @@ html[data-theme="classic-dark"] .fas-account-create-icon {
   padding: 2px 4px;
 }
 
+/* 6px wie jede andere Profil-/Workspace-Marke (AGENTS.md) — nie 4px, nie rund.
+   Gewicht 400 wie .fas-ws-mark: Hierarchie über Größe, nicht über Fett. */
 .fas-account-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 4px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--fas-nav-active, rgba(30, 30, 32, 0.09));
   color: var(--fas-ink);
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
   flex-shrink: 0;
+  overflow: hidden;
 }
+.fas-account-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Ohne Name und ohne Bild bleibt die Fläche ruhig statt "??" zu zeigen. */
+.fas-account-avatar.is-empty { opacity: 0.6; }
 
 .fas-account-id-copy {
   display: flex;
