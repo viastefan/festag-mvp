@@ -933,11 +933,11 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         .al-content {
-          transition:opacity 0.07s cubic-bezier(.16,1,.3,1), transform 0.07s cubic-bezier(.16,1,.3,1);
+          transition:opacity 0.11s ease, transform 0.11s ease;
         }
         .al-content.animating { opacity:0; transform:translateY(4px) scale(0.992); }
         .al-content:not(.animating) {
-          animation: alContentIn 0.1s cubic-bezier(.16,1,.3,1) both;
+          animation: alContentIn 0.16s cubic-bezier(.16,1,.3,1) both;
         }
         /* Code / SSO — smooth rise from below (header glassy is separate). */
         .al-root[data-auth-step="codeEntry"] .al-content:not(.animating),
@@ -2499,7 +2499,7 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
           border-radius:var(--festag-input-radius, 8px);
-          transition:border-color 220ms ease-out, box-shadow 220ms ease-out, background-color 220ms ease-out;
+          transition:border-color .12s ease, box-shadow .12s ease, background-color .12s ease;
         }
         .al-root[data-theme="dark"] .al-input::placeholder {
           color:var(--festag-input-placeholder, ${AUTH_INPUT_PLACEHOLDER_DARK}) !important;
@@ -2765,12 +2765,12 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:var(--auth-tracking, 0.01em);
             border-radius:var(--festag-auth-radius, 6px);
             transition:
-              background .32s cubic-bezier(.22,1,.36,1),
-              border-color .32s cubic-bezier(.22,1,.36,1),
-              color .28s ease,
-              box-shadow .36s cubic-bezier(.22,1,.36,1),
-              transform .28s cubic-bezier(.22,1,.36,1),
-              opacity .28s ease;
+              background .13s ease,
+              border-color .13s ease,
+              color .13s ease,
+              box-shadow .15s ease,
+              transform .07s ease,
+              opacity .13s ease;
           }
           .al-btn:hover:not(:disabled) {
             transform:none;
@@ -2784,7 +2784,7 @@ const AUTH_LANDING_STYLES_BASE = `
             max-height:var(--festag-input-height, 48px);
             font-size:var(--festag-input-font-size, 15px);
             border-radius:var(--festag-input-radius, 8px);
-            transition:border-color .28s cubic-bezier(.22,1,.36,1), background .28s ease;
+            transition:border-color .12s ease, background .12s ease;
           }
           .al-root--centered .al-header {
             padding-left:40px;

@@ -1072,8 +1072,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       return
     }
     setAnimating(true)
-    // Match snappy .al-content exit — swap as soon as fade-out paints.
-    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 40)
+    // Swap once the fade-out has actually played, not 30ms into it — otherwise
+    // the old step is still half-visible when the new one replaces it.
+    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 110)
   }
 
   function switchBack() {
