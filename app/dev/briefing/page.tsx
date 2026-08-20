@@ -118,7 +118,7 @@ function DevBriefingInner() {
 
   return (
     <div className="dmp-page dev-page">
-      <style>{CLIENT_DELIVERABLES_CSS}{DEV_MOBILE_PAGE_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CLIENT_DELIVERABLES_CSS + DEV_MOBILE_PAGE_CSS }} />
 
       <header className="dmp-head">
         <h1 className="dmp-title">

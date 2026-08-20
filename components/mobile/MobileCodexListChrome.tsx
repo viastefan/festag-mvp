@@ -48,7 +48,11 @@ export default function MobileCodexListChrome({
 
   return (
     <div className={`mcl-page ${className}`.trim()}>
-      <style>{MOBILE_CODEX_LIST_CSS}{extraCss}</style>
+      {/* One __html string, not two text children: React separates adjacent
+          text children with a comment node, and inside a raw-text <style> that
+          separator becomes literal stylesheet content the client never
+          reproduces. Escaping would break this the same way it broke elsewhere. */}
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: MOBILE_CODEX_LIST_CSS + extraCss }} />
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
