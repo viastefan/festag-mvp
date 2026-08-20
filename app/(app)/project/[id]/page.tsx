@@ -832,6 +832,9 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
 
   // Consolidated Control Status — the visible "AI control layer" line. One
   // status + one-line reason, derived from existing signals (no 2nd score).
+  // Measured health feeds it as the engine underneath: it cannot outrank a
+  // real blocker, but it stops a project that is quietly decaying from
+  // reporting "alles im Kontrollbereich".
   const controlStatus = computeControlStatus({
     taskCount: tasks.length,
     blockedCount: riskTasks.length,
@@ -842,6 +845,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
     phase: project.status,
     nextActionTitle: riskTasks[0]?.title ?? null,
     clientVisibleEvidenceCount: evidenceStats.client,
+    health: health ? { band: health.band, cause: healthCause } : null,
   })
 
   // Nexora — can the current status report go to the client?

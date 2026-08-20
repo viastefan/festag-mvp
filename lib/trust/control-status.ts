@@ -3,10 +3,15 @@
  *
  * One consolidated status per project (NOT a second health score) answering:
  * "Is this project under control, and if not, what's the single most important
- * reason?" Derived purely from signals Festag already has (tasks, decisions,
- * approvals, reports) — no new tables. Reused across Project Overview, the
- * Dashboard status sentence and (later) the Client Panel so everyone sees the
- * same calm truth.
+ * reason?" Derived from signals Festag already has (tasks, decisions,
+ * approvals, reports). Reused across Project Overview, the Dashboard status
+ * sentence and (later) the Client Panel so everyone sees the same calm truth.
+ *
+ * Measured project health (lib/health) is the engine *underneath* this status,
+ * never a second verdict beside it: this ladder stays the one visible answer,
+ * and health supplies the evidence plus the guard against a false all-clear.
+ * Anything that renders health next to this status reintroduces the second
+ * score this file exists to prevent.
  *
  * States (master-prompt定義): controlled · needs_attention · waiting_approval ·
  * risk_detected · not_ready — always with a one-line reason.
@@ -56,6 +61,16 @@ export type ControlStatusInput = {
   criticalRiskCount?: number | null
   /** Kundenfassung des schwersten offenen Risikos. */
   topRiskTitle?: string | null
+  /**
+   * Measured project health (lib/health) — the engine underneath this status.
+   *
+   * The ladder below is a triage: it names the most urgent *action*. It is
+   * blind to slow decay, so a project with no blockers but half its work
+   * overdue used to report "Alles im Kontrollbereich". Health closes exactly
+   * that gap: it cannot outrank a real blocker, but it prevents a false
+   * all-clear. `undefined` → not measured, ladder behaves as before.
+   */
+  health?: { band: 'healthy' | 'watch' | 'risk' | 'blocked'; cause: string | null } | null
 }
 
 const COLORS: Record<ControlTone, string> = {
@@ -139,6 +154,19 @@ export function computeControlStatus(input: ControlStatusInput): ControlStatusRe
   if (typeof input.clientVisibleEvidenceCount === 'number' && input.clientVisibleEvidenceCount === 0) {
     return result('needs_attention', 'Aufmerksamkeit nötig', 'warn',
       'Noch keine kundensichtbaren Belege — Fortschritt ist noch nicht nachgewiesen.')
+  }
+
+  // Nothing urgent to act on — but "no open item" is not the same as "healthy".
+  // Before declaring an all-clear, let the measured health have the last word,
+  // so slow decay (work slipping, decisions turning out badly) still surfaces.
+  const band = input.health?.band
+  if (band === 'blocked' || band === 'risk') {
+    return result('risk_detected', 'Risiko erkannt', 'risk',
+      input.health?.cause ?? 'Die Projektentwicklung läuft aus dem Ruder.')
+  }
+  if (band === 'watch') {
+    return result('needs_attention', 'Aufmerksamkeit nötig', 'warn',
+      input.health?.cause ?? 'Die Projektentwicklung verliert an Tempo.')
   }
 
   // All clear.

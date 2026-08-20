@@ -5,7 +5,7 @@
 
 import type { Icon } from '@phosphor-icons/react'
 import {
-  Layout,
+  Newspaper,
   FolderSimple,
   CheckSquare,
   FileText,
@@ -28,7 +28,9 @@ export type AppShellNavItem = {
  * Everything else stays out until it earns its place.
  */
 export const APP_SHELL_PRIMARY_NAV: AppShellNavItem[] = [
-  { href: '/overview', label: 'Dashboard', icon: Layout },
+  /* Kein Dashboard mehr. News beantwortet die eine Frage, die ein Dashboard
+     nur mit Kacheln umkreist hat: was ist passiert und was braucht mich? */
+  { href: '/news', label: 'News', icon: Newspaper },
   { href: '/overview/projects', label: 'Projekte', icon: FolderSimple },
   { href: '/decisions', label: 'Entscheidungen', icon: GitBranch },
   { href: '/overview/tasks', label: 'Aufgaben', icon: CheckSquare },
@@ -60,6 +62,8 @@ export const APP_SHELL_ALL_NAV: AppShellNavItem[] = [
 ]
 
 export function isAppShellNavActive(pathname: string, href: string): boolean {
+  /* Legacy-Einstiege zeigen weiter auf News, solange Links im Umlauf sind. */
+  if (href === '/news') return pathname === '/news' || pathname === '/overview' || pathname === '/dashboard'
   if (href === '/overview') return pathname === '/overview'
   return pathname === href || pathname.startsWith(`${href}/`)
 }

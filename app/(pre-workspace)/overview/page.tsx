@@ -1,9 +1,13 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import AppShellOverview from '@/components/app-shell/AppShellOverview'
-import { useUser } from '@/lib/hooks/useUser'
-
+/**
+ * `/overview` war die Dashboard-Startseite. Sie ist nach News umgezogen —
+ * die Unterseiten (/overview/projects, /overview/tasks …) bleiben, weil sie
+ * echte Arbeitsflächen sind und kein Dashboard waren.
+ *
+ * Der Workspace-Trichter für neue Accounts lebt jetzt in der News-Seite:
+ * ohne Workspace zeigt sie „Workspace erstellen" statt einer leeren Zeitung.
+ */
 export default function OverviewPage() {
-  const { user } = useUser()
-  return <AppShellOverview user={user} />
+  redirect('/news')
 }

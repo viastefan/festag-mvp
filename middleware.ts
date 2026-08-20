@@ -41,7 +41,7 @@ const PUBLIC_PATHS = [
 ]
 
 /** Authenticated setup surfaces (session required, but not full portal). */
-const SETUP_PATHS = ['/overview', '/create-workspace', '/onboarding', '/join', '/preparing']
+const SETUP_PATHS = ['/news', '/overview', '/create-workspace', '/onboarding', '/join', '/preparing']
 
 /** Exact match for `/`; prefix match for everything else (`/login`, `/login/…`). */
 function pathMatches(pathname: string, prefix: string): boolean {
@@ -55,19 +55,22 @@ export async function middleware(request: NextRequest) {
   // Legacy pre-workspace path — Overview is the locked Festag OS entry.
   if (pathname === '/home' || pathname.startsWith('/home/')) {
     const url = request.nextUrl.clone()
-    url.pathname = pathname === '/home' ? '/overview' : `/overview${pathname.slice('/home'.length)}`
+    url.pathname = pathname === '/home' ? '/news' : `/overview${pathname.slice('/home'.length)}`
     return NextResponse.redirect(url, 308)
   }
 
-  // Legacy Client Portal dashboard / Statusbericht — Festag OS Overview is the product UI.
+  // Das Dashboard ist abgelöst — jeder alte Einstieg landet direkt in News.
+  // (Vorher ging /dashboard auf /overview; das war ein Hop zu viel, sobald
+  //  /overview selbst nur noch weiterleitet.)
   if (
     pathname === '/dashboard' ||
     pathname.startsWith('/dashboard/') ||
+    pathname === '/overview' ||
     pathname === '/statusabfrage' ||
     pathname.startsWith('/statusabfrage/')
   ) {
     const url = request.nextUrl.clone()
-    url.pathname = '/overview'
+    url.pathname = '/news'
     return NextResponse.redirect(url, 308)
   }
 
@@ -147,7 +150,7 @@ export async function middleware(request: NextRequest) {
     (process.env.FESTAG_DEV_SKIP_AUTH === '1' || process.env.NEXT_PUBLIC_FESTAG_DEMO === '1')
 
   if (skipAuth && (pathname === '/' || pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/overview?preview=1', request.url))
+    return NextResponse.redirect(new URL('/news?preview=1', request.url))
   }
 
   // Public paths: refreshed cookies are attached, no gating.
@@ -155,7 +158,7 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  const PREVIEW_ROOTS = ['/onboarding', '/overview', '/teams', '/documents', '/activity', '/decisions', '/issues', '/reports']
+  const PREVIEW_ROOTS = ['/onboarding', '/news', '/overview', '/teams', '/documents', '/activity', '/decisions', '/issues', '/reports']
   if (
     PREVIEW_ROOTS.some(p => pathname === p || pathname.startsWith(`${p}/`)) &&
     (previewOn || skipAuth)
@@ -224,7 +227,7 @@ export async function middleware(request: NextRequest) {
       }
 
       if (!hasWorkspace) {
-        return NextResponse.redirect(new URL('/overview', request.url))
+        return NextResponse.redirect(new URL('/news', request.url))
       }
     } catch {
       // If the lookup fails, don't bounce the user — let the app resolve client-side.

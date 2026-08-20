@@ -5,71 +5,75 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowsClockwise,
-  Article,
-  Code,
-  FileText,
   FunnelSimple,
-  Gauge,
-  Globe,
   ListChecks,
   MagnifyingGlass,
-  Palette,
   PencilSimple,
-  Plugs,
   Plus,
-  RocketLaunch,
-  ShieldCheck,
   SlidersHorizontal,
   Sparkle,
+  Warning,
+  X,
 } from '@phosphor-icons/react'
-import { createClient } from '@/lib/supabase/client'
-import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
-import { isCompletedTaskStillFresh } from '@/lib/tasks/status'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
-import TaskCardRow from '@/components/tasks/TaskCardRow'
-import TaskSuggestModal from '@/components/tasks/TaskSuggestModal'
-import { TaskDrawer } from '@/components/tasks/TaskDrawer'
-import { TASKS_CSS } from '@/components/tasks/tasks-styles'
-import {
-  buildTaskLeadLine,
-  SORT_OPTIONS,
-  TASK_VIEWS,
-  taskBucket,
-  type ProjectRow,
-  type SortMode,
-  type TaskRow,
-  type TaskView,
-} from '@/components/tasks/tasks-shared'
 import { openTagro } from '@/components/TagroOverlay'
+import { TASKS_CSS } from '@/components/tasks/tasks-styles'
+import { TASKS_BOARD_CSS } from '@/components/tasks/tasks-board-styles'
+import TaskListRow from '@/components/tasks/TaskListRow'
+import TaskCreateModal from '@/components/tasks/TaskCreateModal'
+import { TaskDrawer } from '@/components/tasks/TaskDrawer'
+import {
+  bucketCounts,
+  sortTasks,
+  useTasksBoard,
+  type BoardGrouping,
+  type BoardSort,
+  type BoardView,
+} from '@/components/tasks/useTasksBoard'
+import {
+  BUCKET_LABEL,
+  LIFECYCLE_DE,
+  actionsFor,
+  attentionOf,
+  bucketOf,
+  lifecycleLabel,
+  type TaskAction,
+} from '@/lib/tasks/lifecycle'
+import { getTaskGroup } from '@/lib/tasks/groups'
+import type { TaskRecord } from '@/lib/tasks/client-api'
 
-const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
+const VIEWS: { id: BoardView; label: string }[] = [
+  { id: 'all', label: 'Alle' },
+  { id: 'open', label: 'Offen' },
+  { id: 'active', label: 'In Arbeit' },
+  { id: 'waiting', label: 'Wartet' },
+  { id: 'review', label: 'Prüfung' },
+  { id: 'done', label: 'Erledigt' },
+]
 
-const TASK_GROUP_ICONS: Record<TaskGroupKey, typeof FileText> = {
-  legal: ShieldCheck,
-  tech: Gauge,
-  qa: ListChecks,
-  seo: MagnifyingGlass,
-  launch: RocketLaunch,
-  integration: Plugs,
-  design: Palette,
-  content: Article,
-  web: Globe,
-  code: Code,
-  process: SlidersHorizontal,
-  decision: ShieldCheck,
-  blocker: Gauge,
-  client_action: FileText,
-  follow_up: SlidersHorizontal,
-  admin: ShieldCheck,
-  planning: FileText,
-}
+const SORTS: { id: BoardSort; label: string }[] = [
+  { id: 'smart', label: 'Was jetzt zählt' },
+  { id: 'updated', label: 'Zuletzt bewegt' },
+  { id: 'created', label: 'Neueste zuerst' },
+  { id: 'due', label: 'Termin' },
+  { id: 'priority', label: 'Priorität' },
+  { id: 'project', label: 'Projekt' },
+]
+
+const GROUPINGS: { id: BoardGrouping; label: string }[] = [
+  { id: 'none', label: 'Keine Gruppierung' },
+  { id: 'status', label: 'Nach Status' },
+  { id: 'project', label: 'Nach Projekt' },
+  { id: 'assignee', label: 'Nach Verantwortung' },
+  { id: 'group', label: 'Nach Bereich' },
+]
 
 export default function TasksPage() {
   return (
-    <Suspense fallback={<p className="dec-empty" style={{ padding: 48 }}>Aufgaben werden geladen…</p>}>
+    <Suspense fallback={<div className="dec-os"><p className="tsk-state">Aufgaben werden geladen…</p></div>}>
       <TasksPageInner />
     </Suspense>
   )
@@ -78,306 +82,263 @@ export default function TasksPage() {
 function TasksPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = useMemo(() => createClient(), [])
-  const filterWrapRef = useRef<HTMLDivElement>(null)
-  const sortWrapRef = useRef<HTMLDivElement>(null)
-  const mobileFilterWrapRef = useRef<HTMLDivElement>(null)
+  const board = useTasksBoard(searchParams?.get('project') || 'all')
 
-  const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
-  const [view, setView] = useState<TaskView>('all')
-  const [tasks, setTasks] = useState<TaskRow[]>([])
-  const [projects, setProjects] = useState<ProjectRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [sortMode, setSortMode] = useState<SortMode>('newest')
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
-  const [sortMenuOpen, setSortMenuOpen] = useState(false)
-  const [projectScope, setProjectScope] = useState<string>('all')
+  const [view, setView] = useState<BoardView>((searchParams?.get('view') as BoardView) || 'all')
+  const [sort, setSort] = useState<BoardSort>('smart')
+  const [grouping, setGrouping] = useState<BoardGrouping>('none')
+  const [query, setQuery] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [focusIndex, setFocusIndex] = useState(-1)
+  const [createOpen, setCreateOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
-  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [sortOpen, setSortOpen] = useState(false)
+  const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
+  const [bulkBusy, setBulkBusy] = useState(false)
 
-  const loadTasks = useCallback(async () => {
-    setLoading(true)
-    try {
-      const qs = projectScope !== 'all' ? `?projectId=${encodeURIComponent(projectScope)}` : ''
-      const res = await fetch(`/api/client/tasks${qs}`)
-      const data = await res.json()
-      if (res.ok) {
-        setTasks((data.tasks as TaskRow[]) ?? [])
-        setProjects((data.projects as ProjectRow[]) ?? [])
-      }
-    } finally {
-      setLoading(false)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const filterRef = useRef<HTMLDivElement>(null)
+  const sortRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const { tasks, projects, people, loading, error, projectById, personById, roleFor, accessFor, flowOf } = board
+
+  /* ── URL ↔ state ─────────────────────────────────────────────────── */
+
+  const syncUrl = useCallback((patch: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams?.toString() || '')
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === null || value === '' || value === 'all') params.delete(key)
+      else params.set(key, value)
     }
-  }, [projectScope])
-
-  useEffect(() => {
-    void loadTasks()
-    const channel = supabase
-      .channel('client-tasks-overview')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
-        void loadTasks()
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [loadTasks, supabase])
+    const qs = params.toString()
+    router.replace(qs ? `/tasks?${qs}` : '/tasks', { scroll: false })
+  }, [router, searchParams])
 
   useEffect(() => {
     setOpenId(searchParams?.get('open') || null)
-    const project = searchParams?.get('project')
-    if (project) setProjectScope(project)
   }, [searchParams])
 
-  useEffect(() => {
-    if (projectScope === 'all') return
-    if (!projects.find((p) => p.id === projectScope)) setProjectScope('all')
-  }, [projects, projectScope])
+  /* ── derived list ────────────────────────────────────────────────── */
+
+  const counts = useMemo(() => bucketCounts(tasks, roleFor), [tasks, roleFor])
+
+  const visible = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    const filtered = tasks.filter((task) => {
+      if (view === 'attention') {
+        if (!attentionOf(task, roleFor(task))) return false
+      } else if (view !== 'all') {
+        if (bucketOf(flowOf(task)) !== view) return false
+      } else if (bucketOf(flowOf(task)) === 'done') {
+        // "Alle" keeps finished work for a day so the last step stays visible
+        const done = task.completed_at || task.updated_at
+        if (done && Date.now() - new Date(done).getTime() > 86_400_000) return false
+      }
+      if (!needle) return true
+      return [task.title, task.description, task.latest_client_update, projectById.get(task.project_id)?.title]
+        .some((field) => field?.toLowerCase().includes(needle))
+    })
+    return sortTasks(filtered, sort, { projectById, role: roleFor })
+  }, [tasks, view, query, sort, projectById, roleFor, flowOf])
+
+  const groups = useMemo(() => {
+    if (grouping === 'none') return [{ key: 'all', label: '', tasks: visible }]
+    const map = new Map<string, { key: string; label: string; weight: number; tasks: TaskRecord[] }>()
+    for (const task of visible) {
+      let key = 'other'
+      let label = 'Sonstige'
+      let weight = 50
+      if (grouping === 'status') {
+        const flow = flowOf(task)
+        key = flow
+        label = lifecycleLabel(flow, roleFor(task))
+        weight = Object.keys(LIFECYCLE_DE).indexOf(flow)
+      } else if (grouping === 'project') {
+        key = task.project_id
+        label = projectById.get(task.project_id)?.title ?? 'Ohne Projekt'
+        weight = 0
+      } else if (grouping === 'assignee') {
+        key = task.assigned_to ?? 'unassigned'
+        label = task.assigned_to ? personById.get(task.assigned_to)?.name ?? 'Teammitglied' : 'Noch niemand verantwortlich'
+        weight = task.assigned_to ? 1 : 0
+      } else if (grouping === 'group') {
+        const group = getTaskGroup(task)
+        key = group.key
+        label = group.label
+        weight = group.sortWeight
+      }
+      const entry = map.get(key) ?? { key, label, weight, tasks: [] }
+      entry.tasks.push(task)
+      map.set(key, entry)
+    }
+    return Array.from(map.values()).sort((a, b) => a.weight - b.weight || a.label.localeCompare(b.label))
+  }, [visible, grouping, flowOf, roleFor, projectById, personById])
+
+  const flatVisible = useMemo(() => groups.flatMap((group) => group.tasks), [groups])
 
   useEffect(() => {
-    function closeMenus(event: PointerEvent) {
+    setSelected((current) => {
+      if (!current.size) return current
+      const alive = new Set(tasks.map((task) => task.id))
+      const next = new Set(Array.from(current).filter((id) => alive.has(id)))
+      return next.size === current.size ? current : next
+    })
+  }, [tasks])
+
+  /* ── menus close on outside click ────────────────────────────────── */
+
+  useEffect(() => {
+    if (!filterOpen && !sortOpen) return
+    function onPointerDown(event: PointerEvent) {
       const target = event.target as Node
-      if (filterWrapRef.current?.contains(target) || mobileFilterWrapRef.current?.contains(target)) return
-      if (sortWrapRef.current?.contains(target)) return
-      setFilterMenuOpen(false)
-      setSortMenuOpen(false)
+      if (filterRef.current?.contains(target) || sortRef.current?.contains(target)) return
+      setFilterOpen(false)
+      setSortOpen(false)
     }
-    function onEscape(event: KeyboardEvent) {
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [filterOpen, sortOpen])
+
+  /* ── keyboard ────────────────────────────────────────────────────── */
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null
+      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+
       if (event.key === 'Escape') {
-        setFilterMenuOpen(false)
-        setSortMenuOpen(false)
+        if (typing && target === searchRef.current) { searchRef.current?.blur(); return }
+        if (selected.size) { setSelected(new Set()); return }
+        if (focusIndex >= 0) setFocusIndex(-1)
+        return
+      }
+      if (typing || createOpen || openId) return
+
+      if (event.key === '/') { event.preventDefault(); searchRef.current?.focus(); return }
+      if (event.key === 'n' && !event.metaKey && !event.ctrlKey) { event.preventDefault(); setCreateOpen(true); return }
+      if (event.key === 'r' && !event.metaKey && !event.ctrlKey) { event.preventDefault(); void board.reload({ silent: true }); return }
+
+      if (event.key === 'ArrowDown' || event.key === 'j') {
+        event.preventDefault()
+        setFocusIndex((index) => Math.min(flatVisible.length - 1, index + 1))
+        return
+      }
+      if (event.key === 'ArrowUp' || event.key === 'k') {
+        event.preventDefault()
+        setFocusIndex((index) => Math.max(0, index - 1))
+        return
+      }
+      const focused = flatVisible[focusIndex]
+      if (!focused) return
+      if (event.key === 'Enter') { event.preventDefault(); openTask(focused); return }
+      if (event.key === 'x') {
+        event.preventDefault()
+        setSelected((current) => {
+          const next = new Set(current)
+          if (next.has(focused.id)) next.delete(focused.id)
+          else next.add(focused.id)
+          return next
+        })
       }
     }
-    document.addEventListener('pointerdown', closeMenus)
-    document.addEventListener('keydown', onEscape)
-    return () => {
-      document.removeEventListener('pointerdown', closeMenus)
-      document.removeEventListener('keydown', onEscape)
-    }
-  }, [])
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flatVisible, focusIndex, selected.size, createOpen, openId])
 
   useEffect(() => {
-    const onProjectColor = (event: Event) => {
-      if (!(event instanceof CustomEvent)) return
-      const projectId = event.detail?.projectId
-      const color = event.detail?.color
-      if (!projectId || !color) return
-      setProjects((current) => current.map((project) => project.id === projectId ? { ...project, color } : project))
-    }
-    window.addEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
-    return () => window.removeEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
-  }, [])
+    if (focusIndex < 0) return
+    const task = flatVisible[focusIndex]
+    if (!task) return
+    listRef.current
+      ?.querySelector(`[data-task-id="${task.id}"]`)
+      ?.scrollIntoView({ block: 'nearest' })
+  }, [focusIndex, flatVisible])
 
-  const projectById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects])
-  const hasProjects = projects.length > 0
-  const projectList = projects
+  /* ── actions ─────────────────────────────────────────────────────── */
 
-  const counts = useMemo(() => ({
-    open: tasks.filter((task) => taskBucket(task) === 'open').length,
-    active: tasks.filter((task) => taskBucket(task) === 'active').length,
-    review: tasks.filter((task) => taskBucket(task) === 'review').length,
-    decision: tasks.filter((task) => taskBucket(task) === 'decision').length,
-    done: tasks.filter((task) => taskBucket(task) === 'done').length,
-  }), [tasks])
-
-  const pageLeadLine = buildTaskLeadLine(counts)
-
-  const visibleTasks = useMemo(() => {
-    const priorityRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 }
-    return tasks
-      .filter((task) => {
-        if (projectScope !== 'all' && task.project_id !== projectScope) return false
-        const bucket = taskBucket(task)
-        if (view === 'all') return bucket !== 'done' || isCompletedTaskStillFresh(task)
-        return bucket === view
-      })
-      .sort((a, b) => {
-        if (sortMode === 'priority') {
-          return (priorityRank[a.priority || ''] ?? 9) - (priorityRank[b.priority || ''] ?? 9)
-        }
-        if (sortMode === 'project') {
-          const pa = a.project_id ? projectById.get(a.project_id)?.title || '' : ''
-          const pb = b.project_id ? projectById.get(b.project_id)?.title || '' : ''
-          return pa.localeCompare(pb)
-        }
-        if (sortMode === 'group') {
-          const ga = getTaskGroup(a)
-          const gb = getTaskGroup(b)
-          if (ga.sortWeight !== gb.sortWeight) return ga.sortWeight - gb.sortWeight
-          return new Date(b.created_at || b.updated_at || 0).getTime() - new Date(a.created_at || a.updated_at || 0).getTime()
-        }
-        const field = sortMode === 'updated' ? 'updated_at' : 'created_at'
-        return new Date((b as any)[field] || b.created_at || 0).getTime() - new Date((a as any)[field] || a.created_at || 0).getTime()
-      })
-  }, [tasks, view, sortMode, projectById, projectScope])
-
-  const taskCategoryGroups = useMemo(() => {
-    if (sortMode !== 'group') return []
-    const groups = new Map<TaskGroupKey, { group: ReturnType<typeof getTaskGroup>; tasks: TaskRow[] }>()
-    for (const task of visibleTasks) {
-      const group = getTaskGroup(task)
-      const existing = groups.get(group.key)
-      if (existing) existing.tasks.push(task)
-      else groups.set(group.key, { group, tasks: [task] })
-    }
-    return Array.from(groups.values()).sort((a, b) => a.group.sortWeight - b.group.sortWeight)
-  }, [visibleTasks, sortMode])
-
-  const filterActive = view !== 'all' || projectScope !== 'all'
-  const sortActive = sortMode !== 'newest'
-  const defaultSuggestProjectId = projectScope !== 'all' ? projectScope : projects[0]?.id
-
-  function applyProjectScope(id: string) {
-    setProjectScope(id)
-    const params = new URLSearchParams(searchParams?.toString() || '')
-    if (id === 'all') params.delete('project')
-    else params.set('project', id)
-    const qs = params.toString()
-    router.replace(qs ? `/tasks?${qs}` : '/tasks', { scroll: false })
-  }
-
-  function openTaskDetail(task: TaskRow) {
+  function openTask(task: TaskRecord) {
     setOpenId(task.id)
-    const params = new URLSearchParams(searchParams?.toString() || '')
-    params.set('open', task.id)
-    if (task.project_id) params.set('project', task.project_id)
-    const qs = params.toString()
-    router.replace(qs ? `/tasks?${qs}` : '/tasks', { scroll: false })
+    syncUrl({ open: task.id })
   }
 
-  function closeTaskDrawer() {
+  function closeTask() {
     setOpenId(null)
-    const params = new URLSearchParams(searchParams?.toString() || '')
-    params.delete('open')
-    const qs = params.toString()
-    router.replace(qs ? `/tasks?${qs}` : '/tasks', { scroll: false })
+    syncUrl({ open: null })
+    void board.reload({ silent: true })
   }
 
-  function updateProjectColor(projectId: string, color: string) {
-    setProjects((current) => current.map((project) => project.id === projectId ? { ...project, color } : project))
-    window.dispatchEvent(new CustomEvent(PROJECT_COLOR_SYNC_EVENT, { detail: { projectId, color } }))
-    void (supabase as any).from('projects').update({ color }).eq('id', projectId)
+  function applyView(next: BoardView) {
+    setView(next)
+    setFocusIndex(-1)
+    syncUrl({ view: next === 'all' ? null : next })
   }
 
-  const openTask = openId ? tasks.find((t) => t.id === openId) ?? null : null
-
-  const tagroHandler = () => openTagro({
-    contextType: 'task',
-    id: 'list',
-    projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-    title: 'Aufgaben',
-    subtitle: pageLeadLine,
-  })
-
-  function renderFilterMenu() {
-    return (
-      <div className="dec-filter-menu" role="menu">
-        <p className="dec-filter-menu-label dec-dt">Ansicht</p>
-        {TASK_VIEWS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="menuitem"
-            className={`dec-filter-menu-item${view === item.id ? ' on' : ''}`}
-            onClick={() => { setView(item.id); setFilterMenuOpen(false) }}
-          >
-            <span>{item.label}</span>
-            {view === item.id && <span className="dec-filter-check">✓</span>}
-          </button>
-        ))}
-        <p className="dec-filter-menu-label dec-dt">Projekt</p>
-        <button
-          type="button"
-          role="menuitem"
-          className={`dec-filter-menu-item${projectScope === 'all' ? ' on' : ''}`}
-          onClick={() => { applyProjectScope('all'); setFilterMenuOpen(false) }}
-        >
-          <span>Alle Projekte</span>
-          {projectScope === 'all' && <span className="dec-filter-check">✓</span>}
-        </button>
-        {projectList.map((project) => (
-          <button
-            key={project.id}
-            type="button"
-            role="menuitem"
-            className={`dec-filter-menu-item${projectScope === project.id ? ' on' : ''}`}
-            onClick={() => { applyProjectScope(project.id); setFilterMenuOpen(false) }}
-          >
-            <span>{project.title}</span>
-            {projectScope === project.id && <span className="dec-filter-check">✓</span>}
-          </button>
-        ))}
-      </div>
-    )
+  function applyProject(next: string) {
+    board.setProjectScope(next)
+    setFocusIndex(-1)
+    syncUrl({ project: next })
   }
 
-  function renderSortMenu() {
-    return (
-      <div className="dec-filter-menu" role="menu">
-        <p className="dec-filter-menu-label dec-dt">Sortieren</p>
-        {SORT_OPTIONS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="menuitem"
-            className={`dec-filter-menu-item${sortMode === item.id ? ' on' : ''}`}
-            onClick={() => { setSortMode(item.id); setSortMenuOpen(false) }}
-          >
-            <span>{item.label}</span>
-            {sortMode === item.id && <span className="dec-filter-check">✓</span>}
-          </button>
-        ))}
-      </div>
-    )
-  }
-
-  function renderTaskList() {
-    if (sortMode !== 'group') {
-      return visibleTasks.map((task, index) => (
-        <TaskCardRow
-          key={task.id}
-          task={task}
-          project={task.project_id ? projectById.get(task.project_id) ?? null : null}
-          isLast={index === visibleTasks.length - 1}
-          onOpen={(id) => {
-            const row = tasks.find((t) => t.id === id)
-            if (row) openTaskDetail(row)
-          }}
-        />
-      ))
-    }
-
-    return taskCategoryGroups.map((category) => {
-      const GroupIcon = TASK_GROUP_ICONS[category.group.key]
-      return (
-        <section key={category.group.key} className="task-category-section">
-          <div className="task-category-head">
-            <GroupIcon size={14} weight="regular" />
-            <span>{category.group.label}</span>
-            <em>{category.tasks.length} {category.tasks.length === 1 ? 'Aufgabe' : 'Aufgaben'}</em>
-          </div>
-          {category.tasks.map((task, index) => (
-            <TaskCardRow
-              key={task.id}
-              task={task}
-              project={task.project_id ? projectById.get(task.project_id) ?? null : null}
-              isLast={index === category.tasks.length - 1}
-              onOpen={(id) => {
-                const row = tasks.find((t) => t.id === id)
-                if (row) openTaskDetail(row)
-              }}
-            />
-          ))}
-        </section>
-      )
+  function toggleSelect(task: TaskRecord, shiftKey: boolean) {
+    setSelected((current) => {
+      const next = new Set(current)
+      if (shiftKey && current.size) {
+        const indices = flatVisible.map((row, index) => (current.has(row.id) ? index : -1)).filter((i) => i >= 0)
+        const anchor = indices.length ? indices[indices.length - 1] : 0
+        const target = flatVisible.findIndex((row) => row.id === task.id)
+        const [from, to] = anchor < target ? [anchor, target] : [target, anchor]
+        for (let index = from; index <= to; index += 1) next.add(flatVisible[index].id)
+        return next
+      }
+      if (next.has(task.id)) next.delete(task.id)
+      else next.add(task.id)
+      return next
     })
   }
 
-  return (
-    <div className="dec-os">
-      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: TASKS_CSS }} />
+  const selectedTasks = useMemo(
+    () => tasks.filter((task) => selected.has(task.id)),
+    [tasks, selected],
+  )
 
-      {(filterMenuOpen || sortMenuOpen) && (
-        <button type="button" className="dec-m-sheet-backdrop" aria-label="Schließen" onClick={() => { setFilterMenuOpen(false); setSortMenuOpen(false) }} />
-      )}
+  /** Only actions every selected task can actually perform are offered. */
+  const bulkActions = useMemo(() => {
+    if (!selectedTasks.length) return []
+    const sets = selectedTasks.map((task) => new Set(actionsFor(flowOf(task), roleFor(task))))
+    const shared = Array.from(sets[0] ?? []).filter((action) => sets.every((set) => set.has(action)))
+    return shared.filter((action) => action !== 'cancel' && action !== 'reopen') as TaskAction[]
+  }, [selectedTasks, flowOf, roleFor])
+
+  async function runBulk(action: TaskAction) {
+    setBulkBusy(true)
+    try {
+      await board.runBulk(selectedTasks, action)
+      setSelected(new Set())
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
+  const openTaskRecord = openId ? tasks.find((task) => task.id === openId) ?? null : null
+  const attentionCount = counts.attention
+  const hasProjects = projects.length > 0
+  const canCreate = Object.values(board.access).some((grant) => grant.canCreate)
+  const leadLine = `${counts.open} offen · ${counts.active} in Arbeit · ${counts.review} in Prüfung`
+
+  const tagroContext = {
+    contextType: 'task' as const,
+    id: 'list',
+    projectId: board.projectScope !== 'all' ? board.projectScope : projects[0]?.id,
+    title: 'Aufgaben',
+    subtitle: leadLine,
+  }
+
+  return (
+    <div className="dec-os tsk-shell">
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: TASKS_CSS + TASKS_BOARD_CSS }} />
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
@@ -386,182 +347,407 @@ function TasksPageInner() {
           <PortalPageHeader
             title="Aufgaben"
             onMenu={() => setNavOpen(true)}
+            onSearch={() => searchRef.current?.focus()}
             actions={(
               <>
-                <div className="dec-page-actions-group">
-                  <div className="dec-filter-wrap" ref={filterWrapRef}>
-                    <button
-                      type="button"
-                      className={`dec-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
-                      aria-label="Filter"
-                      aria-expanded={filterMenuOpen}
-                      onClick={() => { setSortMenuOpen(false); setFilterMenuOpen((v) => !v) }}
-                    >
-                      <FunnelSimple size={15} weight="regular" />
-                    </button>
-                    {filterMenuOpen && renderFilterMenu()}
-                  </div>
-                  <div className="dec-filter-wrap" ref={sortWrapRef}>
-                    <button
-                      type="button"
-                      className={`dec-head-tool${sortMenuOpen || sortActive ? ' on' : ''}`}
-                      aria-label="Sortieren"
-                      aria-expanded={sortMenuOpen}
-                      onClick={() => { setFilterMenuOpen(false); setSortMenuOpen((v) => !v) }}
-                    >
-                      <SlidersHorizontal size={15} weight="regular" />
-                    </button>
-                    {sortMenuOpen && renderSortMenu()}
-                  </div>
-                </div>
                 <button
                   type="button"
-                  className="task-create-btn"
-                  disabled={!hasProjects}
-                  onClick={() => setSuggestOpen(true)}
+                  className="tsk-icon-btn"
+                  aria-label="Aktualisieren"
+                  onClick={() => void board.reload()}
                 >
-                  <Plus size={14} weight="bold" />
-                  Aufgabe vorschlagen
+                  <ArrowsClockwise size={15} weight="regular" className={board.refreshing ? 'tsk-spin' : ''} />
                 </button>
-                <button type="button" className="dec-head-tool" aria-label="Aktualisieren" onClick={() => void loadTasks()}>
-                  <ArrowsClockwise size={15} weight="regular" />
+                <button
+                  type="button"
+                  className="tsk-primary-btn"
+                  disabled={!canCreate}
+                  title={canCreate ? 'Neue Aufgabe (n)' : 'In deinen Projekten kannst du keine Aufgaben anlegen'}
+                  onClick={() => setCreateOpen(true)}
+                >
+                  <Plus size={13} weight="bold" />
+                  Aufgabe
                 </button>
               </>
             )}
           />
 
-          <div className="task-filters dec-dt">
-            {TASK_VIEWS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`task-filter${view === item.id ? ' on' : ''}`}
-                onClick={() => setView(item.id)}
-              >
-                {item.id === 'open' ? `Offen (${counts.open})`
-                  : item.id === 'active' ? `In Arbeit (${counts.active})`
-                    : item.id === 'decision' ? `Warten (${counts.decision})`
-                      : item.id === 'review' ? `Prüfung (${counts.review})`
-                        : item.id === 'done' ? `Erledigt (${counts.done})`
-                          : 'Alle'}
-              </button>
-            ))}
-          </div>
+          <div className="tsk-toolbar">
+            <label className="tsk-search">
+              <MagnifyingGlass size={14} weight="regular" />
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(event) => { setQuery(event.target.value); setFocusIndex(-1) }}
+                placeholder="Aufgaben durchsuchen…"
+                aria-label="Aufgaben durchsuchen"
+              />
+              {query
+                ? <button type="button" className="tsk-icon-btn" aria-label="Suche leeren" onClick={() => setQuery('')}><X size={13} weight="bold" /></button>
+                : <kbd>/</kbd>}
+            </label>
 
-          <div className="dec-m-actions">
-            <div className="dec-m-actions-group">
-              <div className="dec-filter-wrap" ref={mobileFilterWrapRef}>
+            <div className="tsk-tabs" role="tablist" aria-label="Ansicht">
+              {attentionCount > 0 && (
                 <button
                   type="button"
-                  className={`dec-m-ctl${filterMenuOpen ? ' on' : ''}${filterActive ? ' has-active' : ''}`}
-                  aria-label="Filter"
-                  aria-expanded={filterMenuOpen}
-                  onClick={() => { setSortMenuOpen(false); setFilterMenuOpen((v) => !v) }}
+                  role="tab"
+                  aria-selected={view === 'attention'}
+                  className={`tsk-tab attention${view === 'attention' ? ' on' : ''}`}
+                  onClick={() => applyView('attention')}
                 >
-                  <FunnelSimple size={17} weight="regular" />
+                  <Warning size={12} weight="fill" />
+                  Braucht dich <em>{attentionCount}</em>
                 </button>
-                {filterMenuOpen && renderFilterMenu()}
-              </div>
-              <button type="button" className="dec-m-ctl" aria-label="Aktualisieren" onClick={() => void loadTasks()}>
-                <ArrowsClockwise size={17} weight="regular" />
+              )}
+              {VIEWS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === item.id}
+                  className={`tsk-tab${view === item.id ? ' on' : ''}`}
+                  onClick={() => applyView(item.id)}
+                >
+                  {item.label}
+                  <em>{item.id === 'all' ? counts.all : counts[item.id as keyof typeof counts]}</em>
+                </button>
+              ))}
+            </div>
+
+            <span className="tsk-toolbar-spacer" />
+
+            <div className="tsk-menu-wrap" ref={filterRef}>
+              <button
+                type="button"
+                className={`tsk-icon-btn${filterOpen || board.projectScope !== 'all' ? ' on' : ''}`}
+                aria-label="Projekt filtern"
+                aria-expanded={filterOpen}
+                onClick={() => { setSortOpen(false); setFilterOpen((value) => !value) }}
+              >
+                <FunnelSimple size={15} weight="regular" />
               </button>
+              {filterOpen && (
+                <div className="tsk-menu" role="menu">
+                  <p className="tsk-pop-label">Projekt</p>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={`tsk-pop-item${board.projectScope === 'all' ? ' on' : ''}`}
+                    onClick={() => { applyProject('all'); setFilterOpen(false) }}
+                  >
+                    Alle Projekte
+                  </button>
+                  {projects.map((project) => (
+                    <button
+                      key={project.id}
+                      type="button"
+                      role="menuitem"
+                      className={`tsk-pop-item${board.projectScope === project.id ? ' on' : ''}`}
+                      onClick={() => { applyProject(project.id); setFilterOpen(false) }}
+                    >
+                      <span className="tsk-pop-dot" style={{ background: project.color || '#64748b' }} aria-hidden />
+                      {project.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="tsk-menu-wrap" ref={sortRef}>
+              <button
+                type="button"
+                className={`tsk-icon-btn${sortOpen || sort !== 'smart' || grouping !== 'none' ? ' on' : ''}`}
+                aria-label="Sortieren und gruppieren"
+                aria-expanded={sortOpen}
+                onClick={() => { setFilterOpen(false); setSortOpen((value) => !value) }}
+              >
+                <SlidersHorizontal size={15} weight="regular" />
+              </button>
+              {sortOpen && (
+                <div className="tsk-menu" role="menu">
+                  <p className="tsk-pop-label">Sortieren</p>
+                  {SORTS.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="menuitem"
+                      className={`tsk-pop-item${sort === item.id ? ' on' : ''}`}
+                      onClick={() => { setSort(item.id); setSortOpen(false) }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                  <div className="tsk-menu-sep" />
+                  <p className="tsk-pop-label">Gruppieren</p>
+                  {GROUPINGS.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="menuitem"
+                      className={`tsk-pop-item${grouping === item.id ? ' on' : ''}`}
+                      onClick={() => { setGrouping(item.id); setSortOpen(false) }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="dec-scroll-body">
-          {!loading && !hasProjects ? (
-            <div className="dec-empty">
-              <ListChecks size={16} />
-              <p>Noch kein Projekt vorhanden</p>
-              <small>Aufgaben entstehen innerhalb eines Projekts. Lege zuerst ein Projekt an oder starte ein Briefing mit Tagro.</small>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 }}>
-                <Link href="/new-project" className="task-create-btn">Erstes Projekt anlegen</Link>
-                <Link href="/ai" className="task-filter" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-                  <Sparkle size={14} weight="fill" />
-                  Projektbriefing starten
-                </Link>
+        <div className="dec-scroll-body" ref={listRef}>
+          {error ? (
+            <div className="tsk-state">
+              <Warning size={18} weight="regular" />
+              <strong>Aufgaben konnten nicht geladen werden</strong>
+              <p>{error}</p>
+              <div className="tsk-state-actions">
+                <button type="button" className="tsk-primary-btn" onClick={() => void board.reload()}>Erneut versuchen</button>
               </div>
             </div>
+          ) : loading ? (
+            <div aria-busy="true" aria-label="Aufgaben werden geladen">
+              {[0, 1, 2, 3, 4].map((index) => <div key={index} className="tsk-skeleton-row" />)}
+            </div>
+          ) : !hasProjects ? (
+            <div className="tsk-state">
+              <ListChecks size={18} weight="regular" />
+              <strong>Noch kein Projekt</strong>
+              <p>Aufgaben gehören immer zu einem Projekt — so bleibt nachvollziehbar, worauf sie einzahlen. Lege ein Projekt an oder beschreibe dein Vorhaben, Tagro strukturiert daraus den Plan.</p>
+              <div className="tsk-state-actions">
+                <Link href="/new-project" className="tsk-primary-btn">Projekt anlegen</Link>
+                <Link href="/ai" className="tsk-bulk-btn"><Sparkle size={12} weight="fill" /> Mit Tagro starten</Link>
+              </div>
+            </div>
+          ) : !visible.length ? (
+            <EmptyState
+              view={view}
+              query={query}
+              total={tasks.length}
+              canCreate={canCreate}
+              onCreate={() => setCreateOpen(true)}
+              onReset={() => { setQuery(''); applyView('all') }}
+            />
           ) : (
             <>
-              {hasProjects && tasks.length === 0 && !loading && (
-                <div className="task-bridge-banner" role="status">
-                  <strong>Execution Panel ↔ Portal</strong>
-                  Vorschläge und Briefings landen im Execution Panel. Sobald das Team startet, siehst du hier Status, Fortschritt und Updates — ohne Nachfragen.
+              {view !== 'attention' && attentionCount > 0 && (
+                <div className="tsk-attention-band" role="status">
+                  <Warning size={15} weight="fill" />
+                  <div>
+                    <strong>{attentionCount} {attentionCount === 1 ? 'Aufgabe braucht' : 'Aufgaben brauchen'} eine Entscheidung</strong>
+                    <p>Freigaben, Blocker und offene Rückfragen halten die Umsetzung auf.</p>
+                  </div>
+                  <button type="button" onClick={() => applyView('attention')}>Ansehen</button>
                 </div>
               )}
 
-              {loading && visibleTasks.length === 0 ? (
-                <p className="dec-empty">Lade Aufgaben…</p>
-              ) : visibleTasks.length === 0 ? (
-                <div className="dec-empty">
-                  <FunnelSimple size={14} />
-                  <p>{tasks.length === 0 ? 'Noch keine Aufgaben.' : 'Keine Aufgaben in dieser Ansicht.'}</p>
-                  <small>
-                    {tasks.length === 0
-                      ? 'Schlage eine Aufgabe vor — sie erscheint im Execution Panel und hier, sobald die Umsetzung läuft.'
-                      : 'Passe den Filter an oder wähle ein anderes Projekt.'}
-                  </small>
-                  {tasks.length === 0 && hasProjects && (
-                    <button type="button" className="task-create-btn" style={{ marginTop: 16 }} onClick={() => setSuggestOpen(true)}>
-                      <Plus size={14} weight="bold" />
-                      Erste Aufgabe vorschlagen
-                    </button>
+              {groups.map((group) => (
+                <section key={group.key}>
+                  {group.label && (
+                    <div className="tsk-group">
+                      <span>{group.label}</span>
+                      <em>{group.tasks.length}</em>
+                    </div>
                   )}
-                </div>
-              ) : renderTaskList()}
+                  {group.tasks.map((task) => {
+                    const grant = accessFor(task.project_id)
+                    return (
+                      <TaskListRow
+                        key={task.id}
+                        task={task}
+                        project={projectById.get(task.project_id) ?? null}
+                        assignee={task.assigned_to ? personById.get(task.assigned_to) ?? null : null}
+                        people={people.filter((person) => !person.projects?.length || person.projects.includes(task.project_id))}
+                        flow={flowOf(task)}
+                        role={roleFor(task)}
+                        canAssign={Boolean(grant?.canAssign)}
+                        canEdit={Boolean(grant?.canEdit)}
+                        canDelete={Boolean(grant?.canDelete)}
+                        busy={Boolean(board.pending[task.id])}
+                        selected={selected.has(task.id)}
+                        selectionMode={selected.size > 0}
+                        focused={flatVisible[focusIndex]?.id === task.id}
+                        onOpen={() => openTask(task)}
+                        onToggleSelect={(event) => toggleSelect(task, event.shiftKey)}
+                        onAction={(action, reason) => void board.runAction(task, action, reason)}
+                        onAssign={(userId) => void board.editTask(task, { assignedTo: userId })}
+                        onPriority={(priority) => void board.editTask(task, { priority })}
+                        onDueDate={(due) => void board.editTask(task, { dueDate: due })}
+                        onDelete={() => void board.removeTask(task)}
+                      />
+                    )
+                  })}
+                </section>
+              ))}
             </>
+          )}
+
+          {selected.size > 0 && (
+            <div className="tsk-bulk" role="toolbar" aria-label="Auswahl bearbeiten">
+              <span className="tsk-bulk-count">
+                {selected.size} {selected.size === 1 ? 'Aufgabe' : 'Aufgaben'}
+              </span>
+              <div className="tsk-bulk-actions">
+                {bulkActions.length ? bulkActions.map((action) => (
+                  <button
+                    key={action}
+                    type="button"
+                    className="tsk-bulk-btn"
+                    disabled={bulkBusy}
+                    onClick={() => void runBulk(action)}
+                  >
+                    {BULK_LABEL[action] ?? action}
+                  </button>
+                )) : (
+                  <span className="tsk-bulk-count" style={{ opacity: .7 }}>
+                    Für diese Mischung gibt es keinen gemeinsamen Schritt
+                  </span>
+                )}
+                <button type="button" className="tsk-bulk-btn" onClick={() => setSelected(new Set())}>
+                  Auswahl aufheben
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
+      <div className="tsk-toasts" role="status" aria-live="polite">
+        {board.toasts.map((toast) => (
+          <div key={toast.id} className={`tsk-toast ${toast.tone}`}>
+            <span className="tsk-toast-dot" aria-hidden />
+            <p>{toast.message}</p>
+            {toast.undo && (
+              <button type="button" className="undo" onClick={() => { toast.undo?.(); board.dismissToast(toast.id) }}>
+                Rückgängig
+              </button>
+            )}
+            <button type="button" aria-label="Schließen" onClick={() => board.dismissToast(toast.id)}>
+              <X size={12} weight="bold" />
+            </button>
+          </div>
+        ))}
+      </div>
+
       <div className="dec-fab-desktop">
-        <TagroContentFab
-          context={{
-            contextType: 'task',
-            id: 'list',
-            projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-            title: 'Aufgaben',
-            subtitle: pageLeadLine,
-          }}
-        />
+        <TagroContentFab context={tagroContext} />
       </div>
 
       <MobilePageDock
-        onDragUp={() => setSuggestOpen(true)}
+        onDragUp={() => setCreateOpen(true)}
         primary={{
-          id: 'suggest',
-          label: 'Aufgabe vorschlagen…',
+          id: 'create',
+          label: 'Aufgabe erstellen…',
           icon: <Plus size={14} weight="bold" />,
-          onClick: () => setSuggestOpen(true),
-          ariaLabel: 'Aufgabe vorschlagen',
+          onClick: () => setCreateOpen(true),
+          ariaLabel: 'Aufgabe erstellen',
         }}
         secondary={{
           id: 'tagro',
           icon: <PencilSimple size={20} weight="bold" />,
-          onClick: tagroHandler,
+          onClick: () => openTagro(tagroContext),
           ariaLabel: 'Mit Tagro bearbeiten',
         }}
       />
 
-      <TaskSuggestModal
-        open={suggestOpen}
-        onClose={() => setSuggestOpen(false)}
+      <TaskCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
         projects={projects}
-        defaultProjectId={defaultSuggestProjectId}
-        onCreated={() => void loadTasks()}
-        onProjectColorChange={updateProjectColor}
+        people={people}
+        access={board.access}
+        defaultProjectId={board.projectScope !== 'all' ? board.projectScope : undefined}
+        onCreated={(task) => {
+          board.pushToast({ tone: 'ok', message: `„${task.title}" wurde angelegt.` })
+          void board.reload({ silent: true })
+        }}
       />
 
-      {openTask && (
+      {openTaskRecord && (
         <TaskDrawer
-          taskId={openTask.id}
-          projectId={openTask.project_id}
-          title={openTask.title}
-          onClose={closeTaskDrawer}
+          taskId={openTaskRecord.id}
+          projectId={openTaskRecord.project_id}
+          title={openTaskRecord.title}
+          onClose={closeTask}
         />
       )}
+    </div>
+  )
+}
+
+const BULK_LABEL: Partial<Record<TaskAction, string>> = {
+  start: 'Starten',
+  pause: 'Pausieren',
+  resume: 'Fortsetzen',
+  submit: 'Fertig melden',
+  approve: 'Freigeben',
+  unblock: 'Blocker auflösen',
+  block: 'Blockiert',
+  ask: 'Rückfrage',
+  request_changes: 'Änderungen',
+  restore: 'Zurückholen',
+}
+
+function EmptyState({
+  view, query, total, canCreate, onCreate, onReset,
+}: {
+  view: BoardView
+  query: string
+  total: number
+  canCreate: boolean
+  onCreate: () => void
+  onReset: () => void
+}) {
+  if (query) {
+    return (
+      <div className="tsk-state">
+        <MagnifyingGlass size={18} weight="regular" />
+        <strong>Nichts gefunden</strong>
+        <p>Für „{query}" gibt es in dieser Ansicht keine Aufgabe.</p>
+        <div className="tsk-state-actions">
+          <button type="button" className="tsk-bulk-btn" onClick={onReset}>Filter zurücksetzen</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 0) {
+    return (
+      <div className="tsk-state">
+        <ListChecks size={18} weight="regular" />
+        <strong>Noch keine Aufgaben</strong>
+        <p>Aufgaben entstehen aus dem, was das Projekt braucht — von dir erfasst oder von Tagro aus Briefings, Entscheidungen und Statusberichten abgeleitet.</p>
+        {canCreate && (
+          <div className="tsk-state-actions">
+            <button type="button" className="tsk-primary-btn" onClick={onCreate}>
+              <Plus size={13} weight="bold" /> Erste Aufgabe
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const copy: Record<string, { title: string; body: string }> = {
+    attention: { title: 'Nichts wartet auf dich', body: 'Keine Freigabe, kein Blocker, keine offene Rückfrage. Die Umsetzung läuft.' },
+    open: { title: 'Nichts liegt offen', body: 'Jede Aufgabe hat jemanden, der sie bewegt.' },
+    active: { title: 'Gerade wird nichts umgesetzt', body: 'Keine Aufgabe ist aktuell in Arbeit — offene Aufgaben warten auf den Start.' },
+    waiting: { title: 'Nichts hängt', body: 'Keine Aufgabe wartet auf eine Klärung oder ist pausiert.' },
+    review: { title: 'Nichts in Prüfung', body: 'Es liegt nichts zur Freigabe bereit.' },
+    done: { title: 'Noch nichts abgeschlossen', body: 'Sobald eine Aufgabe freigegeben ist, erscheint sie hier.' },
+  }
+  const text = copy[view] ?? { title: 'Keine Aufgaben in dieser Ansicht', body: 'Wechsle die Ansicht oder den Projektfilter.' }
+
+  return (
+    <div className="tsk-state">
+      <ListChecks size={18} weight="regular" />
+      <strong>{text.title}</strong>
+      <p>{text.body}</p>
+      <div className="tsk-state-actions">
+        <button type="button" className="tsk-bulk-btn" onClick={onReset}>Alle Aufgaben zeigen</button>
+      </div>
     </div>
   )
 }

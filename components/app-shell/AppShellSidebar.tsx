@@ -12,6 +12,8 @@ import {
   Bell,
   Question,
   Check,
+  UserCircleGear,
+  ArrowUpRight,
 } from '@phosphor-icons/react'
 import {
   appShellRoleLabel,
@@ -20,6 +22,7 @@ import {
   isAppShellNavActive,
 } from '@/components/app-shell/app-shell-nav'
 import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
+import AppShellFlyout from '@/components/app-shell/AppShellFlyout'
 import { getDisplayName, getFullDisplayName, getInitials, type UserProfile } from '@/lib/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
@@ -143,10 +146,16 @@ export default function AppShellSidebar({
   const asideRef = useRef<HTMLElement>(null)
   const helpTriggerRef = useRef<HTMLButtonElement>(null)
   const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const { items: notifications, unread, markRead } = useNotifications({
-    limit: 12,
+  const notifTriggerRef = useRef<HTMLButtonElement>(null)
+  const { items: notifications, unread, loading: notifLoading, markRead, markAllRead } = useNotifications({
+    limit: 14,
     enabled: deferredReady || notifOpen,
   })
+
+  /* Unread first, then the rest — the panel answers "what is new" before it
+     answers "what happened". */
+  const freshNotifications = notifications.filter((n) => !n.read)
+  const earlierNotifications = notifications.filter((n) => n.read)
 
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
@@ -443,10 +452,12 @@ export default function AppShellSidebar({
                 <MagnifyingGlass size={16} weight="light" />
               </button>
               <button
+                ref={notifTriggerRef}
                 type="button"
-                className="fas-sidebar-icon"
-                aria-label="Benachrichtigungen"
+                className={`fas-sidebar-icon${notifOpen ? ' is-on' : ''}`}
+                aria-label={unread > 0 ? `Benachrichtigungen, ${unread} ungelesen` : 'Benachrichtigungen'}
                 title="Benachrichtigungen"
+                aria-haspopup="dialog"
                 aria-expanded={notifOpen}
                 onClick={() => {
                   setWsOpen(false)
@@ -519,39 +530,6 @@ export default function AppShellSidebar({
           </div>
         ) : null}
 
-        {notifOpen ? (
-          <div className="fas-popover fas-popover-left fas-ws-popover fas-notif-popover" role="dialog" aria-label="Benachrichtigungen">
-            {notifications.length === 0 ? (
-              <>
-                <div className="fas-popover-title">Noch keine Benachrichtigungen.</div>
-                <p className="fas-popover-note">
-                  Einladungen und Projekt-Updates erscheinen hier.
-                </p>
-              </>
-            ) : (
-              <ul className="fas-notif-list">
-                {notifications.map((n) => (
-                  <li key={n.id}>
-                    <button
-                      type="button"
-                      className={`fas-notif-card${n.read ? '' : ' is-unread'}`}
-                      onClick={() => {
-                        void markRead(n.id)
-                        if (n.link) window.location.href = n.link
-                        setNotifOpen(false)
-                      }}
-                    >
-                      <span className="fas-notif-card-title">{n.title}</span>
-                      <span className="fas-notif-card-body">
-                        {n.body || n.message || ''}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ) : null}
       </div>
 
       <nav className="fas-nav" aria-label="Workspace">
@@ -654,7 +632,9 @@ export default function AppShellSidebar({
           <span className="fas-account-mark" aria-hidden="true">
             {user?.avatar_url
               ? <img src={user.avatar_url} alt="" />
-              : initials}
+              : initials
+                ? initials
+                : <UserCircleGear size={17} weight="light" />}
           </span>
           <span className="fas-account-copy">
             <span className="fas-account-row-name">{displayName}</span>
@@ -662,37 +642,136 @@ export default function AppShellSidebar({
           </span>
         </button>
 
-        <Link
-          href="/settings"
-          className={`fas-settings-link${settingsActive ? ' is-active' : ''}`}
-          aria-current={settingsActive ? 'page' : undefined}
-          title="Einstellungen"
-        >
-          <GearSix size={16} weight="light" />
-          <span className="fas-nav-label">Einstellungen</span>
-        </Link>
-        <FestagHelpPanel
-          open={helpOpen}
-          onOpenChange={setHelpOpen}
-          anchorRef={helpTriggerRef}
-          userName={displayName}
-          railCollapsed={!expanded}
-          trigger={(
-            <button
-              ref={helpTriggerRef}
-              type="button"
-              className="fas-help-btn"
-              aria-label="Festag Help"
-              title={expanded ? undefined : 'Festag Help'}
-              aria-expanded={helpOpen}
-              onClick={() => setHelpOpen((v) => !v)}
-            >
-              <Question size={16} weight="light" />
-              <span className="fas-nav-label">Help</span>
-            </button>
-          )}
-        />
+        {/* Einstellungen trägt das Icon, Hilfe nur das Wort — eine Zeile,
+            zwei Gewichte. Eingeklappt kehrt das Fragezeichen zurück, sonst
+            wäre die Hilfe in der Leiste unsichtbar. */}
+        <div className="fas-footer-row">
+          <Link
+            href="/settings"
+            className={`fas-settings-link${settingsActive ? ' is-active' : ''}`}
+            aria-current={settingsActive ? 'page' : undefined}
+            title="Einstellungen"
+          >
+            <GearSix size={16} weight="light" />
+            <span className="fas-nav-label">Einstellungen</span>
+          </Link>
+          <FestagHelpPanel
+            open={helpOpen}
+            onOpenChange={setHelpOpen}
+            anchorRef={helpTriggerRef}
+            userName={displayName}
+            railCollapsed={!expanded}
+            trigger={(
+              <button
+                ref={helpTriggerRef}
+                type="button"
+                className="fas-help-btn"
+                aria-label="Festag Help"
+                title={expanded ? undefined : 'Festag Help'}
+                aria-expanded={helpOpen}
+                onClick={() => setHelpOpen((v) => !v)}
+              >
+                <Question size={16} weight="light" />
+                <span className="fas-nav-label">Hilfe</span>
+              </button>
+            )}
+          />
+        </div>
       </div>
+
+      <AppShellFlyout
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+        hostRef={asideRef}
+        anchorRef={notifTriggerRef}
+        title="Benachrichtigungen"
+        note={unread > 0
+          ? `${unread} ungelesen`
+          : 'Entscheidungen, Freigaben und Projekt-Updates landen hier.'}
+        action={unread > 0 ? (
+          <button type="button" className="fas-flyout-action" onClick={() => void markAllRead()}>
+            Alle gelesen
+          </button>
+        ) : null}
+        footer={(
+          <Link href="/benachrichtigungen" className="fas-flyout-foot-link" onClick={() => setNotifOpen(false)}>
+            Alle Benachrichtigungen
+            <ArrowUpRight size={12} weight="bold" />
+          </Link>
+        )}
+      >
+        {notifLoading && notifications.length === 0 ? (
+          <>
+            <div className="fas-flyout-skeleton" />
+            <div className="fas-flyout-skeleton" />
+            <div className="fas-flyout-skeleton" />
+          </>
+        ) : notifications.length === 0 ? (
+          <div className="fas-flyout-empty">
+            <strong>Nichts Neues</strong>
+            <span>Sobald etwas deine Entscheidung braucht oder ein Projekt sich bewegt, erfährst du es hier zuerst.</span>
+          </div>
+        ) : (
+          <>
+            {freshNotifications.length > 0 ? (
+              <>
+                <p className="fas-nrow-group">Neu</p>
+                {freshNotifications.map((n) => (
+                  <NotificationRow
+                    key={n.id}
+                    notification={n}
+                    onOpen={() => {
+                      void markRead(n.id)
+                      setNotifOpen(false)
+                      if (n.link) window.location.href = n.link
+                    }}
+                  />
+                ))}
+              </>
+            ) : null}
+            {earlierNotifications.length > 0 ? (
+              <>
+                <p className="fas-nrow-group">Früher</p>
+                {earlierNotifications.map((n) => (
+                  <NotificationRow
+                    key={n.id}
+                    notification={n}
+                    onOpen={() => {
+                      setNotifOpen(false)
+                      if (n.link) window.location.href = n.link
+                    }}
+                  />
+                ))}
+              </>
+            ) : null}
+          </>
+        )}
+      </AppShellFlyout>
     </aside>
+  )
+}
+
+/** One notification — title, one line of context, and how long ago. */
+function NotificationRow({
+  notification,
+  onOpen,
+}: {
+  notification: { id: string; title: string; body: string | null; message?: string | null; read: boolean; created_at: string }
+  onOpen: () => void
+}) {
+  const body = (notification.body || notification.message || '').trim()
+  return (
+    <button
+      type="button"
+      className={`fas-nrow${notification.read ? '' : ' is-unread'}`}
+      onClick={onOpen}
+    >
+      <span className="fas-nrow-mark" aria-hidden="true" />
+      <span className="fas-nrow-copy">
+        <span className="fas-nrow-title">{notification.title}</span>
+        {body ? <span className="fas-nrow-body">{body}</span> : null}
+      </span>
+      <span className="fas-nrow-age">{fmtRecentAge(notification.created_at)}</span>
+    </button>
   )
 }

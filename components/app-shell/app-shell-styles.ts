@@ -3332,22 +3332,28 @@ html[data-theme="classic-dark"] .fas-flyout-body::-webkit-scrollbar-thumb {
 .fas-footer-row {
   display: flex;
   align-items: center;
-  gap: 2px;
+  /* Wrap rather than flip: a flex-direction switch on .is-collapsed fires the
+     moment the class changes — the row stacked while the panel was still wide
+     and you saw it jump. Wrapping happens when the width genuinely runs out,
+     so it rides the same easing as the panel itself. */
+  flex-wrap: wrap;
+  gap: 1px 2px;
   min-width: 0;
 }
-.fas-footer-row .fas-settings-link { flex: 1 1 auto; min-width: 0; }
+.fas-footer-row .fas-settings-link { flex: 1 1 120px; min-width: 0; }
 .fas-footer-row .fas-help-btn {
-  width: auto;
   flex: 0 0 auto;
+  width: auto;
+  min-width: 36px;
   padding: 0 10px;
+  justify-content: center;
   color: var(--fas-ink-faint);
 }
 .fas-footer-row .fas-help-btn:hover { color: var(--fas-ink); }
 /* Expanded: help is a word, not an icon — the gear already carries the row. */
 .fas-sidebar.is-expanded .fas-footer-row .fas-help-btn svg { display: none; }
-/* Rail: the word cannot show, so the icon comes back and centres. */
-.fas-sidebar.is-collapsed .fas-footer-row { flex-direction: column; align-items: stretch; gap: 1px; }
-.fas-sidebar.is-collapsed .fas-footer-row .fas-help-btn { width: 100%; padding: 0 10px; }
+/* Rail: the word cannot show, so the icon carries it. */
+.fas-sidebar.is-collapsed .fas-footer-row .fas-help-btn { flex: 1 1 100%; }
 
 @media (max-width: 900px) {
   .fas-flyout {
@@ -3358,6 +3364,71 @@ html[data-theme="classic-dark"] .fas-flyout-body::-webkit-scrollbar-thumb {
     z-index: 41;
   }
   .fas-flyout-scrim { z-index: 40; background: rgba(15, 18, 26, 0.28); }
+}
+
+
+/* ══ Rail polish — one easing curve, one movement ══
+   Everything that opens or grows in the sidebar now travels on the same
+   curve, so hover-expand, label reveal and the docked panel read as one
+   motion instead of three independent animations. */
+.fas-sidebar { will-change: width; }
+.fas-nav-label {
+  transition:
+    opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fas-sidebar.is-collapsed .fas-nav-label {
+  transform: translateX(-6px);
+  /* Labels must clear out before the paper does, or the page reads through. */
+  transition:
+    opacity 0.1s ease,
+    transform 0.1s ease;
+}
+.fas-nav-link,
+.fas-settings-link,
+.fas-help-btn,
+.fas-account-row,
+.fas-recent-item {
+  transition:
+    background 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fas-sidebar-icon {
+  transition:
+    background 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* An open panel keeps its trigger lit — the rail shows what it opened. */
+.fas-sidebar-icon.is-on {
+  background: var(--fas-nav-active);
+  color: var(--fas-nav-active-ink);
+}
+.fas-sidebar-icon.is-on .fas-notif-dot { background: #5B647D; }
+.fas-ws-caret { transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
+.fas-ws-trigger.is-open .fas-ws-caret { transform: rotate(180deg); }
+.fas-recent-caret { transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* The account mark carries a glyph when there is no photo and no initials. */
+.fas-account-mark svg { opacity: 0.72; }
+.fas-account-row:hover .fas-account-mark svg { opacity: 1; }
+
+/* Menus that stay menus still speak the panel's language. */
+.fas-popover {
+  border-radius: 12px;
+  padding: 6px;
+  animation: fasPopSoft 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes fasPopSoft {
+  from { opacity: 0; transform: translateY(-4px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+.fas-popover-item { border-radius: 8px; transition: background 0.16s cubic-bezier(0.22, 1, 0.36, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fas-sidebar,
+  .fas-nav-label,
+  .fas-flyout,
+  .fas-popover { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 
 `.replace(/\s+/g, ' ').trim()
