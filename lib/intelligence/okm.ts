@@ -47,6 +47,13 @@ export type AdaptiveIntelligenceSettings = {
   adaptive_personal_profiles: boolean
   /** Include Adaptive Intelligence signals in predictive / proactive Tagro hints. Default true when master on. */
   adaptive_predictions: boolean
+  /**
+   * Measure project health (lib/health) and let it feed Control Status.
+   * Default true when the master switch is on: health is derived from work
+   * that already happened, never from new tracking. Turning it off makes
+   * Control Status fall back to its counting heuristic.
+   */
+  project_health_enabled: boolean
 }
 
 export const ADAPTIVE_INTELLIGENCE_DEFAULTS: AdaptiveIntelligenceSettings = {
@@ -54,6 +61,7 @@ export const ADAPTIVE_INTELLIGENCE_DEFAULTS: AdaptiveIntelligenceSettings = {
   adaptive_cross_project_patterns: true,
   adaptive_personal_profiles: false,
   adaptive_predictions: true,
+  project_health_enabled: true,
 }
 
 export function readAdaptiveIntelligenceSettings(
@@ -81,6 +89,11 @@ export function readAdaptiveIntelligenceSettings(
       ? typeof s.adaptive_predictions === 'boolean'
         ? s.adaptive_predictions
         : ADAPTIVE_INTELLIGENCE_DEFAULTS.adaptive_predictions
+      : false,
+    project_health_enabled: master
+      ? typeof s.project_health_enabled === 'boolean'
+        ? s.project_health_enabled
+        : ADAPTIVE_INTELLIGENCE_DEFAULTS.project_health_enabled
       : false,
   }
 }

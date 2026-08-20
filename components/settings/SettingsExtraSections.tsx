@@ -170,6 +170,20 @@ export default function SettingsExtraSections({
               onChange={v => saveWsSetting('adaptive_predictions', v)}
             />
           </div>
+          <div className="set-row">
+            <div>
+              <div className="set-label">Projekt-Health</div>
+              <div className="set-label-sub">
+                Festag misst laufend, wie ein Projekt steht — aus Entscheidungen,
+                Aufgaben und Meldungen, die ohnehin entstehen. Aus ist der Projektstatus
+                wieder eine reine Zählung ohne Begründung.
+              </div>
+            </div>
+            <SegmentToggle
+              value={adaptive.project_health_enabled}
+              onChange={v => saveWsSetting('project_health_enabled', v)}
+            />
+          </div>
           <div className="set-row set-row-stack">
             <div>
               <div className="set-label">Datenschutz</div>

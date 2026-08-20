@@ -20,6 +20,9 @@ import {
 } from '@/lib/tasks/perspective'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import { computeControlStatus, ageInDays } from '@/lib/trust/control-status'
+import ProjectHealthPanel from '@/components/health/ProjectHealthPanel'
+import { describeHealth } from '@/lib/health/language'
+import type { ProjectHealth } from '@/lib/health/types'
 import { computeReportReadiness } from '@/lib/trust/nexora'
 import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
@@ -297,6 +300,21 @@ function ProjectPageInner() {
   }, [id])
 
   useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, aiThinking])
+
+  // ── Project Health (lib/health) ─────────────────────────────────────────
+  // Declared up here, before the `!project` early return below, so the hook
+  // order stays stable. Health is additive: if it never arrives, Control
+  // Status simply behaves as it did before.
+  const [health, setHealth] = useState<ProjectHealth | null>(null)
+  useEffect(() => {
+    if (!id) return
+    let alive = true
+    fetch(`/api/projects/${id}/health`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive && d?.health) setHealth(d.health as ProjectHealth) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [id])
 
   async function loadEvidenceCount() {
     const { data } = await (supabase as any).from('evidence').select('id,client_visible').eq('project_id', id)
@@ -829,6 +847,10 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
     if (doneTasks.length === 0) return { tone: 'pending', label: 'Pending Review' }
     return { tone: 'review', label: 'Tagro Check' }
   })()
+
+  // Plain expression, not a hook — this sits after the `!project` return.
+  const healthSurface = describeHealth(health)
+  const healthCause = healthSurface.cause ? healthSurface.cause.why : null
 
   // Consolidated Control Status — the visible "AI control layer" line. One
   // status + one-line reason, derived from existing signals (no 2nd score).
@@ -2491,6 +2513,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
               <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                 <strong style={{ fontSize: 13, color: 'var(--text)', letterSpacing: '.01em' }}>{controlStatus.label}</strong>
                 <small style={{ fontSize: 11.5, lineHeight: 1.45, color: 'var(--pv-muted)', letterSpacing: '.01em' }}>{controlStatus.reason}</small>
+                {/* The evidence behind the verdict above — no score of its own,
+                    so this stays one status, not two. */}
+                {healthSurface.measurable ? (
+                  <span style={{ marginTop: 8 }}>
+                    <ProjectHealthPanel health={health} variant="evidence" />
+                  </span>
+                ) : null}
               </span>
             </div>
             <div className="pv-side-rows">

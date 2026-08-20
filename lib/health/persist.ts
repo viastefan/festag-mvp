@@ -7,6 +7,7 @@
  * measurement is not a failed decision.
  */
 
+import { readAdaptiveIntelligenceSettings } from '@/lib/intelligence/okm'
 import { collectHealthInput } from './collect'
 import { computeProjectHealth, diffHealth } from './engine'
 import type { HealthFactor, HealthFactorId, ProjectHealth } from './types'
@@ -70,17 +71,56 @@ export async function readProjectHealthMap(
 }
 
 /**
+ * Does this project's workspace want health measured?
+ *
+ * Honours the workspace switch (Einstellungen → Projekt-Health), which lives
+ * under the Adaptive Intelligence master switch: turning that off turns health
+ * off with it. Fails open — a workspace we cannot read is not a reason to stop
+ * measuring, and every caller degrades safely anyway.
+ */
+async function healthEnabledFor(
+  service: ServiceClient,
+  projectId: string,
+): Promise<boolean> {
+  try {
+    const { data: project } = await service
+      .from('projects')
+      .select('workspace_id')
+      .eq('id', projectId)
+      .maybeSingle()
+    if (!project?.workspace_id) return true
+
+    const { data: ws } = await service
+      .from('workspaces')
+      .select('metadata')
+      .eq('id', project.workspace_id)
+      .maybeSingle()
+
+    const settings = (ws?.metadata as any)?.settings ?? null
+    return readAdaptiveIntelligenceSettings(settings).project_health_enabled
+  } catch {
+    return true
+  }
+}
+
+/**
  * Recompute health for one project and store it.
  *
  * Idempotent: running it twice on unchanged data writes the same row and
  * records no second delta, because `diffHealth` returns null when the score
  * did not move.
+ *
+ * Returns null when the workspace has health switched off — nothing is
+ * computed and nothing is written, so the switch is a real consequence and
+ * not just a stored preference.
  */
 export async function refreshProjectHealth(
   service: ServiceClient,
   projectId: string,
 ): Promise<ProjectHealth | null> {
   try {
+    if (!(await healthEnabledFor(service, projectId))) return null
+
     const previous = await readProjectHealth(service, projectId)
     const input = await collectHealthInput(service, projectId)
     const next = computeProjectHealth(input)

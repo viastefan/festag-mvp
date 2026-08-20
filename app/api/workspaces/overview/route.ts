@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { DECISION_OPEN_STATUS_LIST, DECISION_TERMINAL_STATUS_LIST } from '@/lib/decisions/types'
 import { buildProjectIntelligence, scoreDecisionRow, type DecisionRow } from '@/lib/intelligence'
+import { readProjectHealthMap } from '@/lib/health/persist'
 import { mapDecisionRowToOverview, rankDecisionsForCanvas } from '@/lib/overview/decision-canvas'
 import {
   listWorkspacesForUser,
@@ -272,12 +273,25 @@ export async function GET(req: NextRequest) {
     if (title) milestoneByProject.set(m.project_id, title)
   }
 
+  // Measured health for these projects, if it has ever been computed.
+  const healthByProject = await readProjectHealthMap(service as any, projectIds)
+
+  /**
+   * Project health for the overview cards.
+   *
+   * Prefers the measured, persisted health (lib/health) so this list, the
+   * project view and Control Status never disagree about the same project.
+   * The counting heuristic below stays as the fallback for projects that have
+   * not been measured yet — it is a weaker answer, not a competing one.
+   */
   function deriveHealth(projectId: string): WorkspaceOverviewProject['health'] {
+    const measured = healthByProject.get(projectId)
+    if (measured?.score != null) return measured.band
+
     const critical = criticalByProject.get(projectId) || 0
     const openDec = openDecisionsByProject.get(projectId) || 0
     if (critical >= 2) return 'blocked'
     if (critical >= 1) return 'risk'
-    if (openDec >= 2) return 'watch'
     if (openDec >= 1) return 'watch'
     return 'healthy'
   }

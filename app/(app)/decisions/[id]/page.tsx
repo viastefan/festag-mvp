@@ -29,6 +29,7 @@ import {
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
 import DecisionBrandMark from '@/components/decisions/DecisionBrandMark'
+import DecisionOutcomeNote, { type DecisionOutcomeRow } from '@/components/health/DecisionOutcomeNote'
 import DecisionResolveSheet, { type ResolveStep } from '@/components/decisions/DecisionResolveSheet'
 import { DECISION_BOARD_CSS, DECISION_SHEET_CSS } from '@/components/decisions/decision-board-styles'
 import { confidencePercent, doorLabel, dueLine, eventActorLabel, eventLabel, isOverdue } from '@/lib/decisions/center'
@@ -60,6 +61,7 @@ function DecisionDetail() {
   const [project, setProject] = useState<ProjectLite | null>(null)
   const [affected, setAffected] = useState<AffectedWork | null>(null)
   const [events, setEvents] = useState<EventLite[]>([])
+  const [outcome, setOutcome] = useState<DecisionOutcomeRow | null>(null)
   const [options, setOptions] = useState<DecOption[]>([])
   const [loading, setLoading] = useState(true)
   const [me, setMe] = useState('')
@@ -80,12 +82,13 @@ function DecisionDetail() {
       setAffected((MOCK_AFFECTED[mock.id] as AffectedWork) ?? null)
       setOptions((mock.options_json || []).map(o => ({ id: o.id, label: o.label, description: o.hint })))
       setEvents([])
+      setOutcome(null)
       setLoading(false)
       return
     }
 
     try {
-      const res = await fetch(`/api/decisions/${id}?expand=options,affected,events`, { credentials: 'include' })
+      const res = await fetch(`/api/decisions/${id}?expand=options,affected,events,outcome`, { credentials: 'include' })
       if (!res.ok) { setDecision(null); return }
       const data = await res.json()
       setDecision(data.decision ?? null)
@@ -93,6 +96,7 @@ function DecisionDetail() {
       setAffected((data.affected ?? null) as AffectedWork | null)
       setEvents(Array.isArray(data.events) ? (data.events as EventLite[]) : [])
       setOptions(Array.isArray(data.options) ? (data.options as DecOption[]) : [])
+      setOutcome((data.outcome ?? null) as DecisionOutcomeRow | null)
     } catch {
       setDecision(null)
     } finally {
@@ -271,6 +275,10 @@ function DecisionDetail() {
             {!isDecider && <p className="dcd-note">Wartet auf die entscheidende Person.</p>}
           </div>
         )}
+
+        {/* Once the call is made, what it led to — before the reasoning that
+            led up to it, because the consequence is the newer information. */}
+        <DecisionOutcomeNote outcome={outcome} resolved={!open} />
 
         {rationale.length > 0 && (
           <section className="dcd-section">

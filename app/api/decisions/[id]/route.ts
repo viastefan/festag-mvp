@@ -5,7 +5,7 @@ export const runtime = 'nodejs'
 
 /**
  * GET    /api/decisions/:id   — full row + linked project
- *                               ?expand=options,events,links,affected
+ *                               ?expand=options,events,links,affected,outcome
  * PATCH  /api/decisions/:id   — partial update (status, urgency, due_date,
  *                                title, description, options_json,
  *                                requested_for, decision_note)
@@ -33,6 +33,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
   const wantEvents = expand.includes('events')
   const wantLinks = expand.includes('links')
   const wantAffected = expand.includes('affected')
+  const wantOutcome = expand.includes('outcome')
 
   const { data, error } = await (supa as any)
     .from('decisions').select('*').eq('id', ctx.params.id).maybeSingle()
@@ -56,6 +57,19 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
         .eq('decision_id', ctx.params.id)
         .order('ordinal', { ascending: true })
       expansions.options = opts ?? []
+    })())
+  }
+  if (wantOutcome) {
+    // How this decision actually turned out — written by the Learning Engine
+    // once the decision is applied (lib/intelligence/persist.ts). Absent until
+    // then, which the surface states plainly rather than faking a verdict.
+    tasks.push((async () => {
+      const { data: outcome } = await (supa as any)
+        .from('decision_outcomes')
+        .select('outcome_score, acceptance, category, summary, reverted, revisions, bugs, delay_days, updated_at')
+        .eq('decision_id', ctx.params.id)
+        .maybeSingle()
+      expansions.outcome = outcome ?? null
     })())
   }
   if (wantEvents) {
