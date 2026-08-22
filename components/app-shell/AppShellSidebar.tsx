@@ -438,35 +438,17 @@ export default function AppShellSidebar({
             </span>
           </button>
 
-          {/* Search and notifications already live in the top bar — the rail
-              would only duplicate them. They belong to the open panel. */}
+          {/* Suche und Glocke stehen in der Topbar — und nur dort.
+              Vorher trugen beide Flächen dasselbe Paar: im Rail zeigte es die
+              Topbar, aufgeklappt zeigten es beide gleichzeitig. Ein globales
+              Bedienelement darf nicht erscheinen und verschwinden, je nachdem
+              ob jemand ein Panel angeheftet hat — die Topbar ist die einzige
+              Fläche, die in jedem Zustand da ist, also gehört es ihr.
+
+              Der Einklapp-Schalter bleibt hier: er bedient die Sidebar selbst,
+              nicht das Produkt. */}
           {expanded ? (
             <div className="fas-sidebar-utils">
-              <button
-                type="button"
-                className="fas-sidebar-icon"
-                aria-label="Suche"
-                title="Suche"
-                onClick={openSearch}
-              >
-                <MagnifyingGlass size={16} weight="light" />
-              </button>
-              <button
-                ref={notifTriggerRef}
-                type="button"
-                className={`fas-sidebar-icon${notifOpen ? ' is-on' : ''}`}
-                aria-label={unread > 0 ? `Benachrichtigungen, ${unread} ungelesen` : 'Benachrichtigungen'}
-                title="Benachrichtigungen"
-                aria-haspopup="dialog"
-                aria-expanded={notifOpen}
-                onClick={() => {
-                  setWsOpen(false)
-                  setNotifOpen((v) => !v)
-                }}
-              >
-                <Bell size={16} weight="light" />
-                {unread > 0 ? <span className="fas-notif-dot" aria-hidden="true" /> : null}
-              </button>
               <button
                 type="button"
                 className="fas-sidebar-icon fas-sidebar-collapse"

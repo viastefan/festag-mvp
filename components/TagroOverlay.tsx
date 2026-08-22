@@ -80,6 +80,17 @@ export function openTagro(detail: TagroOpenDetail) {
 
 // ── Per-context copy ──────────────────────────────────────────────────────
 
+/**
+ * Kürzt einen Text auf Etikettenlänge — an der Wortgrenze, nie mitten im Wort.
+ * Gibt null zurück, wenn nichts Sinnvolles übrig bleibt.
+ */
+function clampLabel(value?: string | null, max = 48): string | null {
+  const text = (value ?? '').trim()
+  if (!text) return null
+  if (text.length <= max) return text
+  return `${text.slice(0, max).replace(/\s+\S*$/, '')}…`
+}
+
 const CTX_CHIP: Record<TagroContextType, string> = {
   project: 'Projekt', task: 'Aufgabe', decision: 'Entscheidung',
   document: 'Dokument', pdf: 'PDF', client: 'Kunde',
@@ -241,7 +252,12 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
   // "list" / "dev-overview" / "inbox" sentinel IDs mean "the page itself"
   // rather than a real object — treat them as overview contexts.
   const isOverview = !ctx.id || /^(list|inbox|dev-overview|dev-list|dev-plan|dev-updates|dev-inbox|github|dashboard)$/.test(ctx.id)
-  const mentionLabel = isOverview && !title ? `@${kind} Übersicht` : `@${kind}${title ? ' ' + title : ''}`
+  /* Eine Erwähnung nennt das Objekt. `@Bericht News` war keine Erwähnung,
+     sondern Gattung + Name in einem Atemzug — die Gattung reist ohnehin
+     strukturiert als `objectType` mit und steht in der Kopfzeile. */
+  const mentionLabel = isOverview && !title
+    ? `@${kind} Übersicht`
+    : `@${title || kind}`
 
   // Per-context intro + help. Falls back gracefully when title is missing.
   const ref = title || (isOverview ? 'Übersicht' : kind)
@@ -367,8 +383,12 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     objectType: t,
     objectId: isOverview ? undefined : ctx.id,
   }]
-  if (ctx.subtitle && ctx.subtitle.trim()) {
-    chips.push({ kind: 'meta', label: ctx.subtitle.trim() })
+  /* Ein Chip trägt ein Etikett, keinen Absatz. Seiten übergeben als Untertitel
+     schon mal einen ganzen Satz (die News-Seite ihre Tageszeile) — der wird
+     hier auf Etikettenlänge gekürzt, statt die Chipzeile zu sprengen. */
+  const subtitleChip = clampLabel(ctx.subtitle)
+  if (subtitleChip) {
+    chips.push({ kind: 'meta', label: subtitleChip })
   }
 
   if (ctx.id === 'help') {
@@ -1022,11 +1042,22 @@ export default function TagroOverlay() {
     setExtraAttached(prev => prev.filter(p => p.label !== label))
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
   const pickerTitle = 'Status, Risiken oder den nächsten Schritt klar machen.'
+  /**
+   * Die Kopfzeile sagt, *was Tagro gerade in der Hand hat* — nicht, was auf
+   * der Seite steht. Sie ist eine Kette aus Etiketten, keine Prosa.
+   *
+   * Vorher stand hier ein Join mit Komma, in den auch `subtitle` lief. Sobald
+   * eine Seite einen ganzen Satz als Untertitel übergab, las sich der Kopf als
+   * "Bericht, News, Noch nichts passiert. Sobald sich etwas bewegt, steht es
+   * hier." — die Kommas der Kette und die Kommas des Satzes waren nicht mehr
+   * auseinanderzuhalten. Deshalb trennt jetzt ein Mittelpunkt, und der
+   * Untertitel bleibt draußen: er hängt ohnehin als Chip am Verfasser.
+   */
   const contextLine = [
-    ctx.title ? `${CTX_CHIP[ctx.contextType]}, ${ctx.title}` : CTX_CHIP[ctx.contextType],
-    ctx.subtitle,
+    CTX_CHIP[ctx.contextType],
+    ctx.title,
     ctx.status ? `Status: ${ctx.status}` : '',
-  ].filter(Boolean).join(', ')
+  ].filter(Boolean).join(' · ')
 
   if (!open) return null
 

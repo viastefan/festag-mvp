@@ -270,7 +270,11 @@ export default function NewsPage() {
             contextType: 'report',
             id: 'newsroom',
             title: 'News',
-            subtitle: payload?.digest.line ?? 'Was zuletzt wichtig war',
+            /* Ein Etikett, kein Satz — die Tageszeile gehört auf die Seite,
+               nicht in Tagros Kontextkopf. */
+            subtitle: payload?.digest.openCount
+              ? `${payload.digest.openCount} offen`
+              : 'Nichts offen',
           }}
         />
       </div>

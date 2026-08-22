@@ -6,6 +6,7 @@ import { FESTAG_PAGE_STYLES } from '@/components/app-shell/festag-page-styles'
 import { useWorkspaceOverview } from '@/hooks/useWorkspaceOverview'
 import { openNewProject } from '@/lib/new-project-open'
 import { openWorkspaceCreateWizard } from '@/lib/workspace-create-open'
+import { projectSubline } from '@/lib/projects/language'
 
 const HEALTH_LABEL: Record<string, string> = {
   healthy: 'Stabil',
@@ -91,10 +92,7 @@ export default function HomeProjectsPage() {
                   </span>
                   <span className="fps-row-copy">
                     <span className="fps-row-title">{p.title}</span>
-                    <span className="fps-row-sub">
-                      {(p.phase || p.status || 'Planung')}
-                      {' · '}{p.progress}% · {p.nextMilestone || 'kein Meilenstein gesetzt'}
-                    </span>
+                    <span className="fps-row-sub">{projectSubline(p)}</span>
                   </span>
                 </div>
                 <div className="fps-row-right">
