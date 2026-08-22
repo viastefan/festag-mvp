@@ -243,10 +243,29 @@ html[data-theme="classic-dark"] .fas-sidebar.is-expanded {
 .fas-sidebar-spacer {
   width: calc(var(--fas-sidebar-collapsed-w) + var(--fas-sidebar-float-inset));
   flex-shrink: 0;
-pointer-events: none;
+  pointer-events: none;
+  transition: width var(--dur-2, 240ms) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Expanded floats over the canvas — do not push the main column. */
+/* ── Eine offene Leiste darf den Inhalt nicht verdecken ──────────────────
+   Der Platzhalter hielt immer die Rail-Breite: die Leiste schwebte auch
+   aufgeklappt ueber der Seite. Solange sie beim Wegziehen der Maus wieder
+   zufiel, war das ein kurzer Moment. Seit sie offen bleibt, bis man sie
+   schliesst, ist es ein Dauerzustand — der halbe Satz verschwindet hinter
+   dem Panel, und man liest "…will einen developer" statt des Anfangs.
+
+   Ein Panel, das man offen laesst, ist Teil des Layouts und keine Auflage.
+   Der Platzhalter waechst deshalb mit, sobald die Leiste offen ist — egal ob
+   angeheftet oder durch Naehe geoeffnet, denn fuer den Inhalt ist das
+   dasselbe.
+
+   Das kostet ein Layout beim Umschalten. Das ist vertretbar: es passiert
+   einmal pro Klick, nicht sechzigmal pro Sekunde wie frueher bei der
+   Breiten-Animation. */
+.fas-root.is-sidebar-expanded .fas-sidebar-spacer,
+.fas-root.is-sidebar-peek .fas-sidebar-spacer {
+  width: calc(var(--fas-sidebar-w) + var(--fas-sidebar-float-inset));
+}
 
 .fas-sidebar-top {
   position: relative;
