@@ -26,6 +26,7 @@ import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import AppShellFlyout from '@/components/app-shell/AppShellFlyout'
 import { getDisplayName, getFullDisplayName, getInitials, type UserProfile } from '@/lib/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
+import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { getRememberedWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 import { openWorkspaceCreateWizard, openWorkspaceManage, openWorkspaceRename, WORKSPACE_CREATED_EVENT, WORKSPACE_DELETED_EVENT, WORKSPACE_RENAMED_EVENT, WORKSPACE_UPDATED_EVENT } from '@/lib/workspace-create-open'
 import {
@@ -365,6 +366,15 @@ export default function AppShellSidebar({
     }
   }, [wsOpen, notifOpen])
 
+  /* Signing out sat behind the account panel. The workspace menu is already
+     open on the way past, so it belongs here too — one click instead of three. */
+  async function signOutFast() {
+    setWsOpen(false)
+    prepareAuthRouteTransition('/login')
+    await createClient().auth.signOut()
+    window.location.assign('/login')
+  }
+
   function goCreateWorkspace() {
     setWsOpen(false)
     openWorkspaceCreateWizard()
@@ -517,6 +527,15 @@ export default function AppShellSidebar({
             <button type="button" className="fas-popover-item" onClick={goCreateWorkspace}>
               <Plus size={14} weight="bold" />
               Workspace erstellen
+            </button>
+            <div className="fas-popover-sep" role="separator" />
+            <button
+              type="button"
+              className="fas-popover-item fas-popover-item--quiet"
+              onClick={() => { void signOutFast() }}
+            >
+              <SignOut size={14} weight="regular" />
+              Abmelden
             </button>
           </div>
         ) : null}
