@@ -121,6 +121,36 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
+  /* ── Design Constitution 2026-08-22 — neutral ground, elevation, 4.5:1 ──
+     Full law: docs/festag-design-constitution.md. Declared first so the older
+     warm-paper values below still win where a surface has not been migrated
+     yet; migrate a surface by deleting its override, not by editing here. */
+  --fst-ground:#F7F7F8;
+  --fst-card:#FFFFFF;
+  --fst-raised:#F1F1F3;
+  --fst-sunken:#E9E9EC;
+  --fst-hairline:rgba(15,15,20,0.07);
+
+  --fst-text:#0F0F14;
+  --fst-text-2:#5B5B66;
+  --fst-text-3:#7C7C88;
+  --fst-accent:#2E6BFF;
+  --fst-accent-soft:rgba(46,107,255,0.10);
+
+  --fst-radius-sm:8px;
+  --fst-radius-md:12px;
+  --fst-radius-lg:20px;
+  --fst-radius-xl:28px;
+
+  --fst-shadow-sm:0 1px 2px rgba(15,15,20,.05);
+  --fst-shadow-md:0 4px 16px rgba(15,15,20,.07);
+  --fst-shadow-lg:0 12px 32px rgba(15,15,20,.10);
+  --fst-shadow-xl:0 24px 64px rgba(15,15,20,.14);
+
+  --fst-press:70ms ease;
+  --fst-hover:130ms ease;
+  --fst-panel:200ms ease;
+
   /* Light — cool gray canvas, white panels, quiet hairlines. */
   --bg:#FBF7EE; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
@@ -623,6 +653,21 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --nav-on:rgba(91,100,125,0.32); --nav-on-text:#E8EAF0; --nav-off-text:#8B909E;
   --surface-2:var(--festag-black-peak);
   --hover:#27272C; --active:#27272C;
+  /* Constitution 2026-08-22 — dark ground. Same names, dark values. */
+  --fst-ground:#0B0B0D;
+  --fst-card:#141416;
+  --fst-raised:#1C1C20;
+  --fst-sunken:#232328;
+  --fst-hairline:rgba(255,255,255,0.08);
+  --fst-text:#F4F4F6;
+  --fst-text-2:#A6A6B2;
+  --fst-text-3:#8A8A96;
+  --fst-accent:#5B8CFF;
+  --fst-accent-soft:rgba(91,140,255,0.14);
+  --fst-shadow-sm:0 1px 2px rgba(0,0,0,.30);
+  --fst-shadow-md:0 4px 16px rgba(0,0,0,.36);
+  --fst-shadow-lg:0 12px 32px rgba(0,0,0,.44);
+  --fst-shadow-xl:0 24px 64px rgba(0,0,0,.55);
   --green:#2E9B52; --green-bg:rgba(47,165,110,0.14);
   --green-border:rgba(47,165,110,0.22); --green-dark:#268A5A;
   --amber:#D6A34F; --amber-bg:rgba(214,163,79,0.14); --amber-dark:#B8893E;

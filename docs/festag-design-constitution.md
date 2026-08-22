@@ -2,165 +2,193 @@
 
 **The visual law of the Software Production Operating System.**
 
-This document defines how Festag *feels* — not individual components. Every screen, animation, and surface must pass the gate at the end of this document.
+This document defines how Festag *looks and behaves* — not individual components.
+Every screen, animation and surface must pass the gate at the end.
 
-Related: `docs/festag-experience-constitution.md` · `lib/design-tokens/festag-canvas.ts`
+Related: `docs/festag-experience-constitution.md` · `app/globals.css` (token block) ·
+`components/festag/festag-rows.ts` (the one list form)
+
+> **Revision, 2026-08-22.** This replaces the "Read Mode / warm paper" constitution.
+> That law asked every surface to whisper, and the product paid for it: body copy sat
+> near 2.4:1 against its own background, primary actions were transparent while a
+> third-party OAuth button carried the accent fill, and "never fill empty space"
+> produced screens you had to hunt through. The new law keeps the *product* rules —
+> one decision at a time, Tagro invisible, ask why a thing is on screen — and
+> replaces the *visual* ones. Calm is still the goal. Calm is not the same as faint.
 
 ---
 
 ## Core philosophy
 
-Design silence. Design clarity. Design confidence. Never design complexity.
+Design clarity. Design confidence. Design silence where silence helps — never quietness
+as a costume.
 
-Festag is not an AI chat, not a project management tool, not another SaaS application. It is a **Software Production Operating System**.
+Festag is a **Software Production Operating System**. Every screen answers one question:
+**What deserves my attention right now?** The difference from the old law is how the
+answer is delivered: the thing that deserves attention is now allowed to *look* like it.
 
-Every screen answers one question: **What deserves my attention right now?**
-
-If the user has to think about how the interface works, the interface failed.
+If the user has to hunt for the primary action, the interface failed.
 
 ---
 
-## Read Mode (default identity)
+## Ground and surfaces
 
-Every page begins in Read Mode.
+Neutral, not warm. Light mode is a soft neutral ground with true-white cards lifted off
+it; dark mode is near-black with raised panels. Depth comes from **elevation**, not from
+borders.
 
-| Token | Value |
+| Token | Light | Dark |
+|---|---|---|
+| `--surface-0` ground | `#F7F7F8` | `#0B0B0D` |
+| `--surface-1` card | `#FFFFFF` | `#141416` |
+| `--surface-2` raised / hover | `#F1F1F3` | `#1C1C20` |
+| `--surface-3` sunken / track | `#E9E9EC` | `#232328` |
+| `--hairline` | `rgba(15,15,20,0.07)` | `rgba(255,255,255,0.08)` |
+
+Rules:
+
+- A card is **fill + radius + shadow**. A hairline is optional and never the only
+  separation. Never a border as the primary edge.
+- One elevation step per layer. A card on a card is a design smell; a sheet over a page
+  is fine.
+- **Never:** gradient fills as decoration, glassmorphism as a surface, more than two
+  elevation levels visible at once.
+
+---
+
+## Colour
+
+Ink carries hierarchy. Colour carries state, never decoration.
+
+| Role | Light | Dark | Minimum contrast |
+|---|---|---|---|
+| `--text` primary | `#0F0F14` | `#F4F4F6` | 12:1 |
+| `--text-2` secondary | `#5B5B66` | `#A6A6B2` | **4.5:1** |
+| `--text-3` tertiary / meta | `#7C7C88` | `#8A8A96` | **4.5:1** |
+| `--accent` | `#2E6BFF` | `#5B8CFF` | 4.5:1 on ground |
+
+- **4.5:1 is a floor, not a target.** The old palette shipped 2.4:1 secondary text. Any
+  new token pair must be checked before it lands.
+- Accent is for **state and focus**: active nav, focus ring, selected, link. Never as a
+  fill for a provider button, never as decoration.
+- State colours (`--green`, `--amber`, `--red`) mark *what a thing needs*, never a brand
+  mood. They keep the semantic names already in `festag-rows.ts` (`--fst-tone`:
+  wait · watch · good · quiet).
+
+---
+
+## Primary action
+
+Exactly **one** filled action per surface, and it is the thing the screen is for.
+
+- Primary: solid `--text` fill, inverted label, pill or `--radius-md`.
+- Secondary: `--surface-2` fill, no border.
+- Tertiary: text only.
+- A provider button (Google, Apple, SSO) is **secondary**. It is never the loudest
+  element on a sign-in screen.
+
+If two things on a screen look equally clickable, one of them is wrong.
+
+---
+
+## Radius
+
+| Token | Value | Used for |
+|---|---|---|
+| `--radius-sm` | 8px | inputs, chips, small controls |
+| `--radius-md` | 12px | buttons, list rows |
+| `--radius-lg` | 20px | cards, popovers |
+| `--radius-xl` | 28px | sheets, feature cards, modals |
+| pill | 999px | avatars, badges, primary CTA when it stands alone |
+
+One family per surface. A 6px control inside a 28px card is a mismatch — step, don't jump.
+
+---
+
+## Elevation
+
+| Token | Value (light) |
 |---|---|
-| Paper | `#F8F6F2` |
-| Primary (attention only) | `#5B647D` |
-| Ink | `#1A1917` |
-| Muted | `#8A8680` |
+| `--shadow-sm` | `0 1px 2px rgba(15,15,20,.05)` |
+| `--shadow-md` | `0 4px 16px rgba(15,15,20,.07)` |
+| `--shadow-lg` | `0 12px 32px rgba(15,15,20,.10)` |
+| `--shadow-xl` | `0 24px 64px rgba(15,15,20,.14)` |
 
-**Never:** pure white canvas, gray dashboards, colorful gradients, glassmorphism, futuristic effects.
-
-**Always:** soft natural light, intentional whitespace, warm paper tone.
-
-Code: `lib/design-tokens/festag-canvas.ts`
+Shadows are for things that genuinely float: cards, sheets, popovers, the open sidebar
+panel. A permanently visible rail does not cast one — a shadow with nothing casting it
+is a smudge.
 
 ---
 
 ## Typography
 
-Typography creates hierarchy — not borders, not colors, not cards.
-**Hierarchy comes from size, not from weight.**
+Hierarchy comes from **size and colour**, not weight.
 
-Two faces, one law. The reference surfaces are **Auth, Onboarding, Overview-Flow and Popups** —
-the dashboard and every new surface must read the same way.
-
-| Role | Face | Weight | Example |
+| Role | Face | Weight | Size |
 |---|---|---|---|
-| Editorial display (large headline) | **Editors Note** | Medium (500) | `.display`, `.ffl-greet` — `clamp(30px, 3.4vw, 44px)` |
-| Headings `h1`–`h6` | **Aeonik** | **Regular (400)** | page titles, section titles, popup H1 (`26px`) |
-| Body / T1 | **Aeonik** | **Regular (400)** | popup body `15.5px`, page copy |
-| UI (buttons, inputs, nav, labels) | **Aeonik** | **Regular (400)** | `.modal-cta`, `.al-btn` |
-| Deliberate emphasis | Aeonik | Medium (500) | `strong`, `.fw-medium`, `.metric` |
+| Editorial display | Editors Note | Medium 500 | `clamp(28px, 3.2vw, 40px)` |
+| Page title | Editors Note | Medium 500 | 27–33px (`FESTAG_CONTENT_HEAD_CSS`) |
+| Section heading | Aeonik | Regular 400 | 17–19px |
+| Body / rows | Aeonik | Regular 400 | 15–16px |
+| Meta / labels | Aeonik | Regular 400 | 13px, `--text-3` |
 
-Rules:
-
-- **Aeonik Regular is the default everywhere** — body *and* headings. Medium is an opt-in for
-  a single emphasized element, never the baseline.
-- **Aeonik Bold is forbidden.** The `@font-face` for 600/700/800 maps to Medium so a forgotten
-  `font-weight: bold` cannot render.
-- **Editors Note Medium carries the large editorial moments** and stays Editors Note even when
-  the user switches the UI font (`--font-editorial` is independent of `--font-ui`).
-- Inside popups: H1 `26px` Regular, T1 `15.5px` Regular. A heading that sits *between* sections
-  in a popup is Regular too — do not reach for Medium to separate it.
-- Prefer huge headings, editorial spacing, comfortable line height, minimal labels. The
-  interface should almost read like a magazine.
-
-Source of truth: the Festag-Typo-Gesetz block in `app/globals.css` (`--font-ui`, `--font-editorial`).
+- Aeonik Regular is the default. Medium is opt-in for a single emphasised element.
+- **Aeonik Bold stays forbidden** — the `@font-face` for 600+ maps to Medium.
+- Desktop and mobile share one type scale. Not two products.
 
 ---
 
-## Spacing & surfaces
+## Motion
 
-Whitespace is part of the product. Never fill empty space. Large margins, large vertical rhythm, very few components.
+Motion confirms an action. It never performs.
 
-Panels = floating paper: almost invisible borders, very soft shadows, rounded corners. Nothing heavy. No dashboard feeling.
+| Interaction | Duration |
+|---|---|
+| Press | 70ms |
+| Hover, colour, focus ring | 130ms |
+| Panel / sheet open | 180–240ms |
+| Step or route change | 200ms |
 
----
-
-## The Festag Canvas
-
-Every page has **one living canvas** — not widgets, not statistics, not cards. The canvas visualizes context. Nothing more.
-
----
-
-## Knowledge vs Flow
-
-Two visual languages. One transition between them is the soul of Festag.
-
-### Knowledge (default)
-
-- Small dots, extremely subtle
-- Not connected, no labels, no noise
-- Feels alive but calm — like stars, like project knowledge sleeping
-- User understands: *My project exists* — without seeing complexity
-
-Code: `components/festag-canvas/KnowledgeGrid.tsx` · `lib/design/knowledge-grid.ts`
-
-### Flow (when attention is required)
-
-- **One** organic path appears (Primary Blue `#5B647D`)
-- **One** decision appears
-- **One** recommendation appears
-- After completion, path retracts — interface becomes calm again
-
-**Never:** multiple active paths, arrows, flowcharts, thick glowing lines.
-
-Code: `components/festag-canvas/FestagPath.tsx` · `components/festag-canvas/FestagKnowledgeEdges.tsx` · `components/festag-canvas/festag-canvas-styles.ts`
-
-Voice status on mobile uses `useStatusReportPlayback` (Web Speech API + word-level lyrics sync).
+- Micro-interactions are **faster** than layout changes, never slower. A hover that
+  takes 300ms reads as lag.
+- A surface that covers content must be opaque **before** it covers it.
+- Everything above collapses under `prefers-reduced-motion: reduce`.
 
 ---
 
-## Decisions & Tagro
+## Component patterns
 
-- Always **one** decision at a time — never lists, never task boards
-- Tagro is invisible intelligence — never the center, never AI theater
-- Recommendation panels float: pure white, minimal, editorial
-- Explanations grow from the path — never a new page
-
----
-
-## Animation
-
-Animations communicate understanding — never decoration.
-
-Slow. Confident. Elegant. Dots breathe. Paths grow. Panels fade. Popups emerge from paths. Completed paths retract.
+- **Lists** are `festag-rows.ts` — group heading, then rows. Not cards in a grid.
+- **People** are the person card: avatar, name, role, one real action. Roles come from
+  `lib/platform/roles.ts` — `client`, `developer`, `designer` are real project roles.
+  Do not invent parallel role systems.
+- **Empty states** say what is missing and offer the action that fills it.
+- **Every action has a consequence.** No button that only looks like one.
 
 ---
 
 ## Mobile
 
-Mobile is **not** desktop scaled down. Design independently.
+Mobile is **not** desktop scaled down.
 
-Large typography, large touch targets, maximum focus. One important thing visible at a time.
-
-Overview mobile = living story: `components/app-shell/overview/MobileOverviewStory.tsx`
-
-While Tagro speaks or a path is active, chrome fades (focus mode).
-
----
-
-## Desktop
-
-Desktop has room — do not fill it. Whitespace creates confidence.
-
-Overview desktop = Wissensraum constellation + Entscheidungsfluss: `components/app-shell/WorkspaceBoard.tsx`
+- Chrome is fixed and documented: `.cursor/rules/festag-mobile-ui.mdc`. Search + menu
+  together, top right, navigation in a sheet.
+- Touch targets ≥ 44px. Rows ≥ 48px.
+- A horizontal strip that scrolls must **show** that it scrolls — soft edge, snap.
+  Invisibly scrollable is the same as unreachable.
+- Never a desktop nav rail laid on its side.
 
 ---
 
 ## Gate (every feature)
 
-Before shipping any UI, ask:
-
-1. **Why is this visible now?** — If no good answer, remove it.
-2. Does this reduce cognitive load?
-3. Is Read Mode paper the canvas?
-4. Is Primary Blue used only for attention?
-5. Is there only one active path?
-6. Does mobile feel native — not compressed desktop?
+1. **Why is this visible now?** — no good answer, remove it.
+2. Is there exactly one filled primary action?
+3. Does every text pair clear 4.5:1?
+4. Is depth carried by elevation rather than borders?
+5. Are micro-interactions faster than layout changes?
+6. Does mobile feel native — not a compressed desktop?
+7. Does every action change something real in the backend?
 
 If any answer fails → redesign until it aligns.
 
@@ -168,6 +196,8 @@ If any answer fails → redesign until it aligns.
 
 ## Reference feeling
 
-> "This feels calm." → after five seconds → "I immediately understand." → after one minute → "This system thinks ahead."
+> "This is obvious." → after five seconds → "I know what to do next." → after a minute →
+> "This system thinks ahead."
 
-Not Jira. Not ClickUp. Not ChatGPT. Apple Notes × Linear × an operating system that hides complexity until it matters.
+Confident, current, quiet where quiet earns its place. Not Jira. Not ClickUp. Not a
+whisper you have to lean into.

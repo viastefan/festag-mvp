@@ -1,65 +1,65 @@
 ---
-description: Festag Design Constitution — Read Mode, Knowledge Grid, Path, mobile story law
-globs:
-  - components/**/*.tsx
-  - components/**/*.ts
-  - app/**/*.tsx
-  - lib/design-tokens/**
-  - lib/design/**
+description: Festag visual law — surfaces, colour, one primary action, radius, elevation, motion
+globs: app/**/*.tsx,app/**/*.css,components/**/*.tsx,components/**/*.ts,lib/design-tokens/**/*.ts
 alwaysApply: true
 ---
 
-# Festag Design Constitution
+# Festag Design Constitution (condensed)
 
-**Doc:** `docs/festag-design-constitution.md`  
-**Tokens:** `lib/design-tokens/festag-canvas.ts`  
-**Canvas:** `components/festag-canvas/*`
+Full law: `docs/festag-design-constitution.md`. Revised 2026-08-22 — replaces the
+"Read Mode / warm paper" version. Product rules unchanged; visual rules replaced.
+Calm is still the goal. Calm is not the same as faint.
 
-Festag is a **Software Production Operating System** — not SaaS, not PM, not AI chat.
+## Ground
 
-## Gate (every UI change)
+Neutral, not warm. Light: ground `#F7F7F8`, card `#FFFFFF`. Dark: ground `#0B0B0D`,
+card `#141416`. Depth is **elevation, not borders**. Max two elevation levels visible
+at once. No gradient decoration, no glassmorphism.
 
-1. Why is this visible **now**? No answer → remove it.
-2. Read Mode paper `#F8F6F2` — never pure white canvas, never gray dashboard.
-3. Primary `#5B647D` **only** for active attention (path, decision, focus).
-4. **One** active path at a time — organic ink, never arrows/flowcharts.
-5. Mobile ≠ shrunk desktop — large type, one focus, native story.
-6. Typography creates hierarchy — through **size, not weight**; not borders, not card chrome.
+## Colour
 
-## Typography law
+Ink carries hierarchy, colour carries state. **Every text pair clears 4.5:1** — the old
+palette shipped 2.4:1 secondary text; check before you land a pair. Accent `#2E6BFF` is
+for state and focus only — never a provider-button fill, never decoration. Tone tokens
+(`--fst-tone`: wait/watch/good/quiet) mark what a thing needs.
 
-Reference surfaces: Auth · Onboarding · Overview-Flow · Popups. Everything else follows them.
+## One primary action
 
-| Role | Face / weight |
-|---|---|
-| Editorial display (large headline) | **Editors Note Medium (500)** — `.display`, `.ffl-greet`, `--font-editorial` |
-| Headings `h1`–`h6` (incl. popup H1 `26px`) | **Aeonik Regular (400)** |
-| Body / T1 (`15.5px`) · buttons · inputs · nav | **Aeonik Regular (400)** |
-| Deliberate emphasis only | Aeonik Medium (500) — `strong`, `.fw-medium`, `.metric` |
+Exactly one filled action per surface, and it is what the screen is for. Primary = solid
+`--text`, inverted label. Secondary = `--surface-2`, no border. Provider buttons
+(Google/Apple/SSO) are **secondary**. If two things look equally clickable, one is wrong.
 
-- **Aeonik Regular is the default — body *and* headings.** Never set `font-weight: 500` as the
-  baseline for a new surface; use `.fw-medium` for one emphasized element.
-- **Aeonik Bold is forbidden** (600/700/800 `@font-face` map to Medium).
-- Headings between sections inside a popup stay Regular — do not separate them with weight.
-- Source of truth: Festag-Typo-Gesetz block in `app/globals.css`.
+## Radius
 
-## Knowledge vs Flow
+8 inputs/chips · 12 buttons/rows · 20 cards/popovers · 28 sheets/modals · 999 avatars,
+badges, standalone CTA. Step, don't jump — no 6px control inside a 28px card.
 
-| Mode | Visual | When |
-|---|---|---|
-| **Knowledge** | Subtle dots, silent, unconnected | Default — project exists, nothing demands action |
-| **Flow** | One path grows → one panel → retract | Tagro speaks / one decision deserves attention |
+## Elevation
 
-## Surfaces
+sm `0 1px 2px/.05` · md `0 4px 16px/.07` · lg `0 12px 32px/.10` · xl `0 24px 64px/.14`.
+Only things that float cast one. A permanent rail casts nothing — a shadow with nothing
+casting it is a smudge.
 
-Floating paper: soft shadow, invisible border, editorial spacing. No dashboard widgets.
+## Typography
 
-## Tagro
+Editorial titles = Editors Note Medium. Everything else Aeonik Regular; Medium is opt-in
+for one element. **Aeonik Bold forbidden.** One type scale for desktop and mobile.
 
-Invisible intelligence — never center stage, never AI theater. Recommendation floats; explanations branch from path.
+## Motion
 
-## Do not build
+Press 70ms · hover/focus 130ms · panel 180–240ms · route 200ms. Micro-interactions are
+**faster** than layout changes, never slower. A covering surface is opaque before it
+covers. All of it collapses under `prefers-reduced-motion`.
 
-Jira · ClickUp · Monday · Notion clone · ChatGPT clone · compressed desktop on mobile · permanent decision UI in calm state
+## Patterns
 
-When unsure: **remove something**, never add.
+Lists = `components/festag/festag-rows.ts`, not card grids. People = person card with a
+real action; roles from `lib/platform/roles.ts` (`client`/`developer`/`designer` are real
+— do not invent parallel role systems). Mobile chrome = `festag-mobile-ui.mdc`; a
+scrolling strip must show that it scrolls.
+
+## Gate
+
+1 Why visible now? · 2 Exactly one filled action? · 3 Every pair ≥4.5:1? · 4 Elevation
+not borders? · 5 Micro faster than layout? · 6 Mobile native? · 7 Does the action change
+something real?

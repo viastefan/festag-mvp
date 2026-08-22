@@ -221,6 +221,14 @@ Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` 
 | Elevated / Popup | `--festag-black-popup` / `--fp-bg` | `#1A1A1E` |
 | Ink | `--festag-night-ink` | `#E8EAF0` (soft — not pure white) |
 
+> **Superseded on the visual layer (2026-08-22).** The design constitution was
+> replaced — see `docs/festag-design-constitution.md` and the condensed
+> `.cursor/rules/festag-design-constitution.mdc`. Ground is neutral (light
+> `#F7F7F8` / card `#FFFFFF`; dark `#0B0B0D` / card `#141416`), depth comes from
+> elevation rather than borders, every text pair clears 4.5:1, and each surface
+> carries exactly one filled primary action. The dark palette below still applies
+> where it has not been migrated; the constitution wins on conflict.
+
 Use cool slates / quiet hairlines / calm semantics. Primary CTAs in dark use soft cool-white
 (`--festag-btn-dark-bg` `#F0F2F5` / fg `#1A1A1E`) — never colored fills. Accent `#5B647D` is for
 focus/links only. Auth idle stays quiet transparent; ready = soft white.
