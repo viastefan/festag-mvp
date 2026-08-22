@@ -160,11 +160,13 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-ready-shadow:none;
   --festag-btn-ready-shadow-hover:none;
   --festag-btn-ready-shadow-active:none;
-  /* Accent + Google — Festag primary blue. */
-  --festag-btn-google-bg:${FESTAG_NIGHT.primary};
-  --festag-btn-google-bg-hover:#6A738C;
-  --festag-btn-google-bg-active:#4A5368;
-  --festag-btn-google-fg:#F5F6F8;
+  /* Google is secondary — it is not what this screen is for. Opaque, because
+     a translucent white fill only works on a dark ground and this block is the
+     light one. */
+  --festag-btn-google-bg:#F1F1F3;
+  --festag-btn-google-bg-hover:#E9E9EC;
+  --festag-btn-google-bg-active:#E1E1E5;
+  --festag-btn-google-fg:#0F0F14;
   --festag-primary:${FESTAG_NIGHT.primary};
   --al-accent:${FESTAG_NIGHT.primary};
   --festag-caret:${AUTH_CARET};
@@ -225,13 +227,13 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-btn-ready-shadow:none;
   --festag-btn-ready-shadow-hover:none;
   --festag-btn-ready-shadow-active:none;
-  /* Google — warm charcoal (not primary blue). */
-  --festag-btn-google-bg:#2F2C2A;
-  --festag-btn-google-bg-hover:#3A3632;
-  --festag-btn-google-bg-active:#242220;
-  --festag-btn-google-fg:#F5F6F8;
-  --festag-primary:#5C554C;
-  --al-accent:#5C554C;
+  /* Google is secondary — raised fill, not the loudest thing here. */
+  --festag-btn-google-bg:#F1F1F3;
+  --festag-btn-google-bg-hover:#E9E9EC;
+  --festag-btn-google-bg-active:#E1E1E5;
+  --festag-btn-google-fg:#0F0F14;
+  --festag-primary:#0F0F14;
+  --al-accent:#2E6BFF;
   --festag-caret:${AUTH_CARET};
   --festag-input-caret:${AUTH_CARET};
   --festag-input-fill:transparent;
