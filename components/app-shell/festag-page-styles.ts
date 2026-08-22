@@ -45,13 +45,19 @@ export const FESTAG_PAGE_STYLES = `
 .fps-head {
   margin-bottom: clamp(28px, 5vh, 44px);
 }
+/* Der Seitentitel folgt dem Titelgesetz: editorial, wie auf jeder anderen
+   Portalseite. Hier stand die Schrift hartcodiert — darum lief ausgerechnet
+   „Projekte" als einzige Ueberschrift der App noch in Aeonik, waehrend
+   Entscheidungen, Aufgaben und Dokumente laengst editorial waren. Eine
+   Seitenfamilie, die ihre eigene Schrift mitbringt, ist genau der Weg zurueck
+   in die Uneinheitlichkeit. */
 .fps-title {
   margin: 0 0 8px;
-  font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
-  font-weight: 400;
-  font-size: clamp(32px, 4.4vw, 46px);
-  line-height: 1.08;
-  letter-spacing: -0.026em;
+  font-family: var(--font-editorial, 'Editors Note', Georgia, serif);
+  font-weight: 500;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.12;
+  letter-spacing: -0.016em;
   color: var(--fps-ink);
 }
 .fps-stat-line {
