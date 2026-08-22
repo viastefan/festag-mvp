@@ -119,12 +119,28 @@ export default function Modal({
     return () => cancelAnimationFrame(id)
   }, [open, autoFocus])
 
+  /**
+   * Wann ein Sheet schliesst.
+   *
+   * Vorher galten zwei getrennte Regeln: 35 % der Sheet-Hoehe gezogen *oder*
+   * schneller als 700 geworfen. Bei einem hohen Sheet sind 35 % ueber 240px —
+   * man zog und zog, und nichts passierte. Genau das liess es sich anfassen
+   * wie eine Webseite und nicht wie ein Sheet.
+   *
+   * Stattdessen wird jetzt projiziert, wie es jedes native Sheet tut: wo waere
+   * der Finger in einem Sechstel Sekunde, wenn er so weiterzoege? Ein kurzer
+   * schneller Wisch und ein langsames weites Ziehen fuehren damit beide zum
+   * selben Ergebnis — was der Nutzer erwartet, weil er beides als „weg damit"
+   * meint. Die Schwelle ist gedeckelt, damit hohe Sheets nicht schwerer zu
+   * schliessen sind als niedrige.
+   */
   const onSheetDragEnd = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (noBackdropClose) return
+    if (info.offset.y <= 0) return
     const sheetH = ref.current?.offsetHeight ?? window.innerHeight
-    const draggedFar = info.offset.y > sheetH * 0.35
-    const flickedDown = info.velocity.y > 700
-    if (info.offset.y > 0 && (draggedFar || flickedDown)) setClosing(true)
+    const projected = info.offset.y + info.velocity.y * 0.16
+    const threshold = Math.min(sheetH * 0.3, 160)
+    if (projected > threshold) setClosing(true)
   }, [noBackdropClose])
 
   if (typeof document === 'undefined') return null
@@ -157,7 +173,10 @@ export default function Modal({
         dragControls,
         dragListener: false,
         dragConstraints: { top: 0 },
-        dragElastic: 0,
+        /* Nach oben ist Schluss — aber nicht als Betonwand. Ein Sheet, das bei
+           0 hart stehenbleibt, fuehlt sich an wie ein Bild; die winzige Nachgabe
+           ist das, was einer Flaeche Koerper gibt. Nach unten laeuft es frei. */
+        dragElastic: 0.06,
         dragMomentum: false,
         onDragEnd: onSheetDragEnd,
         initial: { y: '100%' },

@@ -19,12 +19,12 @@ ${DECISION_CSS}
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: var(--r-chip, 8px);
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background .12s ease, color .12s ease;
+  transition: background var(--dur-1, 140ms) var(--ease-out), color var(--dur-1, 140ms) var(--ease-out);
 }
 .nws-tool:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); color: var(--text); }
 .nws-spin { animation: nwsSpin .9s linear infinite; }
@@ -67,7 +67,7 @@ ${DECISION_CSS}
   color: var(--text-muted);
 }
 .nws-sub time { font-variant-numeric: tabular-nums; }
-.nws-sep { width: 3px; height: 3px; border-radius: 99px; background: currentColor; opacity: .5; }
+.nws-sep { width: 3px; height: 3px; border-radius: var(--r-pill, 999px); background: currentColor; opacity: .5; }
 
 /* ── Filter ── */
 .nws-filters {
@@ -83,13 +83,13 @@ ${DECISION_CSS}
   height: 28px;
   padding: 0 11px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--r-chip, 8px);
   background: transparent;
   color: var(--text-muted);
   font: inherit;
   font-size: 12.5px;
   cursor: pointer;
-  transition: background .14s ease, color .14s ease;
+  transition: background var(--dur-1, 140ms) var(--ease-out), color var(--dur-1, 140ms) var(--ease-out);
   white-space: nowrap;
 }
 .nws-filter:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 45%, transparent); }

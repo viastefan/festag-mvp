@@ -952,6 +952,45 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
      keine neue Zahl. Neue Zahlen sind der Weg zurück ins Chaos. */
   --festag-content-max: 880px;
   --festag-content-max-wide: 1240px;
+
+  /* ═══ FESTAG RADIUSGESETZ ═══
+     Sieben Stufen, mehr nicht.
+
+     Der Bestand kannte vierzehn: neben 8, 12 und 6 auch 7px, 9px, 13px und
+     18px. Solche Zahlen entscheidet niemand — sie entstehen, wenn jemand eine
+     Ecke „ein bisschen weicher" macht und der Wert stehen bleibt. Nebeneinander
+     ergeben sie eine Oberflaeche, die niemand gezeichnet hat.
+
+     Die Stufen sind nach ihrer Aufgabe benannt, nicht nach ihrer Groesse:
+     wer eine Zeile baut, nimmt --r-row und muss nicht wissen, dass das 12px
+     sind. Aendert sich die Rundung des Produkts, aendert sie sich hier. */
+  --r-mark:   4px;   /* Haken, Punkte, winzige Marken */
+  --r-control:6px;   /* Knoepfe, Eingaben, Selects — alles, was man bedient */
+  --r-chip:   8px;   /* Chips, Filter, kleine Flaechen */
+  --r-row:   12px;   /* Zeilen und Karten — die Arbeitsflaeche */
+  --r-panel: 16px;   /* Panels, Popover, Flyouts */
+  --r-dialog:20px;   /* Dialoge und Bottom-Sheets */
+  --r-pill:  999px;  /* Pillen, Avatare */
+
+  /* ═══ FESTAG BEWEGUNGSGESETZ ═══
+     Drei Dauern. Der Nutzer soll die Oberflaeche antworten spueren, nicht
+     einer Animation zusehen.
+
+     Der Bestand hatte vierzehn Dauern, darunter .14s, .15s und .16s
+     nebeneinander — ein Unterschied, den kein Mensch wahrnimmt, der aber
+     dafuer sorgt, dass zwei Knoepfe nebeneinander nie ganz synchron laufen.
+
+     --dur-1  Zustandswechsel am Ort: Hover, Fokus, Farbe, Opazitaet.
+     --dur-2  Etwas erscheint oder verschwindet: Dialog, Sheet, Popover.
+     --dur-3  Etwas bewegt sich weit: Seitenwechsel, Panel faehrt ein.
+
+     --ease-out fuer alles, was hereinkommt: sofort schnell, ruhig auslaufend.
+     --ease-in-out nur fuer Bewegung in beide Richtungen (Drag, Snap). */
+  --dur-1: 140ms;
+  --dur-2: 240ms;
+  --dur-3: 340ms;
+  --ease-out: cubic-bezier(.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
   --festag-content-pad-x: clamp(40px, 5.5vw, 88px);
   --festag-content-pad-y: clamp(40px, 4.5vh, 56px);
   --festag-content-pad-bottom: 88px;

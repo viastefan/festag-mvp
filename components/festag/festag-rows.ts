@@ -77,14 +77,14 @@ export const FESTAG_ROWS_CSS = `
   min-height: 46px;
   padding: 11px 14px 11px 15px;
   border: 1px solid transparent;
-  border-radius: 11px;
+  border-radius: var(--r-row, 12px);
   background: var(--fst-row-bg);
   color: inherit;
   font: inherit;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: background .14s ease, border-color .14s ease;
+  transition: background var(--dur-1, 140ms) var(--ease-out), border-color var(--dur-1, 140ms) var(--ease-out);
 }
 .fst-row:hover,
 .nws-row:hover { background: var(--fst-row-bg-hover); }
@@ -103,7 +103,7 @@ export const FESTAG_ROWS_CSS = `
   flex: 0 0 auto;
   width: 6px;
   height: 6px;
-  border-radius: 99px;
+  border-radius: var(--r-pill, 999px);
   background: var(--fst-tone, var(--nws-tone, var(--text-muted)));
 }
 .fst-row-status,
@@ -168,7 +168,7 @@ export const FESTAG_ROWS_CSS = `
   flex: 0 0 auto;
   color: var(--text-muted);
   opacity: .45;
-  transition: opacity .14s ease, transform .14s ease;
+  transition: opacity var(--dur-1, 140ms) var(--ease-out), transform var(--dur-1, 140ms) var(--ease-out);
 }
 .fst-row:hover .fst-row-caret,
 .nws-row:hover .nws-row-caret { opacity: .9; transform: translateX(1px); }
