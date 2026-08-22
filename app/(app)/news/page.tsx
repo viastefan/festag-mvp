@@ -23,6 +23,9 @@ import {
 
 const LAST_READ_KEY = 'festag-news-last-read'
 
+/** Ab so vielen Meldungen spart Filtern mehr Zeit, als es Platz kostet. */
+const FILTER_THRESHOLD = 12
+
 const FILTERS: { id: 'all' | NewsCategory; label: string }[] = [
   { id: 'all', label: 'Alles' },
   { id: 'decision', label: 'Entscheidungen' },
@@ -196,18 +199,26 @@ export default function NewsPage() {
             <>
               <header className="nws-head">
                 <p className="nws-digest">{payload?.digest.line}</p>
-                <p className="nws-sub">
-                  <time dateTime={payload?.generatedAt}>{todayLabel()}</time>
-                  {freshCount > 0 && (
-                    <>
-                      <span className="nws-sep" aria-hidden />
-                      <span>{freshCount} neu seit deinem letzten Besuch</span>
-                    </>
-                  )}
-                </p>
+                {/* Das heutige Datum stand hier und beeinflusste keine einzige
+                    Handlung — die Tagesgruppen darunter sagen ohnehin, wann
+                    etwas war. Was bleibt, ist die eine Angabe, die etwas
+                    aendert: ob seit dem letzten Besuch etwas dazukam. */}
+                {freshCount > 0 && (
+                  <p className="nws-sub">
+                    {freshCount === 1
+                      ? 'Eine Meldung seit deinem letzten Besuch'
+                      : `${freshCount} Meldungen seit deinem letzten Besuch`}
+                  </p>
+                )}
               </header>
 
-              {(payload?.stories.length ?? 0) > 0 && (
+              {/* Filter erscheinen erst, wenn Filtern ueberhaupt Arbeit spart.
+                  Bei sieben Meldungen liest man die Seite schneller, als man
+                  die Leiste bedient — dann sind fuenf Knoepfe kein Werkzeug,
+                  sondern Beiwerk, das die eigentliche Nachricht nach unten
+                  drueckt. Ab der Schwelle kippt das, und sie kommen von
+                  selbst. Niemand muss das einstellen. */}
+              {(payload?.stories.length ?? 0) > FILTER_THRESHOLD && (
                 <div className="nws-filters" role="tablist" aria-label="Nach Art filtern">
                   {FILTERS.map((item) => {
                     const count = item.id === 'all' ? payload?.stories.length ?? 0 : counts.get(item.id) ?? 0
@@ -380,6 +391,4 @@ function timeLabel(iso: string): string {
   return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' }).format(date)
 }
 
-function todayLabel(): string {
-  return new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: '2-digit', month: 'long' }).format(new Date())
-}
+
