@@ -14,6 +14,7 @@ import {
   Check,
   UserCircleGear,
   ArrowUpRight,
+  SignOut,
 } from '@phosphor-icons/react'
 import {
   appShellRoleLabel,
@@ -119,7 +120,9 @@ export default function AppShellSidebar({
   onPeekChange,
 }: Props) {
   const pathname = usePathname() || '/overview'
-  const displayName = getFullDisplayName(user) || getDisplayName(user) || 'You'
+  const resolvedName = getFullDisplayName(user) || getDisplayName(user) || ''
+  const nameIsPlaceholder = !user || resolvedName === 'Gast' || resolvedName === 'You'
+  const displayName = nameIsPlaceholder ? '' : resolvedName
   const rawInitials = getInitials(user)
   const initials = rawInitials && rawInitials !== '??' ? rawInitials : ''
   /* Server-safe seeds — the remembered workspace is restored after mount,
@@ -619,8 +622,8 @@ export default function AppShellSidebar({
           className="fas-account-row"
           onClick={openAccountPanel}
           aria-haspopup="dialog"
-          aria-label={`Account: ${displayName}`}
-          title={expanded ? undefined : displayName}
+          aria-label={displayName ? `Account: ${displayName}` : 'Account'}
+          title={expanded || !displayName ? undefined : displayName}
         >
           {/* Nur noch ein echtes Bild, keine zweite Initialen-Marke. Oben steht
               die Workspace-Marke; dieselben zwei Buchstaben ein zweites Mal
@@ -636,8 +639,16 @@ export default function AppShellSidebar({
             </span>
           )}
           <span className="fas-account-copy">
-            <span className="fas-account-row-name">{displayName}</span>
-            <span className="fas-account-row-meta">{appShellRoleLabel(user?.role)}</span>
+            {displayName ? (
+              <>
+                <span className="fas-account-row-name">{displayName}</span>
+                <span className="fas-account-row-meta">{appShellRoleLabel(user?.role)}</span>
+              </>
+            ) : (
+              /* Nothing resolved yet — hold the row's height so the footer does
+                 not jump when the name arrives, but claim no identity. */
+              <span className="fas-account-row-name is-pending" aria-hidden="true" />
+            )}
           </span>
         </button>
 

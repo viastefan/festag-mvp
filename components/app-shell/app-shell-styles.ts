@@ -459,6 +459,16 @@ html[data-theme="classic-dark"] .fas-ws-mark {
   flex-shrink: 0;
   opacity: 0.7;
 }
+/* .fas-popover-sep already exists further down — one rule, not two. */
+.fas-popover-item--quiet { color: var(--fas-ink-muted); }
+.fas-popover-item--quiet:hover { color: var(--fas-ink); }
+.fas-account-row-name.is-pending {
+  display: block;
+  width: 92px;
+  height: 11px;
+  border-radius: 4px;
+  background: var(--fas-nav-hover);
+}
 .fas-popover-note {
   margin: 0 8px 8px;
   font-size: 13px;
