@@ -12,13 +12,13 @@ export const APP_SHELL_STYLES = `
   --fas-canvas: ${FESTAG_SAND.canvas};
   --fas-sidebar-bg: transparent;
   --fas-main-bg: transparent;
-  --fas-ink: ${FESTAG_SAND.ink};
-  --fas-ink-muted: #8891a0;
+  --fas-ink: var(--f-ink);
+  --fas-ink-muted: var(--f-ink-3);
   --fas-ink-faint: rgba(30, 30, 32, 0.42);
   --fas-card: transparent;
-  --fas-card-border: rgba(30, 30, 32, 0.08);
+  --fas-card-border: var(--f-line);
   --fas-card-shadow: none;
-  --fas-sep: rgba(30, 30, 32, 0.08);
+  --fas-sep: var(--f-line);
   --fas-nav-idle: rgba(30, 30, 32, 0.58);
   --fas-nav-hover: rgba(30, 30, 32, 0.045);
   --fas-nav-active: rgba(30, 30, 32, 0.07);
@@ -40,7 +40,7 @@ export const APP_SHELL_STYLES = `
   --fas-btn-border: rgba(30, 30, 32, 0.06);
   --fas-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --fas-popover: #ffffff;
-  --fas-popover-border: rgba(30, 30, 32, 0.08);
+  --fas-popover-border: var(--f-line);
   --fas-popover-shadow: 0 8px 28px rgba(15, 23, 42, 0.10), 0 1px 2px rgba(0, 0, 0, 0.04);
 
   position: fixed;
@@ -68,8 +68,8 @@ html[data-theme="classic-dark"] .fas-root {
   --fas-canvas: #0C0D12;
   --fas-sidebar-bg: #14161F;
   --fas-main-bg: transparent;
-  --fas-ink: #E6E8EE;
-  --fas-ink-muted: #8891a0;
+  --fas-ink: var(--f-ink);
+  --fas-ink-muted: var(--f-ink-3);
   --fas-ink-faint: #6B7385;
   --fas-card: #14161F;
   --fas-card-border: rgba(255, 255, 255, 0.06);
@@ -3023,94 +3023,20 @@ html[data-theme="classic-dark"] .fas-wo-progress {
 @media (max-width: 768px) {
   .fas-root { flex-direction: column; }
   .fas-sidebar-spacer { display: none; }
+  /* A nine-item nav rail laid on its side is not mobile navigation. It never
+     fit — 340px of content in a 242px viewport — and the scroll affordances
+     added to rescue it were treating the symptom. The documented mobile chrome
+     (.cursor/rules/festag-mobile-ui.mdc) is search + menu top right, with the
+     nav inside a sheet, and that is what the shell uses now. */
   .fas-sidebar,
   .fas-sidebar.is-collapsed,
   .fas-sidebar.is-expanded {
-    position: relative;
-    left: auto;
-    top: auto;
-    bottom: auto;
-    z-index: auto;
-    width: 100%;
-    max-height: none;
-    /* .is-expanded sets an explicit 100dvh height for the desktop panel.
-       Without resetting it here the rail eats the whole mobile column and
-       collapses .fas-main-col to a few pixels — the page looks blank. */
-    height: auto;
-    flex-direction: row;
-    align-items: center;
-    padding: 8px 12px;
-    overflow-x: auto;
-    gap: 4px;
-    border-radius: 0;
-    border: none;
-    border-bottom: 1px solid var(--fas-sep);
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: var(--fas-sidebar-bg);
+    display: none;
   }
-  .fas-sidebar.is-collapsed .fas-sidebar-header {
-    grid-template-columns: 28px auto max-content;
-    justify-items: stretch;
-  }
-  .fas-sidebar.is-collapsed .fas-ws-copy { display: flex; }
-  /* Mobile search/bell live in the top bar (CodexMobileActionPill) — the rail
-     must not duplicate them just because it now carries them on desktop. */
-  .fas-sidebar-utils { display: none; }
-  .fas-sidebar.is-collapsed .fas-nav-label { opacity: 1; }
-  .fas-sidebar.is-collapsed .fas-sidebar-footer { flex-direction: row; }
-  .fas-sidebar-top {
-    margin: 0;
-    flex-shrink: 0;
-  }
-  .fas-sidebar-header {
-    grid-template-columns: 28px auto max-content;
-    gap: 4px;
-  }
-  .fas-ws-name { max-width: 110px; }
-  .fas-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 2px;
-    padding: 0;
-    display: flex !important;
-  }
-  /* The base sheet stacks the second group via the adjacent-sibling selector
-     (0,2,0). A bare .fas-nav-after-group here is (0,1,0) and loses — media
-     queries add no specificity — so the second group stayed a column and the
-     strip grew to three rows. Match the sibling selector to win on order. */
-  .fas-nav-group,
-  .fas-nav-group + .fas-nav-group,
-  .fas-nav-after-group {
-    display: flex;
-    flex-direction: row;
-    margin: 0;
-    padding: 0;
-    border: none;
-    gap: 2px;
-  }
-  .fas-nav-link {
-    height: 32px;
-    padding: 0 10px;
-    white-space: nowrap;
-  }
-  .fas-nav-link span { display: none; }
-  .fas-settings-link span { display: none; }
-  .fas-ws-label,
-  .fas-ws-value,
-  .fas-ws-caret { display: none; }
-  .fas-recent { display: none !important; }
-  .fas-sidebar-collapse { display: none; }
-  .fas-sidebar-footer {
-    display: flex !important;
-    flex-direction: row;
-    margin: 0 0 0 auto;
-    padding: 0;
-    border: none;
-  }
-  .fas-help-btn { display: none; }
-  .fas-content { padding: 12px 18px 40px; }
+  /* Top bar had the desktop workspace controls in it; on mobile the pill and
+     the sheet carry that. Its search and bell move into those two. */
+  .fas-topbar { display: none; }
+  .fas-content { padding: 64px 18px 40px; }
   .fas-hero-greet,
   .fas-hero-title { font-size: 24px; }
   .fas-cards { grid-template-columns: 1fr; }
@@ -3431,4 +3357,162 @@ html[data-theme="classic-dark"] .fas-flyout-body::-webkit-scrollbar-thumb {
   .fas-popover { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 
+
+/* ══ Mobil: eine Suche, nicht zwei ══
+   Innerhalb der Shell liefert .fas-topbar bereits die Suche (mit Ergebnissen).
+   Die Seiten-Pill von PortalPageHeader brachte eine zweite, 82 px darunter,
+   die nur die Kommandopalette öffnete — zwei Knöpfe, dieselbe Absicht, zwei
+   verschiedene Ergebnisse. Die Pill behält, was die Topbar nicht hat: das Menü.
+   Außerhalb der Shell (Dokument-Editor, Auth) bleibt die Pill unverändert. */
+/* One pill, not two. Pages inside the shell mount their own CodexMobileActionPill
+   (that is what the old rule here was working around by hiding its search).
+   Now that the shell carries navigation itself, the shell's pill is the one —
+   and it is the only one whose Menü opens the shell's nav rather than the
+   retired portal nav. */
+.fas-root .cx-orb-group { display: none; }
+.fas-root .fas-mobile-actions .cx-orb-group { display: flex; }
+
+
+}
+
+
+/* ══ Mobil: eine Leiste, kein Header, zwei Icons ══
+   Vorher standen 272 px Chrome über dem Inhalt — Nav-Streifen, Topbar-Band,
+   Seiten-Header mit Titel und Menü-Pill — und rechts oben fünf Icons auf drei
+   Reihen: Account und Einstellungen im Streifen (die den Nav-Eintrag „Activity"
+   verdeckten), Suche und Glocke im Band, Menü in der Pill.
+
+   Jetzt: eine Reihe. Links der Anker, in der Mitte die Navigation, rechts
+   genau zwei Icons. Der Seitentitel entfällt — der aktive Eintrag im Streifen
+   sagt bereits, wo man ist.
+
+   Erreichbarkeit bleibt vollständig:
+     Suche + Benachrichtigungen  → die zwei Icons rechts
+     Account, Einstellungen, Theme, Abmelden → Account-Panel (Anker links)
+     Navigation → der Streifen selbst, alle Einträge
+   Die Menü-Pill fällt weg, weil der Streifen die Navigation bereits trägt. */
+@media (max-width: 768px) {
+  /* Header-Bänder raus. !important, weil die seiteneigene DECISION_CSS im
+     selben Media-Query display:flex !important auf .dec-page-head setzt —
+     Spezifität allein gewinnt dagegen nicht. */
+  .fas-root .dec-page-head { display: none !important; }
+  .fas-root .cx-orb-group { display: none !important; }
+
+  /* Die Topbar wird zum reinen Icon-Paar und legt sich in die Streifenreihe.
+     Anker ist der Viewport, nicht .fas-main-col — die beginnt erst unter dem
+     Streifen, die Icons wären sonst eine Reihe zu tief gelandet. */
+  .fas-topbar {
+    position: fixed;
+    top: 0;
+    right: 6px;
+    left: auto;
+    height: 63px;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+  .fas-topbar > * { pointer-events: auto; }
+  .fas-topbar-left,
+  .fas-topbar .fas-topbar-title,
+  .fas-topbar .fas-topbar-crumbs { display: none; }
+  .fas-topbar-right {
+    width: auto;
+    left: auto;
+    padding: 0;
+    gap: 2px;
+    height: auto;
+  }
+
+  /* Der Streifen macht rechts Platz für die zwei Icons, damit nichts mehr
+     unter ihnen durchscrollt. */
+  .fas-sidebar,
+  .fas-sidebar.is-collapsed,
+  .fas-sidebar.is-expanded { padding-right: 88px; }
+
+  /* Account wandert an den linken Anker; Einstellungen und Hilfe leben im
+     Account-Panel und brauchen in der Leiste keinen eigenen Platz. */
+  .fas-sidebar-footer {
+    order: -1;
+    margin: 0;
+    padding: 0;
+    flex-direction: row;
+  }
+  .fas-sidebar-footer .fas-footer-row { display: none; }
+  .fas-account-row { padding: 4px; }
+
+  /* Kein doppeltes Innenmaß: .fas-content trägt den Seitenrand, die
+     Seiten-Shell darf ihn nicht ein zweites Mal aufschlagen. */
+  .fas-content { padding: 8px 14px 32px; }
+  /* Auch hier !important: die eingespritzte Seiten-CSS setzt eigene Werte im
+     selben Media-Query. Der Seitenrand gehört .fas-content, nicht beiden. */
+  .fas-root .dec-m-shell {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+  }
+  .fas-root .dec-static-top { padding-left: 0 !important; padding-right: 0 !important; }
+  .fas-root .dec-scroll-body { padding-top: 0 !important; }
+}
+
+
+/* ── Mobile chrome: floating action pill + nav sheet ── */
+.fas-mobile-actions { display: none; }
+@media (max-width: 768px) {
+  .fas-mobile-actions {
+    display: block;
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 60;
+  }
+}
+.asmn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 8px;
+}
+.asmn-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: var(--fas-ink, #1e1e20);
+  text-decoration: none !important;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  -webkit-tap-highlight-color: transparent;
+}
+.asmn-item.is-active { background: var(--fas-nav-active, rgba(30, 30, 32, 0.07)); }
+.asmn-item svg { flex-shrink: 0; opacity: 0.7; }
+.asmn-item.is-active svg { opacity: 0.92; }
+.asmn-label { flex: 1 1 auto; min-width: 0; }
+.asmn-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #5B647D;
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+}
+.asmn-sep {
+  display: block;
+  height: 1px;
+  margin: 8px 14px;
+  background: var(--fas-sep, rgba(30, 30, 32, 0.08));
+}
 `.replace(/\s+/g, ' ').trim()

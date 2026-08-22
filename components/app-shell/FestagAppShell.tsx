@@ -19,6 +19,8 @@ const WorkspaceCreateWizardModal = dynamic(() => import('@/components/app-shell/
 const WorkspaceRenameSheet = dynamic(() => import('@/components/app-shell/WorkspaceRenameSheet'), { ssr: false })
 const WorkspaceManageModal = dynamic(() => import('@/components/app-shell/WorkspaceManageModal'), { ssr: false })
 const AppShellNewProjectHost = dynamic(() => import('@/components/app-shell/AppShellNewProjectHost'), { ssr: false })
+const CodexMobileActionPill = dynamic(() => import('@/components/mobile/CodexMobileActionPill'), { ssr: false })
+const AppShellMobileNav = dynamic(() => import('@/components/app-shell/AppShellMobileNav'), { ssr: false })
 
 export default function FestagAppShell({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
@@ -28,12 +30,17 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
      page must never reflow for it. Two flags, two very different contracts. */
   const [pinned, setPinned] = useState(false)
   const [peek, setPeek] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [chromeReady, setChromeReady] = useState(false)
   const isSettingsWorkspace =
     pathname === '/settings' || pathname.startsWith('/settings/')
 
   useEffect(() => {
     applyAppearanceForPath(pathname)
+  }, [pathname])
+
+  useEffect(() => {
+    setMobileNavOpen(false)
   }, [pathname])
 
   useEffect(() => {
@@ -132,6 +139,20 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
         <AppShellTopBar user={user} />
         <main className="fas-content">{children}</main>
       </div>
+      {/* Mobile chrome per .cursor/rules/festag-mobile-ui.mdc: search + menu
+          together, top right. CSS decides whether it shows — gating on a
+          measured viewport during render is how hydration mismatches start. */}
+      <div className="fas-mobile-actions">
+        {chromeReady ? (
+          <CodexMobileActionPill
+            onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            onMenu={() => setMobileNavOpen(true)}
+          />
+        ) : null}
+      </div>
+      {chromeReady ? (
+        <AppShellMobileNav open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+      ) : null}
       {chromeReady ? <AppShellAccountPanel user={user} /> : null}
       {deferredChrome}
     </div>
