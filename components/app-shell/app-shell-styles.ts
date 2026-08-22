@@ -129,10 +129,19 @@ html[data-theme="read"] .fas-root {
   filter: none !important;
   overflow: hidden;
   transform-origin: top left;
-  /* Closing: the paper has to outlive the labels. Fading both together left
-     the page text reading through them for the length of the fade. */
+  /* Warum das Ein- und Ausfahren ruckelte.
+     Animiert wird die Breite, und darin steht Text. Jeder einzelne Frame zwang
+     den Browser, die Beschriftungen neu zu setzen — bei 60 Bildern pro Sekunde
+     sechzig Layouts fuer eine Bewegung, die nichts umbrechen soll.
+
+     Die Bewegung bleibt, der Neuumbruch faellt weg: contain sperrt Layout
+     und Malen in die Seitenleiste ein, damit die Aenderung nicht in die Seite
+     hinauslaeuft, und der Inhalt bekommt unten eine feste Breite. Er wird also
+     einmal in voller Breite gesetzt und danach nur noch beschnitten — geometrisch
+     dasselbe Bild, aber ohne Rechenarbeit pro Frame. */
+  contain: layout paint style;
   transition:
-    width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    width var(--dur-3, 340ms) cubic-bezier(0.22, 1, 0.36, 1),
     background 0.14s ease 0.16s,
     border-color 0.14s ease 0.16s,
     box-shadow 0.24s ease 0.06s;
@@ -140,16 +149,29 @@ html[data-theme="read"] .fas-root {
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
 }
+
+/* Der Inhalt haelt immer die volle Breite — auch waehrend die Huelle schmaler
+   wird. Sonst laufen Beschriftungen bei jedem Frame in einen neuen Umbruch und
+   zucken sichtbar. So steht der Text still und wird nur vom overflow der
+   Seitenleiste beschnitten. */
+.fas-sidebar > .fas-sidebar-top,
+.fas-sidebar > .fas-sidebar-body,
+.fas-sidebar > .fas-sidebar-foot,
+.fas-sidebar > nav {
+  width: var(--fas-sidebar-w);
+  min-width: var(--fas-sidebar-w);
+  box-sizing: border-box;
+}
 .fas-sidebar.is-expanded {
   width: var(--fas-sidebar-w);
   /* Paper lands before the panel is wide enough to cover text — fading it in
      alongside the width let the page read straight through it. Leaving the
      state still uses the base transition, so it fades out gently. */
   transition:
-    width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    width var(--dur-3, 340ms) cubic-bezier(0.22, 1, 0.36, 1),
     background 0s,
     border-color 0s,
-    box-shadow 0.28s ease;
+    box-shadow var(--dur-3, 340ms) ease;
   background: ${FESTAG_SAND.canvas};
   border-color: rgba(30, 30, 32, 0.07);
   box-shadow:
@@ -282,15 +304,17 @@ pointer-events: none;
 .fas-ws-mark {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  /* Rund, nicht abgerundet. Eine Marke fuer einen Gegenstand — Workspace oder
+     Mensch — ist ein Kreis; Rechtecke sind Flaechen, Kreise sind Identitaeten. */
+  border-radius: var(--r-pill, 999px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   font-family: 'Aeonik', var(--font-sans, system-ui), sans-serif;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 400;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   text-transform: lowercase;
   color: rgba(30, 30, 32, 0.55);
   background: rgba(30, 30, 32, 0.07);
@@ -691,7 +715,7 @@ html[data-theme="classic-dark"] .fas-ws-mark {
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   flex-shrink: 0;
 }
 html[data-theme="dark"] .fas-profile-avatar,
@@ -812,16 +836,16 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
 
 /* Gleiche Marke wie der Workspace — 6px, nie rund (siehe AGENTS.md). */
 .fas-account-mark {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 400;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   text-transform: lowercase;
   color: rgba(30, 30, 32, 0.55);
   background: rgba(30, 30, 32, 0.07);
@@ -1801,7 +1825,7 @@ html:not([data-theme="dark"]):not([data-theme="classic-dark"]) .fas-root:has(.ff
 .fas-wb-node-label {
   font-size: 14px;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   color: var(--wb-ink);
   font-weight: 400;
 }
@@ -2103,7 +2127,7 @@ html:not([data-theme="dark"]):not([data-theme="classic-dark"]) .fas-root:has(.ff
 }
 .fas-wb-branch-label {
   font-size: 14.5px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
 }
 .fas-wb-branch.is-rec .fas-wb-branch-label,
 .fas-wb-branch.is-on .fas-wb-branch-label {
@@ -2518,7 +2542,7 @@ html[data-theme="classic-dark"] .fas-wo-skeleton {
 .fas-wo-section-title {
   margin: 0;
   font-size: 18px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   font-weight: 400;
   color: var(--fas-ink);
 }
@@ -2746,7 +2770,7 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   color: var(--fas-ink);
 }
 .fas-wo-team-name {
@@ -3118,8 +3142,8 @@ html[data-theme="classic-dark"] .fas-flyout {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border: 0;
   border-radius: 6px;
   background: transparent;

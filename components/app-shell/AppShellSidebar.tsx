@@ -125,7 +125,13 @@ export default function AppShellSidebar({
   /* Server-safe seeds — the remembered workspace is restored after mount,
      the way this file already restores the Recent section. */
   const [workspaceLabel, setWorkspaceLabel] = useState('Kein Workspace')
+  /* Die Workspace-Marke stand auf getInitials(user) — also auf dem Konto.
+     Dadurch trug „Amazonenbusiness" die Initialen von Kerstin, und dieselben
+     zwei Buchstaben standen oben und unten in der Leiste. Es sah aus wie ein
+     doppeltes Konto, weil es eins war: die Marke zeigte den falschen
+     Gegenstand. Ein Workspace traegt seinen eigenen Anfangsbuchstaben. */
   const [workspaceId, setWorkspaceId] = useState<string | null>(null)
+  const workspaceInitials = workspaceMark(workspaceLabel)
   const [workspaces, setWorkspaces] = useState<WorkspaceListItem[]>([])
   const hasWorkspace =
     Boolean(workspaceId) ||
@@ -426,8 +432,8 @@ export default function AppShellSidebar({
               setWsOpen((v) => !v)
             }}
           >
-            <span className={`fas-ws-mark${!initials ? ' is-empty' : ''}`} aria-hidden="true">
-              {initials}
+            <span className={`fas-ws-mark${!workspaceInitials ? ' is-empty' : ''}`} aria-hidden="true">
+              {workspaceInitials}
             </span>
             <span className="fas-ws-copy">
               <span className="fas-ws-text">
@@ -756,4 +762,21 @@ function NotificationRow({
       <span className="fas-nrow-age">{fmtRecentAge(notification.created_at)}</span>
     </button>
   )
+}
+
+/**
+ * Zwei Buchstaben fuer einen Workspace.
+ *
+ * Aus zwei Woertern die beiden Anfangsbuchstaben, aus einem die ersten zwei.
+ * Ein Platzhaltername („Kein Workspace") bekommt keine Marke — eine leere
+ * Flaeche ist ehrlicher als Initialen fuer etwas, das es nicht gibt.
+ */
+function workspaceMark(label: string): string {
+  const clean = (label || '').trim()
+  if (!clean || clean === 'Kein Workspace') return ''
+  const words = clean.split(/\s+/).filter(Boolean)
+  const raw = words.length >= 2
+    ? words[0][0] + words[words.length - 1][0]
+    : clean.slice(0, 2)
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase()
 }

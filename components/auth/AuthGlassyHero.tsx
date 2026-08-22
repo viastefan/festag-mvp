@@ -149,7 +149,16 @@ export default function AuthGlassyHero({
   return (
     <h1 key={animKey} className={heroClass}>
       <Words text={lead} tone="lead" startIndex={0} instant={instant} />
-      {rest.trim() ? <Words text={rest} tone="muted" startIndex={leadCount} instant={instant} /> : null}
+      {rest.trim() ? (
+        <>
+          {/* Im gestapelten Fall trennen zwei Zeilen die beiden Haelften. Hier
+              laufen sie in einer Zeile — und stiessen ohne Trennzeichen
+              aneinander: „Erstelle deinen Workspace.Waehle einen Namen".
+              Ein Leerzeichen, das den Umbruch nicht verhindert. */}
+          {' '}
+          <Words text={rest} tone="muted" startIndex={leadCount} instant={instant} />
+        </>
+      ) : null}
     </h1>
   )
 }

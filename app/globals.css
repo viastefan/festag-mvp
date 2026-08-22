@@ -920,7 +920,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 :root {
   --ls-header:  0.015em;
   --ls-body:    0.021em;
-  --ls-sidebar: 0.007em;
+  /* Auf 1 % gehoben: die Seitenleiste laeuft in Aeonik Medium, und Medium
+     traegt bei kleinen Graden etwas mehr Luft zwischen den Buchstaben als
+     Regular, damit die Woerter nicht zusammenlaufen. */
+  --ls-sidebar: 0.01em;
   /* Subtle tracking for small muted UI copy (auth help, legal footers, docs desc).
      Do not apply to large titles / h1 / display path lines. */
   --festag-tracking-small: 0.018em;
@@ -1064,7 +1067,15 @@ p  { color:var(--text-secondary); font-weight:400; letter-spacing: var(--ls-body
 .display-ui { font-family:var(--font-ui); font-size:36px; font-weight:400; letter-spacing: var(--ls-header); line-height:1.1; color:var(--text); }
 .metric  { font-size:26px; font-weight:500; letter-spacing: var(--ls-header); line-height:1; color:var(--text); font-variant-numeric:tabular-nums; }
 /* Sidebar nav — eigenes Token; nicht [class*="sidebar"] (trifft portal-sidebar-collapsed). */
-[class*="sb-"], .sidebar, [class*="side-nav"], nav.sb-list, aside.sb-os, .sb-os, .portal-nav {
+[class*="sb-"], .sidebar, [class*="side-nav"], nav.sb-list, aside.sb-os, .sb-os, .portal-nav,
+.fas-sidebar {
+  letter-spacing: var(--ls-sidebar);
+}
+/* Die Woerter der Seitenleiste laufen in Aeonik Medium — sie sind Wegweiser,
+   keine Fliesstext. Das ist die eine bewusste Betonung, die das Typo-Gesetz
+   in app/globals.css erlaubt. */
+.fas-sidebar :where(a, button, span, p, strong, small) {
+  font-weight: 500;
   letter-spacing: var(--ls-sidebar);
 }
 .tabular { font-variant-numeric:tabular-nums; }
