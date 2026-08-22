@@ -129,4 +129,17 @@ export const CODEX_ORB_CSS = `
     height: var(--festag-mobile-control-height-compact, 44px);
     flex-shrink: 0;
   }
+
+.cx-orb--notif { position: relative; }
+.cx-orb-dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5B647D;
+  box-shadow: 0 0 0 2px #fff;
+}
+.cx-action-pill--dark .cx-orb-dot { box-shadow: 0 0 0 2px #16161a; }
 `

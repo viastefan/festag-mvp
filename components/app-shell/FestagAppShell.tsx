@@ -7,6 +7,7 @@ import AppShellSidebar from '@/components/app-shell/AppShellSidebar'
 import AppShellTopBar from '@/components/app-shell/AppShellTopBar'
 import { APP_SHELL_STYLES } from '@/components/app-shell/app-shell-styles'
 import { useUser } from '@/lib/hooks/useUser'
+import { useNotifications } from '@/hooks/useNotifications'
 import { applyAppearanceForPath } from '@/lib/theme'
 
 /* '0' = pinned open, '1'/absent = rail. Key name kept for existing prefs. */
@@ -32,6 +33,9 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
   const [peek, setPeek] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [chromeReady, setChromeReady] = useState(false)
+  /* Only once the deferred chrome is up — the bell is not worth a request on
+     first paint, and the sidebar already loads the same list on desktop. */
+  const { unread } = useNotifications({ limit: 1, enabled: chromeReady })
   const isSettingsWorkspace =
     pathname === '/settings' || pathname.startsWith('/settings/')
 
@@ -146,12 +150,18 @@ export default function FestagAppShell({ children }: { children: React.ReactNode
         {chromeReady ? (
           <CodexMobileActionPill
             onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            onNotifications={() => { window.location.href = '/benachrichtigungen' }}
+            unread={unread}
             onMenu={() => setMobileNavOpen(true)}
           />
         ) : null}
       </div>
       {chromeReady ? (
-        <AppShellMobileNav open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+        <AppShellMobileNav
+          open={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+          unread={unread}
+        />
       ) : null}
       {chromeReady ? <AppShellAccountPanel user={user} /> : null}
       {deferredChrome}
