@@ -40,7 +40,7 @@ export const AUTH_STROKE_IDLE_HOVER_DARK = 'rgba(255, 255, 255, 0.24)'
  */
 export const AUTH_DARK_CANVAS = '#0C0D12'
 /** Auth read canvas — same warm read ivory as light. */
-export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
+export const AUTH_READ_CANVAS = FESTAG_SAND.readCanvas
 
 /**
  * Shared Aeonik Regular tracking — Login, Register, Onboarding.

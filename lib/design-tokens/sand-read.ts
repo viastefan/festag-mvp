@@ -12,8 +12,17 @@
  */
 
 export const FESTAG_SAND = {
-  /** Main canvas — neutral ground. */
+  /** Main canvas — neutral ground (app chrome). */
   canvas: '#F7F7F8',
+  /**
+   * Read Mode keeps its warm paper. The constitution governs app chrome; a
+   * reading surface is a different job, and long-form text on warm paper is
+   * easier on the eye than on cool grey. This was lost by accident when the
+   * ground went neutral — AUTH_READ_CANVAS was reading `canvas`, so Read Mode
+   * changed along with everything else without anyone deciding it should.
+   */
+  readCanvas: '#FBF7EE',
+  readCanvasSoft: '#FCFAF3',
   /** Card / lifted surface. */
   canvasSoft: '#FFFFFF',
   /** Sunken — tracks, wells. */

@@ -97,7 +97,8 @@ html[data-theme="classic-dark"] .fas-root {
 }
 
 html[data-theme="read"] .fas-root {
-  --fas-canvas: ${FESTAG_SAND.canvas};
+  /* Read keeps the warm paper — neutral ground is for app chrome, not reading. */
+  --fas-canvas: ${FESTAG_SAND.readCanvas};
   --fas-sidebar-bg: transparent;
   --fas-main-bg: transparent;
   --fas-card: transparent;
@@ -129,16 +130,9 @@ html[data-theme="read"] .fas-root {
   filter: none !important;
   overflow: hidden;
   transform-origin: top left;
-  /* Warum das Ein- und Ausfahren ruckelte.
-     Animiert wird die Breite, und darin steht Text. Jeder einzelne Frame zwang
-     den Browser, die Beschriftungen neu zu setzen — bei 60 Bildern pro Sekunde
-     sechzig Layouts fuer eine Bewegung, die nichts umbrechen soll.
-
-     Die Bewegung bleibt, der Neuumbruch faellt weg: contain sperrt Layout
-     und Malen in die Seitenleiste ein, damit die Aenderung nicht in die Seite
-     hinauslaeuft, und der Inhalt bekommt unten eine feste Breite. Er wird also
-     einmal in voller Breite gesetzt und danach nur noch beschnitten — geometrisch
-     dasselbe Bild, aber ohne Rechenarbeit pro Frame. */
+  /* contain sperrt Layout und Malen in die Leiste ein, damit eine Aenderung
+     hier nicht die ganze Seite neu messen laesst. Die eigentliche Bewegung
+     steht in der @supports-Abfrage weiter unten. */
   contain: layout paint style;
   transition:
     width var(--dur-2, 240ms) cubic-bezier(0.22, 1, 0.36, 1),
@@ -146,6 +140,8 @@ html[data-theme="read"] .fas-root {
     border-color 0.14s ease 0.16s,
     box-shadow 0s;
 }
+
+
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
 }
@@ -171,6 +167,52 @@ html[data-theme="read"] .fas-root {
     0 1px 2px rgba(15, 23, 42, 0.03),
     0 16px 40px rgba(15, 23, 42, 0.07);
 }
+
+/* ── Warum die Leiste nicht mehr in der Breite waechst ──────────────────
+   Die Breite zu animieren heisst: der Browser setzt in jedem Frame den
+   gesamten Inhalt neu. Sechzig Layouts fuer eine Bewegung, die gar nichts
+   umbrechen soll. Dazu kam, dass zwei Dinge dieselbe Bewegung getrennt
+   rechneten — die Leiste ihre Breite, der Platzhalter daneben seine — und
+   zwei getrennte Rechnungen laufen nie exakt synchron.
+
+   Stattdessen steht die Leiste immer in voller Breite da und wird
+   beschnitten. clip-path aendert kein Layout: es faellt beim Zeichnen an,
+   nicht beim Messen. Der Inhalt wird einmal gesetzt und ruehrt sich nicht
+   mehr — die Symbole stehen ohnehin links, also bleiben sie, wo sie sind,
+   und nur die Beschriftungen kommen unter der Kante hervor.
+
+   Beschnittene Flaechen nehmen keine Klicks an, die Leiste liegt also
+   nicht unsichtbar ueber der Seite.
+
+   Die alte Breiten-Animation bleibt als Rueckfallebene stehen: greift die
+   Abfrage unten nicht, verhaelt sich alles wie zuvor. Ein Browser ohne
+   clip-path bekommt eine ruckelnde Leiste, keine kaputte. */
+@supports (clip-path: inset(0 0 0 0 round 16px)) {
+  .fas-sidebar {
+    width: var(--fas-sidebar-w);
+    transition:
+      clip-path var(--dur-2, 240ms) cubic-bezier(0.22, 1, 0.36, 1),
+      background 0.14s ease 0.16s,
+      border-color 0.14s ease 0.16s,
+      box-shadow 0s;
+  }
+  .fas-sidebar.is-collapsed,
+  .fas-sidebar.is-expanded {
+    width: var(--fas-sidebar-w);
+  }
+  .fas-sidebar.is-collapsed {
+    clip-path: inset(
+      0
+      calc(var(--fas-sidebar-w) - var(--fas-sidebar-collapsed-w))
+      0 0
+      round 16px
+    );
+  }
+  .fas-sidebar.is-expanded {
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+}
+
 html[data-theme="dark"] .fas-sidebar.is-expanded,
 html[data-theme="classic-dark"] .fas-sidebar.is-expanded {
   background: #14161F;
