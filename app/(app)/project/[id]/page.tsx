@@ -1812,7 +1812,12 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
       <div className="pj-d-static-top">
         <header className="dec-page-head pj-d-page-head">
           <div className="dec-page-head-copy">
-            <Link href="/projects" className="pj-d-kicker">← Projekte</Link>
+            {/* Fuehrt auf dieselbe Liste, aus der man kommt. Der Link zeigte auf
+                /projects, die Navigation aber auf /overview/projects — zwei
+                verschiedene Seiten mit demselben Namen. Wer ein Projekt schloss,
+                landete auf einer Liste, die anders aussah als die, die er eben
+                verlassen hatte. */}
+            <Link href="/overview/projects" className="pj-d-kicker">← Projekte</Link>
             <div className="pj-d-title-row">
               <span className="pj-d-color-bar" style={{ background: pCol }} aria-hidden />
               <h1 className="dec-page-title festag-page-title">
@@ -1847,8 +1852,12 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                 </>
               )}
             </span>
+            {/* Kein Funkel-Symbol. Tagro ist die Intelligenzschicht des Systems,
+                kein Assistent, den man mit einem Sternchen ankuendigt — das
+                Produktgesetz verbietet genau diese Dekoration. Der Name traegt
+                allein. */}
             <button type="button" className="pj-d-cta" onClick={openProjectTagro}>
-              <Sparkle size={14} weight="fill" /> Mit Tagro
+              Mit Tagro
             </button>
             {project.staging_url ? (
               <button
