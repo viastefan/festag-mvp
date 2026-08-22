@@ -164,8 +164,8 @@ html[data-theme="read"] .fas-root {
   background: ${FESTAG_SAND.canvas};
   border-color: rgba(30, 30, 32, 0.07);
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.03),
-    0 16px 40px rgba(15, 23, 42, 0.07);
+    0 1px 2px rgba(15, 23, 42, 0.02),
+    0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
 /* ── Warum die Leiste nicht mehr in der Breite waechst ──────────────────
@@ -210,6 +210,20 @@ html[data-theme="read"] .fas-root {
   }
   .fas-sidebar.is-expanded {
     clip-path: inset(0 0 0 0 round 16px);
+  }
+
+  /* Seit die Leiste beschnitten statt gemessen wird, ist sie auch eingeklappt
+     268px breit. Die Zeilen darin richteten sich danach — die Flaeche eines
+     aktiven Eintrags lief also weit nach rechts und wurde mitten in der Pille
+     abgeschnitten. Sichtbar war ein Rechteck, das aus der Leiste herauslief.
+
+     Im eingeklappten Zustand bekommen die Zeilen deshalb die Rail-Breite
+     abzueglich des Innenabstands. Die Pille sitzt dann vollstaendig im
+     sichtbaren Bereich, statt an seiner Kante zu enden. */
+  .fas-sidebar.is-collapsed :where(.fas-nav-link, .fas-ws-trigger, .fas-account-row) {
+    width: calc(var(--fas-sidebar-collapsed-w) - 20px);
+    min-width: 0;
+    overflow: hidden;
   }
 }
 
@@ -3159,7 +3173,7 @@ html[data-theme="classic-dark"] .fas-wo-progress {
   background: ${FESTAG_SAND.canvas};
   border: 1px solid rgba(30, 30, 32, 0.07);
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 1px 2px rgba(15, 23, 42, 0.02),
     0 22px 54px rgba(15, 23, 42, 0.10);
   overflow: hidden;
 }

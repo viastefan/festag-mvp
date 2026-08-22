@@ -421,15 +421,13 @@ export default function AppShellSidebar({
       }
       aria-label="Festag navigation"
       data-collapsed={expanded ? '0' : '1'}
+      /* Aufgeklappt bleibt aufgeklappt. Vorher fiel die Leiste zu, sobald der
+         Zeiger sie verliess — man konnte sie also nicht lesen und gleichzeitig
+         woandershin zielen, und jede Mausbewegung war eine Zustandsaenderung.
+         Geoeffnet wird jetzt durch Naehe, geschlossen nur durch Absicht: den
+         Schalter oben rechts. */
       onMouseEnter={() => schedulePeek(true)}
-      onMouseLeave={() => schedulePeek(false)}
       onFocusCapture={() => setPeeking(true)}
-      onBlurCapture={(e) => {
-        const next = e.relatedTarget as Node | null
-        if (next && asideRef.current?.contains(next)) return
-        if (asideRef.current?.matches(':hover')) return
-        setPeeking(false)
-      }}
     >
       <div className="fas-sidebar-top" ref={headerRef}>
         <div className="fas-sidebar-header">
@@ -478,6 +476,9 @@ export default function AppShellSidebar({
                   e.stopPropagation()
                   setWsOpen(false)
                   setNotifOpen(false)
+                  /* Der Schalter ist die einzige Art, die Leiste zu schliessen —
+                     also muss er auch das Aufklappen durch Naehe beenden. */
+                  setPeeking(false)
                   onTogglePin()
                 }}
               >
@@ -657,17 +658,13 @@ export default function AppShellSidebar({
               <UserCircleGear size={17} weight="light" />
             </span>
           )}
+          {/* Kein Name, keine Rolle. Oben in der Leiste steht bereits eine
+              Marke; darunter noch einmal „Kerstin · Member" war dieselbe
+              Auskunft ein zweites Mal, an der unwichtigsten Stelle der Seite.
+              Der Eingang bleibt, weil das Konto-Panel — Profil, Erscheinung,
+              Abmelden — sonst von nirgends erreichbar waere. */}
           <span className="fas-account-copy">
-            {displayName ? (
-              <>
-                <span className="fas-account-row-name">{displayName}</span>
-                <span className="fas-account-row-meta">{appShellRoleLabel(user?.role)}</span>
-              </>
-            ) : (
-              /* Nothing resolved yet — hold the row's height so the footer does
-                 not jump when the name arrives, but claim no identity. */
-              <span className="fas-account-row-name is-pending" aria-hidden="true" />
-            )}
+            <span className="fas-account-row-name">Konto</span>
           </span>
         </button>
 

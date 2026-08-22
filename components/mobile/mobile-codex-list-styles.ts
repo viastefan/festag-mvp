@@ -20,9 +20,11 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     margin: 0;
     font-family: var(--font-editorial, 'Editors Note', Georgia, serif) !important;
     font-weight: 500 !important;
-    /* Editors Note laeuft schmaler als Aeonik — 33px hier entspricht optisch
-       den 29px davor. Der Titel waechst mit der Flaeche, nie ueber 33px. */
-    font-size: clamp(27px, 2.5vw, 33px) !important;
+    /* Eine Titelgroesse fuer das ganze Produkt — dieselbe wie auf Projekte
+       (.fps-title). Vorher lief Projekte auf clamp(30, 4vw, 42) und jede
+       andere Seite auf clamp(27, 2.5vw, 33): derselbe Rang, zwei Groessen.
+       Beim Seitenwechsel sprang die Ueberschrift. */
+    font-size: clamp(30px, 4vw, 42px) !important;
     letter-spacing: -0.016em !important;
     line-height: 1.14 !important;
   }
@@ -123,9 +125,9 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .dms-title {
       font-family: var(--font-editorial, 'Editors Note', Georgia, serif) !important;
       font-weight: 500 !important;
-      font-size: 27px !important;
+      font-size: 30px !important;
       letter-spacing: -0.016em !important;
-      line-height: 1.14 !important;
+      line-height: 1.12 !important;
       color: #0F0F10 !important;
       margin: 0 !important;
     }
