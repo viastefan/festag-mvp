@@ -935,8 +935,23 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --glass-shell-bg: #F5F5F5;
   --festag-sidebar-width: 232px;
 
-  /* Codex-style content frame — centered column inside workspace panels */
-  --festag-content-max: 1080px;
+  /* ═══ FESTAG BREITENGESETZ ═══
+     Eine Lesebreite für das ganze Produkt.
+
+     Vorher galt hier 1080px — und keine Fläche hielt sich daran: News rechnete
+     intern mit 860, die Projekt-Unterseiten fielen auf 720 zurück, die
+     Projektansicht spreizte sich per calc() auf 1400. Dadurch wanderte beim
+     Seitenwechsel die linke Textkante, und dieselbe Anwendung las sich wie
+     drei. Die Kante darf nicht wandern.
+
+     880px, weil eine Zeile Fließtext bei ~90 Zeichen aufhört, angenehm zu
+     sein; 1080 zwang das Auge über die ganze Fensterbreite zurück.
+
+     Wer wirklich mehr braucht — ein Board, eine breite Tabelle — nimmt
+     --festag-content-max-wide. Das ist eine benannte Ausnahme mit Begründung,
+     keine neue Zahl. Neue Zahlen sind der Weg zurück ins Chaos. */
+  --festag-content-max: 880px;
+  --festag-content-max-wide: 1240px;
   --festag-content-pad-x: clamp(40px, 5.5vw, 88px);
   --festag-content-pad-y: clamp(40px, 4.5vh, 56px);
   --festag-content-pad-bottom: 88px;
@@ -1144,7 +1159,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
 /* Aligned to Codex-style centered content column inside workspace shells. */
 .page-content {
   width: 100%;
-  max-width: var(--festag-content-max, 1080px);
+  max-width: var(--festag-content-max, 880px);
   margin-left: auto;
   margin-right: auto;
   padding: var(--festag-content-pad-y, 40px) var(--festag-content-pad-x, 40px) var(--festag-content-pad-bottom, 88px);
@@ -1160,7 +1175,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
 }
 .festag-content-frame {
   width: 100%;
-  max-width: var(--festag-content-max, 1080px);
+  max-width: var(--festag-content-max, 880px);
   margin-left: auto;
   margin-right: auto;
   padding-left: var(--festag-content-pad-x, 40px);

@@ -36,7 +36,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     min-height: 0;
     display: flex;
     flex-direction: column;
-    max-width: var(--festag-content-max, 720px);
+    max-width: var(--festag-content-max, 880px);
     width: 100%;
     margin: 0 auto;
     padding: clamp(48px, 6vh, 72px) var(--festag-content-pad-x, 56px) calc(100px + env(safe-area-inset-bottom, 0px));

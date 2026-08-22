@@ -28,11 +28,15 @@ type ProjectChoice = { id: string; title: string; reason: string }
 type Props = {
   onClose: () => void
   onCreated: (info: { decisionId: string; personLabel: string; projectTitle: string }) => void
+  /** Opened from a person card: the person and project are already known, so
+      the sheet starts on the question instead of asking who and where again. */
+  initialPerson?: Person | null
+  initialProjectId?: string | null
 }
 
 type Phase = 'compose' | 'pick_project' | 'sending'
 
-export default function DecisionAskSheet({ onClose, onCreated }: Props) {
+export default function DecisionAskSheet({ onClose, onCreated, initialPerson, initialProjectId }: Props) {
   const [phase, setPhase] = useState<Phase>('compose')
   const [question, setQuestion] = useState('')
   const [context, setContext] = useState('')
@@ -40,11 +44,11 @@ export default function DecisionAskSheet({ onClose, onCreated }: Props) {
 
   const [personQuery, setPersonQuery] = useState('')
   const [people, setPeople] = useState<Person[]>([])
-  const [person, setPerson] = useState<Person | null>(null)
+  const [person, setPerson] = useState<Person | null>(initialPerson ?? null)
   const [peopleLoading, setPeopleLoading] = useState(false)
 
   const [projectChoices, setProjectChoices] = useState<ProjectChoice[]>([])
-  const [projectId, setProjectId] = useState<string | null>(null)
+  const [projectId, setProjectId] = useState<string | null>(initialProjectId ?? null)
 
   const [error, setError] = useState('')
   const panelRef = useRef<HTMLDivElement>(null)

@@ -31,7 +31,7 @@ ${DECISION_CSS}
 @keyframes nwsSpin { to { transform: rotate(360deg); } }
 
 .nws {
-  --nws-max: 860px;
+  --nws-max: 100%;
   --nws-row-bg: color-mix(in srgb, var(--surface-2) 42%, transparent);
   --nws-row-bg-hover: color-mix(in srgb, var(--surface-2) 78%, transparent);
   /* Unter der Kopfzeile liegt ein 52px hoher Verlauf (.dec-static-top::after),

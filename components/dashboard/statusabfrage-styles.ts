@@ -166,7 +166,7 @@ export const STATUSABFRAGE_CSS = `
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
-    max-width: var(--festag-content-max, 1080px);
+    max-width: var(--festag-content-max, 880px);
     margin: 0 auto;
     padding: 0 var(--festag-content-pad-x, 56px);
     box-sizing: border-box;
@@ -284,7 +284,7 @@ export const STATUSABFRAGE_CSS = `
       12px
       var(--festag-content-pad-x, 56px)
       clamp(64px, 7vh, 88px);
-    max-width: var(--festag-content-max, 1080px);
+    max-width: var(--festag-content-max, 880px);
     width: 100%;
     margin: 0 auto;
     box-sizing: border-box;

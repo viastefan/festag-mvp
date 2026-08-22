@@ -494,7 +494,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     z-index: 8;
     background: var(--mb-card-bg);
     width: 100%;
-    max-width: var(--festag-content-max, 1080px);
+    max-width: var(--festag-content-max, 880px);
     margin: 0 auto;
     padding: clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
     box-sizing: border-box;
@@ -505,7 +505,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     min-height: 0;
     overflow: hidden;
     width: 100%;
-    max-width: var(--festag-content-max, 1080px);
+    max-width: var(--festag-content-max, 880px);
     margin: 0 auto;
     padding: 20px var(--festag-content-pad-x, 56px) var(--festag-content-pad-bottom, 88px);
     box-sizing: border-box;

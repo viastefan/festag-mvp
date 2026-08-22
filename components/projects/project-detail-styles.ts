@@ -34,7 +34,7 @@ ${DECISION_CSS}
   }
 
   .pj-d-page-head {
-    max-width: var(--festag-content-max, 1080px);
+    max-width: var(--festag-content-max, 880px);
     margin: 0 auto;
     padding: clamp(48px, 6vh, 72px) var(--festag-content-pad-x, 56px) 20px !important;
     box-sizing: border-box;
@@ -119,7 +119,7 @@ ${DECISION_CSS}
     display: flex;
     align-items: center;
     gap: 6px;
-    max-width: var(--festag-content-max, 1080px);
+    max-width: var(--festag-content-max, 880px);
     margin: 0 auto;
     padding: 0 var(--festag-content-pad-x, 56px) 18px;
     box-sizing: border-box;
@@ -170,9 +170,19 @@ ${DECISION_CSS}
     background: var(--portal-canvas, var(--surface, #f4f4f5));
   }
 
+  /* Der Körper der Projektansicht stand auf calc(content-max + 320) = 1400px
+     und trug ein eigenes Padding (clamp 20–56) — der Kopf darüber hielt 880px
+     mit dem Padding-Token. Die linke Textkante sprang also *innerhalb einer
+     Seite*: Überschrift auf einer Linie, Inhalt auf einer anderen. Das ist der
+     Grund, warum die Seite unübersichtlich wirkt — nicht der Inhalt.
+
+     Jetzt dieselbe Breite und dasselbe Padding wie überall sonst. Eine Kante,
+     vom Seitentitel bis zur letzten Zeile. */
   .pj-os .pv-main {
-    padding: 32px clamp(20px, 4vw, 56px) 48px !important;
-    max-width: calc(var(--festag-content-max, 1080px) + 320px);
+    padding: 32px var(--festag-content-pad-x, 56px) 48px !important;
+    max-width: var(--festag-content-max, 880px);
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .pj-os .pv-sidebar {

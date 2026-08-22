@@ -84,7 +84,7 @@ ${FESTAG_ROWS_CSS}
     flex:0 0 auto; position:sticky; top:0; z-index:8;
     background:transparent;
     width:100%;
-    max-width:var(--festag-content-max, 1080px);
+    max-width:var(--festag-content-max, 880px);
     margin:0 auto;
     padding:clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
     box-sizing:border-box;
@@ -481,7 +481,7 @@ ${FESTAG_ROWS_CSS}
     flex:1 1 auto; min-height:0;
     overflow-y:auto; overflow-x:hidden;
     width:100%;
-    max-width:var(--festag-content-max, 1080px);
+    max-width:var(--festag-content-max, 880px);
     margin:0 auto;
     padding:28px var(--festag-content-pad-x, 56px) var(--festag-content-pad-bottom, 88px);
     box-sizing:border-box;
@@ -835,7 +835,7 @@ ${FESTAG_ROWS_CSS}
   .dec-detail-hero {
     flex:0 0 auto;
     width:100%;
-    max-width:var(--festag-content-max, 1080px);
+    max-width:var(--festag-content-max, 880px);
     margin:0 auto;
     padding:clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 28px;
     border-bottom:0;
@@ -1124,7 +1124,7 @@ ${FESTAG_ROWS_CSS}
      geometry itself — it is a sibling of the hero, not a child. */
   .dec-trail-foot {
     width:100%;
-    max-width:var(--festag-content-max, 1080px);
+    max-width:var(--festag-content-max, 880px);
     margin:0 auto;
     padding:8px var(--festag-content-pad-x, 56px) 56px;
     box-sizing:border-box;
@@ -1139,7 +1139,7 @@ ${FESTAG_ROWS_CSS}
   .dec-detail-page {
     flex:1; min-height:0; overflow-y:auto;
     width:100%;
-    max-width:var(--festag-content-max, 1080px);
+    max-width:var(--festag-content-max, 880px);
     margin:0 auto;
     padding:8px var(--festag-content-pad-x, 56px) var(--festag-content-pad-bottom, 88px);
     overscroll-behavior:contain;
@@ -1381,7 +1381,7 @@ ${FESTAG_ROWS_CSS}
   .dec-detail-empty {
     flex:1;
     width:100%;
-    max-width:var(--festag-content-max, 1080px);
+    max-width:var(--festag-content-max, 880px);
     margin:0 auto;
     padding:64px var(--festag-content-pad-x, 56px);
     color:var(--dec-soft);

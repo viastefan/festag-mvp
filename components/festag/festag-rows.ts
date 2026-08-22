@@ -20,7 +20,10 @@
 export const FESTAG_ROWS_CSS = `
 .fst-rows-scope,
 .nws {
-  --fst-max: 860px;
+  /* Keine eigene Breite mehr — die Zeilen folgen dem Breitengesetz der Shell
+     (--festag-content-max). Vorher stand hier 860 gegen 1080 der Seite, und
+     die Zeilen endeten sichtbar vor dem Seitenrand. */
+  --fst-max: 100%;
   --fst-row-bg: color-mix(in srgb, var(--surface-2) 42%, transparent);
   --fst-row-bg-hover: color-mix(in srgb, var(--surface-2) 78%, transparent);
 }
