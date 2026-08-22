@@ -20,6 +20,7 @@ import {
 } from '@/lib/tasks/perspective'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import { computeControlStatus, ageInDays } from '@/lib/trust/control-status'
+import ProjectCoverField from '@/components/projects/ProjectCoverField'
 import ProjectHealthPanel from '@/components/health/ProjectHealthPanel'
 import { describeHealth } from '@/lib/health/language'
 import type { ProjectHealth } from '@/lib/health/types'
@@ -2503,6 +2504,12 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         <aside className="pv-sidebar">
           <section className="pv-side-section">
             <header><span>Eigenschaften</span></header>
+            {/* Identität vor Zustand: erst wovon die Rede ist, dann wie es
+                darum steht. Das Bild lädt seinen eigenen Link — die
+                Projektabfrage dieser Seite bleibt unangetastet. */}
+            <div style={{ padding: '2px 0 14px', marginBottom: 9, borderBottom: '1px solid color-mix(in srgb, var(--border) 45%, transparent)' }}>
+              <ProjectCoverField projectId={project.id} />
+            </div>
             {/* Control Status — the consolidated "is this under control + why" line */}
             <div
               title={controlStatus.reason}

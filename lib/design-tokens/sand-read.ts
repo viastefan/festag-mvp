@@ -1,37 +1,45 @@
 /**
- * Festag sand / README (Lesen) canvas — warm paper ivory.
- * Slightly more yellow than Anthropic `#FAF9F5` so white CTAs lift calmly
- * without going orange or cream-heavy.
+ * Festag ground tokens.
+ *
+ * Was warm paper ivory until the 2026-08-22 constitution replaced the visual
+ * law with a neutral ground — see docs/festag-design-constitution.md. The
+ * export keeps its name because it is the single source every surface reads
+ * (app shell, page styles, overview flow, auth, theme); changing the values
+ * here moves the whole product at once, which is the point.
+ *
+ * `muted` moved from #8a8378 to #5B5B66 for a reason beyond taste: the old
+ * pair sat near 2.4:1 on its own background. 4.5:1 is the floor now.
  */
 
 export const FESTAG_SAND = {
-  /** Main canvas — warm read paper (login, register, Lesen). */
-  canvas: '#FBF7EE',
-  /** Soft ivory lift (slightly brighter than body). */
-  canvasSoft: '#FCFAF3',
-  /** Deeper parchment wash. */
-  canvasDeep: '#F1EBE0',
-  /** Warm mid cream. */
-  canvasWarm: '#F6F1E6',
-  /** Idle CTA fill — soft white on sand. */
+  /** Main canvas — neutral ground. */
+  canvas: '#F7F7F8',
+  /** Card / lifted surface. */
+  canvasSoft: '#FFFFFF',
+  /** Sunken — tracks, wells. */
+  canvasDeep: '#E9E9EC',
+  /** Raised — hover, secondary fills. */
+  canvasWarm: '#F1F1F3',
+  /** Idle CTA fill. */
   cta: '#FFFFFF',
-  ctaHover: '#F7F6F2',
-  ctaActive: '#F0EEE6',
-  ctaFg: '#1e1e20',
-  ctaBorder: 'rgba(40, 34, 28, 0.10)',
-  ctaBorderHover: 'rgba(40, 34, 28, 0.14)',
+  ctaHover: '#F7F7F8',
+  ctaActive: '#F1F1F3',
+  ctaFg: '#0F0F14',
+  ctaBorder: 'rgba(15, 15, 20, 0.07)',
+  ctaBorderHover: 'rgba(15, 15, 20, 0.12)',
   ready: '#FFFFFF',
-  readyHover: '#F7F6F2',
-  readyActive: '#F0EEE6',
-  primary: '#5C554C',
-  primaryHover: '#6B6359',
-  primaryActive: '#4A453E',
-  primaryFg: '#FBF7EE',
-  primarySoft: 'rgba(92, 85, 76, 0.08)',
-  primarySoftHover: 'rgba(92, 85, 76, 0.12)',
-  primaryBorder: 'rgba(92, 85, 76, 0.22)',
-  muted: '#8a8378',
-  ink: '#1e1e20',
+  readyHover: '#F7F7F8',
+  readyActive: '#F1F1F3',
+  /* One filled primary action per surface, and it is ink — not a brand wash. */
+  primary: '#0F0F14',
+  primaryHover: '#26262E',
+  primaryActive: '#000004',
+  primaryFg: '#FFFFFF',
+  primarySoft: 'rgba(46, 107, 255, 0.10)',
+  primarySoftHover: 'rgba(46, 107, 255, 0.16)',
+  primaryBorder: 'rgba(46, 107, 255, 0.28)',
+  muted: '#5B5B66',
+  ink: '#0F0F14',
 } as const
 
 /** Quiet sandy cream for read html body. */
