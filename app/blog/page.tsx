@@ -7,11 +7,14 @@
  */
 
 import Link from 'next/link'
+import FestagArticleCard from '@/components/festag/FestagArticleCard'
+import { FESTAG_ARTICLE_CARD_CSS } from '@/components/festag/festag-article-card'
 import { BLOG_SECTIONS } from '@/lib/blog'
 
 export default function BlogIndexPage() {
   return (
     <div className="bi-root">
+      <style dangerouslySetInnerHTML={{ __html: FESTAG_ARTICLE_CARD_CSS }} />
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
         .bi-root {
           min-height: 100dvh;
@@ -107,7 +110,7 @@ export default function BlogIndexPage() {
         .bi-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 14px;
+          gap: 32px 22px;
         }
         .bi-card {
           display: flex; flex-direction: column; gap: 6px;
@@ -166,15 +169,22 @@ export default function BlogIndexPage() {
             <h2>{section.label}</h2>
             <div className="bi-grid">
               {section.articles.map(article => (
-                <Link key={article.slug} href={`/blog/${article.slug}`} className="bi-card">
-                  {article.eyebrow && <span className="bi-card-eye">{article.eyebrow}</span>}
-                  <h3 className="bi-card-title">{article.title}</h3>
-                  {article.description && <p className="bi-card-desc">{article.description}</p>}
-                  <p className="bi-card-meta">
-                    {new Date(article.date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    {typeof article.readingMinutes === 'number' ? ` · ${article.readingMinutes} min` : ''}
-                  </p>
-                </Link>
+                <FestagArticleCard
+                  key={article.slug}
+                  article={{
+                    href: `/blog/${article.slug}`,
+                    title: article.title,
+                    category: article.eyebrow || section.label,
+                    meta: [
+                      new Date(article.date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
+                      typeof article.readingMinutes === 'number' ? `${article.readingMinutes} Min. Lesezeit` : null,
+                    ].filter(Boolean).join(' · '),
+                    /* The tile carries the short form, the line below carries
+                       the whole sentence — repeating the headline twice reads
+                       as a mistake, not as layering. */
+                    artText: article.eyebrow || section.label,
+                  }}
+                />
               ))}
             </div>
           </section>

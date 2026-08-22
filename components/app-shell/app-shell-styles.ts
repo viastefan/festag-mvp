@@ -1221,26 +1221,17 @@ html[data-theme="classic-dark"] .fas-search-enter .al-enter-glyph {
 
 /* Assemble motion */
 @keyframes fasAssemble {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-    filter: blur(10px);
-  }
-  55% {
-    filter: blur(2.5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fasPop {
-  from { opacity: 0; transform: translateY(-4px) scale(0.98); filter: blur(6px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  /* No blur(0) here: a filter on the to-frame alone still promotes the element
+     to its own layer for the whole animation, for nothing. */
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .fas-assemble {
-  animation: fasAssemble 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fasAssemble 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .fas-assemble-d1 { animation-delay: 0.06s; }
 .fas-assemble-d2 { animation-delay: 0.14s; }
