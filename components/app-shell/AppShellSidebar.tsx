@@ -521,6 +521,10 @@ export default function AppShellSidebar({
       </div>
 
       <nav className="fas-nav" aria-label="Workspace">
+        {/* Zwei Ueberschriften, mehr braucht die Leiste nicht: das Taegliche
+            und das Nachschlagbare. Sie stehen nur in der offenen Leiste — im
+            Rail waeren sie Text ohne Platz. */}
+        {expanded ? <p className="fas-nav-caption">Arbeit</p> : null}
         <div className="fas-nav-group">
           {APP_SHELL_PRIMARY_NAV.map((item) => {
             const Icon = item.icon
@@ -540,6 +544,7 @@ export default function AppShellSidebar({
           })}
         </div>
 
+        {expanded ? <p className="fas-nav-caption">Ablage</p> : null}
         <div className="fas-nav-group fas-nav-after-group">
           {APP_SHELL_SECONDARY_NAV.map((item) => {
             const Icon = item.icon
@@ -617,13 +622,19 @@ export default function AppShellSidebar({
           aria-label={`Account: ${displayName}`}
           title={expanded ? undefined : displayName}
         >
-          <span className="fas-account-mark" aria-hidden="true">
-            {user?.avatar_url
-              ? <img src={user.avatar_url} alt="" />
-              : initials
-                ? initials
-                : <UserCircleGear size={17} weight="light" />}
-          </span>
+          {/* Nur noch ein echtes Bild, keine zweite Initialen-Marke. Oben steht
+              die Workspace-Marke; dieselben zwei Buchstaben ein zweites Mal
+              darunter sahen aus wie ein doppeltes Konto. Wer ein Foto
+              hinterlegt hat, sieht es — sonst traegt der Name allein. */}
+          {user?.avatar_url ? (
+            <span className="fas-account-mark" aria-hidden="true">
+              <img src={user.avatar_url} alt="" />
+            </span>
+          ) : (
+            <span className="fas-account-mark is-glyph" aria-hidden="true">
+              <UserCircleGear size={17} weight="light" />
+            </span>
+          )}
           <span className="fas-account-copy">
             <span className="fas-account-row-name">{displayName}</span>
             <span className="fas-account-row-meta">{appShellRoleLabel(user?.role)}</span>

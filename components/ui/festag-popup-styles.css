@@ -38,7 +38,8 @@
   --fp-accent: var(--festag-primary, #5B647D);
   --fp-accent-soft: rgba(91, 100, 125, 0.08);
   --fp-glow: var(--glow, rgba(91, 100, 125, 0.10));
-  --fp-shadow: var(--content-shadow, 0 1px 2px rgba(40, 34, 28, 0.04), 0 14px 36px rgba(40, 34, 28, 0.10));
+  /* One popup elevation for the whole product — see --fst-popup-shadow. */
+  --fp-shadow: var(--fst-popup-shadow);
   color: var(--fp-text);
   background:
     radial-gradient(ellipse 90% 65% at 10% -5%, rgba(236, 176, 128, 0.16), transparent 55%),
@@ -67,7 +68,7 @@
   --fp-accent: var(--festag-primary, #5B647D);
   --fp-accent-soft: rgba(91, 100, 125, 0.12);
   --fp-glow: rgba(91, 100, 125, 0.18);
-  --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 1px rgba(255, 255, 255, 0.04);
+  --fp-shadow: var(--fst-popup-shadow);
   border-radius: var(--festag-control-radius-lg, 8px);
   border-color: rgba(255, 255, 255, 0.06);
   background: var(--fp-bg);

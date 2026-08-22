@@ -41,7 +41,7 @@ export const APP_SHELL_STYLES = `
   --fas-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --fas-popover: #ffffff;
   --fas-popover-border: var(--f-line);
-  --fas-popover-shadow: 0 8px 28px rgba(15, 23, 42, 0.10), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --fas-popover-shadow: var(--fst-popup-shadow);
 
   position: fixed;
   inset: 0;
@@ -87,7 +87,7 @@ html[data-theme="classic-dark"] .fas-root {
   --fas-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   --fas-popover: #171A24;
   --fas-popover-border: rgba(255, 255, 255, 0.06);
-  --fas-popover-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --fas-popover-shadow: var(--fst-popup-shadow);
   /* Same Primary Dusk atmosphere as /create-workspace */
   background:
     radial-gradient(ellipse 90% 48% at 40% -8%, rgba(255, 255, 255, 0.035), transparent 55%),
@@ -141,37 +141,30 @@ html[data-theme="read"] .fas-root {
      dasselbe Bild, aber ohne Rechenarbeit pro Frame. */
   contain: layout paint style;
   transition:
-    width var(--dur-3, 340ms) cubic-bezier(0.22, 1, 0.36, 1),
+    width var(--dur-2, 240ms) cubic-bezier(0.22, 1, 0.36, 1),
     background 0.14s ease 0.16s,
     border-color 0.14s ease 0.16s,
-    box-shadow 0.24s ease 0.06s;
+    box-shadow 0s;
 }
 .fas-sidebar.is-collapsed {
   width: var(--fas-sidebar-collapsed-w);
 }
 
-/* Der Inhalt haelt immer die volle Breite — auch waehrend die Huelle schmaler
-   wird. Sonst laufen Beschriftungen bei jedem Frame in einen neuen Umbruch und
-   zucken sichtbar. So steht der Text still und wird nur vom overflow der
-   Seitenleiste beschnitten. */
-.fas-sidebar > .fas-sidebar-top,
-.fas-sidebar > .fas-sidebar-body,
-.fas-sidebar > .fas-sidebar-foot,
-.fas-sidebar > nav {
-  width: var(--fas-sidebar-w);
-  min-width: var(--fas-sidebar-w);
-  box-sizing: border-box;
-}
+/* Hier stand eine feste Inhaltsbreite, die den Umbruch pro Frame verhindern
+   sollte. Sie hat den Einklapp-Knopf aus der Leiste geschoben: .fas-sidebar
+   traegt 10px Innenabstand, ein Kind auf voller Leistenbreite ragt also um
+   20px darueber hinaus und wird vom overflow abgeschnitten. Die Technik war
+   falsch gewaehlt — der Umbruch kostet weniger als ein zerschnittener Kopf. */
 .fas-sidebar.is-expanded {
   width: var(--fas-sidebar-w);
   /* Paper lands before the panel is wide enough to cover text — fading it in
      alongside the width let the page read straight through it. Leaving the
      state still uses the base transition, so it fades out gently. */
   transition:
-    width var(--dur-3, 340ms) cubic-bezier(0.22, 1, 0.36, 1),
+    width var(--dur-2, 240ms) cubic-bezier(0.22, 1, 0.36, 1),
     background 0s,
     border-color 0s,
-    box-shadow var(--dur-3, 340ms) ease;
+    box-shadow 0s;
   background: ${FESTAG_SAND.canvas};
   border-color: rgba(30, 30, 32, 0.07);
   box-shadow:
@@ -852,6 +845,29 @@ html[data-theme="classic-dark"] .fas-profile-avatar {
   overflow: hidden;
 }
 .fas-account-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Ohne Foto bleibt ein leises Glyph statt einer zweiten Initialen-Marke —
+   kein Kreis mit Fuellung, der um Aufmerksamkeit mit der Workspace-Marke
+   oben konkurriert. */
+.fas-account-mark.is-glyph {
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+/* Zwischenueberschrift der Navigation. Kleiner als alles darunter, leise,
+   ohne Versalien-Sperrung — sie ordnet, sie ruft nicht. */
+.fas-nav-caption {
+  margin: 14px 0 4px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: var(--ls-sidebar, 0.015em);
+  color: var(--text-muted);
+  opacity: .72;
+  white-space: nowrap;
+}
+.fas-nav-caption:first-of-type { margin-top: 2px; }
 html[data-theme="dark"] .fas-account-mark,
 html[data-theme="classic-dark"] .fas-account-mark {
   color: rgba(230, 230, 234, 0.62);

@@ -146,6 +146,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --fst-shadow-md:0 4px 16px rgba(15,15,20,.07);
   --fst-shadow-lg:0 12px 32px rgba(15,15,20,.10);
   --fst-shadow-xl:0 24px 64px rgba(15,15,20,.14);
+  /* Every popup, popover, sheet and modal — identical in light and read. */
+  --fst-popup-shadow:0 1px 2px rgba(15,15,20,.045), 0 10px 30px rgba(15,15,20,.065);
 
   --fst-press:70ms ease;
   --fst-hover:130ms ease;
@@ -426,7 +428,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --warning-bg:rgba(214,163,79,0.14); --warning-text:#E2C48A; --warning-dot:#D6A34F;
   --danger-bg:rgba(216,96,96,0.14); --danger-text:#E8A0A0; --danger-dot:#D86060;
   --info-bg:rgba(91,100,125,0.14); --info-text:#A0C0FF; --info-dot:#5B647D;
-  --shadow-soft:0 12px 40px rgba(0,0,0,0.22); --shadow-panel:0 18px 56px rgba(11,12,16,0.28);
+  --shadow-soft:var(--fst-popup-shadow); --shadow-panel:var(--fst-popup-shadow);
   --shadow-focus:0 0 0 1px rgba(91,100,125,0.35), 0 0 0 4px rgba(91,100,125,0.12);
   --radius-2xl:24px;
   --ease-premium:ease-out;
@@ -668,6 +670,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --fst-shadow-md:0 4px 16px rgba(0,0,0,.36);
   --fst-shadow-lg:0 12px 32px rgba(0,0,0,.44);
   --fst-shadow-xl:0 24px 64px rgba(0,0,0,.55);
+  /* Dark needs a touch more to register at all, but nowhere near the .45 it had. */
+  --fst-popup-shadow:0 1px 2px rgba(0,0,0,.22), 0 12px 34px rgba(0,0,0,.28);
   --green:#2E9B52; --green-bg:rgba(47,165,110,0.14);
   --green-border:rgba(47,165,110,0.22); --green-dark:#268A5A;
   --amber:#D6A34F; --amber-bg:rgba(214,163,79,0.14); --amber-dark:#B8893E;
@@ -920,10 +924,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 :root {
   --ls-header:  0.015em;
   --ls-body:    0.021em;
-  /* Auf 1 % gehoben: die Seitenleiste laeuft in Aeonik Medium, und Medium
-     traegt bei kleinen Graden etwas mehr Luft zwischen den Buchstaben als
-     Regular, damit die Woerter nicht zusammenlaufen. */
-  --ls-sidebar: 0.01em;
+  /* Regular auf 1,5 %. Medium war der Versuch, den Wegweisern mehr Gewicht zu
+     geben — es machte die Leiste nur schwerer, ohne sie lesbarer zu machen.
+     Die Luft zwischen den Buchstaben leistet dasselbe, ohne Fett. */
+  --ls-sidebar: 0.015em;
   /* Subtle tracking for small muted UI copy (auth help, legal footers, docs desc).
      Do not apply to large titles / h1 / display path lines. */
   --festag-tracking-small: 0.018em;
@@ -1071,11 +1075,11 @@ p  { color:var(--text-secondary); font-weight:400; letter-spacing: var(--ls-body
 .fas-sidebar {
   letter-spacing: var(--ls-sidebar);
 }
-/* Die Woerter der Seitenleiste laufen in Aeonik Medium — sie sind Wegweiser,
-   keine Fliesstext. Das ist die eine bewusste Betonung, die das Typo-Gesetz
-   in app/globals.css erlaubt. */
+/* Die Woerter der Seitenleiste bleiben Regular — Hierarchie entsteht ueber
+   Groesse und Laufweite, nicht ueber Gewicht. Genau das sagt das Typo-Gesetz
+   weiter oben, und die Leiste ist keine Ausnahme davon. */
 .fas-sidebar :where(a, button, span, p, strong, small) {
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: var(--ls-sidebar);
 }
 .tabular { font-variant-numeric:tabular-nums; }
