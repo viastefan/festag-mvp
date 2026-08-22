@@ -14,6 +14,15 @@ import { readActiveWorkspaceIdFromCookie } from '@/lib/active-workspace'
 export const runtime = 'nodejs'
 
 import { signCovers } from '@/lib/projects/cover'
+import { asWorkspaceMode, type WorkspaceMode } from '@/lib/workspace/mode'
+
+export type WorkspaceOverviewWorkspace = {
+  id: string
+  name: string
+  domain?: string
+  /** Betriebsart aus workspaces.mode — die Sprache der Oberflaeche haengt daran. */
+  mode: WorkspaceMode
+}
 
 export type WorkspaceOverviewProject = {
   id: string
@@ -98,7 +107,7 @@ export async function GET(req: NextRequest) {
 
   const activeId = await resolveActiveWorkspaceId(service as any, user.id, null, preferred)
 
-  let workspace: { id: string; name: string; domain: string } | null = null
+  let workspace: { id: string; name: string; domain: string; mode: WorkspaceMode } | null = null
 
   function toDomain(name: string, slug?: string | null): string {
     const s = (typeof slug === 'string' && slug.trim()) || name
@@ -115,7 +124,7 @@ export async function GET(req: NextRequest) {
   if (activeId) {
     const { data: ws } = await service
       .from('workspaces')
-      .select('id, name, slug')
+      .select('id, name, slug, mode')
       .eq('id', activeId)
       .is('deleted_at', null)
       .maybeSingle()
@@ -124,6 +133,10 @@ export async function GET(req: NextRequest) {
         id: ws.id,
         name: String(ws.name || 'Workspace'),
         domain: toDomain(String(ws.name || ''), ws.slug),
+        /* Nie einen unbekannten Spaltenwert durchreichen — asWorkspaceMode
+           faellt auf die Voreinstellung zurueck, statt die Oberflaeche mit
+           einem Wert zu fuettern, fuer den es keine Sprache gibt. */
+        mode: asWorkspaceMode(ws.mode),
       }
     }
   }

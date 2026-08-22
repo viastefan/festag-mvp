@@ -1,4 +1,23 @@
 /**
+ * ⚠️ ABGELÖST — nicht erweitern. Neue Flächen nehmen `lib/workspace/mode.ts`.
+ *
+ * Diese Datei hielt eine zweite, eigene Skala für die Betriebsart eines
+ * Workspace: zwei Werte (`client_delivery` / `internal_company`) im
+ * localStorage des Browsers. Die Datenbank kennt seit dem Fundament drei
+ * (`delivery`, `team`, `agency`) in `workspaces.mode` — beide beschrieben
+ * dieselbe Eigenschaft und kannten einander nicht.
+ *
+ * Das waren keine Schönheitsfehler: auf einem zweiten Gerät war die Art wieder
+ * die voreingestellte, zwei Mitglieder desselben Workspace konnten
+ * verschiedene Modi sehen, und der Server — der Tagro, Statusberichte und jede
+ * serverseitig erzeugte Formulierung verantwortet — wusste nichts davon. Eine
+ * Eigenschaft des Workspace kann nicht im Browser eines Einzelnen wohnen.
+ *
+ * Die Aufrufer hier sind noch nicht umgestellt; das ist eigene Arbeit pro
+ * Fläche. Bis dahin bleibt die Datei stehen, damit nichts bricht — aber jede
+ * neue Zeile gehört in die andere.
+ *
+ * ── ursprüngliche Beschreibung ──────────────────────────────────────────
  * Workspace mode — per-workspace operating posture.
  *
  *   client_delivery  → default. The agency uses Festag to run client work.

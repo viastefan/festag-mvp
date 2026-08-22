@@ -42,7 +42,7 @@ export type OverviewDecision = {
 }
 
 export type OverviewPayload = {
-  workspace: { id: string; name: string; domain?: string }
+  workspace: { id: string; name: string; domain?: string; mode?: 'delivery' | 'team' | 'agency' }
   workspaces?: Array<{
     id: string
     name: string
