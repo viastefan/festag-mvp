@@ -264,14 +264,14 @@ export const CAPTURES_CSS = `
     background: #fff;
     color: #000;
     border-color: transparent;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    box-shadow: var(--e-panel);
   }
   [data-theme="dark"] .cap-head-record,
   [data-theme="classic-dark"] .cap-head-record {
     background: #fff;
     color: #000;
     border-color: transparent;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    box-shadow: var(--e-panel);
   }
   [data-theme="dark"] .cap-head-tool,
   [data-theme="classic-dark"] .cap-head-tool {

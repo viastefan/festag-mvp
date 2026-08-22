@@ -136,7 +136,7 @@ ${SETTINGS_PAGE_CSS}
   border: 1px solid var(--border);
   background: var(--surface);
   padding: 14px 10px 10px;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--e-dialog);
 }
 .set-m-sheet-title {
   margin: 0 0 10px;

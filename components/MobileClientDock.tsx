@@ -178,7 +178,7 @@ export default function MobileClientDock() {
           padding: 0 24px;
           background: var(--btn-prim, #000);
           color: var(--btn-prim-text, #FFF);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+          box-shadow: var(--e-panel);
         }
         .mcd-primary .mcd-ico { color: var(--btn-prim-text, #FFF); }
         .mcd-primary:active { opacity: 0.88; }

@@ -993,6 +993,30 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
      --ease-out fuer alles, was hereinkommt: sofort schnell, ruhig auslaufend.
      --ease-in-out nur fuer Bewegung in beide Richtungen (Drag, Snap). */
+  /* ═══ FESTAG HÖHENGESETZ ═══
+     Vier Stufen Tiefe, und drei davon sind kaum zu sehen.
+
+     Der Bestand kannte zwölf Schatten-Geometrien und Deckkräfte von 0,04 bis
+     0,35. Ein Schatten mit 0,35 unter einem Menü ist kein Schatten, das ist
+     ein dunkler Fleck — und genau daran erkennt man billige Oberflächen.
+
+     Die Regel dahinter: großer Radius, geringe Deckkraft. Ein weit gestreuter,
+     fast unsichtbarer Schatten liest sich als Licht im Raum; ein enger,
+     kräftiger als aufgeklebtes Papier. Tiefe soll ohnehin aus Abstand,
+     Kontrast und Schichtung kommen — der Schatten sagt nur, was oben liegt.
+
+     hairline  Trennung ohne Erhebung: Zeilen, Eingaben, Karten am Boden.
+     raised    Etwas hebt sich beim Zeigen: Knöpfe, Chips.
+     panel     Etwas liegt darüber: Popover, Menüs, Flyouts.
+     dialog    Etwas unterbricht: Dialoge, Sheets.
+
+     Im Dunkeln trägt ein Schatten kaum — dort macht die Kante die Arbeit,
+     deshalb sind die Werte unten anders und nicht einfach dunkler. */
+  --e-hairline: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --e-raised:   0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --e-panel:    0 1px 2px rgba(15, 23, 42, 0.03), 0 6px 20px rgba(15, 23, 42, 0.06);
+  --e-dialog:   0 1px 3px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
+
   --dur-1: 140ms;
   --dur-2: 240ms;
   --dur-3: 340ms;
@@ -1004,6 +1028,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 [data-theme="dark"],
 [data-theme="classic-dark"] {
+  /* Auf dunklem Grund ist ein Schatten fast unsichtbar — ihn einfach dunkler
+     zu machen erzeugt einen schmutzigen Rand statt Tiefe. Weniger Schatten,
+     dafür trägt die Kante. */
+  --e-hairline: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --e-raised:   0 1px 2px rgba(0, 0, 0, 0.24);
+  --e-panel:    0 2px 8px rgba(0, 0, 0, 0.28);
+  --e-dialog:   0 8px 28px rgba(0, 0, 0, 0.36);
   --glass-sidebar-bg: transparent;
   --glass-sidebar-border: transparent;
   --glass-nav-active: rgba(91, 100, 125, 0.32);

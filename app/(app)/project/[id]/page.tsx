@@ -1840,7 +1840,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                     position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 61,
                     minWidth: 200, padding: 6, background: 'var(--festag-black-popup, var(--surface))',
                     border: '1px solid var(--border)', borderRadius: 12,
-                    boxShadow: '0 16px 40px rgba(0,0,0,.18)',
+                    boxShadow: 'var(--e-panel)',
                   }}>
                     <button type="button" role="menuitem" className="pj-d-menu-item" onClick={() => { setProjectMenuOpen(false); setAssignDevOpen(true) }}>
                       <UserPlus size={14} /> Entwickler zuweisen
@@ -1931,7 +1931,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                     position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 61,
                     minWidth: 184, padding: 5,
                     background: 'var(--surface)', border: '1px solid var(--border)',
-                    borderRadius: 10, boxShadow: '0 16px 40px rgba(0,0,0,.18)',
+                    borderRadius: 10, boxShadow: 'var(--e-panel)',
                   }}
                 >
                   <button

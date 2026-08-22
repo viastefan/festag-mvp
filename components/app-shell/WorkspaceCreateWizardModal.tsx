@@ -799,7 +799,7 @@ const WIZARD_CSS = `
   background:
     radial-gradient(ellipse 90% 48% at 40% -8%, rgba(91, 100, 125, 0.04), transparent 55%),
     linear-gradient(180deg, var(--wc-wash-top) 0%, var(--wc-panel) 48%, var(--wc-wash-bottom) 100%);
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14), 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--e-dialog);
   overflow: hidden;
   transform: translateY(14px) scale(0.985);
   filter: blur(8px);

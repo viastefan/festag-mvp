@@ -128,7 +128,7 @@ export default function MobileObjectMenu({ title, items }: { title?: string; ite
           :global([data-theme="read"]) .mom-trigger {
             background: rgba(255,255,255,0.86);
             color: #111;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.05), 0 12px 28px -16px rgba(15,23,42,0.18);
+            box-shadow: var(--e-panel);
           }
         }
         .mom-trigger:active { transform: scale(.95); }
