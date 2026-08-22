@@ -1159,6 +1159,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           color: var(--pv-muted);
           font-size: 12px;
         }
+        /* The right panel carries the same properties with the same actions.
+           Above 920px both are on screen at once, which is where this row stops
+           being a second route and becomes a repeat. Below it stays: .pv-sidebar
+           is display:none there, so the chips are the only way in. */
+        @media (min-width: 921px) {
+          .pv-prop-row { display: none; }
+        }
         .pv-chip {
           display: inline-flex; align-items: center; gap: 5px;
           height: 24px; padding: 0 9px; border-radius: 6px;
@@ -2088,7 +2095,6 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                     </>
                   )}
                 </div>
-                <h1 className="pv-hero-title">{project.title}</h1>
               </div>
 
               {project.description && <p className="pv-hero-summary">{project.description}</p>}
