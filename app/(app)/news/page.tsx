@@ -2,14 +2,24 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ArrowsClockwise, Newspaper, Sparkle } from '@phosphor-icons/react'
+import { ArrowsClockwise, CaretRight } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
+import FestagState from '@/components/festag/FestagState'
 import { NEWS_CSS } from '@/components/news/news-styles'
 import { useWorkspaceOverview } from '@/hooks/useWorkspaceOverview'
 import { openWorkspaceCreateWizard } from '@/lib/workspace-create-open'
-import { CATEGORY_COLOR, CATEGORY_LABEL, type NewsCategory, type NewsPayload, type NewsStory } from '@/lib/news/types'
+import { getTimeBasedGreeting } from '@/lib/hooks/useUser'
+import { DEMO_NEWS_PAYLOAD, isNewsPreview } from '@/lib/demo/news-preview'
+import {
+  CATEGORY_LABEL,
+  TONE_COLOR,
+  storyStatus,
+  type NewsCategory,
+  type NewsPayload,
+  type NewsStory,
+} from '@/lib/news/types'
 
 const LAST_READ_KEY = 'festag-news-last-read'
 
@@ -21,12 +31,21 @@ const FILTERS: { id: 'all' | NewsCategory; label: string }[] = [
   { id: 'report', label: 'Berichte' },
 ]
 
+type Group = {
+  key: string
+  label: string
+  stories: NewsStory[]
+}
+
 /**
- * News — was seit deinem letzten Besuch wichtig war.
+ * Startseite — was seit deinem letzten Besuch wichtig war.
  *
- * Kein Dashboard: keine Kacheln, keine Kennzahlen ohne Handlung. Eine Spalte
- * Text, nach Tagen sortiert, offene Punkte zuerst — und an jeder Stelle, an
- * der du etwas tun kannst, steht die Handlung direkt daneben.
+ * Die Seite beantwortet zwei Fragen in dieser Reihenfolge: was wartet auf
+ * mich, und was ist passiert. Deshalb steht oben eine Anrede statt einer
+ * Überschrift, und darunter Gruppen von Zeilen — offene Punkte zuerst, dann
+ * die Tage. Eine Zeile trägt ihren Zustand ganz links: was sie braucht, nicht
+ * aus welcher Tabelle sie stammt. Keine Kacheln, keine Kennzahlen ohne
+ * Handlung; jede Zeile führt an die Stelle, an der man sie schließt.
  */
 export default function NewsPage() {
   const [payload, setPayload] = useState<NewsPayload | null>(null)
@@ -45,6 +64,13 @@ export default function NewsPage() {
   const needsWorkspace = workspace.status === 'empty'
 
   const load = useCallback(async (silent = false) => {
+    /* Lokale Vorschau: dieselbe Flagge wie Overview, damit die Seite ohne
+       Anmeldung angesehen werden kann — sie zeigt jeden Zustand einmal. */
+    if (isNewsPreview()) {
+      setPayload(DEMO_NEWS_PAYLOAD)
+      setLoading(false)
+      return
+    }
     if (!silent) setError(null)
     setRefreshing(true)
     try {
@@ -97,16 +123,26 @@ export default function NewsPage() {
     return map
   }, [payload])
 
-  /** Stories keep their rank order; days are the reading rhythm. */
-  const days = useMemo(() => {
-    const groups = new Map<string, { key: string; label: string; stories: NewsStory[] }>()
-    for (const story of stories) {
+  /**
+   * Offene Punkte stehen zusammen ganz oben — sie sind die einzige Gruppe,
+   * die nach Handlung sortiert ist statt nach Zeit. Alles andere folgt dem
+   * Lesetakt der Tage.
+   */
+  const groups = useMemo<Group[]>(() => {
+    const open = stories.filter((story) => story.open)
+    const rest = stories.filter((story) => !story.open)
+
+    const out: Group[] = []
+    if (open.length) out.push({ key: 'open', label: 'Benötigt dich', stories: open })
+
+    const days = new Map<string, Group>()
+    for (const story of rest) {
       const key = dayKey(story.at)
-      const entry = groups.get(key) ?? { key, label: dayLabel(story.at), stories: [] }
+      const entry = days.get(key) ?? { key, label: dayLabel(story.at), stories: [] }
       entry.stories.push(story)
-      groups.set(key, entry)
+      days.set(key, entry)
     }
-    return Array.from(groups.values()).sort((a, b) => b.key.localeCompare(a.key))
+    return out.concat(Array.from(days.values()).sort((a, b) => b.key.localeCompare(a.key)))
   }, [stories])
 
   const freshCount = useMemo(() => {
@@ -114,7 +150,10 @@ export default function NewsPage() {
     return (payload?.stories ?? []).filter((story) => new Date(story.at).getTime() > lastRead).length
   }, [payload, lastRead])
 
-  let markerPlaced = false
+  /* Die Uhrzeit ist die des Lesers, der Name kommt vom Server — sonst grüßt
+     die Seite kurz mit „Gast“, bevor das Profil da ist. */
+  const greeting = useMemo(() => getTimeBasedGreeting().short, [])
+  const readerName = payload?.reader?.name?.trim() || ''
 
   return (
     <div className="dec-os">
@@ -124,7 +163,7 @@ export default function NewsPage() {
       <div className="dec-m-shell">
         <div className="dec-static-top">
           <PortalPageHeader
-            title="News"
+            title={readerName ? `${greeting}, ${readerName}` : greeting}
             onMenu={() => setNavOpen(true)}
             actions={(
               <button
@@ -141,36 +180,31 @@ export default function NewsPage() {
 
         <div className="dec-scroll-body nws">
           {loading ? (
-            <div aria-busy="true" aria-label="Neuigkeiten werden geladen">
-              <div className="nws-head">
-                <div className="nws-skeleton" style={{ height: 60, border: 0 }} />
-              </div>
-              {[0, 1, 2, 3].map((index) => <div key={index} className="nws-skeleton" />)}
-            </div>
+            <FestagState
+              kind="loading"
+              title="Tagro trägt zusammen, was zuletzt wichtig war…"
+              rows={4}
+            />
           ) : error ? (
-            <div className="nws-state">
-              <strong>Die Neuigkeiten sind gerade nicht erreichbar</strong>
-              <p>{error}</p>
-              <div className="nws-state-actions">
-                <button type="button" className="nws-action" onClick={() => void load()}>Erneut versuchen</button>
-              </div>
-            </div>
+            <FestagState
+              kind="error"
+              title="Die Neuigkeiten sind gerade nicht erreichbar"
+              body={error}
+              primary={{ label: 'Erneut versuchen', onClick: () => void load() }}
+            />
           ) : (
             <>
               <header className="nws-head">
-                <p className="nws-kicker">
-                  <Newspaper size={12} weight="regular" />
-                  <span>Newsroom</span>
-                  <span className="nws-kicker-sep" aria-hidden />
+                <p className="nws-digest">{payload?.digest.line}</p>
+                <p className="nws-sub">
                   <time dateTime={payload?.generatedAt}>{todayLabel()}</time>
                   {freshCount > 0 && (
                     <>
-                      <span className="nws-kicker-sep" aria-hidden />
-                      <span>{freshCount} neu</span>
+                      <span className="nws-sep" aria-hidden />
+                      <span>{freshCount} neu seit deinem letzten Besuch</span>
                     </>
                   )}
                 </p>
-                <h2 className="nws-digest">{payload?.digest.line}</h2>
               </header>
 
               {(payload?.stories.length ?? 0) > 0 && (
@@ -200,28 +234,28 @@ export default function NewsPage() {
               ) : !payload?.stories.length ? (
                 <EmptyNews />
               ) : !stories.length ? (
-                <div className="nws-state">
-                  <strong>Dazu gibt es gerade nichts</strong>
-                  <p>In dieser Kategorie ist in den letzten Wochen nichts passiert.</p>
-                  <div className="nws-state-actions">
-                    <button type="button" className="nws-action" onClick={() => setFilter('all')}>Alles anzeigen</button>
-                  </div>
-                </div>
+                <FestagState
+                  kind="empty"
+                  title="Dazu gibt es gerade nichts"
+                  body="In dieser Kategorie ist in den letzten Wochen nichts passiert. Das ist selten schlecht — es heißt, hier läuft nichts aus dem Ruder."
+                  primary={{ label: 'Alles anzeigen', onClick: () => setFilter('all') }}
+                />
               ) : (
-                days.map((day) => (
-                  <section key={day.key}>
-                    <h3 className="nws-day">{day.label}</h3>
-                    {day.stories.map((story) => {
-                      const isFresh = Boolean(lastRead && new Date(story.at).getTime() > lastRead)
-                      const showMarker = !markerPlaced && Boolean(lastRead) && !isFresh && freshCount > 0
-                      if (showMarker) markerPlaced = true
-                      return (
-                        <div key={story.id}>
-                          {showMarker && <p className="nws-marker">Bis hierher gelesen</p>}
-                          <Story story={story} />
-                        </div>
-                      )
-                    })}
+                groups.map((group) => (
+                  <section key={group.key} className="nws-group">
+                    <div className="nws-group-head">
+                      <h2 className="nws-group-title">{group.label}</h2>
+                      <span className="nws-group-count">{group.stories.length}</span>
+                    </div>
+                    <div className="nws-rows">
+                      {group.stories.map((story) => (
+                        <Row
+                          key={story.id}
+                          story={story}
+                          fresh={Boolean(lastRead && new Date(story.at).getTime() > lastRead)}
+                        />
+                      ))}
+                    </div>
                   </section>
                 ))
               )}
@@ -244,83 +278,65 @@ export default function NewsPage() {
   )
 }
 
-function Story({ story }: { story: NewsStory }) {
-  const color = CATEGORY_COLOR[story.category]
+/**
+ * Eine Zeile: Zustand · Satz · Kontext · Zeit.
+ *
+ * Der Zustand steht vorne, weil er entscheidet, ob man weiterliest. Der
+ * Vorschautext bricht nie um — was nicht in eine Zeile passt, gehört auf die
+ * Seite dahinter, nicht in die Übersicht.
+ */
+function Row({ story, fresh }: { story: NewsStory; fresh: boolean }) {
+  const status = storyStatus(story)
+  const href = story.action?.href ?? story.href
+  const className = [
+    'nws-row',
+    story.weight === 'quiet' ? 'is-quiet' : '',
+    fresh ? 'is-fresh' : '',
+  ].filter(Boolean).join(' ')
+  const style = { ['--nws-tone' as string]: TONE_COLOR[status.tone] }
+
   const body = (
     <>
-      <div className="nws-story-meta">
-        <span className="nws-cat" style={{ ['--nws-cat' as string]: color }}>
-          <span className="nws-cat-dot" aria-hidden />
-          {CATEGORY_LABEL[story.category]}
-        </span>
-        {story.projectTitle && <span className="nws-story-project">{story.projectTitle}</span>}
-        <span className="nws-story-time">{timeLabel(story.at)}</span>
-      </div>
-      <p className="nws-headline">{story.headline}</p>
-      {story.body && <p className="nws-body">{story.body}</p>}
-      {story.action && (
-        <span className="nws-action">
-          {story.action.label}
-          <ArrowRight size={12} weight="bold" />
-        </span>
-      )}
+      <span className="nws-row-dot" aria-hidden />
+      <span className="nws-row-status">{status.label}</span>
+      <span className="nws-row-title">{story.headline}</span>
+      <span className="nws-row-preview">{story.body ?? CATEGORY_LABEL[story.category]}</span>
+      <span className="nws-row-context">
+        {story.projectTitle && <span className="nws-row-project">{story.projectTitle}</span>}
+        <time className="nws-row-time" dateTime={story.at}>{timeLabel(story.at)}</time>
+      </span>
+      <CaretRight size={13} weight="bold" className="nws-row-caret" />
     </>
   )
 
-  const className = [
-    'nws-story',
-    story.weight === 'lead' ? 'is-lead' : '',
-    story.weight === 'quiet' ? 'is-quiet' : '',
-    story.open ? 'is-open' : '',
-  ].filter(Boolean).join(' ')
-
-  const style = { ['--nws-cat' as string]: color }
-
-  if (!story.href) {
-    return <div className={className} style={style}>{body}</div>
+  if (!href) {
+    return <div className={`${className} is-static`} style={style}>{body}</div>
   }
   return (
-    <Link href={story.action?.href ?? story.href} className={className} style={style}>
-      {body}
-    </Link>
+    <Link href={href} className={className} style={style}>{body}</Link>
   )
 }
 
 function NoWorkspace() {
   return (
-    <div className="nws-state">
-      <strong>Dein Workspace fehlt noch</strong>
-      <p>
-        News erzählt, was in deinen Projekten passiert. Dafür braucht es zuerst einen Workspace —
-        die Umgebung, in der deine Projekte, dein Team und Tagro zusammenarbeiten.
-      </p>
-      <div className="nws-state-actions">
-        <button type="button" className="nws-action" onClick={() => openWorkspaceCreateWizard()}>
-          Workspace erstellen
-          <ArrowRight size={12} weight="bold" />
-        </button>
-      </div>
-    </div>
+    <FestagState
+      kind="empty"
+      title="Dein Workspace fehlt noch"
+      body="News erzählt, was in deinen Projekten passiert. Dafür braucht es zuerst einen Workspace — die Umgebung, in der deine Projekte, dein Team und Tagro zusammenarbeiten."
+      primary={{ label: 'Workspace erstellen', onClick: () => openWorkspaceCreateWizard() }}
+    />
   )
 }
 
 function EmptyNews() {
   return (
-    <div className="nws-state">
-      <strong>Noch keine Neuigkeiten</strong>
-      <p>
-        Hier steht, was in deinen Projekten passiert: Entscheidungen, die deine Freigabe brauchen,
-        fertige Arbeit, erkannte Risiken und die Berichte, die Tagro daraus schreibt.
-        Sobald ein Projekt läuft, füllt sich diese Seite von selbst.
-      </p>
-      <div className="nws-state-actions">
-        <Link href="/new-project" className="nws-action">Projekt anlegen</Link>
-        <Link href="/ai" className="nws-action">
-          <Sparkle size={12} weight="fill" />
-          Mit Tagro starten
-        </Link>
-      </div>
-    </div>
+    <FestagState
+      kind="empty"
+      title="Noch keine Neuigkeiten"
+      body="Hier steht, was in deinen Projekten passiert: Entscheidungen, die deine Freigabe brauchen, fertige Arbeit, erkannte Risiken und die Berichte, die Tagro daraus schreibt. Sobald ein Projekt läuft, füllt sich diese Seite von selbst."
+      primary={{ label: 'Projekt anlegen', href: '/new-project' }}
+      secondary={{ label: 'Mit Tagro starten', href: '/ai' }}
+    />
   )
 }
 
@@ -354,7 +370,10 @@ function timeLabel(iso: string): string {
   if (minutes < 60) return `vor ${minutes} Min.`
   const hours = Math.round(minutes / 60)
   if (hours < 24) return `vor ${hours} Std.`
-  return new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(date)
+  const days = Math.round(hours / 24)
+  if (days === 1) return 'gestern'
+  if (days < 7) return `vor ${days} Tagen`
+  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' }).format(date)
 }
 
 function todayLabel(): string {

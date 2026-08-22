@@ -20,6 +20,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import EmptyState from '@/components/EmptyState'
+import FestagState from '@/components/festag/FestagState'
 import {
   FunnelSimple, ArrowsDownUp, SlidersHorizontal, Plus, PencilSimple, DotsThree,
   User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X, Folder, CaretRight, WaveSine,
@@ -155,6 +156,10 @@ function ProjectsPageInner() {
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [devsByProject, setDevsByProject] = useState<Record<string, DevProfile[]>>({})
   const [loading, setLoading] = useState(true)
+  /* Ohne diesen Zustand blieb die Seite bei einem Fehler für immer auf
+     „Projekte werden geladen…" stehen — die Ladefunktion hatte kein catch,
+     also lief setLoading(false) nie. */
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [showNewProject, setShowNewProject] = useState(false)
   const [filter, setFilter] = useState<FilterId>('all')
   const [sort, setSort] = useState<SortId>('recent')
@@ -181,21 +186,30 @@ function ProjectsPageInner() {
   const supabase = useMemo(() => createClient(), [])
 
   async function loadProjects() {
-    const { data: session } = await supabase.auth.getSession()
-    if (!session.session) { window.location.href = '/login'; return }
-    const uid = session.session.user.id
-    const { data: prof } = await supabase.from('profiles').select('role,approval_status').eq('id', uid).maybeSingle()
-    if ((prof as any)?.role) setUserRole((prof as any).role)
-    setUserApproval((prof as any)?.approval_status ?? 'approved')
-    const [{ data: projectData }, { data: taskData }] = await Promise.all([
-      (supabase as any).from('projects').select('*').order('created_at', { ascending: false }),
-      (supabase as any).from('tasks').select('id,project_id,status,updated_at'),
-    ])
-    const projs = (projectData as ProjectRow[]) ?? []
-    setProjects(projs)
-    setTasks((taskData as TaskRow[]) ?? [])
-    setLoading(false)
-    loadDevs(projs.map(p => p.id))
+    try {
+      const { data: session } = await supabase.auth.getSession()
+      if (!session.session) { window.location.href = '/login'; return }
+      const uid = session.session.user.id
+      const { data: prof } = await supabase.from('profiles').select('role,approval_status').eq('id', uid).maybeSingle()
+      if ((prof as any)?.role) setUserRole((prof as any).role)
+      setUserApproval((prof as any)?.approval_status ?? 'approved')
+      const [{ data: projectData, error: projectError }, { data: taskData }] = await Promise.all([
+        (supabase as any).from('projects').select('*').order('created_at', { ascending: false }),
+        (supabase as any).from('tasks').select('id,project_id,status,updated_at'),
+      ])
+      if (projectError) throw projectError
+      const projs = (projectData as ProjectRow[]) ?? []
+      setProjects(projs)
+      setTasks((taskData as TaskRow[]) ?? [])
+      setLoadError(null)
+      setLoading(false)
+      loadDevs(projs.map(p => p.id))
+    } catch {
+      /* Kein roher Backend-Text an die Oberfläche (§28) — der Satz sagt, was
+         betroffen ist und was als Nächstes geht. */
+      setLoadError('Deine Projekte konnten nicht geladen werden. Es wurde nichts verändert.')
+      setLoading(false)
+    }
   }
 
   async function loadDevs(projectIds: string[]) {
@@ -554,7 +568,14 @@ function ProjectsPageInner() {
             <div className="pj2-divider" aria-hidden />
 
             {loading ? (
-              <div className="pj2-empty">Projekte werden geladen…</div>
+              <FestagState kind="loading" title="Projekte werden geladen…" rows={3} />
+            ) : loadError ? (
+              <FestagState
+                kind="error"
+                title="Projekte sind gerade nicht erreichbar"
+                body={loadError}
+                primary={{ label: 'Erneut versuchen', onClick: () => { setLoading(true); void loadProjects() } }}
+              />
             ) : visible.length === 0 ? (
               filter === 'all' ? (
                 <div style={{ padding: '40px 0' }}>
@@ -568,7 +589,13 @@ function ProjectsPageInner() {
                   />
                 </div>
               ) : (
-                <div className="pj2-empty">Keine Projekte in dieser Sicht.</div>
+                <FestagState
+                  kind="empty"
+                  title="Keine Projekte in dieser Sicht"
+                  body="Der aktive Filter zeigt gerade nichts. Andere Projekte gibt es weiterhin."
+                  primary={{ label: 'Alle Projekte zeigen', onClick: () => setFilter('all') }}
+                  compact
+                />
               )
             ) : (
               visible.map((project, index) => {

@@ -125,7 +125,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg:#FBF7EE; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
   --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
-  --text:#1E1E20; --text-secondary:#5c5c62; --text-muted:#8891a0;
+  /* --text-muted war #8891a0 → 2,97:1 auf dem Sand-Canvas. WCAG AA verlangt
+     4,5:1 für Fließtext, und dieser Ton trägt echte Sätze (Zustandstexte,
+     Beschreibungen), nicht nur Dekor. #667085 hält den kühlen Charakter und
+     erreicht 4,65:1 auf Sand / 4,97:1 auf Weiß. Night bleibt unverändert —
+     dort liegt derselbe Ton schon bei 5,7–6,3:1. */
+  --text:#1E1E20; --text-secondary:#5c5c62; --text-muted:#667085;
   --festag-ink:#1E1E20;
   /* Shared control geometry — soft rects (desktop 6px), not pills. */
   --festag-control-radius: 6px;
@@ -403,7 +408,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg:#FBF7EE; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
   --border:rgba(40,34,28,0.10); --border-strong:rgba(40,34,28,0.16);
-  --text:#1E1E20; --text-secondary:#6E6A62; --text-muted:#8a8378;
+  /* war #8a8378 → 3,51:1. #736C61 bleibt warm, erreicht 4,85:1. */
+  --text:#1E1E20; --text-secondary:#6E6A62; --text-muted:#736C61;
   --festag-ink:#1E1E20;
   --festag-control-radius: 6px;
   --festag-control-radius-sm: 6px;
@@ -486,7 +492,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg:#F5F5F7; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
   --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
-  --text:#1E1E20; --text-secondary:#86868B; --text-muted:#86868B;
+  /* war #86868B → 3,33:1. #6E6E73 bleibt neutral, erreicht 4,66:1. */
+  --text:#1E1E20; --text-secondary:#86868B; --text-muted:#6E6E73;
   --festag-ink:#1E1E20;
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#fafafa;
@@ -690,6 +697,140 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   [data-theme="classic-dark"] body.festag-portal-shell {
     background: var(--festag-black-canvas, #070708) !important;
   }
+/* ═══════════════════════════════════════════════
+   FESTAG SEMANTIC SCALE — die eine Quelle für Rollen
+
+   Vorher gab es drei Grauskalen nebeneinander: die Shell rechnete mit
+   --fas-*, die Seiten mit --dec-*, die Basis mit --text/--border. Dieselbe
+   Rolle kam dadurch in zwei Werten heraus — Haupttext rgb(30,30,32) in der
+   Sidebar gegen rgb(15,15,16) auf der Seite, zwei Rahmen-Grundfarben, zwei
+   Muted-Töne. Sichtbar als "fühlt sich an wie zwei Produkte".
+
+   Diese Skala benennt die Rollen einmal und leitet sie aus den Werten des
+   aktiven Themes ab. --dec-* und --fas-* hängen sich daran (siehe
+   components/decisions/decisions-styles.ts und app-shell-styles.ts), damit
+   alle Flächen dieselbe Sprache sprechen — in Light, Night und Read.
+
+   Neue Flächen benutzen --f-*; die alten Präfixe bleiben als Aliasse
+   bestehen, damit 77 Stylesheets nicht gleichzeitig angefasst werden müssen.
+═══════════════════════════════════════════════ */
+:root {
+  /* Schrift */
+  --f-ink:          var(--text);
+  --f-ink-2:        var(--text-secondary);
+  --f-ink-3:        var(--text-muted);
+  /* Linien */
+  --f-line:         var(--border);
+  --f-line-strong:  var(--border-strong);
+  /* Flächen */
+  --f-canvas:       var(--bg);
+  --f-surface:      var(--surface);
+  --f-surface-2:    var(--surface-2);
+  --f-raised:       var(--raised);
+  /* Bedeutung — Akzent und Status, themeunabhängig lesbar */
+  --f-accent:       #5B647D;
+  --f-ok:           #16a34a;
+  --f-warn:         #ea580c;
+  --f-err:          #dc2626;
+  --f-info:         #6366f1;
+}
+
+/* ═══════════════════════════════════════════════
+   FESTAG STATE — Leer, Lädt, Fehler (components/festag/FestagState.tsx)
+
+   Bewusst hier und nicht in einem weiteren Seiten-Stylesheet: 77 CSS-Strings
+   werden pro Seite eingespritzt, und genau daraus entstehen Flächen, die sich
+   unterschiedlich anfühlen. Zustände gehören zur Basis.
+═══════════════════════════════════════════════ */
+.fst-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  max-width: 46ch;
+  padding: 56px 0;
+}
+.fst-state.is-compact { padding: 28px 0; }
+.fst-state-icon {
+  display: inline-flex;
+  margin-bottom: 3px;
+  color: var(--f-ink-3);
+}
+.fst-state-title {
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--f-ink);
+}
+.fst-state--error .fst-state-title { color: var(--f-ink); }
+.fst-state-body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--f-ink-3);
+  text-wrap: pretty;
+}
+.fst-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 11px;
+}
+.fst-state-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--f-line);
+  background: var(--f-surface);
+  color: var(--f-ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .14s ease, border-color .14s ease;
+}
+.fst-state-btn:hover { border-color: var(--f-line-strong); }
+.fst-state-btn.is-primary {
+  background: var(--f-accent);
+  border-color: transparent;
+  color: #fff;
+}
+.fst-state-btn.is-primary:hover { filter: brightness(1.08); }
+
+/* Lädt: sagt was passiert und deutet die kommende Form an — kein Spinner. */
+.fst-state--loading { max-width: none; padding: 8px 0; gap: 14px; }
+.fst-state-loading-line {
+  margin: 0;
+  font-size: 13px;
+  color: var(--f-ink-3);
+}
+.fst-skeletons { display: flex; flex-direction: column; gap: 2px; width: 100%; max-width: 720px; }
+.fst-skeleton {
+  height: 62px;
+  border-bottom: 1px solid color-mix(in srgb, var(--f-line) 55%, transparent);
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--f-surface-2) 20%, transparent) 25%,
+    color-mix(in srgb, var(--f-surface-2) 44%, transparent) 37%,
+    color-mix(in srgb, var(--f-surface-2) 20%, transparent) 63%);
+  background-size: 400% 100%;
+  animation: fstShimmer 1.4s ease infinite;
+}
+@keyframes fstShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+@media (prefers-reduced-motion: reduce) {
+  .fst-skeleton { animation: none; }
+}
+/* Auf dem Telefon zählt jede Zeile — 56 px Luft über einer Fehlermeldung
+   sind Verschwendung, wenn der Bildschirm 812 px hoch ist. */
+@media (max-width: 768px) {
+  .fst-state { padding: 20px 0 28px; max-width: none; }
+  .fst-state.is-compact { padding: 12px 0 16px; }
+  .fst-state--loading { padding: 4px 0; }
+}
+
 [data-theme="read"] .sidebar-inner {
   background: transparent;
   border-color: transparent;

@@ -16,6 +16,16 @@
  *
  * It renders centred inside whatever content container hosts it, so pages
  * just drop <EmptyState …/> where their "Noch keine …" block used to be.
+ *
+ * ── Wann dieses, wann FestagState? ──────────────────────────────────────
+ * EmptyState  = der große Erstnutzungs-Moment. "Noch kein Projekt." Einmal
+ *               pro Fläche, mit Illustration, verdient den Platz.
+ * FestagState = alles Inline: Laden, Fehler, gefilterte Leere ("keine
+ *               Projekte in dieser Sicht"). Leise, klein, ohne Illustration.
+ *               → components/festag/FestagState.tsx
+ *
+ * Kein drittes Primitiv. Wenn keins von beiden passt, ist die Regel falsch —
+ * dann hier ändern, nicht daneben bauen.
  */
 
 import type { ReactNode } from 'react'
@@ -128,7 +138,9 @@ export default function EmptyState({
           border:1px solid color-mix(in srgb, var(--es-accent) 26%, var(--border));
         }
         .es-title {
-          font-size:17px; font-weight:600; color:var(--text);
+          /* Hierarchie über Größe, nicht Gewicht — dieselbe Regel wie in der
+             Shell (app-shell-styles.ts). 600 war der einzige Ausreißer. */
+          font-size:17px; font-weight:400; color:var(--text);
           letter-spacing:var(--ls-header, .012em); margin:0 0 8px; line-height:1.3;
         }
         .es-desc {
@@ -138,7 +150,7 @@ export default function EmptyState({
         .es-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
         .es-btn {
           display:inline-flex; align-items:center; gap:7px;
-          font-size:13px; font-weight:600; letter-spacing:var(--ls-body, .017em);
+          font-size:13px; font-weight:500; letter-spacing:var(--ls-body, .017em);
           padding:9px 15px; border-radius:8px; cursor:pointer;
           border:1px solid var(--border); background:var(--card); color:var(--text);
           text-decoration:none; transition:background .15s, border-color .15s;

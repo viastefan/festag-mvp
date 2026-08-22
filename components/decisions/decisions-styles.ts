@@ -4,17 +4,22 @@ import {
   FESTAG_MOBILE_HEAD_CSS,
   FESTAG_SCROLL_FADE_CSS,
 } from '@/components/mobile/mobile-codex-list-styles'
+import { FESTAG_ROWS_CSS } from '@/components/festag/festag-rows'
 
 export const DECISION_CSS = `
 ${FESTAG_CONTENT_HEAD_CSS}
 ${FESTAG_MOBILE_HEAD_CSS}
 ${FESTAG_LIST_ROW_HOVER_CSS}
 ${FESTAG_SCROLL_FADE_CSS}
+${FESTAG_ROWS_CSS}
   .dec-os {
-    --dec-soft: var(--portal-muted, #8f93a4);
-    --dec-dark: var(--portal-text, #0f0f10);
+    /* Rollen kommen aus der Festag-Skala (app/globals.css). Vorher stand hier
+       eine eigene Grauskala — Haupttext #0f0f10 gegen #1E1E20 in der Shell —,
+       was dieselbe Seite je nach Fläche anders aussehen ließ. */
+    --dec-soft: var(--f-ink-3);
+    --dec-dark: var(--f-ink);
     --dec-card-bg: var(--portal-card, #F7F7F8);
-    --dec-muted: var(--portal-muted, #71717A);
+    --dec-muted: var(--f-ink-3);
     --dec-pill-surface: var(--portal-pill-bg, #E4E4E7);
     --dec-cta-bg: var(--portal-btn-primary, #2d2e2c);
     --dec-cta-text: var(--portal-btn-primary-text, #FAFAFA);
@@ -32,8 +37,8 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .dec-os,
   [data-theme="classic-dark"] .dec-os {
-    --dec-soft: var(--portal-muted, #9aa0ac);
-    --dec-muted: var(--portal-muted, #9aa0ac);
+    --dec-soft: var(--f-ink-3);
+    --dec-muted: var(--f-ink-3);
     --dec-pill-surface: rgba(255,255,255,.07);
     --dec-cta-bg: #ffffff;
     --dec-cta-text: #121218;

@@ -21,6 +21,7 @@ import TagroContentFab from '@/components/TagroContentFab'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import { openTagro } from '@/components/TagroOverlay'
+import FestagState from '@/components/festag/FestagState'
 
 type Row = {
   id: string                 // user id, or `invite:<id>` for pending
@@ -110,6 +111,10 @@ function toMemberRow(id: string, roleKey: string, joinedAt: unknown, p: any, tea
 export default function MembersPage() {
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(true)
+  /* Der Ladepfad greift roh auf Supabase zu — wirft dort etwas, lief
+     setLoading(false) nie und die Tabelle blieb für immer auf
+     „Mitglieder werden geladen…". Derselbe Fall wie auf /projects. */
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [rows, setRows] = useState<Row[]>([])
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency'>('team')
   const [projects, setProjects] = useState<Array<{ id: string; title: string }>>([])
@@ -124,6 +129,7 @@ export default function MembersPage() {
 
   const loadMembers = useCallback(async () => {
     setLoading(true)
+    try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
     const uid = user.id
@@ -190,7 +196,12 @@ export default function MembersPage() {
         .from('projects').select('id,title').eq('workspace_id', wsId).is('deleted_at', null)
       if (ps) setProjects((ps as any[]).map(p => ({ id: p.id, title: p.title })))
     }
-    setLoading(false)
+      setLoadError(null)
+      setLoading(false)
+    } catch {
+      setLoadError('Die Mitglieder konnten nicht geladen werden. Es wurde nichts verändert.')
+      setLoading(false)
+    }
   }, [supabase])
 
   useEffect(() => { void loadMembers() }, [loadMembers])
@@ -316,7 +327,15 @@ export default function MembersPage() {
 
           <div className="mb-tbody">
             {loading ? (
-              <div className="mb-loading">Mitglieder werden geladen…</div>
+              <FestagState kind="loading" title="Mitglieder werden geladen…" rows={3} compact />
+            ) : loadError ? (
+              <FestagState
+                kind="error"
+                title="Mitglieder sind gerade nicht erreichbar"
+                body={loadError}
+                primary={{ label: 'Erneut versuchen', onClick: () => { void loadMembers() } }}
+                compact
+              />
             ) : rows.map((m) => (
               <button key={m.id} type="button" className={`mb-row${m.id === selectedId ? ' is-selected' : ''}`} onClick={() => pick(m.id)}>
                 <span className="mb-cell mb-cell-name">

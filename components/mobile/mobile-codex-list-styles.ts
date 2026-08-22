@@ -1,7 +1,15 @@
 /** Shared Codex mobile list-page chrome — matches /projects + /decisions. */
 
 /** Festag content-container page header — reuse on new list/detail shells.
- *  Title: Aeonik Regular (400), 29px, letter-spacing -0.5px.
+ *
+ *  Seitentitel-Gesetz: der grosse Titel oben ist **editorial** —
+ *  'Editors Note' Medium (500), wie der Overview-Gruss (.ffl-greet) und .display.
+ *  Er ist die einzige Stelle im Produkt, an der die Editorial-Schrift traegt;
+ *  alles darunter bleibt Aeonik Regular. Diese Regel gilt fuer jede Portalseite,
+ *  weil hier alle Titel-Selektoren zusammenlaufen: Entscheidungen, Aufgaben,
+ *  Dokumente, Projekte und Einstellungen. Wer sie hier aendert, aendert sie
+ *  ueberall — genau darum steht sie nur hier.
+ *
  *  Desktop lead: 17px soft copy only (no dynamic count line under the title).
  *  Mobile: grey subtitle span inside h1 (.festag-m-sub / .pjm-t / .dec-m-sub). */
 export const FESTAG_CONTENT_HEAD_CSS = `
@@ -10,17 +18,19 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   .pj2-page .pj2-page-title,
   .set-codex .set-page-title {
     margin: 0;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-    font-weight: 400 !important;
-    font-size: 29px !important;
-    letter-spacing: -0.5px !important;
-    line-height: 1.02 !important;
+    font-family: var(--font-editorial, 'Editors Note', Georgia, serif) !important;
+    font-weight: 500 !important;
+    /* Editors Note laeuft schmaler als Aeonik — 33px hier entspricht optisch
+       den 29px davor. Der Titel waechst mit der Flaeche, nie ueber 33px. */
+    font-size: clamp(27px, 2.5vw, 33px) !important;
+    letter-spacing: -0.016em !important;
+    line-height: 1.14 !important;
   }
   .festag-page-title span,
   .dec-os .dec-page-title span,
   .pj2-page .pj2-page-title span,
   .set-codex .set-page-title span {
-    font-weight: 400 !important;
+    font-weight: inherit !important;
     font-family: inherit !important;
     letter-spacing: inherit !important;
   }
@@ -98,7 +108,9 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   }
 `
 
-/** Mobile list headers — 1:1 Inbox/Entscheidungen: Aeonik Regular 26px, schwarz + grau. */
+/** Mobile list headers — derselbe Seitentitel wie am Desktop: 'Editors Note'
+ *  Medium, nur kleiner. Das Telefon bekommt keine zweite Typografie; sonst
+ *  liest sich dieselbe Seite auf zwei Geraeten wie zwei Produkte. */
 export const FESTAG_MOBILE_HEAD_CSS = `
   @media (max-width: 768px) {
     .mcl-head-copy h1,
@@ -109,11 +121,11 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .set-codex .set-page-title,
     .ds-mobile-title,
     .dms-title {
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-weight: 400 !important;
-      font-size: 26px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
+      font-family: var(--font-editorial, 'Editors Note', Georgia, serif) !important;
+      font-weight: 500 !important;
+      font-size: 27px !important;
+      letter-spacing: -0.016em !important;
+      line-height: 1.14 !important;
       color: #0F0F10 !important;
       margin: 0 !important;
     }
@@ -128,7 +140,7 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .festag-m-head h1 .pjm-t,
     .dec-m-title h1 .dec-m-t {
       font-size: inherit !important;
-      font-weight: 400 !important;
+      font-weight: inherit !important;
       color: inherit !important;
       letter-spacing: inherit !important;
       line-height: inherit !important;

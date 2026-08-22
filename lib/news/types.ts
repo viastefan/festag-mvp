@@ -54,6 +54,7 @@ export type NewsDigest = {
 
 export type NewsPayload = {
   stories: NewsStory[]
+  reader: NewsReader
   digest: NewsDigest
   projects: { id: string; title: string; color: string | null }[]
   generatedAt: string
@@ -75,4 +76,54 @@ export const CATEGORY_COLOR: Record<NewsCategory, string> = {
   progress: '#5b647d',
   report: '#0ea5e9',
   team: '#8790a5',
+}
+
+/** Who the page greets. Resolved server-side — the page never guesses a name. */
+export type NewsReader = {
+  /** First name if we know one, otherwise a readable fallback. Never an id. */
+  name: string
+}
+
+/**
+ * Wie ein Ton getragen wird: `wait` wartet auf den Leser, `watch` beobachtet,
+ * `good` ist erledigt, `quiet` ist nur Kenntnisnahme.
+ */
+export type NewsTone = 'wait' | 'watch' | 'good' | 'quiet'
+
+export type NewsStatus = {
+  /** Was gerade gilt — in der Sprache des Lesers, nie ein Feldname. */
+  label: string
+  tone: NewsTone
+}
+
+export const TONE_COLOR: Record<NewsTone, string> = {
+  wait: '#D6A34F',
+  watch: '#D86060',
+  good: '#2E9B52',
+  quiet: '#8790a5',
+}
+
+/**
+ * Der Status einer Meldung — eine Stelle, an der entschieden wird, was oben
+ * an einer Zeile steht. Offene Punkte sagen, was sie brauchen; geschlossene
+ * sagen, was passiert ist. Sonst stünde in jeder Oberfläche ein anderes Wort
+ * für denselben Zustand.
+ */
+export function storyStatus(story: Pick<NewsStory, 'category' | 'open'>): NewsStatus {
+  if (story.open) {
+    switch (story.category) {
+      case 'decision': return { label: 'Benötigt Entscheidung', tone: 'wait' }
+      case 'risk': return { label: 'Benötigt Aufmerksamkeit', tone: 'watch' }
+      case 'delivery': return { label: 'Benötigt Abnahme', tone: 'wait' }
+      default: return { label: 'Benötigt dich', tone: 'wait' }
+    }
+  }
+  switch (story.category) {
+    case 'decision': return { label: 'Entschieden', tone: 'quiet' }
+    case 'risk': return { label: 'Geklärt', tone: 'good' }
+    case 'delivery': return { label: 'Geliefert', tone: 'good' }
+    case 'report': return { label: 'Bericht', tone: 'quiet' }
+    case 'team': return { label: 'Team', tone: 'quiet' }
+    default: return { label: 'Fortschritt', tone: 'quiet' }
+  }
 }

@@ -11,7 +11,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { NewsCategory, NewsPayload, NewsStory } from '@/lib/news/types'
+import type { NewsCategory, NewsPayload, NewsReader, NewsStory } from '@/lib/news/types'
 import { resolveWorkspaceAccess } from '@/lib/tasks/access'
 import type { TaskViewerRole } from '@/lib/tasks/lifecycle'
 
@@ -41,13 +41,17 @@ export async function buildNews(
   sb: SupabaseClient<any>,
   userId: string,
 ): Promise<NewsPayload> {
-  const access = await resolveWorkspaceAccess(sb, userId)
+  const [access, reader] = await Promise.all([
+    resolveWorkspaceAccess(sb, userId),
+    resolveReader(sb, userId),
+  ])
   const projectIds = Array.from(access.keys())
   const generatedAt = new Date().toISOString()
 
   if (!projectIds.length) {
     return {
       stories: [],
+      reader,
       digest: { line: 'Noch kein Projekt — sobald eines läuft, erscheint hier, was passiert.', openCount: 0, freshCount: 0 },
       projects: [],
       generatedAt,
@@ -125,6 +129,7 @@ export async function buildNews(
 
   return {
     stories: trimmed,
+    reader,
     digest: {
       line: digestLine(openCount, trimmed),
       openCount,
@@ -133,6 +138,29 @@ export async function buildNews(
     projects,
     generatedAt,
   }
+}
+
+/**
+ * Wie die Seite den Leser anspricht.
+ *
+ * Der Vorname kommt aus dem Profil, nicht aus dem Browser: die Begrüßung ist
+ * Teil der Antwort des Servers, damit sie auf jedem Gerät gleich lautet und
+ * nie kurz "Gast" zeigt, bevor das Profil nachgeladen ist. Nie die E-Mail —
+ * eine Adresse ist kein Name.
+ */
+async function resolveReader(sb: SupabaseClient<any>, userId: string): Promise<NewsReader> {
+  const { data } = await sb
+    .from('profiles').select('full_name,email').eq('id', userId).maybeSingle()
+    .then((r: any) => r, () => ({ data: null }))
+
+  const full = clean(data?.full_name)
+  if (full) {
+    const first = full.split(/\s+/)[0]
+    return { name: first.charAt(0).toUpperCase() + first.slice(1) }
+  }
+  const local = clean(data?.email)?.split('@')[0]?.split(/[._0-9]/)[0]
+  if (local) return { name: local.charAt(0).toUpperCase() + local.slice(1) }
+  return { name: '' }
 }
 
 /** The one sentence at the top. It must be true, and it must be short. */
