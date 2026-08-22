@@ -721,7 +721,12 @@ const WIZARD_CSS = `
   /* Shared slide stack — same padding + hero rhythm on every slide */
   --wc-pad-x: 44px;
   --wc-pad-top: 16px;
-  --wc-pad-bottom: 24px;
+  /* Oben summieren sich Kopfzeile und Koerper auf 42px bis zum ersten Wort
+     (20 + 6 + 16), unten standen 24. Der Dialog sass dadurch sichtbar zu hoch
+     in seiner eigenen Flaeche. 40px unten stellen das Gleichgewicht her —
+     eher etwas mehr als oben, weil eine Flaeche optisch nach unten kippt,
+     wenn beide Raender exakt gleich sind. */
+  --wc-pad-bottom: 40px;
   --wc-stack-gap: 22px;
   --wc-hero-lh: 34px;
   --wc-hero-lines: 2;
@@ -853,24 +858,47 @@ const WIZARD_CSS = `
   width: 100%;
 }
 
+/* ── Warum das Logo nicht buendig stand ──────────────────────────────────
+   Nicht das CSS war schief, sondern die Datei. festag-mark-fluid.png ist
+   1024x1024 gross, die sichtbare Marke liegt darin aber nur zwischen
+   (354, 269) und (735, 691) — links sind 34,6 % der Breite durchsichtig.
+
+   In einem 36px-Kasten heisst das: die Tinte beginnt 12px rechts von der
+   Kastenkante, waehrend der Text darunter exakt am Innenabstand anliegt. Und
+   die Marke fuellt nur gut ein Drittel ihres eigenen Platzes.
+
+   Ausgerichtet wird deshalb auf die Tinte, nicht auf den Kasten: das Bild
+   wird so vergroessert, dass der sichtbare Teil die Hoehe fuellt, und um den
+   gemessenen Rand nach oben und links verschoben. Die Zahlen unten sind
+   ausgerechnet, nicht getastet — 36 / 422 * 1024 = 87.35 fuer die Groesse,
+   354 und 269 als Rand in derselben Skalierung.
+
+   Der saubere Weg waere ein beschnittenes Asset. Bis es das gibt, korrigiert
+   diese Regel die Datei, ohne dass jede weitere Flaeche denselben Fehler
+   nochmal einzeln ausgleichen muss. */
 .wc-os-wordmark {
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: inline-block;
+  overflow: hidden;
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: default;
+  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
 .wc-os-mark {
+  position: absolute;
   display: block;
-  width: 36px;
-  height: 36px;
+  width: 87.35px;
+  height: 87.35px;
+  max-width: none;
+  left: -28.4px;
+  top: -22.9px;
   object-fit: contain;
   filter: var(--wc-mark-filter);
   opacity: var(--wc-mark-opacity);

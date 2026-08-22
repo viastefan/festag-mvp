@@ -231,6 +231,7 @@ html[data-theme="classic-dark"] .fas-sidebar.is-expanded {
   flex-shrink: 0;
 pointer-events: none;
 }
+
 /* Expanded floats over the canvas — do not push the main column. */
 
 .fas-sidebar-top {
