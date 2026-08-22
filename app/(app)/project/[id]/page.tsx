@@ -50,6 +50,7 @@ import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 import { autoAvatarColor, avatarTextColor } from '@/lib/avatar'
 import { getRememberedProfileAvatarColor, subscribeProfileSync } from '@/lib/profile-sync'
+import FestagProjectPeople from '@/components/festag/FestagProjectPeople'
 
 type Project = {
   id: string; title: string; description: string|null; status: string;
@@ -2333,6 +2334,8 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                   </p>
                 )}
               </section>
+
+              <FestagProjectPeople projectId={project.id} projectTitle={project.title} />
 
             </div>
           )}
