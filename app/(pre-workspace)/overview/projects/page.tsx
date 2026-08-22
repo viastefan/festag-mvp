@@ -87,9 +87,15 @@ export default function HomeProjectsPage() {
                 onClick={() => router.push(`/project/${p.id}`)}
               >
                 <div className="fps-row-body">
-                  <span className={`fps-mark${attn ? ` is-attn is-${tone === 'amber' ? 'red' : tone}` : ''}`} aria-hidden>
-                    {attn ? <span className="fps-mark-dot" /> : <Check size={10} weight="bold" />}
-                  </span>
+                  {p.coverUrl ? (
+                    /* Das Bild uebernimmt den Slot der Marke. Der Zustand steht
+                       ohnehin rechts als Wort — hier haette er ihn nur doppelt. */
+                    <img src={p.coverUrl} alt="" className="fps-cover" />
+                  ) : (
+                    <span className={`fps-mark${attn ? ` is-attn is-${tone === 'amber' ? 'red' : tone}` : ''}`} aria-hidden>
+                      {attn ? <span className="fps-mark-dot" /> : <Check size={10} weight="bold" />}
+                    </span>
+                  )}
                   <span className="fps-row-copy">
                     <span className="fps-row-title">{p.title}</span>
                     <span className="fps-row-sub">{projectSubline(p)}</span>

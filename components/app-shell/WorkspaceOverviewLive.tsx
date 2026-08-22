@@ -79,6 +79,7 @@ export type OverviewPayload = {
     health: 'healthy' | 'watch' | 'risk' | 'blocked'
     status: string | null
     nextMilestone: string | null
+    coverUrl?: string | null
   }>
   tasks?: Array<{
     id: string

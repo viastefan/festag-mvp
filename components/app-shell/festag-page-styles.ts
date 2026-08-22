@@ -188,6 +188,22 @@ button.fps-row:focus-visible, a.fps-row:focus-visible {
 .fps-row:hover .fps-chev { color: rgba(30, 30, 32, 0.45); }
 
 /* Same mark language as the dashboard: check = calm, dot = worth a look. */
+/* Titelbild-Slot in der Projektzeile.
+   Er ist immer da, auch ohne Bild — sonst haetten Zeilen mit und ohne Cover
+   verschiedene Titelkanten, und die Liste haette dasselbe Problem wie vorher
+   die Seiten: eine Kante, die wandert. Ohne Bild steht die Gesundheitsmarke
+   an dieser Stelle; der Zustand geht also nicht verloren, er teilt sich den
+   Platz mit der Identitaet. */
+.fps-cover {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-chip, 8px);
+  object-fit: cover;
+  display: block;
+  background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+}
+
 .fps-mark {
   display: inline-flex;
   align-items: center;

@@ -13,6 +13,8 @@ import { readActiveWorkspaceIdFromCookie } from '@/lib/active-workspace'
 
 export const runtime = 'nodejs'
 
+import { signCovers } from '@/lib/projects/cover'
+
 export type WorkspaceOverviewProject = {
   id: string
   title: string
@@ -21,6 +23,8 @@ export type WorkspaceOverviewProject = {
   health: 'healthy' | 'watch' | 'risk' | 'blocked'
   status: string | null
   nextMilestone: string | null
+  /** Signierter Link auf das Titelbild. Null, wenn keines gesetzt ist. */
+  coverUrl: string | null
 }
 
 export type WorkspaceOverviewTask = {
@@ -139,9 +143,13 @@ export async function GET(req: NextRequest) {
 
   let projectsRaw: any[] = []
   {
+    /* cover_path steht bewusst nur in der Primaerabfrage. Faellt sie aus —
+       weil die Cover-Migration auf dieser Datenbank noch nicht liegt —, greift
+       das bestehende Fallback ohne die Spalte: dann fehlen die Titelbilder,
+       aber die Uebersicht steht. Eine neue Spalte darf keine Seite umlegen. */
     const primary = await service
       .from('projects')
-      .select('id, title, status, updated_at')
+      .select('id, title, status, updated_at, cover_path')
       .eq('workspace_id', workspace.id)
       .is('deleted_at', null)
       .order('updated_at', { ascending: false })
@@ -296,6 +304,14 @@ export async function GET(req: NextRequest) {
     return 'healthy'
   }
 
+  /* Ein Roundtrip fuer alle Titelbilder statt einer pro Projekt. Bei
+     vierundzwanzig Projekten ist das der Unterschied zwischen einer Abfrage
+     und vierundzwanzig. */
+  const coverUrls = await signCovers(
+    service as any,
+    projectsRaw.map((p: any) => String(p.cover_path || '')).filter(Boolean),
+  )
+
   const projects: WorkspaceOverviewProject[] = projectsRaw.map((p: any) => {
     const taskStats = tasksDoneByProject.get(p.id)
     const fromTasks =
@@ -319,6 +335,7 @@ export async function GET(req: NextRequest) {
       health: deriveHealth(p.id),
       status: typeof p.status === 'string' ? p.status : null,
       nextMilestone: milestoneByProject.get(p.id) || null,
+      coverUrl: coverUrls.get(String(p.cover_path || '')) || null,
     }
   })
 
